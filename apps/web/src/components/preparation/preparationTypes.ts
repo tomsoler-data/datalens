@@ -68,9 +68,22 @@ export type PreparationWorkflowSnapshot = {
   not_started_count:
     number;
 
+  /*
+   * Immutable Preparation roots.
+   */
   selected_analysis_dataset_ids:
     string[];
 
+  /*
+   * Final materialized datasets explicitly selected
+   * for analytical execution.
+   */
+  analysis_output_dataset_ids:
+    string[];
+
+  /*
+   * Final analytical outputs certified by VALIDATE.
+   */
   validated_analysis_dataset_ids:
     string[];
 
@@ -105,7 +118,16 @@ export type PreparationSessionView = {
   revision:
     number;
 
+  /*
+   * Immutable Preparation roots.
+   */
   selected_analysis_dataset_ids:
+    string[];
+
+  /*
+   * Final analytical output scope.
+   */
+  analysis_output_dataset_ids:
     string[];
 
   snapshot:
@@ -135,6 +157,9 @@ export type PreparationSessionCapabilities = {
   client_can_set_ready_for_analysis:
     boolean;
 
+  client_can_select_analysis_output:
+    boolean;
+
   notes:
     string[];
 };
@@ -143,4 +168,71 @@ export type PreparationSessionCapabilities = {
 export type CreatePreparationSessionRequest = {
   selected_analysis_dataset_ids:
     string[];
+};
+
+
+export type PreparationAnalysisOutputCandidate = {
+  dataset_id:
+    string;
+
+  dataset_filename:
+    string;
+
+  stage:
+    "source" |
+    "clean" |
+    "transform" |
+    "combine" |
+    string;
+
+  rows:
+    number;
+
+  columns:
+    number;
+
+  parent_dataset_ids:
+    string[];
+
+  evidence_refs:
+    string[];
+
+  is_root_dataset:
+    boolean;
+
+  is_selected:
+    boolean;
+
+  is_validated:
+    boolean;
+};
+
+
+export type PreparationAnalysisOutputCandidatesResponse = {
+  workflow_id:
+    string;
+
+  revision:
+    number;
+
+  selected_analysis_dataset_ids:
+    string[];
+
+  analysis_output_dataset_ids:
+    string[];
+
+  validated_analysis_dataset_ids:
+    string[];
+
+  locked:
+    boolean;
+
+  candidate_count:
+    number;
+
+  candidates:
+    PreparationAnalysisOutputCandidate[];
+
+  api_version:
+    string;
 };

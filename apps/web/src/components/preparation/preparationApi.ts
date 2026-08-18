@@ -1,5 +1,6 @@
 import type {
   CreatePreparationSessionRequest,
+  PreparationAnalysisOutputCandidatesResponse,
   PreparationSessionCapabilities,
   PreparationSessionView,
 } from "./preparationTypes";
@@ -192,6 +193,66 @@ async function requireSuccessfulJson<
 }
 
 
+function normalizeWorkflowId(
+  workflowId:
+    string
+): string {
+  const normalizedId =
+    workflowId.trim();
+
+
+  if (
+    !normalizedId
+  ) {
+    throw (
+      new Error(
+        "workflow_id est requis."
+      )
+    );
+  }
+
+
+  return normalizedId;
+}
+
+
+function normalizeDatasetIds(
+  datasetIds:
+    string[]
+): string[] {
+  const normalizedIds =
+    Array.from(
+      new Set(
+        datasetIds
+          .map(
+            (
+              datasetId
+            ) =>
+              datasetId.trim()
+          )
+          .filter(
+            Boolean
+          )
+      )
+    );
+
+
+  if (
+    normalizedIds.length ===
+      0
+  ) {
+    throw (
+      new Error(
+        "Au moins un dataset doit être sélectionné."
+      )
+    );
+  }
+
+
+  return normalizedIds;
+}
+
+
 export async function getPreparationSessionCapabilities(
   signal?:
     AbortSignal
@@ -233,32 +294,9 @@ export async function createPreparationSession(
   PreparationSessionView
 > {
   const normalizedIds =
-    Array.from(
-      new Set(
-        datasetIds
-          .map(
-            (
-              datasetId
-            ) =>
-              datasetId.trim()
-          )
-          .filter(
-            Boolean
-          )
-      )
+    normalizeDatasetIds(
+      datasetIds
     );
-
-
-  if (
-    normalizedIds.length ===
-      0
-  ) {
-    throw (
-      new Error(
-        "Au moins un dataset est requis pour créer la session de préparation."
-      )
-    );
-  }
 
 
   const body:
@@ -310,18 +348,9 @@ export async function getPreparationSession(
   PreparationSessionView
 > {
   const normalizedId =
-    workflowId.trim();
-
-
-  if (
-    !normalizedId
-  ) {
-    throw (
-      new Error(
-        "workflow_id est requis."
-      )
+    normalizeWorkflowId(
+      workflowId
     );
-  }
 
 
   const response =
@@ -355,6 +384,114 @@ export async function getPreparationSession(
 }
 
 
+export async function getPreparationAnalysisOutputCandidates(
+  workflowId:
+    string,
+
+  signal?:
+    AbortSignal
+): Promise<
+  PreparationAnalysisOutputCandidatesResponse
+> {
+  const normalizedId =
+    normalizeWorkflowId(
+      workflowId
+    );
+
+
+  const response =
+    await fetch(
+      `${
+        API_URL
+      }/preparation/sessions/${
+        encodeURIComponent(
+          normalizedId
+        )
+      }/analysis-output-candidates`,
+      {
+        method:
+          "GET",
+
+        cache:
+          "no-store",
+
+        signal,
+      }
+    );
+
+
+  return (
+    requireSuccessfulJson<
+      PreparationAnalysisOutputCandidatesResponse
+    >(
+      response
+    )
+  );
+}
+
+
+export async function selectPreparationAnalysisOutput(
+  workflowId:
+    string,
+
+  datasetIds:
+    string[],
+
+  signal?:
+    AbortSignal
+): Promise<
+  PreparationSessionView
+> {
+  const normalizedWorkflowId =
+    normalizeWorkflowId(
+      workflowId
+    );
+
+
+  const normalizedDatasetIds =
+    normalizeDatasetIds(
+      datasetIds
+    );
+
+
+  const response =
+    await fetch(
+      `${API_URL}/preparation/analysis-output`,
+      {
+        method:
+          "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+
+        body:
+          JSON.stringify(
+            {
+              workflow_id:
+                normalizedWorkflowId,
+
+              dataset_ids:
+                normalizedDatasetIds,
+            }
+          ),
+
+        signal,
+      }
+    );
+
+
+  return (
+    requireSuccessfulJson<
+      PreparationSessionView
+    >(
+      response
+    )
+  );
+}
+
+
 export async function validatePreparationSession(
   workflowId:
     string,
@@ -365,18 +502,9 @@ export async function validatePreparationSession(
   PreparationSessionView
 > {
   const normalizedId =
-    workflowId.trim();
-
-
-  if (
-    !normalizedId
-  ) {
-    throw (
-      new Error(
-        "workflow_id est requis."
-      )
+    normalizeWorkflowId(
+      workflowId
     );
-  }
 
 
   const response =

@@ -1,32 +1,152 @@
-"use client";
+﻿"use client";
+
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
+import {
+  getPreparationAnalysisOutputCandidates,
+  selectPreparationAnalysisOutput,
+} from "./preparationApi";
 
 import type {
+  PreparationAnalysisOutputCandidate,
+  PreparationAnalysisOutputCandidatesResponse,
   PreparationSessionView,
   PreparationStageRecord,
+  PreparationStageStatus,
 } from "./preparationTypes";
+
+import styles from "./PreparationFinalizationPanel.module.css";
 
 
 type PreparationFinalizationPanelProps = {
-  session: PreparationSessionView | null;
-  loading: boolean;
-  error: string | null;
-  onValidate: () => void;
+  session:
+    PreparationSessionView |
+    null;
+
+  loading:
+    boolean;
+
+  error:
+    string |
+    null;
+
+  onValidate:
+    () => void;
 };
 
 
 function findStage(
-  session: PreparationSessionView,
-  name: PreparationStageRecord["stage"]
+  session:
+    PreparationSessionView,
+
+  name:
+    PreparationStageRecord[
+      "stage"
+    ]
 ): PreparationStageRecord | null {
   return (
-    session.snapshot.stages.find(
-      (
-        stage
-      ) =>
-        stage.stage ===
-        name
-    ) ??
+    session
+      .snapshot
+      .stages
+      .find(
+        (
+          stage
+        ) =>
+          stage.stage ===
+          name
+      ) ??
     null
+  );
+}
+
+
+function stageStatusLabel(
+  status:
+    PreparationStageStatus |
+    undefined
+): string {
+  switch (
+    status
+  ) {
+    case "passed":
+      return "Validé";
+
+    case "skipped":
+      return "Non requis";
+
+    case "review_required":
+      return "Revue requise";
+
+    case "blocked":
+      return "Bloqué";
+
+    case "not_started":
+    default:
+      return "À faire";
+  }
+}
+
+
+function artifactStageLabel(
+  candidate:
+    PreparationAnalysisOutputCandidate
+): string {
+  switch (
+    candidate.stage
+  ) {
+    case "combine":
+      return "Combiné";
+
+    case "transform":
+      return "Transformé";
+
+    case "clean":
+      return "Nettoyé";
+
+    case "source":
+      return "Source";
+
+    default:
+      return candidate.stage;
+  }
+}
+
+
+function sameDatasetSelection(
+  left:
+    string[],
+
+  right:
+    string[]
+): boolean {
+  if (
+    left.length !==
+    right.length
+  ) {
+    return false;
+  }
+
+
+  const leftSorted =
+    [...left].sort();
+
+  const rightSorted =
+    [...right].sort();
+
+
+  return leftSorted.every(
+    (
+      datasetId,
+      index
+    ) =>
+      datasetId ===
+      rightSorted[
+        index
+      ]
   );
 }
 
@@ -37,6 +157,196 @@ export default function PreparationFinalizationPanel({
   error,
   onValidate,
 }: PreparationFinalizationPanelProps) {
+  const [
+    localSession,
+    setLocalSession,
+  ] = useState<
+    PreparationSessionView |
+    null
+  >(
+    session
+  );
+
+
+  const [
+    candidatesResponse,
+    setCandidatesResponse,
+  ] = useState<
+    PreparationAnalysisOutputCandidatesResponse |
+    null
+  >(
+    null
+  );
+
+
+  const [
+    candidateLoading,
+    setCandidateLoading,
+  ] = useState(
+    false
+  );
+
+
+  const [
+    candidateError,
+    setCandidateError,
+  ] = useState<
+    string |
+    null
+  >(
+    null
+  );
+
+
+  const [
+    selectionLoading,
+    setSelectionLoading,
+  ] = useState(
+    false
+  );
+
+
+  const [
+    selectionError,
+    setSelectionError,
+  ] = useState<
+    string |
+    null
+  >(
+    null
+  );
+
+
+  const [
+    draftDatasetIds,
+    setDraftDatasetIds,
+  ] = useState<
+    string[]
+  >(
+    session
+      ?.analysis_output_dataset_ids ??
+    []
+  );
+
+
+  useEffect(
+    () => {
+      setLocalSession(
+        session
+      );
+
+
+      setDraftDatasetIds(
+        session
+          ?.analysis_output_dataset_ids ??
+        []
+      );
+    },
+    [
+      session,
+    ]
+  );
+
+
+  useEffect(
+    () => {
+      const currentSession =
+        session;
+
+
+      if (
+        currentSession ===
+        null
+      ) {
+        setCandidatesResponse(
+          null
+        );
+
+        setCandidateError(
+          null
+        );
+
+        return;
+      }
+
+
+      const workflowId =
+        currentSession.workflow_id;
+
+
+      const controller =
+        new AbortController();
+
+
+      async function loadCandidates() {
+        setCandidateLoading(
+          true
+        );
+
+        setCandidateError(
+          null
+        );
+
+
+        try {
+          const response =
+            await getPreparationAnalysisOutputCandidates(
+              workflowId,
+              controller.signal
+            );
+
+
+          setCandidatesResponse(
+            response
+          );
+
+
+          setDraftDatasetIds(
+            response
+              .analysis_output_dataset_ids
+          );
+        } catch (
+          caughtError
+        ) {
+          if (
+            controller.signal.aborted
+          ) {
+            return;
+          }
+
+
+          setCandidateError(
+            caughtError
+              instanceof Error
+              ? caughtError.message
+              : "Impossible de charger les sorties de préparation disponibles."
+          );
+        } finally {
+          if (
+            !controller.signal.aborted
+          ) {
+            setCandidateLoading(
+              false
+            );
+          }
+        }
+      }
+
+
+      void loadCandidates();
+
+
+      return () => {
+        controller.abort();
+      };
+    },
+    [
+      session
+        ?.workflow_id,
+    ]
+  );
+
+
   if (
     session ===
     null
@@ -45,21 +355,78 @@ export default function PreparationFinalizationPanel({
   }
 
 
+  const effectiveSession =
+    localSession ??
+    session;
+
+
   const snapshot =
-    session.snapshot;
+    effectiveSession.snapshot;
 
 
   const clean =
     findStage(
-      session,
+      effectiveSession,
       "clean"
+    );
+
+
+  const transform =
+    findStage(
+      effectiveSession,
+      "transform"
+    );
+
+
+  const combine =
+    findStage(
+      effectiveSession,
+      "combine"
     );
 
 
   const validate =
     findStage(
-      session,
+      effectiveSession,
       "validate"
+    );
+
+
+  const rootDatasetIds =
+    snapshot
+      .selected_analysis_dataset_ids;
+
+
+  const analysisOutputDatasetIds =
+    snapshot
+      .analysis_output_dataset_ids;
+
+
+  const validatedDatasetIds =
+    snapshot
+      .validated_analysis_dataset_ids;
+
+
+  const outputSelected =
+    analysisOutputDatasetIds.length >
+    0;
+
+
+  const validatedDatasetSet =
+    new Set(
+      validatedDatasetIds
+    );
+
+
+  const allOutputsValidated =
+    outputSelected &&
+    analysisOutputDatasetIds.every(
+      (
+        datasetId
+      ) =>
+        validatedDatasetSet.has(
+          datasetId
+        )
     );
 
 
@@ -67,312 +434,757 @@ export default function PreparationFinalizationPanel({
     snapshot.ready_for_analysis;
 
 
+  const selectionLocked =
+    ready ||
+    candidatesResponse
+      ?.locked ===
+      true;
+
+
   const canValidate =
     !ready &&
+    outputSelected &&
     snapshot.next_stage ===
       "validate";
 
 
+  const candidates =
+    candidatesResponse
+      ?.candidates ??
+    [];
+
+
+  const draftChanged =
+    !sameDatasetSelection(
+      draftDatasetIds,
+      analysisOutputDatasetIds
+    );
+
+
+  const canCommitSelection =
+    !selectionLocked &&
+    !selectionLoading &&
+    draftDatasetIds.length >
+      0 &&
+    draftChanged;
+
+
+  const selectedCandidateNames =
+    useMemo(
+      () => {
+        const filenameById =
+          new Map(
+            candidates.map(
+              (
+                candidate
+              ) => [
+                candidate.dataset_id,
+                candidate.dataset_filename,
+              ]
+            )
+          );
+
+
+        return analysisOutputDatasetIds.map(
+          (
+            datasetId
+          ) =>
+            filenameById.get(
+              datasetId
+            ) ??
+            datasetId
+        );
+      },
+      [
+        candidates,
+        analysisOutputDatasetIds,
+      ]
+    );
+
+
+  function toggleCandidate(
+    datasetId:
+      string
+  ) {
+    if (
+      selectionLocked ||
+      selectionLoading
+    ) {
+      return;
+    }
+
+
+    setSelectionError(
+      null
+    );
+
+
+    setDraftDatasetIds(
+      (
+        current
+      ) =>
+        current.includes(
+          datasetId
+        )
+          ? current.filter(
+              (
+                currentId
+              ) =>
+                currentId !==
+                datasetId
+            )
+          : [
+              ...current,
+              datasetId,
+            ]
+    );
+  }
+
+
+  async function handleCommitSelection() {
+    if (
+      !canCommitSelection
+    ) {
+      return;
+    }
+
+
+    setSelectionLoading(
+      true
+    );
+
+    setSelectionError(
+      null
+    );
+
+
+    try {
+      const updatedSession =
+        await selectPreparationAnalysisOutput(
+          effectiveSession.workflow_id,
+          draftDatasetIds
+        );
+
+
+      setLocalSession(
+        updatedSession
+      );
+
+
+      setDraftDatasetIds(
+        updatedSession
+          .analysis_output_dataset_ids
+      );
+
+
+      const refreshedCandidates =
+        await getPreparationAnalysisOutputCandidates(
+          updatedSession.workflow_id
+        );
+
+
+      setCandidatesResponse(
+        refreshedCandidates
+      );
+    } catch (
+      caughtError
+    ) {
+      setSelectionError(
+        caughtError
+          instanceof Error
+          ? caughtError.message
+          : "La sélection de la sortie analytique a échoué."
+      );
+    } finally {
+      setSelectionLoading(
+        false
+      );
+    }
+  }
+
+
+  const validationStatusText =
+    ready
+      ? "✓ READY FOR ANALYSIS"
+      : validate?.status ===
+          "blocked"
+        ? "× VALIDATION BLOQUÉE"
+        : !outputSelected
+          ? "SORTIE FINALE À SÉLECTIONNER"
+          : "VALIDATION EN ATTENTE";
+
+
+  const headline =
+    ready
+      ? "Préparation validée pour l’analyse"
+      : !outputSelected
+        ? "Choisissez la sortie analytique finale"
+        : canValidate
+          ? "La préparation peut être validée"
+          : "Terminez les étapes précédentes";
+
+
   return (
     <section
-      style={{
-        marginTop:
-          "12px",
-
-        padding:
-          "16px",
-
-        border:
+      className={
+        `${styles.panel} ${
           ready
-            ? "1px solid rgba(122,203,160,0.2)"
-            : "1px solid rgba(126,177,255,0.14)",
-
-        borderRadius:
-          "14px",
-
-        background:
-          ready
-            ? "rgba(122,203,160,0.018)"
-            : "rgba(72,121,200,0.018)",
-      }}
+            ? styles.panelReady
+            : ""
+        }`
+      }
+      aria-labelledby="preparation-finalization-title"
     >
-      <div
-        style={{
-          display:
-            "flex",
-
-          justifyContent:
-            "space-between",
-
-          alignItems:
-            "flex-start",
-
-          gap:
-            "14px",
-
-          flexWrap:
-            "wrap",
-        }}
+      <header
+        className={
+          styles.header
+        }
       >
-        <div>
+        <div
+          className={
+            styles.headerCopy
+          }
+        >
           <span
-            style={{
-              display:
-                "block",
-
-              fontSize:
-                "0.59rem",
-
-              textTransform:
-                "uppercase",
-
-              letterSpacing:
-                "0.07em",
-
-              opacity:
-                0.46,
-            }}
+            className={
+              styles.eyebrow
+            }
           >
             Validation finale
           </span>
 
-          <strong
-            style={{
-              display:
-                "block",
-
-              marginTop:
-                "5px",
-
-              fontSize:
-                "0.86rem",
-            }}
+          <h3
+            id="preparation-finalization-title"
           >
             {
-              ready
-                ? "Préparation validée pour l’analyse"
-                : canValidate
-                  ? "Tous les prérequis peuvent être contrôlés"
-                  : "Terminez les étapes précédentes"
+              headline
             }
-          </strong>
+          </h3>
 
-          <p
-            style={{
-              margin:
-                "6px 0 0",
-
-              maxWidth:
-                "720px",
-
-              fontSize:
-                "0.64rem",
-
-              lineHeight:
-                1.5,
-
-              opacity:
-                0.56,
-            }}
-          >
-            Le navigateur n’envoie jamais un statut PASS.
-            FastAPI relit la session, vérifie les preuves et
-            décide seul si le dataset peut entrer dans le moteur
-            analytique.
+          <p>
+            L’analyste choisit le ou les artefacts matérialisés
+            qui doivent entrer dans l’analyse. Le serveur contrôle
+            ensuite la lineage, verrouille cette sélection après
+            VALIDATE et reste seul responsable de READY FOR ANALYSIS.
           </p>
         </div>
 
-
         <span
-          style={{
-            padding:
-              "5px 8px",
-
-            border:
+          className={
+            `${styles.readinessBadge} ${
               ready
-                ? "1px solid rgba(122,203,160,0.2)"
-                : "1px solid rgba(126,177,255,0.14)",
-
-            borderRadius:
-              "999px",
-
-            fontSize:
-              "0.55rem",
-
-            fontWeight:
-              700,
-          }}
+                ? styles.readinessBadgeReady
+                : validate?.status ===
+                    "blocked"
+                  ? styles.readinessBadgeBlocked
+                  : ""
+            }`
+          }
         >
           {
-            ready
-              ? "✓ READY FOR ANALYSIS"
-              : validate?.status ===
-                  "blocked"
-                ? "× VALIDATION BLOQUÉE"
-                : "VALIDATION EN ATTENTE"
+            validationStatusText
           }
         </span>
-      </div>
+      </header>
+
+
+      <section
+        className={
+          styles.selectionSection
+        }
+        aria-labelledby="analysis-output-selection-title"
+      >
+        <div
+          className={
+            styles.sectionHeading
+          }
+        >
+          <div>
+            <span
+              className={
+                styles.eyebrow
+              }
+            >
+              Scope analytique
+            </span>
+
+            <h4
+              id="analysis-output-selection-title"
+            >
+              Sorties disponibles
+            </h4>
+
+            <p>
+              Sélectionnez uniquement les datasets réellement
+              nécessaires à l’analyse. Une sortie issue de COMBINE,
+              TRANSFORM ou CLEAN peut remplacer ses datasets source.
+            </p>
+          </div>
+
+          <div
+            className={
+              styles.selectionCount
+            }
+          >
+            <strong>
+              {
+                draftDatasetIds.length
+              }
+            </strong>
+
+            <span>
+              sélectionné
+              {
+                draftDatasetIds.length >
+                1
+                  ? "s"
+                  : ""
+              }
+            </span>
+          </div>
+        </div>
+
+
+        {
+          candidateLoading &&
+          candidates.length ===
+            0
+            ? (
+                <div
+                  className={
+                    styles.loadingState
+                  }
+                >
+                  Lecture des artefacts matérialisés…
+                </div>
+              )
+            : null
+        }
+
+
+        {
+          !candidateLoading &&
+          candidates.length ===
+            0 &&
+          !candidateError
+            ? (
+                <div
+                  className={
+                    styles.emptyState
+                  }
+                >
+                  Aucune sortie matérialisée n’est encore disponible.
+                  Revenez aux étapes de préparation précédentes.
+                </div>
+              )
+            : null
+        }
+
+
+        {
+          candidates.length >
+          0
+            ? (
+                <div
+                  className={
+                    styles.candidateGrid
+                  }
+                >
+                  {
+                    candidates.map(
+                      (
+                        candidate,
+                        index
+                      ) => {
+                        const checked =
+                          draftDatasetIds.includes(
+                            candidate.dataset_id
+                          );
+
+                        const recommended =
+                          index ===
+                          0;
+
+                        return (
+                          <label
+                            key={
+                              candidate.dataset_id
+                            }
+                            className={
+                              `${styles.candidate} ${
+                                checked
+                                  ? styles.candidateSelected
+                                  : ""
+                              } ${
+                                candidate.is_validated
+                                  ? styles.candidateValidated
+                                  : ""
+                              }`
+                            }
+                          >
+                            <input
+                              type="checkbox"
+                              checked={
+                                checked
+                              }
+                              disabled={
+                                selectionLocked ||
+                                selectionLoading
+                              }
+                              onChange={
+                                () =>
+                                  toggleCandidate(
+                                    candidate.dataset_id
+                                  )
+                              }
+                            />
+
+                            <div
+                              className={
+                                styles.candidateMain
+                              }
+                            >
+                              <div
+                                className={
+                                  styles.candidateTop
+                                }
+                              >
+                                <div>
+                                  <span
+                                    className={
+                                      styles.candidateStage
+                                    }
+                                  >
+                                    {
+                                      artifactStageLabel(
+                                        candidate
+                                      )
+                                    }
+                                  </span>
+
+                                  <strong>
+                                    {
+                                      candidate.dataset_filename
+                                    }
+                                  </strong>
+                                </div>
+
+                                <div
+                                  className={
+                                    styles.candidateBadges
+                                  }
+                                >
+                                  {
+                                    recommended
+                                      ? (
+                                          <span>
+                                            Prioritaire
+                                          </span>
+                                        )
+                                      : null
+                                  }
+
+                                  {
+                                    candidate.is_root_dataset
+                                      ? (
+                                          <span>
+                                            Source
+                                          </span>
+                                        )
+                                      : null
+                                  }
+
+                                  {
+                                    candidate.is_validated
+                                      ? (
+                                          <span
+                                            className={
+                                              styles.validatedBadge
+                                            }
+                                          >
+                                            Certifié
+                                          </span>
+                                        )
+                                      : null
+                                  }
+                                </div>
+                              </div>
+
+                              <div
+                                className={
+                                  styles.candidateMetrics
+                                }
+                              >
+                                <span>
+                                  {
+                                    candidate.rows
+                                      .toLocaleString(
+                                        "fr-FR"
+                                      )
+                                  }
+                                  {" lignes"}
+                                </span>
+
+                                <span>
+                                  {
+                                    candidate.columns
+                                      .toLocaleString(
+                                        "fr-FR"
+                                      )
+                                  }
+                                  {" colonnes"}
+                                </span>
+
+                                <span>
+                                  {
+                                    candidate.dataset_id
+                                  }
+                                </span>
+                              </div>
+
+                              {
+                                candidate
+                                  .parent_dataset_ids
+                                  .length >
+                                0
+                                  ? (
+                                      <p
+                                        className={
+                                          styles.lineage
+                                        }
+                                      >
+                                        Parents ·
+                                        {" "}
+                                        {
+                                          candidate
+                                            .parent_dataset_ids
+                                            .join(
+                                              " · "
+                                            )
+                                        }
+                                      </p>
+                                    )
+                                  : (
+                                      <p
+                                        className={
+                                          styles.lineage
+                                        }
+                                      >
+                                        Dataset racine importé
+                                      </p>
+                                    )
+                              }
+                            </div>
+
+                            <span
+                              className={
+                                styles.checkVisual
+                              }
+                              aria-hidden="true"
+                            >
+                              {
+                                checked
+                                  ? "✓"
+                                  : ""
+                              }
+                            </span>
+                          </label>
+                        );
+                      }
+                    )
+                  }
+                </div>
+              )
+            : null
+        }
+
+
+        {
+          candidateError
+            ? (
+                <p
+                  className={
+                    styles.error
+                  }
+                >
+                  {
+                    candidateError
+                  }
+                </p>
+              )
+            : null
+        }
+
+
+        {
+          selectionError
+            ? (
+                <p
+                  className={
+                    styles.error
+                  }
+                >
+                  {
+                    selectionError
+                  }
+                </p>
+              )
+            : null
+        }
+
+
+        <div
+          className={
+            styles.selectionFooter
+          }
+        >
+          <div>
+            {
+              selectionLocked
+                ? (
+                    <p>
+                      La sélection est verrouillée après validation.
+                    </p>
+                  )
+                : outputSelected
+                  ? (
+                      <p>
+                        Scope actuellement committé ·
+                        {" "}
+                        {
+                          selectedCandidateNames.join(
+                            " · "
+                          )
+                        }
+                      </p>
+                    )
+                  : (
+                      <p>
+                        Aucune sortie finale n’est encore committée.
+                      </p>
+                    )
+            }
+
+            {
+              draftChanged
+                ? (
+                    <small>
+                      Les changements ci-dessus ne sont pas encore enregistrés côté serveur.
+                    </small>
+                  )
+                : null
+            }
+          </div>
+
+          <button
+            type="button"
+            className={
+              styles.secondaryButton
+            }
+            disabled={
+              !canCommitSelection
+            }
+            onClick={
+              handleCommitSelection
+            }
+          >
+            {
+              selectionLoading
+                ? "Enregistrement…"
+                : outputSelected
+                  ? "Mettre à jour la sélection"
+                  : "Confirmer la sélection"
+            }
+          </button>
+        </div>
+      </section>
 
 
       <div
-        style={{
-          display:
-            "grid",
-
-          gridTemplateColumns:
-            "repeat(auto-fit, minmax(150px, 1fr))",
-
-          gap:
-            "8px",
-
-          marginTop:
-            "13px",
-        }}
+        className={
+          styles.statusGrid
+        }
       >
-        <article
-          style={{
-            padding:
-              "10px",
+        <article>
+          <span>
+            Datasets source
+          </span>
 
-            border:
-              "1px solid rgba(255,255,255,0.05)",
+          <strong>
+            {
+              rootDatasetIds.length
+            }
+          </strong>
+        </article>
 
-            borderRadius:
-              "9px",
-          }}
-        >
-          <span
-            style={{
-              display:
-                "block",
-
-              fontSize:
-                "0.55rem",
-
-              opacity:
-                0.46,
-            }}
-          >
+        <article>
+          <span>
             Nettoyage
           </span>
 
-          <strong
-            style={{
-              display:
-                "block",
-
-              marginTop:
-                "4px",
-
-              fontSize:
-                "0.72rem",
-            }}
-          >
+          <strong>
             {
-              clean?.status ??
-              "not_started"
+              stageStatusLabel(
+                clean?.status
+              )
             }
           </strong>
         </article>
 
-
-        <article
-          style={{
-            padding:
-              "10px",
-
-            border:
-              "1px solid rgba(255,255,255,0.05)",
-
-            borderRadius:
-              "9px",
-          }}
-        >
-          <span
-            style={{
-              display:
-                "block",
-
-              fontSize:
-                "0.55rem",
-
-              opacity:
-                0.46,
-            }}
-          >
-            Validation
+        <article>
+          <span>
+            Transformation
           </span>
 
-          <strong
-            style={{
-              display:
-                "block",
-
-              marginTop:
-                "4px",
-
-              fontSize:
-                "0.72rem",
-            }}
-          >
+          <strong>
             {
-              validate?.status ??
-              "not_started"
+              stageStatusLabel(
+                transform?.status
+              )
             }
           </strong>
         </article>
 
-
-        <article
-          style={{
-            padding:
-              "10px",
-
-            border:
-              "1px solid rgba(255,255,255,0.05)",
-
-            borderRadius:
-              "9px",
-          }}
-        >
-          <span
-            style={{
-              display:
-                "block",
-
-              fontSize:
-                "0.55rem",
-
-              opacity:
-                0.46,
-            }}
-          >
-            Datasets validés
+        <article>
+          <span>
+            Combinaison
           </span>
 
-          <strong
-            style={{
-              display:
-                "block",
-
-              marginTop:
-                "4px",
-
-              fontSize:
-                "0.72rem",
-            }}
-          >
+          <strong>
             {
-              snapshot
-                .validated_analysis_dataset_ids
-                .length
+              stageStatusLabel(
+                combine?.status
+              )
+            }
+          </strong>
+        </article>
+
+        <article>
+          <span>
+            Sorties certifiées
+          </span>
+
+          <strong>
+            {
+              validatedDatasetIds.length
             }
             {" / "}
             {
-              snapshot
-                .selected_analysis_dataset_ids
-                .length
+              analysisOutputDatasetIds.length
+            }
+          </strong>
+        </article>
+
+        <article>
+          <span>
+            Validation
+          </span>
+
+          <strong>
+            {
+              stageStatusLabel(
+                validate?.status
+              )
             }
           </strong>
         </article>
@@ -380,28 +1192,30 @@ export default function PreparationFinalizationPanel({
 
 
       {
+        ready &&
+        !allOutputsValidated
+          ? (
+              <p
+                className={
+                  styles.error
+                }
+              >
+                Incohérence détectée : le workflow se déclare
+                prêt alors que toutes les sorties analytiques
+                finales ne figurent pas dans le scope certifié.
+              </p>
+            )
+          : null
+      }
+
+
+      {
         error
           ? (
               <p
-                style={{
-                  margin:
-                    "11px 0 0",
-
-                  padding:
-                    "10px",
-
-                  border:
-                    "1px solid rgba(255,142,117,0.16)",
-
-                  borderRadius:
-                    "9px",
-
-                  fontSize:
-                    "0.63rem",
-
-                  lineHeight:
-                    1.5,
-                }}
+                className={
+                  styles.error
+                }
               >
                 {
                   error
@@ -412,115 +1226,66 @@ export default function PreparationFinalizationPanel({
       }
 
 
-      <div
-        style={{
-          display:
-            "flex",
-
-          justifyContent:
-            "space-between",
-
-          alignItems:
-            "center",
-
-          gap:
-            "12px",
-
-          flexWrap:
-            "wrap",
-
-          marginTop:
-            "13px",
-
-          paddingTop:
-            "12px",
-
-          borderTop:
-            "1px solid rgba(255,255,255,0.05)",
-        }}
+      <footer
+        className={
+          styles.validationFooter
+        }
       >
-        <p
-          style={{
-            margin:
-              0,
+        <div>
+          <strong>
+            {
+              ready
+                ? "Analyse déverrouillée"
+                : canValidate
+                  ? "Scope final enregistré"
+                  : outputSelected
+                    ? "Préparation encore incomplète"
+                    : "Sélection finale requise"
+            }
+          </strong>
 
-            fontSize:
-              "0.62rem",
-
-            lineHeight:
-              1.45,
-
-            opacity:
-              0.52,
-          }}
-        >
-          {
-            ready
-              ? "Le readiness gate autorise maintenant l’analyse."
-              : canValidate
-                ? "La validation finale peut être exécutée côté serveur."
-                : snapshot.next_stage
-                  ? `Prochaine étape : ${snapshot.next_stage}.`
-                  : "La préparation n’est pas encore validable."
-          }
-        </p>
-
+          <p>
+            {
+              ready
+                ? (
+                    "Le readiness gate autorise maintenant l’analyse " +
+                    "des sorties certifiées."
+                  )
+                : canValidate
+                  ? (
+                      "Le serveur peut maintenant contrôler la lineage, " +
+                      "les preuves et l’existence des artefacts."
+                    )
+                  : !outputSelected
+                    ? (
+                        "Choisissez puis confirmez au moins une sortie " +
+                        "avant d’exécuter VALIDATE."
+                      )
+                    : snapshot.next_stage
+                      ? (
+                          `Prochaine étape serveur : ${snapshot.next_stage}.`
+                        )
+                      : (
+                          "La préparation n’est pas encore validable."
+                        )
+            }
+          </p>
+        </div>
 
         <button
           type="button"
+          className={
+            styles.primaryButton
+          }
           onClick={
             onValidate
           }
           disabled={
             ready ||
             loading ||
+            selectionLoading ||
             !canValidate
           }
-          style={{
-            minWidth:
-              "220px",
-
-            padding:
-              "9px 12px",
-
-            border:
-              ready
-                ? "1px solid rgba(122,203,160,0.2)"
-                : "1px solid rgba(126,177,255,0.2)",
-
-            borderRadius:
-              "9px",
-
-            background:
-              ready
-                ? "rgba(122,203,160,0.09)"
-                : "rgba(72,121,200,0.08)",
-
-            color:
-              "inherit",
-
-            cursor:
-              ready ||
-              loading ||
-              !canValidate
-                ? "default"
-                : "pointer",
-
-            font:
-              "inherit",
-
-            fontSize:
-              "0.64rem",
-
-            fontWeight:
-              750,
-
-            opacity:
-              !ready &&
-              canValidate
-                ? 1
-                : 0.58,
-          }}
         >
           {
             ready
@@ -530,7 +1295,7 @@ export default function PreparationFinalizationPanel({
                 : "Valider la préparation"
           }
         </button>
-      </div>
+      </footer>
     </section>
   );
 }

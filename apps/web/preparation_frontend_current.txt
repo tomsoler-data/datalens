@@ -1,0 +1,3771 @@
+
+
+============================================================
+FILE: .\src\components\preparation\preparationTypes.ts
+============================================================
+
+
+export type PreparationStage =
+  | "import"
+  | "understand"
+  | "quality"
+  | "clean"
+  | "transform"
+  | "combine"
+  | "validate";
+
+
+export type PreparationStageStatus =
+  | "not_started"
+  | "review_required"
+  | "blocked"
+  | "passed"
+  | "skipped";
+
+
+export type PreparationStageRecord = {
+  stage:
+    PreparationStage;
+
+  status:
+    PreparationStageStatus;
+
+  required:
+    boolean;
+
+  dataset_ids:
+    string[];
+
+  evidence_refs:
+    string[];
+
+  blocking_reasons:
+    string[];
+
+  details:
+    Record<
+      string,
+      unknown
+    >;
+};
+
+
+export type PreparationWorkflowSnapshot = {
+  workflow_id:
+    string;
+
+  stage_count:
+    number;
+
+  resolved_stage_count:
+    number;
+
+  passed_stage_count:
+    number;
+
+  skipped_stage_count:
+    number;
+
+  review_required_count:
+    number;
+
+  blocked_stage_count:
+    number;
+
+  not_started_count:
+    number;
+
+  selected_analysis_dataset_ids:
+    string[];
+
+  validated_analysis_dataset_ids:
+    string[];
+
+  next_stage:
+    PreparationStage |
+    null;
+
+  ready_for_analysis:
+    boolean;
+
+  blocking_reasons:
+    string[];
+
+  stages:
+    PreparationStageRecord[];
+
+  notes:
+    string[];
+
+  rule_version:
+    string;
+};
+
+
+export type PreparationSessionView = {
+  session_version:
+    string;
+
+  workflow_id:
+    string;
+
+  revision:
+    number;
+
+  selected_analysis_dataset_ids:
+    string[];
+
+  snapshot:
+    PreparationWorkflowSnapshot;
+};
+
+
+export type PreparationSessionCapabilities = {
+  api_version:
+    string;
+
+  session_version:
+    string;
+
+  storage:
+    string;
+
+  persistent:
+    boolean;
+
+  client_can_set_workflow_id:
+    boolean;
+
+  client_can_update_stage_status:
+    boolean;
+
+  client_can_set_ready_for_analysis:
+    boolean;
+
+  notes:
+    string[];
+};
+
+
+export type CreatePreparationSessionRequest = {
+  selected_analysis_dataset_ids:
+    string[];
+};
+
+
+============================================================
+FILE: .\src\components\preparation\preparationApi.ts
+============================================================
+
+
+import type {
+  CreatePreparationSessionRequest,
+  PreparationSessionCapabilities,
+  PreparationSessionView,
+} from "./preparationTypes";
+
+
+const API_URL =
+  process.env
+    .NEXT_PUBLIC_DATALENS_API_URL ??
+  "http://127.0.0.1:8000";
+
+
+export class PreparationApiError extends Error {
+  readonly status:
+    number;
+
+  readonly detail:
+    unknown;
+
+
+  constructor(
+    message:
+      string,
+
+    status:
+      number,
+
+    detail:
+      unknown
+  ) {
+    super(
+      message
+    );
+
+    this.name =
+      "PreparationApiError";
+
+    this.status =
+      status;
+
+    this.detail =
+      detail;
+  }
+}
+
+
+function errorMessageFromPayload(
+  payload:
+    unknown
+): string {
+  if (
+    typeof payload ===
+      "string"
+  ) {
+    return payload;
+  }
+
+
+  if (
+    payload &&
+    typeof payload ===
+      "object"
+  ) {
+    const record =
+      payload as
+        Record<
+          string,
+          unknown
+        >;
+
+
+    const detail =
+      record.detail;
+
+
+    if (
+      typeof detail ===
+        "string"
+    ) {
+      return detail;
+    }
+
+
+    if (
+      detail &&
+      typeof detail ===
+        "object" &&
+      !Array.isArray(
+        detail
+      )
+    ) {
+      const detailRecord =
+        detail as
+          Record<
+            string,
+            unknown
+          >;
+
+
+      if (
+        typeof detailRecord.message ===
+          "string"
+      ) {
+        return (
+          detailRecord.message
+        );
+      }
+    }
+
+
+    if (
+      typeof record.message ===
+        "string"
+    ) {
+      return record.message;
+    }
+  }
+
+
+  return (
+    "La requête de préparation a échoué."
+  );
+}
+
+
+async function readJsonResponse(
+  response:
+    Response
+): Promise<unknown> {
+  const contentType =
+    response.headers.get(
+      "content-type"
+    ) ??
+    "";
+
+
+  if (
+    !contentType.includes(
+      "application/json"
+    )
+  ) {
+    const text =
+      await response.text();
+
+
+    return (
+      text ||
+      null
+    );
+  }
+
+
+  return (
+    await response.json()
+  );
+}
+
+
+async function requireSuccessfulJson<
+  T
+>(
+  response:
+    Response
+): Promise<T> {
+  const payload =
+    await readJsonResponse(
+      response
+    );
+
+
+  if (
+    !response.ok
+  ) {
+    throw (
+      new PreparationApiError(
+        errorMessageFromPayload(
+          payload
+        ),
+
+        response.status,
+
+        payload
+      )
+    );
+  }
+
+
+  return (
+    payload as T
+  );
+}
+
+
+export async function getPreparationSessionCapabilities(
+  signal?:
+    AbortSignal
+): Promise<
+  PreparationSessionCapabilities
+> {
+  const response =
+    await fetch(
+      `${API_URL}/preparation/sessions/capabilities`,
+      {
+        method:
+          "GET",
+
+        cache:
+          "no-store",
+
+        signal,
+      }
+    );
+
+
+  return (
+    requireSuccessfulJson<
+      PreparationSessionCapabilities
+    >(
+      response
+    )
+  );
+}
+
+
+export async function createPreparationSession(
+  datasetIds:
+    string[],
+
+  signal?:
+    AbortSignal
+): Promise<
+  PreparationSessionView
+> {
+  const normalizedIds =
+    Array.from(
+      new Set(
+        datasetIds
+          .map(
+            (
+              datasetId
+            ) =>
+              datasetId.trim()
+          )
+          .filter(
+            Boolean
+          )
+      )
+    );
+
+
+  if (
+    normalizedIds.length ===
+      0
+  ) {
+    throw (
+      new Error(
+        "Au moins un dataset est requis pour créer la session de préparation."
+      )
+    );
+  }
+
+
+  const body:
+    CreatePreparationSessionRequest = {
+      selected_analysis_dataset_ids:
+        normalizedIds,
+    };
+
+
+  const response =
+    await fetch(
+      `${API_URL}/preparation/sessions`,
+      {
+        method:
+          "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+
+        body:
+          JSON.stringify(
+            body
+          ),
+
+        signal,
+      }
+    );
+
+
+  return (
+    requireSuccessfulJson<
+      PreparationSessionView
+    >(
+      response
+    )
+  );
+}
+
+
+export async function getPreparationSession(
+  workflowId:
+    string,
+
+  signal?:
+    AbortSignal
+): Promise<
+  PreparationSessionView
+> {
+  const normalizedId =
+    workflowId.trim();
+
+
+  if (
+    !normalizedId
+  ) {
+    throw (
+      new Error(
+        "workflow_id est requis."
+      )
+    );
+  }
+
+
+  const response =
+    await fetch(
+      `${
+        API_URL
+      }/preparation/sessions/${
+        encodeURIComponent(
+          normalizedId
+        )
+      }`,
+      {
+        method:
+          "GET",
+
+        cache:
+          "no-store",
+
+        signal,
+      }
+    );
+
+
+  return (
+    requireSuccessfulJson<
+      PreparationSessionView
+    >(
+      response
+    )
+  );
+}
+
+
+export async function validatePreparationSession(
+  workflowId:
+    string,
+
+  signal?:
+    AbortSignal
+): Promise<
+  PreparationSessionView
+> {
+  const normalizedId =
+    workflowId.trim();
+
+
+  if (
+    !normalizedId
+  ) {
+    throw (
+      new Error(
+        "workflow_id est requis."
+      )
+    );
+  }
+
+
+  const response =
+    await fetch(
+      `${API_URL}/preparation/validate`,
+      {
+        method:
+          "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+
+        body:
+          JSON.stringify(
+            {
+              workflow_id:
+                normalizedId,
+            }
+          ),
+
+        signal,
+      }
+    );
+
+
+  return (
+    requireSuccessfulJson<
+      PreparationSessionView
+    >(
+      response
+    )
+  );
+}
+
+
+============================================================
+FILE: .\src\components\preparation\PreparationWorkflowPanel.tsx
+============================================================
+
+
+"use client";
+
+
+import type {
+  PreparationSessionView,
+  PreparationStage,
+  PreparationStageRecord,
+  PreparationStageStatus,
+} from "./preparationTypes";
+
+import styles from "./PreparationWorkflowPanel.module.css";
+
+
+type PreparationWorkflowPanelProps = {
+  session:
+    PreparationSessionView |
+    null;
+
+  loading?:
+    boolean;
+
+  error?:
+    string |
+    null;
+
+  onRefresh?:
+    () => void;
+};
+
+
+const STAGE_LABELS:
+  Record<
+    PreparationStage,
+    {
+      index:
+        string;
+
+      title:
+        string;
+
+      description:
+        string;
+    }
+  > = {
+    import: {
+      index:
+        "01",
+
+      title:
+        "Import",
+
+      description:
+        "Chargement et identification des datasets.",
+    },
+
+    understand: {
+      index:
+        "02",
+
+      title:
+        "Compréhension",
+
+      description:
+        "Structure, types, rôles et grain des données.",
+    },
+
+    quality: {
+      index:
+        "03",
+
+      title:
+        "Qualité",
+
+      description:
+        "Valeurs manquantes, doublons et anomalies.",
+    },
+
+    clean: {
+      index:
+        "04",
+
+      title:
+        "Nettoyage",
+
+      description:
+        "Corrections déterministes et décisions approuvées.",
+    },
+
+    transform: {
+      index:
+        "05",
+
+      title:
+        "Transformation",
+
+      description:
+        "Variables dérivées, conversions et agrégations.",
+    },
+
+    combine: {
+      index:
+        "06",
+
+      title:
+        "Combinaison",
+
+      description:
+        "Jointures contrôlées entre datasets.",
+    },
+
+    validate: {
+      index:
+        "07",
+
+      title:
+        "Validation",
+
+      description:
+        "Contrôle final avant le passage à l’analyse.",
+    },
+  };
+
+
+const STATUS_LABELS:
+  Record<
+    PreparationStageStatus,
+    string
+  > = {
+    not_started:
+      "À faire",
+
+    review_required:
+      "Revue requise",
+
+    blocked:
+      "Bloqué",
+
+    passed:
+      "Validé",
+
+    skipped:
+      "Non requis",
+  };
+
+
+const STATUS_SYMBOLS:
+  Record<
+    PreparationStageStatus,
+    string
+  > = {
+    not_started:
+      "—",
+
+    review_required:
+      "!",
+
+    blocked:
+      "×",
+
+    passed:
+      "✓",
+
+    skipped:
+      "○",
+  };
+
+
+function stageClassName(
+  status:
+    PreparationStageStatus
+): string {
+  switch (
+    status
+  ) {
+    case "passed":
+      return (
+        styles.stagePassed
+      );
+
+    case "review_required":
+      return (
+        styles.stageReview
+      );
+
+    case "blocked":
+      return (
+        styles.stageBlocked
+      );
+
+    case "skipped":
+      return (
+        styles.stageSkipped
+      );
+
+    default:
+      return (
+        styles.stagePending
+      );
+  }
+}
+
+
+function StageRow({
+  record,
+}: {
+  record:
+    PreparationStageRecord;
+}) {
+  const metadata =
+    STAGE_LABELS[
+      record.stage
+    ];
+
+
+  return (
+    <article
+      className={
+        `${styles.stage} ${
+          stageClassName(
+            record.status
+          )
+        }`
+      }
+    >
+      <div
+        className={
+          styles.stageIndex
+        }
+      >
+        {
+          metadata.index
+        }
+      </div>
+
+
+      <div
+        className={
+          styles.stageBody
+        }
+      >
+        <div
+          className={
+            styles.stageHeading
+          }
+        >
+          <div>
+            <strong>
+              {
+                metadata.title
+              }
+            </strong>
+
+            <p>
+              {
+                metadata.description
+              }
+            </p>
+          </div>
+
+
+          <div
+            className={
+              styles.status
+            }
+          >
+            <span
+              className={
+                styles.statusSymbol
+              }
+              aria-hidden="true"
+            >
+              {
+                STATUS_SYMBOLS[
+                  record.status
+                ]
+              }
+            </span>
+
+            <span>
+              {
+                STATUS_LABELS[
+                  record.status
+                ]
+              }
+            </span>
+          </div>
+        </div>
+
+
+        {
+          record
+            .blocking_reasons
+            .length >
+          0
+            ? (
+                <div
+                  className={
+                    styles.reasons
+                  }
+                >
+                  {
+                    record
+                      .blocking_reasons
+                      .map(
+                        (
+                          reason
+                        ) => (
+                          <p
+                            key={
+                              reason
+                            }
+                          >
+                            {
+                              reason
+                            }
+                          </p>
+                        )
+                      )
+                  }
+                </div>
+              )
+            : null
+        }
+      </div>
+    </article>
+  );
+}
+
+
+export default function PreparationWorkflowPanel({
+  session,
+  loading =
+    false,
+  error =
+    null,
+  onRefresh,
+}: PreparationWorkflowPanelProps) {
+  if (
+    loading &&
+    !session
+  ) {
+    return (
+      <section
+        className={
+          styles.panel
+        }
+      >
+        <div
+          className={
+            styles.loading
+          }
+        >
+          Lecture de l’état de préparation…
+        </div>
+      </section>
+    );
+  }
+
+
+  if (
+    !session
+  ) {
+    return (
+      <section
+        className={
+          styles.panel
+        }
+      >
+        <div
+          className={
+            styles.empty
+          }
+        >
+          <span
+            className={
+              styles.eyebrow
+            }
+          >
+            Workflow serveur
+          </span>
+
+          <h3>
+            Aucune session de préparation
+          </h3>
+
+          <p>
+            La session sera créée à partir
+            des datasets chargés avant
+            l’analyse.
+          </p>
+
+          {
+            error
+              ? (
+                  <p
+                    className={
+                      styles.error
+                    }
+                  >
+                    {
+                      error
+                    }
+                  </p>
+                )
+              : null
+          }
+        </div>
+      </section>
+    );
+  }
+
+
+  const snapshot =
+    session.snapshot;
+
+
+  return (
+    <section
+      className={
+        styles.panel
+      }
+      aria-labelledby="preparation-workflow-title"
+    >
+      <header
+        className={
+          styles.header
+        }
+      >
+        <div>
+          <span
+            className={
+              styles.eyebrow
+            }
+          >
+            Workflow serveur
+          </span>
+
+          <h3
+            id="preparation-workflow-title"
+          >
+            Préparation des données
+          </h3>
+
+          <p>
+            L’état est calculé par FastAPI.
+            L’interface ne peut pas déclarer
+            une étape validée elle-même.
+          </p>
+        </div>
+
+
+        <div
+          className={
+            snapshot
+              .ready_for_analysis
+              ? styles.readinessReady
+              : styles.readinessLocked
+          }
+        >
+          <span
+            aria-hidden="true"
+          >
+            {
+              snapshot
+                .ready_for_analysis
+                ? "✓"
+                : "×"
+            }
+          </span>
+
+          <div>
+            <small>
+              Analyse
+            </small>
+
+            <strong>
+              {
+                snapshot
+                  .ready_for_analysis
+                  ? "Prête"
+                  : "Verrouillée"
+              }
+            </strong>
+          </div>
+        </div>
+      </header>
+
+
+      <div
+        className={
+          styles.meta
+        }
+      >
+        <div>
+          <span>
+            Session
+          </span>
+
+          <strong>
+            {
+              session.workflow_id
+            }
+          </strong>
+        </div>
+
+        <div>
+          <span>
+            Révision
+          </span>
+
+          <strong>
+            {
+              session.revision
+            }
+          </strong>
+        </div>
+
+        <div>
+          <span>
+            Étapes résolues
+          </span>
+
+          <strong>
+            {
+              snapshot
+                .resolved_stage_count
+            }
+            {" / "}
+            {
+              snapshot
+                .stage_count
+            }
+          </strong>
+        </div>
+
+        <div>
+          <span>
+            Datasets validés
+          </span>
+
+          <strong>
+            {
+              snapshot
+                .validated_analysis_dataset_ids
+                .length
+            }
+            {" / "}
+            {
+              snapshot
+                .selected_analysis_dataset_ids
+                .length
+            }
+          </strong>
+        </div>
+      </div>
+
+
+      <div
+        className={
+          styles.stages
+        }
+      >
+        {
+          snapshot
+            .stages
+            .map(
+              (
+                record
+              ) => (
+                <StageRow
+                  key={
+                    record.stage
+                  }
+                  record={
+                    record
+                  }
+                />
+              )
+            )
+        }
+      </div>
+
+
+      {
+        snapshot.next_stage
+          ? (
+              <div
+                className={
+                  styles.nextStage
+                }
+              >
+                <span>
+                  Prochaine étape
+                </span>
+
+                <strong>
+                  {
+                    STAGE_LABELS[
+                      snapshot
+                        .next_stage
+                    ].title
+                  }
+                </strong>
+              </div>
+            )
+          : null
+      }
+
+
+      {
+        snapshot
+          .blocking_reasons
+          .length >
+        0
+          ? (
+              <details
+                className={
+                  styles.blockers
+                }
+              >
+                <summary>
+                  Points bloquants
+                  {" · "}
+                  {
+                    snapshot
+                      .blocking_reasons
+                      .length
+                  }
+                </summary>
+
+                <div>
+                  {
+                    snapshot
+                      .blocking_reasons
+                      .map(
+                        (
+                          reason
+                        ) => (
+                          <p
+                            key={
+                              reason
+                            }
+                          >
+                            {
+                              reason
+                            }
+                          </p>
+                        )
+                      )
+                  }
+                </div>
+              </details>
+            )
+          : null
+      }
+
+
+      {
+        error
+          ? (
+              <p
+                className={
+                  styles.error
+                }
+              >
+                {
+                  error
+                }
+              </p>
+            )
+          : null
+      }
+
+
+      {
+        onRefresh
+          ? (
+              <div
+                className={
+                  styles.actions
+                }
+              >
+                <button
+                  type="button"
+                  onClick={
+                    onRefresh
+                  }
+                  disabled={
+                    loading
+                  }
+                >
+                  {
+                    loading
+                      ? "Actualisation…"
+                      : "Actualiser l’état"
+                  }
+                </button>
+              </div>
+            )
+          : null
+      }
+    </section>
+  );
+}
+
+
+============================================================
+FILE: .\src\components\preparation\PreparationWorkflowPanel.module.css
+============================================================
+
+
+.panel {
+  margin-top: 22px;
+  padding: 20px;
+
+  border:
+    1px solid
+    rgba(126, 177, 255, 0.14);
+
+  border-radius: 16px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(62, 112, 196, 0.075),
+      rgba(255, 255, 255, 0.016)
+    );
+}
+
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 24px;
+
+  padding-bottom: 18px;
+
+  border-bottom:
+    1px solid
+    rgba(255, 255, 255, 0.065);
+}
+
+
+.header h3 {
+  margin: 7px 0 6px;
+
+  font-size:
+    clamp(
+      1.05rem,
+      2vw,
+      1.28rem
+    );
+}
+
+
+.header p {
+  max-width: 680px;
+
+  margin: 0;
+
+  font-size: 0.78rem;
+  line-height: 1.55;
+
+  opacity: 0.62;
+}
+
+
+.eyebrow {
+  display: block;
+
+  font-size: 0.59rem;
+  font-weight: 800;
+
+  letter-spacing: 0.12em;
+
+  text-transform: uppercase;
+
+  opacity: 0.52;
+}
+
+
+.readinessReady,
+.readinessLocked {
+  display: flex;
+  align-items: center;
+
+  flex: 0 0 auto;
+
+  gap: 10px;
+
+  min-width: 128px;
+
+  padding: 10px 12px;
+
+  border-radius: 12px;
+}
+
+
+.readinessReady {
+  border:
+    1px solid
+    rgba(113, 220, 157, 0.22);
+
+  background:
+    rgba(65, 163, 107, 0.08);
+}
+
+
+.readinessLocked {
+  border:
+    1px solid
+    rgba(255, 164, 112, 0.18);
+
+  background:
+    rgba(176, 93, 48, 0.07);
+}
+
+
+.readinessReady > span,
+.readinessLocked > span {
+  display: grid;
+
+  place-items: center;
+
+  width: 28px;
+  height: 28px;
+
+  border-radius: 50%;
+
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+
+.readinessReady > span {
+  background:
+    rgba(100, 215, 148, 0.12);
+}
+
+
+.readinessLocked > span {
+  background:
+    rgba(255, 157, 102, 0.1);
+}
+
+
+.readinessReady div,
+.readinessLocked div {
+  display: flex;
+  flex-direction: column;
+
+  gap: 1px;
+}
+
+
+.readinessReady small,
+.readinessLocked small {
+  font-size: 0.56rem;
+
+  opacity: 0.52;
+}
+
+
+.readinessReady strong,
+.readinessLocked strong {
+  font-size: 0.72rem;
+}
+
+
+.meta {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      4,
+      minmax(0, 1fr)
+    );
+
+  gap: 8px;
+
+  margin-top: 16px;
+}
+
+
+.meta > div {
+  min-width: 0;
+
+  padding: 10px 11px;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.05);
+
+  border-radius: 10px;
+
+  background:
+    rgba(255, 255, 255, 0.012);
+}
+
+
+.meta span {
+  display: block;
+
+  margin-bottom: 4px;
+
+  font-size: 0.55rem;
+
+  opacity: 0.44;
+}
+
+
+.meta strong {
+  display: block;
+
+  overflow: hidden;
+
+  font-size: 0.68rem;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+.stages {
+  display: grid;
+
+  gap: 8px;
+
+  margin-top: 16px;
+}
+
+
+.stage {
+  display: grid;
+
+  grid-template-columns:
+    42px
+    minmax(0, 1fr);
+
+  min-width: 0;
+
+  overflow: hidden;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.055);
+
+  border-radius: 12px;
+
+  background:
+    rgba(255, 255, 255, 0.012);
+}
+
+
+.stageIndex {
+  display: grid;
+
+  place-items: center;
+
+  min-height: 62px;
+
+  border-right:
+    1px solid
+    rgba(255, 255, 255, 0.055);
+
+  font-size: 0.58rem;
+  font-weight: 800;
+
+  opacity: 0.46;
+}
+
+
+.stageBody {
+  min-width: 0;
+
+  padding: 10px 12px;
+}
+
+
+.stageHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 16px;
+}
+
+
+.stageHeading strong {
+  font-size: 0.75rem;
+}
+
+
+.stageHeading p {
+  margin: 3px 0 0;
+
+  font-size: 0.64rem;
+  line-height: 1.45;
+
+  opacity: 0.48;
+}
+
+
+.status {
+  display: flex;
+  align-items: center;
+
+  flex: 0 0 auto;
+
+  gap: 7px;
+
+  padding: 5px 8px;
+
+  border-radius: 999px;
+
+  font-size: 0.59rem;
+  font-weight: 700;
+}
+
+
+.statusSymbol {
+  display: grid;
+
+  place-items: center;
+
+  width: 15px;
+  height: 15px;
+
+  font-size: 0.64rem;
+}
+
+
+.stagePassed .status {
+  background:
+    rgba(82, 190, 128, 0.09);
+}
+
+
+.stageReview .status {
+  background:
+    rgba(230, 177, 83, 0.1);
+}
+
+
+.stageBlocked .status {
+  background:
+    rgba(215, 91, 91, 0.09);
+}
+
+
+.stageSkipped .status {
+  background:
+    rgba(255, 255, 255, 0.045);
+}
+
+
+.stagePending .status {
+  background:
+    rgba(126, 177, 255, 0.055);
+}
+
+
+.reasons {
+  margin-top: 9px;
+  padding-top: 8px;
+
+  border-top:
+    1px solid
+    rgba(255, 255, 255, 0.045);
+}
+
+
+.reasons p {
+  margin: 3px 0;
+
+  font-size: 0.62rem;
+  line-height: 1.45;
+
+  opacity: 0.62;
+}
+
+
+.nextStage {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 16px;
+
+  margin-top: 12px;
+
+  padding: 11px 12px;
+
+  border:
+    1px solid
+    rgba(126, 177, 255, 0.11);
+
+  border-radius: 10px;
+
+  background:
+    rgba(72, 121, 200, 0.045);
+}
+
+
+.nextStage span {
+  font-size: 0.6rem;
+
+  opacity: 0.48;
+}
+
+
+.nextStage strong {
+  font-size: 0.69rem;
+}
+
+
+.blockers {
+  margin-top: 10px;
+
+  border:
+    1px solid
+    rgba(255, 166, 108, 0.11);
+
+  border-radius: 10px;
+
+  overflow: hidden;
+}
+
+
+.blockers summary {
+  padding: 10px 11px;
+
+  cursor: pointer;
+
+  font-size: 0.63rem;
+  font-weight: 700;
+}
+
+
+.blockers > div {
+  padding:
+    0 11px 10px;
+}
+
+
+.blockers p {
+  margin: 5px 0;
+
+  font-size: 0.62rem;
+  line-height: 1.5;
+
+  opacity: 0.62;
+}
+
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+
+  margin-top: 12px;
+}
+
+
+.actions button {
+  padding: 8px 11px;
+
+  border:
+    1px solid
+    rgba(126, 177, 255, 0.16);
+
+  border-radius: 9px;
+
+  background:
+    rgba(75, 126, 207, 0.08);
+
+  color: inherit;
+
+  cursor: pointer;
+
+  font: inherit;
+  font-size: 0.64rem;
+  font-weight: 700;
+}
+
+
+.actions button:hover:not(:disabled) {
+  background:
+    rgba(75, 126, 207, 0.13);
+}
+
+
+.actions button:disabled {
+  cursor: default;
+
+  opacity: 0.5;
+}
+
+
+.loading,
+.empty {
+  padding: 8px;
+}
+
+
+.loading {
+  font-size: 0.72rem;
+
+  opacity: 0.58;
+}
+
+
+.empty h3 {
+  margin: 7px 0 5px;
+
+  font-size: 1rem;
+}
+
+
+.empty p {
+  max-width: 640px;
+
+  margin: 0;
+
+  font-size: 0.72rem;
+  line-height: 1.5;
+
+  opacity: 0.58;
+}
+
+
+.error {
+  margin: 12px 0 0;
+
+  font-size: 0.66rem;
+  line-height: 1.5;
+}
+
+
+@media (
+  max-width: 760px
+) {
+  .header {
+    flex-direction: column;
+  }
+
+
+  .readinessReady,
+  .readinessLocked {
+    width: 100%;
+  }
+
+
+  .meta {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+
+
+  .stageHeading {
+    align-items: flex-start;
+    flex-direction: column;
+
+    gap: 8px;
+  }
+}
+
+
+@media (
+  max-width: 480px
+) {
+  .panel {
+    padding: 14px;
+  }
+
+
+  .meta {
+    grid-template-columns: 1fr;
+  }
+
+
+  .stage {
+    grid-template-columns:
+      34px
+      minmax(0, 1fr);
+  }
+
+
+  .stageIndex {
+    min-height: 56px;
+  }
+}
+
+
+============================================================
+FILE: .\src\components\preparation\PreparationSubstepNavigation.tsx
+============================================================
+
+
+"use client";
+
+import type {
+  PreparationSessionView,
+  PreparationStageRecord,
+} from "./preparationTypes";
+
+import styles from "./PreparationSubstepNavigation.module.css";
+
+
+export type PreparationSubstep =
+  | "diagnostic"
+  | "cleaning"
+  | "semantic"
+  | "transform"
+  | "validation";
+
+
+type PreparationSubstepNavigationProps = {
+  session: PreparationSessionView | null;
+  activeStep: PreparationSubstep;
+  onStepChange: (
+    step: PreparationSubstep
+  ) => void;
+  qualityReady: boolean;
+  cleaningPlanReady: boolean;
+  cleaningActionCount: number;
+  cleaningApplied: boolean;
+  semanticReviewReady: boolean;
+  semanticDecisionCount: number;
+  semanticConfirmed: boolean;
+};
+
+
+type VisualStatus =
+  | "done"
+  | "current"
+  | "attention"
+  | "skipped"
+  | "waiting"
+  | "locked";
+
+
+type StepDefinition = {
+  id: PreparationSubstep;
+  index: string;
+  label: string;
+  shortLabel: string;
+  description: string;
+};
+
+
+const STEPS: StepDefinition[] = [
+  {
+    id: "diagnostic",
+    index: "01",
+    label: "Diagnostic",
+    shortLabel: "Diagnostic",
+    description:
+      "Comprendre la structure des données et contrôler leur qualité avant toute modification.",
+  },
+  {
+    id: "cleaning",
+    index: "02",
+    label: "Nettoyage",
+    shortLabel: "Nettoyage",
+    description:
+      "Examiner puis appliquer uniquement les corrections déterministes, sûres et traçables.",
+  },
+  {
+    id: "semantic",
+    index: "03",
+    label: "Revue sémantique",
+    shortLabel: "Revue IA",
+    description:
+      "Contextualiser les cas ambigus avec le modèle local, puis conserver la décision finale côté analyste.",
+  },
+  {
+    id: "transform",
+    index: "04",
+    label: "Transformer & combiner",
+    shortLabel: "Transformer",
+    description:
+      "Préparer les agrégations, variables dérivées et combinaisons de datasets nécessaires au plan analytique.",
+  },
+  {
+    id: "validation",
+    index: "05",
+    label: "Validation",
+    shortLabel: "Validation",
+    description:
+      "Vérifier les preuves de préparation et autoriser explicitement l’entrée dans le moteur analytique.",
+  },
+];
+
+
+function findStage(
+  session: PreparationSessionView | null,
+  stageName: PreparationStageRecord["stage"]
+): PreparationStageRecord | null {
+  if (
+    session ===
+    null
+  ) {
+    return null;
+  }
+
+
+  return (
+    session.snapshot.stages.find(
+      (
+        stage
+      ) =>
+        stage.stage ===
+        stageName
+    ) ??
+    null
+  );
+}
+
+
+function isResolved(
+  stage: PreparationStageRecord | null
+): boolean {
+  return (
+    stage?.status ===
+      "passed" ||
+    stage?.status ===
+      "skipped"
+  );
+}
+
+
+function statusLabel(
+  status: VisualStatus,
+  step: PreparationSubstep
+): string {
+  switch (
+    status
+  ) {
+    case "done":
+      return step ===
+        "cleaning"
+        ? "Terminé"
+        : "Validé";
+
+    case "current":
+      return "En cours";
+
+    case "attention":
+      return "Action requise";
+
+    case "skipped":
+      return "Non requis";
+
+    case "waiting":
+      return "À faire";
+
+    default:
+      return "Verrouillé";
+  }
+}
+
+
+function statusSymbol(
+  status: VisualStatus
+): string {
+  switch (
+    status
+  ) {
+    case "done":
+      return "✓";
+
+    case "attention":
+      return "!";
+
+    case "skipped":
+      return "○";
+
+    case "current":
+      return "●";
+
+    case "waiting":
+      return "·";
+
+    default:
+      return "–";
+  }
+}
+
+
+export default function PreparationSubstepNavigation({
+  session,
+  activeStep,
+  onStepChange,
+  qualityReady,
+  cleaningPlanReady,
+  cleaningActionCount,
+  cleaningApplied,
+  semanticReviewReady,
+  semanticDecisionCount,
+  semanticConfirmed,
+}: PreparationSubstepNavigationProps) {
+  const understand =
+    findStage(
+      session,
+      "understand"
+    );
+
+  const quality =
+    findStage(
+      session,
+      "quality"
+    );
+
+  const clean =
+    findStage(
+      session,
+      "clean"
+    );
+
+  const transform =
+    findStage(
+      session,
+      "transform"
+    );
+
+  const combine =
+    findStage(
+      session,
+      "combine"
+    );
+
+  const validate =
+    findStage(
+      session,
+      "validate"
+    );
+
+
+  const diagnosticDone =
+    qualityReady &&
+    understand?.status ===
+      "passed" &&
+    quality?.status ===
+      "passed";
+
+
+  const cleaningDone =
+    cleaningPlanReady &&
+    (
+      cleaningActionCount ===
+        0 ||
+      cleaningApplied
+    );
+
+
+  const cleanResolved =
+    isResolved(
+      clean
+    );
+
+
+  const transformResolved =
+    isResolved(
+      transform
+    ) &&
+    isResolved(
+      combine
+    );
+
+
+  const transformSkipped =
+    transform?.status ===
+      "skipped" &&
+    combine?.status ===
+      "skipped";
+
+
+  const validationDone =
+    session?.snapshot
+      .ready_for_analysis ===
+      true ||
+    validate?.status ===
+      "passed";
+
+
+  const semanticSkipped =
+    cleanResolved &&
+    !semanticReviewReady;
+
+
+  const semanticDone =
+    semanticConfirmed ||
+    (
+      cleanResolved &&
+      semanticReviewReady &&
+      semanticDecisionCount ===
+        0
+    );
+
+
+  const semanticReviewRequired =
+    cleaningDone &&
+    clean?.status ===
+      "review_required" &&
+    !semanticDone;
+
+
+  const statusByStep: Record<
+    PreparationSubstep,
+    VisualStatus
+  > = {
+    diagnostic:
+      diagnosticDone
+        ? "done"
+        : activeStep ===
+            "diagnostic"
+          ? "current"
+          : "waiting",
+
+    cleaning:
+      !diagnosticDone
+        ? "locked"
+        : cleaningDone
+          ? "done"
+          : cleaningPlanReady &&
+              cleaningActionCount >
+                0
+            ? "attention"
+            : activeStep ===
+                "cleaning"
+              ? "current"
+              : "waiting",
+
+    semantic:
+      !cleaningDone
+        ? "locked"
+        : semanticDone
+          ? "done"
+          : semanticReviewRequired
+            ? "attention"
+            : semanticSkipped
+              ? "skipped"
+              : semanticReviewReady
+                ? "attention"
+                : activeStep ===
+                    "semantic"
+                  ? "current"
+                  : "waiting",
+
+    transform:
+      !cleanResolved
+        ? "locked"
+        : transformSkipped
+          ? "skipped"
+          : transformResolved
+            ? "done"
+            : (
+                transform?.status ===
+                  "blocked" ||
+                transform?.status ===
+                  "review_required" ||
+                combine?.status ===
+                  "blocked" ||
+                combine?.status ===
+                  "review_required"
+              )
+              ? "attention"
+              : activeStep ===
+                  "transform"
+                ? "current"
+                : "waiting",
+
+    validation:
+      validationDone
+        ? "done"
+        : session?.snapshot
+            .next_stage ===
+            "validate"
+          ? activeStep ===
+              "validation"
+            ? "current"
+            : "waiting"
+          : "locked",
+  };
+
+
+  const availabilityByStep: Record<
+    PreparationSubstep,
+    boolean
+  > = {
+    diagnostic:
+      true,
+
+    cleaning:
+      diagnosticDone,
+
+    semantic:
+      cleaningDone,
+
+    transform:
+      cleanResolved,
+
+    validation:
+      validationDone ||
+      session?.snapshot
+        .next_stage ===
+        "validate",
+  };
+
+
+  const activeDefinition =
+    STEPS.find(
+      (
+        step
+      ) =>
+        step.id ===
+        activeStep
+    ) ??
+    STEPS[
+      0
+    ];
+
+
+  return (
+    <section
+      className={
+        styles.wrapper
+      }
+      aria-label="Étapes de préparation"
+    >
+      <div
+        className={
+          styles.header
+        }
+      >
+        <div>
+          <span
+            className={
+              styles.eyebrow
+            }
+          >
+            Workflow de préparation
+          </span>
+
+          <strong
+            className={
+              styles.currentTitle
+            }
+          >
+            {
+              activeDefinition.index
+            }
+            {" · "}
+            {
+              activeDefinition.label
+            }
+          </strong>
+
+          <p
+            className={
+              styles.currentDescription
+            }
+          >
+            {
+              activeDefinition.description
+            }
+          </p>
+        </div>
+
+        <span
+          className={
+            styles.progress
+          }
+        >
+          {
+            STEPS.findIndex(
+              (
+                step
+              ) =>
+                step.id ===
+                activeStep
+            ) +
+            1
+          }
+          /5
+        </span>
+      </div>
+
+
+      <div
+        className={
+          styles.scroller
+        }
+      >
+        <div
+          className={
+            styles.steps
+          }
+        >
+          {
+            STEPS.map(
+              (
+                step
+              ) => {
+                const status =
+                  statusByStep[
+                    step.id
+                  ];
+
+                const available =
+                  availabilityByStep[
+                    step.id
+                  ];
+
+                const active =
+                  activeStep ===
+                  step.id;
+
+
+                return (
+                  <button
+                    key={
+                      step.id
+                    }
+                    className={
+                      `${styles.step} ${
+                        styles[
+                          status
+                        ]
+                      } ${
+                        active
+                          ? styles.active
+                          : ""
+                      }`
+                    }
+                    type="button"
+                    disabled={
+                      !available
+                    }
+                    aria-current={
+                      active
+                        ? "step"
+                        : undefined
+                    }
+                    onClick={
+                      () =>
+                        onStepChange(
+                          step.id
+                        )
+                    }
+                  >
+                    <span
+                      className={
+                        styles.stepTop
+                      }
+                    >
+                      <span
+                        className={
+                          styles.index
+                        }
+                      >
+                        {
+                          step.index
+                        }
+                      </span>
+
+                      <span
+                        className={
+                          styles.symbol
+                        }
+                        aria-hidden="true"
+                      >
+                        {
+                          statusSymbol(
+                            status
+                          )
+                        }
+                      </span>
+                    </span>
+
+                    <strong
+                      className={
+                        styles.label
+                      }
+                    >
+                      <span
+                        className={
+                          styles.desktopLabel
+                        }
+                      >
+                        {
+                          step.label
+                        }
+                      </span>
+
+                      <span
+                        className={
+                          styles.mobileLabel
+                        }
+                      >
+                        {
+                          step.shortLabel
+                        }
+                      </span>
+                    </strong>
+
+                    <span
+                      className={
+                        styles.status
+                      }
+                    >
+                      {
+                        statusLabel(
+                          status,
+                          step.id
+                        )
+                      }
+                    </span>
+                  </button>
+                );
+              }
+            )
+          }
+        </div>
+      </div>
+    </section>
+  );
+}
+
+
+============================================================
+FILE: .\src\components\preparation\PreparationSubstepNavigation.module.css
+============================================================
+
+
+.wrapper {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid rgba(126, 177, 255, 0.12);
+  border-radius: 14px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(49, 89, 151, 0.055),
+      rgba(255, 255, 255, 0.012)
+    );
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.eyebrow {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.44;
+}
+
+.currentTitle {
+  display: block;
+  font-size: 0.88rem;
+  line-height: 1.25;
+}
+
+.currentDescription {
+  max-width: 760px;
+  margin: 6px 0 0;
+  font-size: 0.64rem;
+  line-height: 1.5;
+  opacity: 0.56;
+}
+
+.progress {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 999px;
+  font-size: 0.56rem;
+  font-weight: 700;
+  opacity: 0.62;
+}
+
+.scroller {
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color:
+    rgba(126, 177, 255, 0.18)
+    transparent;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(128px, 1fr));
+  gap: 7px;
+  min-width: 680px;
+}
+
+.step {
+  position: relative;
+  min-height: 78px;
+  padding: 10px 10px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.055);
+  border-radius: 10px;
+  color: inherit;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.012);
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease,
+    opacity 160ms ease;
+}
+
+.step:not(:disabled):hover {
+  transform: translateY(-1px);
+  border-color: rgba(126, 177, 255, 0.18);
+  background: rgba(126, 177, 255, 0.035);
+}
+
+.step:disabled {
+  cursor: not-allowed;
+  opacity: 0.38;
+}
+
+.active {
+  border-color: rgba(126, 177, 255, 0.3);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(80, 132, 216, 0.12),
+      rgba(80, 132, 216, 0.035)
+    );
+}
+
+.stepTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.index {
+  font-size: 0.54rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  opacity: 0.42;
+}
+
+.symbol {
+  display: grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+  font-size: 0.56rem;
+  font-weight: 800;
+}
+
+.label {
+  display: block;
+  margin-top: 9px;
+  font-size: 0.66rem;
+  line-height: 1.25;
+}
+
+.status {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.52rem;
+  opacity: 0.47;
+}
+
+.done .symbol {
+  border-color: rgba(122, 203, 160, 0.25);
+  color: rgb(153, 223, 184);
+}
+
+.done {
+  border-color: rgba(122, 203, 160, 0.1);
+}
+
+.attention .symbol {
+  border-color: rgba(255, 178, 107, 0.28);
+  color: rgb(255, 190, 128);
+}
+
+.attention {
+  border-color: rgba(255, 178, 107, 0.12);
+}
+
+.current .symbol {
+  border-color: rgba(126, 177, 255, 0.3);
+  color: rgb(159, 196, 255);
+}
+
+.skipped .symbol {
+  color: rgba(255, 255, 255, 0.58);
+}
+
+.mobileLabel {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .wrapper {
+    padding: 12px;
+  }
+
+  .header {
+    margin-bottom: 10px;
+  }
+
+  .currentDescription {
+    font-size: 0.62rem;
+  }
+
+  .steps {
+    grid-template-columns: repeat(5, minmax(116px, 1fr));
+    min-width: 620px;
+  }
+
+  .step {
+    min-height: 72px;
+  }
+
+  .desktopLabel {
+    display: none;
+  }
+
+  .mobileLabel {
+    display: inline;
+  }
+}
+
+
+============================================================
+FILE: .\src\components\preparation\PreparationTransformPanel.tsx
+============================================================
+
+
+"use client";
+
+import type {
+  PreparationSessionView,
+  PreparationStageRecord,
+} from "./preparationTypes";
+
+import styles from "./PreparationTransformPanel.module.css";
+
+
+type PreparationTransformPanelProps = {
+  session: PreparationSessionView | null;
+};
+
+
+function findStage(
+  session: PreparationSessionView | null,
+  stageName: PreparationStageRecord["stage"]
+): PreparationStageRecord | null {
+  if (
+    session ===
+    null
+  ) {
+    return null;
+  }
+
+
+  return (
+    session.snapshot.stages.find(
+      (
+        stage
+      ) =>
+        stage.stage ===
+        stageName
+    ) ??
+    null
+  );
+}
+
+
+function statusLabel(
+  stage: PreparationStageRecord | null
+): string {
+  switch (
+    stage?.status
+  ) {
+    case "passed":
+      return "Validé";
+
+    case "skipped":
+      return "Non requis";
+
+    case "review_required":
+      return "Revue requise";
+
+    case "blocked":
+      return "Bloqué";
+
+    default:
+      return "À faire";
+  }
+}
+
+
+function statusClass(
+  stage: PreparationStageRecord | null
+): string {
+  switch (
+    stage?.status
+  ) {
+    case "passed":
+      return styles.success;
+
+    case "review_required":
+    case "blocked":
+      return styles.attention;
+
+    case "skipped":
+      return styles.skipped;
+
+    default:
+      return styles.pending;
+  }
+}
+
+
+export default function PreparationTransformPanel({
+  session,
+}: PreparationTransformPanelProps) {
+  if (
+    session ===
+    null
+  ) {
+    return null;
+  }
+
+
+  const transform =
+    findStage(
+      session,
+      "transform"
+    );
+
+  const combine =
+    findStage(
+      session,
+      "combine"
+    );
+
+
+  const allSkipped =
+    transform?.status ===
+      "skipped" &&
+    combine?.status ===
+      "skipped";
+
+
+  return (
+    <section
+      className={
+        styles.panel
+      }
+    >
+      <div
+        className={
+          styles.header
+        }
+      >
+        <div>
+          <span
+            className={
+              styles.eyebrow
+            }
+          >
+            Préparation structurelle
+          </span>
+
+          <h3>
+            Transformer et combiner
+          </h3>
+
+          <p>
+            Cette étape regroupe les transformations déterministes,
+            agrégations, variables dérivées et combinaisons de datasets
+            qui peuvent être nécessaires avant l’analyse.
+          </p>
+        </div>
+
+        <span
+          className={
+            `${styles.badge} ${
+              allSkipped
+                ? styles.skipped
+                : ""
+            }`
+          }
+        >
+          {
+            allSkipped
+              ? "NON REQUIS"
+              : "CONTRÔLÉ"
+          }
+        </span>
+      </div>
+
+
+      <div
+        className={
+          styles.grid
+        }
+      >
+        <article
+          className={
+            styles.card
+          }
+        >
+          <div
+            className={
+              styles.cardTop
+            }
+          >
+            <strong>
+              Transformations
+            </strong>
+
+            <span
+              className={
+                `${styles.state} ${
+                  statusClass(
+                    transform
+                  )
+                }`
+              }
+            >
+              {
+                statusLabel(
+                  transform
+                )
+              }
+            </span>
+          </div>
+
+          <p>
+            Typage, variables dérivées, agrégations et autres opérations
+            exécutées uniquement par les moteurs Python déterministes.
+          </p>
+
+          {
+            transform?.blocking_reasons.length
+              ? (
+                  <div
+                    className={
+                      styles.reasons
+                    }
+                  >
+                    {
+                      transform.blocking_reasons.map(
+                        (
+                          reason
+                        ) => (
+                          <span
+                            key={
+                              reason
+                            }
+                          >
+                            {
+                              reason
+                            }
+                          </span>
+                        )
+                      )
+                    }
+                  </div>
+                )
+              : null
+          }
+        </article>
+
+
+        <article
+          className={
+            styles.card
+          }
+        >
+          <div
+            className={
+              styles.cardTop
+            }
+          >
+            <strong>
+              Combinaison
+            </strong>
+
+            <span
+              className={
+                `${styles.state} ${
+                  statusClass(
+                    combine
+                  )
+                }`
+              }
+            >
+              {
+                statusLabel(
+                  combine
+                )
+              }
+            </span>
+          </div>
+
+          <p>
+            Les jointures restent séparées des transformations et doivent
+            respecter le grain, les cardinalités et les garde-fous du moteur.
+          </p>
+
+          {
+            combine?.blocking_reasons.length
+              ? (
+                  <div
+                    className={
+                      styles.reasons
+                    }
+                  >
+                    {
+                      combine.blocking_reasons.map(
+                        (
+                          reason
+                        ) => (
+                          <span
+                            key={
+                              reason
+                            }
+                          >
+                            {
+                              reason
+                            }
+                          </span>
+                        )
+                      )
+                    }
+                  </div>
+                )
+              : null
+          }
+        </article>
+      </div>
+
+
+      <div
+        className={
+          styles.note
+        }
+      >
+        <strong>
+          Pourquoi cette étape peut être « Non requis » ?
+        </strong>
+
+        <span>
+          DataLens ne transforme pas les données pour remplir artificiellement
+          le workflow. Si aucune opération structurelle n’est nécessaire pour
+          le périmètre validé, les étapes restent explicitement ignorées.
+        </span>
+      </div>
+    </section>
+  );
+}
+
+
+============================================================
+FILE: .\src\components\preparation\PreparationTransformPanel.module.css
+============================================================
+
+
+.panel {
+  margin-top: 12px;
+  padding: 16px;
+  border: 1px solid rgba(126, 177, 255, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.01);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.eyebrow {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.44;
+}
+
+.header h3 {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.header p {
+  max-width: 760px;
+  margin: 6px 0 0;
+  font-size: 0.64rem;
+  line-height: 1.5;
+  opacity: 0.56;
+}
+
+.badge {
+  padding: 5px 8px;
+  border: 1px solid rgba(126, 177, 255, 0.16);
+  border-radius: 999px;
+  font-size: 0.54rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.card {
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.055);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.01);
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.cardTop strong {
+  font-size: 0.7rem;
+}
+
+.card p {
+  margin: 7px 0 0;
+  font-size: 0.61rem;
+  line-height: 1.5;
+  opacity: 0.53;
+}
+
+.state {
+  flex: 0 0 auto;
+  padding: 4px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 999px;
+  font-size: 0.5rem;
+  font-weight: 700;
+}
+
+.success {
+  border-color: rgba(122, 203, 160, 0.2);
+  color: rgb(153, 223, 184);
+}
+
+.attention {
+  border-color: rgba(255, 178, 107, 0.22);
+  color: rgb(255, 190, 128);
+}
+
+.skipped {
+  opacity: 0.65;
+}
+
+.pending {
+  opacity: 0.5;
+}
+
+.reasons {
+  display: grid;
+  gap: 4px;
+  margin-top: 9px;
+}
+
+.reasons span {
+  padding: 6px 7px;
+  border-left: 2px solid rgba(255, 178, 107, 0.28);
+  font-size: 0.58rem;
+  line-height: 1.45;
+  opacity: 0.65;
+}
+
+.note {
+  display: grid;
+  gap: 4px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.055);
+}
+
+.note strong {
+  font-size: 0.61rem;
+}
+
+.note span {
+  max-width: 820px;
+  font-size: 0.59rem;
+  line-height: 1.5;
+  opacity: 0.5;
+}
+
+@media (max-width: 720px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+============================================================
+FILE: .\src\components\preparation\PreparationFinalizationPanel.tsx
+============================================================
+
+
+"use client";
+
+import type {
+  PreparationSessionView,
+  PreparationStageRecord,
+} from "./preparationTypes";
+
+
+type PreparationFinalizationPanelProps = {
+  session: PreparationSessionView | null;
+  loading: boolean;
+  error: string | null;
+  onValidate: () => void;
+};
+
+
+function findStage(
+  session: PreparationSessionView,
+  name: PreparationStageRecord["stage"]
+): PreparationStageRecord | null {
+  return (
+    session.snapshot.stages.find(
+      (
+        stage
+      ) =>
+        stage.stage ===
+        name
+    ) ??
+    null
+  );
+}
+
+
+export default function PreparationFinalizationPanel({
+  session,
+  loading,
+  error,
+  onValidate,
+}: PreparationFinalizationPanelProps) {
+  if (
+    session ===
+    null
+  ) {
+    return null;
+  }
+
+
+  const snapshot =
+    session.snapshot;
+
+
+  const clean =
+    findStage(
+      session,
+      "clean"
+    );
+
+
+  const validate =
+    findStage(
+      session,
+      "validate"
+    );
+
+
+  const ready =
+    snapshot.ready_for_analysis;
+
+
+  const canValidate =
+    !ready &&
+    snapshot.next_stage ===
+      "validate";
+
+
+  return (
+    <section
+      style={{
+        marginTop:
+          "12px",
+
+        padding:
+          "16px",
+
+        border:
+          ready
+            ? "1px solid rgba(122,203,160,0.2)"
+            : "1px solid rgba(126,177,255,0.14)",
+
+        borderRadius:
+          "14px",
+
+        background:
+          ready
+            ? "rgba(122,203,160,0.018)"
+            : "rgba(72,121,200,0.018)",
+      }}
+    >
+      <div
+        style={{
+          display:
+            "flex",
+
+          justifyContent:
+            "space-between",
+
+          alignItems:
+            "flex-start",
+
+          gap:
+            "14px",
+
+          flexWrap:
+            "wrap",
+        }}
+      >
+        <div>
+          <span
+            style={{
+              display:
+                "block",
+
+              fontSize:
+                "0.59rem",
+
+              textTransform:
+                "uppercase",
+
+              letterSpacing:
+                "0.07em",
+
+              opacity:
+                0.46,
+            }}
+          >
+            Validation finale
+          </span>
+
+          <strong
+            style={{
+              display:
+                "block",
+
+              marginTop:
+                "5px",
+
+              fontSize:
+                "0.86rem",
+            }}
+          >
+            {
+              ready
+                ? "Préparation validée pour l’analyse"
+                : canValidate
+                  ? "Tous les prérequis peuvent être contrôlés"
+                  : "Terminez les étapes précédentes"
+            }
+          </strong>
+
+          <p
+            style={{
+              margin:
+                "6px 0 0",
+
+              maxWidth:
+                "720px",
+
+              fontSize:
+                "0.64rem",
+
+              lineHeight:
+                1.5,
+
+              opacity:
+                0.56,
+            }}
+          >
+            Le navigateur n’envoie jamais un statut PASS.
+            FastAPI relit la session, vérifie les preuves et
+            décide seul si le dataset peut entrer dans le moteur
+            analytique.
+          </p>
+        </div>
+
+
+        <span
+          style={{
+            padding:
+              "5px 8px",
+
+            border:
+              ready
+                ? "1px solid rgba(122,203,160,0.2)"
+                : "1px solid rgba(126,177,255,0.14)",
+
+            borderRadius:
+              "999px",
+
+            fontSize:
+              "0.55rem",
+
+            fontWeight:
+              700,
+          }}
+        >
+          {
+            ready
+              ? "✓ READY FOR ANALYSIS"
+              : validate?.status ===
+                  "blocked"
+                ? "× VALIDATION BLOQUÉE"
+                : "VALIDATION EN ATTENTE"
+          }
+        </span>
+      </div>
+
+
+      <div
+        style={{
+          display:
+            "grid",
+
+          gridTemplateColumns:
+            "repeat(auto-fit, minmax(150px, 1fr))",
+
+          gap:
+            "8px",
+
+          marginTop:
+            "13px",
+        }}
+      >
+        <article
+          style={{
+            padding:
+              "10px",
+
+            border:
+              "1px solid rgba(255,255,255,0.05)",
+
+            borderRadius:
+              "9px",
+          }}
+        >
+          <span
+            style={{
+              display:
+                "block",
+
+              fontSize:
+                "0.55rem",
+
+              opacity:
+                0.46,
+            }}
+          >
+            Nettoyage
+          </span>
+
+          <strong
+            style={{
+              display:
+                "block",
+
+              marginTop:
+                "4px",
+
+              fontSize:
+                "0.72rem",
+            }}
+          >
+            {
+              clean?.status ??
+              "not_started"
+            }
+          </strong>
+        </article>
+
+
+        <article
+          style={{
+            padding:
+              "10px",
+
+            border:
+              "1px solid rgba(255,255,255,0.05)",
+
+            borderRadius:
+              "9px",
+          }}
+        >
+          <span
+            style={{
+              display:
+                "block",
+
+              fontSize:
+                "0.55rem",
+
+              opacity:
+                0.46,
+            }}
+          >
+            Validation
+          </span>
+
+          <strong
+            style={{
+              display:
+                "block",
+
+              marginTop:
+                "4px",
+
+              fontSize:
+                "0.72rem",
+            }}
+          >
+            {
+              validate?.status ??
+              "not_started"
+            }
+          </strong>
+        </article>
+
+
+        <article
+          style={{
+            padding:
+              "10px",
+
+            border:
+              "1px solid rgba(255,255,255,0.05)",
+
+            borderRadius:
+              "9px",
+          }}
+        >
+          <span
+            style={{
+              display:
+                "block",
+
+              fontSize:
+                "0.55rem",
+
+              opacity:
+                0.46,
+            }}
+          >
+            Datasets validés
+          </span>
+
+          <strong
+            style={{
+              display:
+                "block",
+
+              marginTop:
+                "4px",
+
+              fontSize:
+                "0.72rem",
+            }}
+          >
+            {
+              snapshot
+                .validated_analysis_dataset_ids
+                .length
+            }
+            {" / "}
+            {
+              snapshot
+                .selected_analysis_dataset_ids
+                .length
+            }
+          </strong>
+        </article>
+      </div>
+
+
+      {
+        error
+          ? (
+              <p
+                style={{
+                  margin:
+                    "11px 0 0",
+
+                  padding:
+                    "10px",
+
+                  border:
+                    "1px solid rgba(255,142,117,0.16)",
+
+                  borderRadius:
+                    "9px",
+
+                  fontSize:
+                    "0.63rem",
+
+                  lineHeight:
+                    1.5,
+                }}
+              >
+                {
+                  error
+                }
+              </p>
+            )
+          : null
+      }
+
+
+      <div
+        style={{
+          display:
+            "flex",
+
+          justifyContent:
+            "space-between",
+
+          alignItems:
+            "center",
+
+          gap:
+            "12px",
+
+          flexWrap:
+            "wrap",
+
+          marginTop:
+            "13px",
+
+          paddingTop:
+            "12px",
+
+          borderTop:
+            "1px solid rgba(255,255,255,0.05)",
+        }}
+      >
+        <p
+          style={{
+            margin:
+              0,
+
+            fontSize:
+              "0.62rem",
+
+            lineHeight:
+              1.45,
+
+            opacity:
+              0.52,
+          }}
+        >
+          {
+            ready
+              ? "Le readiness gate autorise maintenant l’analyse."
+              : canValidate
+                ? "La validation finale peut être exécutée côté serveur."
+                : snapshot.next_stage
+                  ? `Prochaine étape : ${snapshot.next_stage}.`
+                  : "La préparation n’est pas encore validable."
+          }
+        </p>
+
+
+        <button
+          type="button"
+          onClick={
+            onValidate
+          }
+          disabled={
+            ready ||
+            loading ||
+            !canValidate
+          }
+          style={{
+            minWidth:
+              "220px",
+
+            padding:
+              "9px 12px",
+
+            border:
+              ready
+                ? "1px solid rgba(122,203,160,0.2)"
+                : "1px solid rgba(126,177,255,0.2)",
+
+            borderRadius:
+              "9px",
+
+            background:
+              ready
+                ? "rgba(122,203,160,0.09)"
+                : "rgba(72,121,200,0.08)",
+
+            color:
+              "inherit",
+
+            cursor:
+              ready ||
+              loading ||
+              !canValidate
+                ? "default"
+                : "pointer",
+
+            font:
+              "inherit",
+
+            fontSize:
+              "0.64rem",
+
+            fontWeight:
+              750,
+
+            opacity:
+              !ready &&
+              canValidate
+                ? 1
+                : 0.58,
+          }}
+        >
+          {
+            ready
+              ? "Préparation validée"
+              : loading
+                ? "Validation…"
+                : "Valider la préparation"
+          }
+        </button>
+      </div>
+    </section>
+  );
+}
+
+
+============================================================
+PREPARATION WORKFLOW PANEL USAGES
+============================================================
+
+
+C:\Users\tomas\datalens\apps\web\src\app\WorkspaceClient.tsx:17: import PreparationWorkflowPanel from "../components/preparation/PreparationWorkflowPanel";
+C:\Users\tomas\datalens\apps\web\src\app\WorkspaceClient.tsx:26833:                         <PreparationWorkflowPanel
+C:\Users\tomas\datalens\apps\web\src\components\preparation\PreparationWorkflowPanel.tsx:11: import styles from "./PreparationWorkflowPanel.module.css";
+C:\Users\tomas\datalens\apps\web\src\components\preparation\PreparationWorkflowPanel.tsx:14: type PreparationWorkflowPanelProps = {
+C:\Users\tomas\datalens\apps\web\src\components\preparation\PreparationWorkflowPanel.tsx:330: export default function PreparationWorkflowPanel({
+C:\Users\tomas\datalens\apps\web\src\components\preparation\PreparationWorkflowPanel.tsx:337: }: PreparationWorkflowPanelProps) {
