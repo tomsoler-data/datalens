@@ -1,0 +1,329 @@
+{
+  "status": "ready",
+  "trace_id": "ai:f638287f55ec4480a2ccfa089be957ae",
+  "planner": {
+    "status": "ready",
+    "objective": "Étudier l'association entre overtime et left_company.",
+    "model": "llama3.2:3b",
+    "proposal_count": 1,
+    "validated_count": 1,
+    "blocked_count": 0,
+    "ambiguous_count": 0,
+    "rejected_count": 0,
+    "items": [
+      {
+        "proposal_index": 1,
+        "validation_status": "validated",
+        "raw_proposal": {
+          "decision": "propose",
+          "title": "Association entre overtime et left_company",
+          "family": "categorical_association",
+          "dataset_id": "dataset:0001",
+          "analytical_grain": "association",
+          "x_column": "overtime",
+          "y_column": "left_company",
+          "group_column": null,
+          "value_column": null,
+          "time_column": null,
+          "dimension_column": null,
+          "entity_column": null,
+          "aggregation_function": "none",
+          "ranking_order": "none",
+          "ranking_limit": null,
+          "window_operation": "none",
+          "window_size": null,
+          "blockers": [],
+          "reasons": [
+            "overtime et left_company sont des variables boolean"
+          ],
+          "confidence": 1.0
+        },
+        "proposal": {
+          "decision": "propose",
+          "title": "Association entre overtime et left_company",
+          "family": "categorical_association",
+          "dataset_id": "dataset:0001",
+          "analytical_grain": "association",
+          "x_column": "overtime",
+          "y_column": "left_company",
+          "group_column": null,
+          "value_column": null,
+          "time_column": null,
+          "dimension_column": null,
+          "entity_column": null,
+          "aggregation_function": "none",
+          "ranking_order": "none",
+          "ranking_limit": null,
+          "window_operation": "none",
+          "window_size": null,
+          "blockers": [],
+          "reasons": [
+            "overtime et left_company sont des variables boolean"
+          ],
+          "confidence": 1.0
+        },
+        "contract": {
+          "contract_id": "ai:49736c698e5b35e0:01",
+          "contract_version": "analytical_contract_v0.2",
+          "origin": "ai_planner",
+          "status": "validated",
+          "title": "Association entre overtime et left_company",
+          "request_text": "Étudier l'association entre overtime et left_company.",
+          "family": "categorical_association",
+          "required_dataset_ids": [
+            "dataset:0001"
+          ],
+          "required_dataset_filenames": [
+            "datalens_hr_benchmark.csv"
+          ],
+          "analytical_grain": "association",
+          "bindings": [
+            {
+              "role": "x",
+              "column": "overtime",
+              "dataset_id": "dataset:0001",
+              "dataset_filename": "datalens_hr_benchmark.csv",
+              "semantic_concept": null,
+              "analysis_kind": "boolean"
+            },
+            {
+              "role": "y",
+              "column": "left_company",
+              "dataset_id": "dataset:0001",
+              "dataset_filename": "datalens_hr_benchmark.csv",
+              "semantic_concept": null,
+              "analysis_kind": "boolean"
+            }
+          ],
+          "aggregation": null,
+          "ranking": null,
+          "window": null,
+          "filters": [],
+          "joins": [],
+          "derived_variables": [],
+          "required_operations": [
+            "Validate AI-proposed analytical plan against the deterministic dataset catalog.",
+            "Execute only through a deterministic categorical_association tool."
+          ],
+          "provenance": null,
+          "reasons": [
+            "Le LLM local a proposé la famille analytique et les rôles de colonnes.",
+            "Python a vérifié dataset_id, noms de colonnes, types analytiques et invariants du contrat avant promotion vers `validated`."
+          ],
+          "blockers": [],
+          "planner_confidence": 1.0
+        },
+        "errors": [],
+        "warnings": [],
+        "normalizations": []
+      }
+    ],
+    "attempt_count": 1,
+    "retry_count": 0,
+    "retry_triggered": false,
+    "retry_feedback": [],
+    "normalization_count": 0,
+    "normalization_applied": false,
+    "timing": {
+      "prompt_construction_ms": 0.011299999641778413,
+      "model_inference_ms": 4873.9714000003005,
+      "structured_parse_ms": 0.029599999834317714,
+      "python_validation_ms": 0.31709999984741444,
+      "retry_feedback_ms": 0.0,
+      "total_ms": 4874.337600000217,
+      "attempts": [
+        {
+          "attempt_index": 1,
+          "prompt_construction_ms": 0.011299999641778413,
+          "model_inference_ms": 4873.9714000003005,
+          "structured_parse_ms": 0.029599999834317714,
+          "python_validation_ms": 0.31709999984741444,
+          "total_ms": 4874.329399999624
+        }
+      ]
+    },
+    "planner_rule_version": "ai_analytical_planner_v0.15"
+  },
+  "planner_model": "llama3.2:3b",
+  "tool_model": "qwen2.5:1.5b-instruct",
+  "supported_native_families": [
+    "categorical_association",
+    "distribution",
+    "group_comparison",
+    "quantitative_association",
+    "time_series"
+  ],
+  "validated_contract_count": 1,
+  "pipeline_item_count": 1,
+  "executed_count": 1,
+  "not_supported_count": 0,
+  "rejected_count": 0,
+  "items": [
+    {
+      "contract_id": "ai:49736c698e5b35e0:01",
+      "family": "categorical_association",
+      "pipeline_status": "executed",
+      "native_tool": {
+        "status": "ready",
+        "model": "qwen2.5:1.5b-instruct",
+        "contract_id": "ai:49736c698e5b35e0:01",
+        "contract_family": "categorical_association",
+        "available_tools": [
+          "run_categorical_association",
+          "run_distribution",
+          "run_group_comparison",
+          "run_quantitative_association",
+          "run_time_series"
+        ],
+        "expected_tool": "run_categorical_association",
+        "tool_call_received": true,
+        "requested_tool": "run_categorical_association",
+        "requested_arguments": {
+          "x_column": "overtime",
+          "y_column": "left_company",
+          "dataset_id": "dataset:0001"
+        },
+        "validation_status": "validated",
+        "validation_errors": [],
+        "attempt_count": 1,
+        "retry_count": 0,
+        "attempts": [
+          {
+            "attempt_index": 1,
+            "prompt_variant": "standard",
+            "tool_call_count": 1,
+            "assistant_content": "",
+            "selected_tool_name": "run_categorical_association",
+            "errors": [],
+            "prompt_construction_ms": 0.013199999557400588,
+            "model_inference_ms": 322.8071000003183,
+            "response_parse_ms": 0.006999999641266186,
+            "total_ms": 322.81500000044616
+          }
+        ],
+        "execution": {
+          "call_index": 1,
+          "contract_id": "ai:49736c698e5b35e0:01",
+          "family": "categorical_association",
+          "tool_name": "run_categorical_association",
+          "selection_source": "validated_contract_family",
+          "execution_status": "executed",
+          "dataset_id": "dataset:0001",
+          "dataset_filename": "datalens_hr_benchmark.csv",
+          "arguments": {
+            "family": "categorical_association",
+            "dataset_ids": [
+              "dataset:0001"
+            ],
+            "analytical_grain": "association",
+            "variables": {
+              "x": "overtime",
+              "y": "left_company"
+            },
+            "aggregation": null
+          },
+          "result": {
+            "analysis_id": "ai_tool:ai:49736c698e5b35e0:01",
+            "dataset_id": "dataset:0001",
+            "dataset_filename": "datalens_hr_benchmark.csv",
+            "title": "Association entre overtime et left_company",
+            "family": "categorical_association",
+            "planned_readiness": "executable_now",
+            "execution_status": "complete",
+            "chart_type": "heatmap",
+            "summary": [
+              "A chi-square independence test was executed for overtime and left_company.",
+              "Cramer's V was calculated to quantify the strength of categorical association."
+            ],
+            "metrics": {
+              "x_column": "overtime",
+              "y_column": "left_company",
+              "x_levels": 2,
+              "y_levels": 2,
+              "valid_observations": 900
+            },
+            "chart_data": [
+              {
+                "x": "False",
+                "y": "False",
+                "count": 681
+              },
+              {
+                "x": "False",
+                "y": "True",
+                "count": 16
+              },
+              {
+                "x": "True",
+                "y": "False",
+                "count": 179
+              },
+              {
+                "x": "True",
+                "y": "True",
+                "count": 24
+              }
+            ],
+            "statistical_decision": null,
+            "statistical_result": {
+              "test": "chi_square_independence",
+              "chi2": 31.393814102400796,
+              "p_value": 2.1065097133091873e-8,
+              "degrees_of_freedom": 1,
+              "cramers_v": 0.1867672767626444,
+              "n": 900,
+              "expected_min": 9.022222222222222,
+              "alpha": 0.05,
+              "statistically_significant": true
+            },
+            "visualization": null,
+            "warnings": [],
+            "limitations": [
+              "AI tool orchestration v0.2 supports only single-dataset contracts and does not allow LLM-generated joins, derived variables or arbitrary Python code."
+            ],
+            "execution_rule_version": "analysis_executor_v0.1"
+          },
+          "errors": [],
+          "warnings": [
+            "The LLM did not execute Python. It produced the analytical intent; Python selected and ran a whitelisted deterministic tool."
+          ]
+        },
+        "timing": {
+          "prompt_construction_ms": 0.013199999557400588,
+          "model_inference_ms": 322.8071000003183,
+          "response_parse_ms": 0.006999999641266186,
+          "python_validation_ms": 0.021400000150606502,
+          "deterministic_execution_ms": 5.728199999794015,
+          "total_ms": 328.6029000000781
+        },
+        "notes": [
+          "The local tool model selected one function from the native DataLens tool catalog.",
+          "Python verified that the selected tool matched the validated analytical family and that every argument exactly matched the validated contract.",
+          "A missing tool call may trigger one stricter retry; ordinary assistant prose is never treated as executable.",
+          "The deterministic DataLens executor performed the statistical calculation."
+        ],
+        "native_tool_rule_version": "native_tool_calling_v0.7"
+      },
+      "errors": [],
+      "warnings": [
+        "The planner model and native tool model had separate roles. Python validated both boundaries before deterministic execution."
+      ]
+    }
+  ],
+  "timing": {
+    "tool_prompt_construction_ms": 0.013199999557400588,
+    "tool_model_inference_ms": 322.8071000003183,
+    "tool_response_parse_ms": 0.006999999641266186,
+    "tool_python_validation_ms": 0.021400000150606502,
+    "deterministic_execution_ms": 5.728199999794015,
+    "total_ms": 328.6336000001029
+  },
+  "notes": [
+    "Stage 1: Gemma proposes a structured analytical contract from the user objective and dataset catalog.",
+    "Stage 2: Python validates dataset ids, column names, analytical types and contract invariants.",
+    "Stage 3: Qwen selects one matching function from the native DataLens tool catalog.",
+    "Stage 4: Python verifies the selected tool against the validated family and checks every argument.",
+    "Stage 5: the deterministic DataLens executor computes the result."
+  ],
+  "pipeline_rule_version": "ai_native_pipeline_v0.4"
+}

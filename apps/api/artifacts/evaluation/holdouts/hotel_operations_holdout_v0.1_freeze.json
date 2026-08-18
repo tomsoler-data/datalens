@@ -1,0 +1,158 @@
+{
+  "benchmark_id": "semantic:hotel_operations:holdout:v0.1",
+  "benchmark_version": "hotel_operations_semantic_holdout_v0.1",
+  "dataset_id": "hotel_operations:0001",
+  "filename": "synthetic_hotel_operations.csv",
+  "domain": "hotel_operations",
+  "status": "independent_holdout",
+  "evaluation_role": "embedding_candidate_retrieval",
+  "embedding_model": "embeddinggemma",
+  "row_count": 240,
+  "column_count": 22,
+  "random_seed": 20260816,
+  "relation_case_count": 19,
+  "strong_relation_count": 6,
+  "strong_relations": [
+    "same_metric_different_state",
+    "same_process_different_stage"
+  ],
+  "preregistered_gates": {
+    "reference_top_k": 3,
+    "minimum_strong_pair_recall": 0.9,
+    "minimum_pair_reduction": 0.4,
+    "maximum_embedding_call_failures": 0,
+    "candidate_generation_only": true,
+    "safety_authority": false
+  },
+  "candidate_pair_policy": "retain undirected pair when either endpoint retrieves the other in top-k",
+  "dataset_hash_serialization": "csv_utf8_index_false_lineterminator_lf_float_format_10_decimal_places",
+  "important_constraints": [
+    "Freeze created before the first embeddinggemma execution on this holdout.",
+    "No tuning is allowed from this holdout before recording its first-run result.",
+    "The retriever has no analytical safety authority.",
+    "Retrieval gates evaluate recall and search-space reduction, not FP=0 analytical authorization."
+  ],
+  "source_sha256": "30303a2c30603cdb8a2b727a8f0e286112f123f76c6ac6723a56048610a427cb",
+  "suite_sha256": "5ac0c4cbd7dd12e4272592e5af58b71feca122f318bf1af79a3513e9a2864b50",
+  "cases_sha256": "4524eed8210ad67a022f033323bd0c6e3d84a2bda48265dbad983d2b47d57915",
+  "dataset_sha256": "0d5b8790bfb1c4656d23e176b5b5e28f90666e112e0355c6fd3be6bd0aeeffd0",
+  "holdout_frozen": true,
+  "first_embedding_execution_completed": false,
+  "source_file": "C:\\Users\\tomas\\datalens\\apps\\api\\app\\evaluation\\benchmarks\\hotel_operations_holdout.py",
+  "relations": [
+    {
+      "case_id": "reservation_requests_stays_booked",
+      "left_column": "Reservation requests received",
+      "right_column": "Stays booked",
+      "relation": "same_process_different_stage"
+    },
+    {
+      "case_id": "housekeepers_rostered_cleaning_staff_present",
+      "left_column": "Housekeepers rostered",
+      "right_column": "Cleaning staff present",
+      "relation": "same_metric_different_state"
+    },
+    {
+      "case_id": "projected_lodging_revenue_realized_room_revenue",
+      "left_column": "Projected lodging revenue",
+      "right_column": "Realized room revenue",
+      "relation": "same_metric_different_state"
+    },
+    {
+      "case_id": "target_checkin_observed_service_time",
+      "left_column": "Target check-in duration (minutes)",
+      "right_column": "Observed front-desk service time (minutes)",
+      "relation": "same_metric_different_state"
+    },
+    {
+      "case_id": "planned_linen_measured_laundry_weight",
+      "left_column": "Planned linen load (kg)",
+      "right_column": "Measured laundry weight (kg)",
+      "relation": "same_metric_different_state"
+    },
+    {
+      "case_id": "forecast_occupied_rooms_actual_occupied_rooms",
+      "left_column": "Forecast occupied rooms",
+      "right_column": "Rooms actually occupied",
+      "relation": "same_metric_different_state"
+    },
+    {
+      "case_id": "reservation_requests_guest_complaints",
+      "left_column": "Reservation requests received",
+      "right_column": "Guest complaints resolved",
+      "relation": "related_distinct_metric"
+    },
+    {
+      "case_id": "stays_booked_rooms_out_of_service",
+      "left_column": "Stays booked",
+      "right_column": "Rooms out of service",
+      "relation": "related_distinct_metric"
+    },
+    {
+      "case_id": "housekeepers_elevators",
+      "left_column": "Housekeepers rostered",
+      "right_column": "Elevators operational",
+      "relation": "related_distinct_metric"
+    },
+    {
+      "case_id": "projected_revenue_restaurant_revenue",
+      "left_column": "Projected lodging revenue",
+      "right_column": "Restaurant revenue",
+      "relation": "related_distinct_metric"
+    },
+    {
+      "case_id": "realized_revenue_maintenance_spend",
+      "left_column": "Realized room revenue",
+      "right_column": "Maintenance spend",
+      "relation": "related_distinct_metric"
+    },
+    {
+      "case_id": "target_checkin_elevator_downtime",
+      "left_column": "Target check-in duration (minutes)",
+      "right_column": "Elevator downtime (minutes)",
+      "relation": "related_distinct_metric"
+    },
+    {
+      "case_id": "observed_service_elevator_downtime",
+      "left_column": "Observed front-desk service time (minutes)",
+      "right_column": "Elevator downtime (minutes)",
+      "relation": "related_distinct_metric"
+    },
+    {
+      "case_id": "planned_linen_waste_weight",
+      "left_column": "Planned linen load (kg)",
+      "right_column": "Waste collected (kg)",
+      "relation": "related_distinct_metric"
+    },
+    {
+      "case_id": "measured_laundry_waste_weight",
+      "left_column": "Measured laundry weight (kg)",
+      "right_column": "Waste collected (kg)",
+      "relation": "related_distinct_metric"
+    },
+    {
+      "case_id": "forecast_occupied_rooms_out_of_service",
+      "left_column": "Forecast occupied rooms",
+      "right_column": "Rooms out of service",
+      "relation": "related_distinct_metric"
+    },
+    {
+      "case_id": "occupancy_guest_satisfaction",
+      "left_column": "Occupancy rate (%)",
+      "right_column": "Guest satisfaction (%)",
+      "relation": "related_distinct_metric"
+    },
+    {
+      "case_id": "occupancy_cancellation_rate",
+      "left_column": "Occupancy rate (%)",
+      "right_column": "Booking cancellation rate (%)",
+      "relation": "related_distinct_metric"
+    },
+    {
+      "case_id": "satisfaction_cancellation_rate",
+      "left_column": "Guest satisfaction (%)",
+      "right_column": "Booking cancellation rate (%)",
+      "relation": "related_distinct_metric"
+    }
+  ]
+}

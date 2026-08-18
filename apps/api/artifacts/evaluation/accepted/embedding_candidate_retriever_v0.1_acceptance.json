@@ -1,0 +1,60 @@
+{
+  "component": "EmbeddingCandidateRetriever",
+  "component_version": "embedding_candidate_retriever_v0.1",
+  "status": "accepted_for_candidate_generation",
+  "embedding_model": "embeddinggemma",
+  "default_top_k": 3,
+  "allowed_role": "semantic_candidate_generation",
+  "forbidden_roles": [
+    "analytical_authorization",
+    "same_metric_authorization",
+    "same_process_authorization",
+    "unit_compatibility_authorization",
+    "subtraction_authorization",
+    "derived_gap_authorization",
+    "statistical_test_authorization"
+  ],
+  "decision_principle": "Embedding retrieval may nominate pairs for further semantic examination but may never authorize an analytical operation.",
+  "development_evidence": {
+    "artifact": "artifacts\\evaluation\\experiments\\embedding_candidate_graph_efficiency_probe_v0.1.json",
+    "artifact_sha256": "6a5724fbe7638c980a87eaca4a431308994c7d40728836563dfc52becf165a4b",
+    "top_k": 3,
+    "all_possible_pair_count": 156,
+    "candidate_pair_count": 47,
+    "pair_reduction": 0.6987179487179487,
+    "strong_pair_count": 9,
+    "recovered_strong_pair_count": 9,
+    "strong_pair_recall": 1.0
+  },
+  "independent_holdout_evidence": {
+    "freeze_artifact": "artifacts\\evaluation\\holdouts\\hotel_operations_holdout_v0.1_freeze.json",
+    "freeze_artifact_sha256": "c0bbc151b3357ed2f9be5c9551541436244bb6aed987829a9a7749682ab48d1a",
+    "first_run_artifact": "artifacts\\evaluation\\experiments\\embedding_retriever_hotel_operations_holdout_first_run.json",
+    "first_run_artifact_sha256": "2216f5f594f6ca664e8857a621c1cb7048f6438061bc0e5767e0a2fe94d47075",
+    "benchmark_id": "semantic:hotel_operations:holdout:v0.1",
+    "domain": "hotel_operations",
+    "top_k": 3,
+    "column_count": 22,
+    "all_possible_pair_count": 231,
+    "candidate_pair_count": 44,
+    "pair_reduction": 0.8095238095238095,
+    "strong_pair_count": 6,
+    "recovered_strong_pair_count": 6,
+    "strong_pair_recall": 1.0,
+    "embedding_call_count": 1,
+    "embedding_call_failures": 0,
+    "independent_holdout_pass": true
+  },
+  "integration_policy": {
+    "initial_mode": "shadow",
+    "may_prune_production_discovery": false,
+    "may_change_existing_analytical_results": false,
+    "next_validation": "Run the accepted retriever in shadow mode against existing discovery workloads before allowing it to prune candidate generation."
+  },
+  "historical_holdout_policy": {
+    "hotel_operations_first_run_is_immutable": true,
+    "do_not_overwrite_first_run": true,
+    "do_not_tune_retriever_from_hotel_operations": true,
+    "future_tuning_requires_new_independent_holdout": true
+  }
+}

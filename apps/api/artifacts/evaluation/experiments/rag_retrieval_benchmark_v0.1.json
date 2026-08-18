@@ -1,0 +1,438 @@
+{
+  "benchmark_version": "rag_retrieval_benchmark_v0.1",
+  "retrieval_rule_version": "rag_retrieval_v0.2",
+  "embedding_model": "embeddinggemma",
+  "top_k": 3,
+  "document_count": 12,
+  "chunk_count": 12,
+  "documents_sha256": "a75ce4d43ddd7f181a5cd07f6c6b0379ad143298f4e84e6eef2d4cea96afc2b1",
+  "cases_sha256": "b19bd5b99f27ea7f6370894a071d631f660d69694d8874b9de3db3ab96303a54",
+  "metrics": {
+    "case_count": 12,
+    "recall_at_1": 1.0,
+    "recall_at_3": 1.0,
+    "mrr": 1.0
+  },
+  "cases": [
+    {
+      "case_id": "modernisation_gap",
+      "query": "Comment repérer un besoin de modernisation des infrastructures d'eau potable ?",
+      "relevant_document_ids": [
+        "water_modernisation"
+      ],
+      "ranked_document_ids": [
+        "water_modernisation",
+        "water_creation",
+        "wash_mortality"
+      ],
+      "scores": [
+        {
+          "rank": 1,
+          "document_id": "water_modernisation",
+          "filename": "water_modernisation.txt",
+          "score": 0.7713819810924585
+        },
+        {
+          "rank": 2,
+          "document_id": "water_creation",
+          "filename": "water_creation.txt",
+          "score": 0.6056011865556076
+        },
+        {
+          "rank": 3,
+          "document_id": "wash_mortality",
+          "filename": "wash_mortality.txt",
+          "score": 0.4524246121893348
+        }
+      ],
+      "recall_at_1": true,
+      "recall_at_3": true,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "case_id": "creation_without_basic_access",
+      "query": "Quel indicateur permet d'identifier les populations nécessitant la création de nouvelles infrastructures d'eau potable ?",
+      "relevant_document_ids": [
+        "water_creation"
+      ],
+      "ranked_document_ids": [
+        "water_creation",
+        "water_modernisation",
+        "wash_mortality"
+      ],
+      "scores": [
+        {
+          "rank": 1,
+          "document_id": "water_creation",
+          "filename": "water_creation.txt",
+          "score": 0.7966402193518346
+        },
+        {
+          "rank": 2,
+          "document_id": "water_modernisation",
+          "filename": "water_modernisation.txt",
+          "score": 0.6175434145084208
+        },
+        {
+          "rank": 3,
+          "document_id": "wash_mortality",
+          "filename": "wash_mortality.txt",
+          "score": 0.5016071673877954
+        }
+      ],
+      "recall_at_1": true,
+      "recall_at_3": true,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "case_id": "wash_health_risk",
+      "query": "Quelle donnée peut compléter l'analyse de l'accès à l'eau en mesurant le risque sanitaire ?",
+      "relevant_document_ids": [
+        "wash_mortality"
+      ],
+      "ranked_document_ids": [
+        "wash_mortality",
+        "water_modernisation",
+        "water_creation"
+      ],
+      "scores": [
+        {
+          "rank": 1,
+          "document_id": "wash_mortality",
+          "filename": "wash_mortality.txt",
+          "score": 0.6510524783976103
+        },
+        {
+          "rank": 2,
+          "document_id": "water_modernisation",
+          "filename": "water_modernisation.txt",
+          "score": 0.5275573383292961
+        },
+        {
+          "rank": 3,
+          "document_id": "water_creation",
+          "filename": "water_creation.txt",
+          "score": 0.48859417541550204
+        }
+      ],
+      "recall_at_1": true,
+      "recall_at_3": true,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "case_id": "institutional_context",
+      "query": "Quel indicateur renseigne sur le contexte institutionnel et les difficultés potentielles de mise en œuvre d'un projet ?",
+      "relevant_document_ids": [
+        "political_stability"
+      ],
+      "ranked_document_ids": [
+        "political_stability",
+        "water_creation",
+        "wash_mortality"
+      ],
+      "scores": [
+        {
+          "rank": 1,
+          "document_id": "political_stability",
+          "filename": "political_stability.txt",
+          "score": 0.5580814384170028
+        },
+        {
+          "rank": 2,
+          "document_id": "water_creation",
+          "filename": "water_creation.txt",
+          "score": 0.36104043932250784
+        },
+        {
+          "rank": 3,
+          "document_id": "wash_mortality",
+          "filename": "wash_mortality.txt",
+          "score": 0.29660697629508465
+        }
+      ],
+      "recall_at_1": true,
+      "recall_at_3": true,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "case_id": "number_people_affected",
+      "query": "Quelle information aide à estimer le nombre de personnes pouvant être concernées par une intervention ?",
+      "relevant_document_ids": [
+        "population_priority"
+      ],
+      "ranked_document_ids": [
+        "population_priority",
+        "wash_mortality",
+        "missing_values"
+      ],
+      "scores": [
+        {
+          "rank": 1,
+          "document_id": "population_priority",
+          "filename": "population_priority.txt",
+          "score": 0.7247906309723856
+        },
+        {
+          "rank": 2,
+          "document_id": "wash_mortality",
+          "filename": "wash_mortality.txt",
+          "score": 0.36774304521263956
+        },
+        {
+          "rank": 3,
+          "document_id": "missing_values",
+          "filename": "missing_values.txt",
+          "score": 0.36064630123611346
+        }
+      ],
+      "recall_at_1": true,
+      "recall_at_3": true,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "case_id": "correlation_not_causation",
+      "query": "Pourquoi une association statistique entre deux variables ne prouve-t-elle pas une causalité ?",
+      "relevant_document_ids": [
+        "correlation_definition"
+      ],
+      "ranked_document_ids": [
+        "correlation_definition",
+        "join_grain",
+        "missing_values"
+      ],
+      "scores": [
+        {
+          "rank": 1,
+          "document_id": "correlation_definition",
+          "filename": "correlation_definition.txt",
+          "score": 0.5094222231988311
+        },
+        {
+          "rank": 2,
+          "document_id": "join_grain",
+          "filename": "join_grain.txt",
+          "score": 0.3051665536600669
+        },
+        {
+          "rank": 3,
+          "document_id": "missing_values",
+          "filename": "missing_values.txt",
+          "score": 0.22147427645376191
+        }
+      ],
+      "recall_at_1": true,
+      "recall_at_3": true,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "case_id": "missing_data_quality",
+      "query": "Que faut-il contrôler lorsque certaines observations contiennent des données absentes ?",
+      "relevant_document_ids": [
+        "missing_values"
+      ],
+      "ranked_document_ids": [
+        "missing_values",
+        "join_grain",
+        "time_series"
+      ],
+      "scores": [
+        {
+          "rank": 1,
+          "document_id": "missing_values",
+          "filename": "missing_values.txt",
+          "score": 0.4971732132500257
+        },
+        {
+          "rank": 2,
+          "document_id": "join_grain",
+          "filename": "join_grain.txt",
+          "score": 0.43781176535501026
+        },
+        {
+          "rank": 3,
+          "document_id": "time_series",
+          "filename": "time_series.txt",
+          "score": 0.37965217004170715
+        }
+      ],
+      "recall_at_1": true,
+      "recall_at_3": true,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "case_id": "duplicated_observations",
+      "query": "Quel problème peut survenir lorsque des lignes identiques apparaissent plusieurs fois dans les données ?",
+      "relevant_document_ids": [
+        "duplicate_rows"
+      ],
+      "ranked_document_ids": [
+        "duplicate_rows",
+        "join_grain",
+        "time_series"
+      ],
+      "scores": [
+        {
+          "rank": 1,
+          "document_id": "duplicate_rows",
+          "filename": "duplicate_rows.txt",
+          "score": 0.5607071935033813
+        },
+        {
+          "rank": 2,
+          "document_id": "join_grain",
+          "filename": "join_grain.txt",
+          "score": 0.4784926039646451
+        },
+        {
+          "rank": 3,
+          "document_id": "time_series",
+          "filename": "time_series.txt",
+          "score": 0.21650174572138625
+        }
+      ],
+      "recall_at_1": true,
+      "recall_at_3": true,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "case_id": "robust_central_value",
+      "query": "Quelle mesure de tendance centrale est moins sensible aux valeurs extrêmes que la moyenne ?",
+      "relevant_document_ids": [
+        "median_outliers"
+      ],
+      "ranked_document_ids": [
+        "median_outliers",
+        "missing_values",
+        "time_series"
+      ],
+      "scores": [
+        {
+          "rank": 1,
+          "document_id": "median_outliers",
+          "filename": "median_outliers.txt",
+          "score": 0.544571101695321
+        },
+        {
+          "rank": 2,
+          "document_id": "missing_values",
+          "filename": "missing_values.txt",
+          "score": 0.2622780375160151
+        },
+        {
+          "rank": 3,
+          "document_id": "time_series",
+          "filename": "time_series.txt",
+          "score": 0.2315573191530492
+        }
+      ],
+      "recall_at_1": true,
+      "recall_at_3": true,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "case_id": "evolution_over_time",
+      "query": "Quel type d'analyse permet d'étudier comment une mesure évolue au fil des années ?",
+      "relevant_document_ids": [
+        "time_series"
+      ],
+      "ranked_document_ids": [
+        "time_series",
+        "water_modernisation",
+        "missing_values"
+      ],
+      "scores": [
+        {
+          "rank": 1,
+          "document_id": "time_series",
+          "filename": "time_series.txt",
+          "score": 0.4743357572997998
+        },
+        {
+          "rank": 2,
+          "document_id": "water_modernisation",
+          "filename": "water_modernisation.txt",
+          "score": 0.3133348573158658
+        },
+        {
+          "rank": 3,
+          "document_id": "missing_values",
+          "filename": "missing_values.txt",
+          "score": 0.2878714387967271
+        }
+      ],
+      "recall_at_1": true,
+      "recall_at_3": true,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "case_id": "unsafe_many_to_many_join",
+      "query": "Pourquoi faut-il vérifier le grain avant de joindre deux tables ayant potentiellement plusieurs lignes pour la même clé ?",
+      "relevant_document_ids": [
+        "join_grain"
+      ],
+      "ranked_document_ids": [
+        "join_grain",
+        "duplicate_rows",
+        "time_series"
+      ],
+      "scores": [
+        {
+          "rank": 1,
+          "document_id": "join_grain",
+          "filename": "join_grain.txt",
+          "score": 0.5971187874209589
+        },
+        {
+          "rank": 2,
+          "document_id": "duplicate_rows",
+          "filename": "duplicate_rows.txt",
+          "score": 0.2983993521036316
+        },
+        {
+          "rank": 3,
+          "document_id": "time_series",
+          "filename": "time_series.txt",
+          "score": 0.2258195036360759
+        }
+      ],
+      "recall_at_1": true,
+      "recall_at_3": true,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "case_id": "decision_report_structure",
+      "query": "Que doit mettre en avant un rapport d'analyse destiné à des décideurs ?",
+      "relevant_document_ids": [
+        "executive_report"
+      ],
+      "ranked_document_ids": [
+        "executive_report",
+        "missing_values",
+        "political_stability"
+      ],
+      "scores": [
+        {
+          "rank": 1,
+          "document_id": "executive_report",
+          "filename": "executive_report.txt",
+          "score": 0.6623253901982953
+        },
+        {
+          "rank": 2,
+          "document_id": "missing_values",
+          "filename": "missing_values.txt",
+          "score": 0.3573016939461435
+        },
+        {
+          "rank": 3,
+          "document_id": "political_stability",
+          "filename": "political_stability.txt",
+          "score": 0.3118226082337658
+        }
+      ],
+      "recall_at_1": true,
+      "recall_at_3": true,
+      "reciprocal_rank": 1.0
+    }
+  ]
+}

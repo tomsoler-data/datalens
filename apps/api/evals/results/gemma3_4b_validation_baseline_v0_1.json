@@ -1,0 +1,122 @@
+{
+  "status": "complete",
+  "baseline_rule_version": "ollama_analytical_baseline_v0.1",
+  "model": "gemma3:4b",
+  "split": "validation",
+  "case_count": 2,
+  "generation_success_count": 2,
+  "generation_error_count": 0,
+  "total_inference_ms": 7963.95130000019,
+  "average_inference_ms": 3981.975650000095,
+  "average_metrics": {
+    "intent": 0.0,
+    "entity": 1.0,
+    "grain": 0.5,
+    "relevant_columns": 0.0,
+    "family": 0.0,
+    "tool_selection": 0.5,
+    "tool_arguments": 0.5,
+    "safety": 1.0
+  },
+  "average_overall": 0.4,
+  "invented_column_count": 0,
+  "invented_tool_count": 0,
+  "forbidden_tool_count": 0,
+  "forbidden_assumption_count": 0,
+  "results": [
+    {
+      "case_id": "ar_v1_004",
+      "domain": "customer_support",
+      "user_request": "Les équipes de nuit ont-elles des temps de résolution différents ?",
+      "model": "gemma3:4b",
+      "status": "ready",
+      "inference_ms": 6589.1564000048675,
+      "candidate": {
+        "intent": null,
+        "entity": null,
+        "current_grain": null,
+        "target_grain": null,
+        "relevant_columns": [],
+        "family": null,
+        "tool_calls": [
+          {
+            "name": "aggregate",
+            "arguments": {
+              "metrics": [
+                "resolution_minutes"
+              ],
+              "group_by": [
+                "shift"
+              ]
+            }
+          }
+        ],
+        "assumptions": []
+      },
+      "score_metrics": {
+        "intent": 0.0,
+        "entity": 1.0,
+        "grain": 0.5,
+        "relevant_columns": 0.0,
+        "family": 0.0,
+        "tool_selection": 0.0,
+        "tool_arguments": 0.0,
+        "safety": 1.0
+      },
+      "score_diagnostics": {
+        "invented_columns": [],
+        "invented_tools": [],
+        "forbidden_tools_used": [],
+        "forbidden_assumptions_used": []
+      },
+      "overall": 0.25,
+      "raw_content": "{\"tool_calls\": [\n  {\"name\": \"aggregate\",\n   \"arguments\": {\n      \"metrics\": [\"resolution_minutes\"],\n      \"group_by\": [\"shift\"]\n    }\n  }\n]}",
+      "error": null
+    },
+    {
+      "case_id": "ar_v1_005",
+      "domain": "energy",
+      "user_request": "Comment la consommation électrique évolue-t-elle au fil du temps ?",
+      "model": "gemma3:4b",
+      "status": "ready",
+      "inference_ms": 1374.7948999953223,
+      "candidate": {
+        "intent": null,
+        "entity": null,
+        "current_grain": null,
+        "target_grain": null,
+        "relevant_columns": [],
+        "family": null,
+        "tool_calls": [
+          {
+            "name": "analyze_time_series",
+            "arguments": {
+              "date": "date",
+              "target": "consumption_kwh"
+            }
+          }
+        ],
+        "assumptions": []
+      },
+      "score_metrics": {
+        "intent": 0.0,
+        "entity": 1.0,
+        "grain": 0.5,
+        "relevant_columns": 0.0,
+        "family": 0.0,
+        "tool_selection": 1.0,
+        "tool_arguments": 1.0,
+        "safety": 1.0
+      },
+      "score_diagnostics": {
+        "invented_columns": [],
+        "invented_tools": [],
+        "forbidden_tools_used": [],
+        "forbidden_assumptions_used": []
+      },
+      "overall": 0.55,
+      "raw_content": "{\"tool_calls\": [\n  {\"name\": \"analyze_time_series\",\n   \"arguments\": {\n      \"date\": \"date\",\n      \"target\": \"consumption_kwh\"\n    }\n  }\n]}",
+      "error": null
+    }
+  ]
+}

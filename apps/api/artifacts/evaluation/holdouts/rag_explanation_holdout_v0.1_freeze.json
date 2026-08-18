@@ -1,0 +1,20 @@
+{
+  "holdout_version": "rag_explanation_holdout_v0.1",
+  "explanation_rule_version": "rag_explanation_v0.2",
+  "model": "gemma3:4b",
+  "case_count": 10,
+  "cases_sha256": "040ae78555bd5a151fb96336c572e31daa899223b353db0cf64845cba6889060",
+  "system_prompt_sha256": "6c03e5fddb793dcac3d74578aca6e312bc6b6d6145ac35cff176292a39ed2b05",
+  "preregistered_gates": {
+    "minimum_generation_success_rate": 0.8,
+    "minimum_deterministic_abstention_rate": 1.0,
+    "maximum_invalid_citations": 0,
+    "maximum_invalid_evidence_quotes": 0,
+    "maximum_numeric_violations": 0
+  },
+  "policy": {
+    "freeze_before_first_model_execution": true,
+    "first_run_artifact_is_immutable": true,
+    "tuning_on_this_holdout_requires_new_holdout": true
+  }
+}

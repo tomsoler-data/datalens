@@ -1,0 +1,514 @@
+{
+  "evaluation_name": "hard_validation_v0.4_rescored_v0.2",
+  "source_result_file": "C:\\Users\\tomas\\datalens\\apps\\api\\evals\\results\\gemma3_4b_validation_hard_v0_4.json",
+  "benchmark_file": "C:\\Users\\tomas\\datalens\\apps\\api\\evals\\analytical_reasoning_hard_v0_4.jsonl",
+  "model": "gemma3:4b",
+  "candidate_contract_version": "analytical_candidate_typed_v0.3",
+  "original_scorer": {
+    "average_overall": 0.7377777777777778
+  },
+  "new_scorer": {
+    "rule_version": "analytical_scorer_v0.2",
+    "average_metrics": {
+      "intent": 0.6666666666666666,
+      "entity": 0.6666666666666666,
+      "grain": 0.8333333333333334,
+      "relevant_columns": 0.9259259259259259,
+      "family": 0.8333333333333334,
+      "tool_selection": 0.5777777777777778,
+      "tool_arguments": 0.6666666666666666,
+      "plan_consistency": 0.6666666666666666,
+      "parsimony": 0.48333333333333334,
+      "constraint_compliance": 1.0,
+      "guardrails": 0.8333333333333334
+    },
+    "average_capabilities": {
+      "comprehension": 0.7851851851851852,
+      "planning": 0.5986111111111111,
+      "reliability": 0.9166666666666666
+    },
+    "average_overall": 0.7546111111111111
+  },
+  "comparison": {
+    "overall_delta": 0.016833333333333367
+  },
+  "diagnostics": {
+    "extra_tool_call_count": 7,
+    "redundant_tool_call_count": 2,
+    "consistency_issue_count": 13,
+    "required_guardrail_count": 5,
+    "passed_guardrail_count": 4,
+    "failed_guardrail_count": 1
+  },
+  "results": [
+    {
+      "case_id": "hard_v0_4_001",
+      "domain": "retail_operations",
+      "user_request": "Certains magasins ont-ils un comportement inhabituel en tenant compte du volume de commandes, du chiffre d'affaires et du taux de retour ?",
+      "candidate": {
+        "intent": "entity_anomaly_analysis",
+        "entity": null,
+        "current_grain": "store_day",
+        "target_grain": null,
+        "relevant_columns": [
+          "store_id",
+          "date",
+          "order_count",
+          "revenue",
+          "return_rate"
+        ],
+        "family": "entity_outlier",
+        "tool_calls": [
+          {
+            "name": "build_entity_view",
+            "arguments": {
+              "entity": "store_id"
+            }
+          },
+          {
+            "name": "aggregate",
+            "arguments": {
+              "metrics": [
+                "order_count",
+                "revenue",
+                "return_rate"
+              ],
+              "group_by": [
+                "store_id",
+                "date"
+              ]
+            }
+          },
+          {
+            "name": "analyze_distribution",
+            "arguments": {
+              "target": "return_rate"
+            }
+          },
+          {
+            "name": "detect_entity_outliers",
+            "arguments": {
+              "entity": "store_id",
+              "metrics": [
+                "order_count",
+                "revenue",
+                "return_rate"
+              ]
+            }
+          }
+        ],
+        "assumptions": []
+      },
+      "original_scorer_overall": 0.7666666666666666,
+      "rescored_overall": 0.7516666666666667,
+      "delta": -0.014999999999999902,
+      "metrics": {
+        "intent": 1.0,
+        "entity": 0.0,
+        "grain": 0.5,
+        "relevant_columns": 0.888888888888889,
+        "family": 1.0,
+        "tool_selection": 0.6666666666666666,
+        "tool_arguments": 1.0,
+        "plan_consistency": 0.25,
+        "parsimony": 0.5,
+        "constraint_compliance": 1.0,
+        "guardrails": 1.0
+      },
+      "capabilities": {
+        "comprehension": 0.6777777777777778,
+        "planning": 0.6041666666666666,
+        "reliability": 1.0
+      },
+      "diagnostics": {
+        "invented_columns": [],
+        "invented_tools": [],
+        "forbidden_tools_used": [],
+        "forbidden_assumptions_used": [],
+        "extra_tool_calls": [
+          "aggregate",
+          "analyze_distribution"
+        ],
+        "redundant_tool_calls": [],
+        "consistency_issues": [
+          "entity_analysis_without_entity",
+          "entity_analysis_without_target_grain",
+          "entity_missing_or_inconsistent_with_build_entity_view",
+          "entity_missing_or_inconsistent_with_entity_outlier_tool",
+          "target_grain_missing_after_build_entity_view",
+          "target_grain_missing_for_entity_outlier_analysis"
+        ],
+        "required_guardrails": [
+          "no_unsupported_anomaly_label",
+          "no_automatic_outlier_deletion"
+        ],
+        "passed_guardrails": [
+          "no_unsupported_anomaly_label",
+          "no_automatic_outlier_deletion"
+        ],
+        "failed_guardrails": []
+      }
+    },
+    {
+      "case_id": "hard_v0_4_002",
+      "domain": "telecom",
+      "user_request": "Le temps moyen d'attente est-il associé au taux d'abandon des appels ?",
+      "candidate": {
+        "intent": "data_quality_analysis",
+        "entity": null,
+        "current_grain": "call_center_day",
+        "target_grain": null,
+        "relevant_columns": [
+          "center_id",
+          "date",
+          "avg_wait_seconds",
+          "abandon_rate"
+        ],
+        "family": "association",
+        "tool_calls": [
+          {
+            "name": "measure_association",
+            "arguments": {
+              "target": "abandon_rate",
+              "value": "avg_wait_seconds"
+            }
+          }
+        ],
+        "assumptions": []
+      },
+      "original_scorer_overall": 0.7000000000000001,
+      "rescored_overall": 0.8200000000000001,
+      "delta": 0.12,
+      "metrics": {
+        "intent": 0.0,
+        "entity": 1.0,
+        "grain": 1.0,
+        "relevant_columns": 0.6666666666666666,
+        "family": 1.0,
+        "tool_selection": 1.0,
+        "tool_arguments": 1.0,
+        "plan_consistency": 0.5,
+        "parsimony": 1.0,
+        "constraint_compliance": 1.0,
+        "guardrails": 1.0
+      },
+      "capabilities": {
+        "comprehension": 0.7333333333333333,
+        "planning": 0.875,
+        "reliability": 1.0
+      },
+      "diagnostics": {
+        "invented_columns": [],
+        "invented_tools": [],
+        "forbidden_tools_used": [],
+        "forbidden_assumptions_used": [],
+        "extra_tool_calls": [],
+        "redundant_tool_calls": [],
+        "consistency_issues": [
+          "intent_family_mismatch"
+        ],
+        "required_guardrails": [],
+        "passed_guardrails": [],
+        "failed_guardrails": []
+      }
+    },
+    {
+      "case_id": "hard_v0_4_003",
+      "domain": "marketing",
+      "user_request": "Les taux de conversion diffèrent-ils selon le canal d'acquisition ?",
+      "candidate": {
+        "intent": "compare_groups",
+        "entity": null,
+        "current_grain": "campaign_day",
+        "target_grain": null,
+        "relevant_columns": [
+          "channel",
+          "conversion_rate"
+        ],
+        "family": "group_comparison",
+        "tool_calls": [
+          {
+            "name": "aggregate",
+            "arguments": {
+              "metrics": [
+                "conversion_rate"
+              ],
+              "group_by": [
+                "channel"
+              ]
+            }
+          }
+        ],
+        "assumptions": []
+      },
+      "original_scorer_overall": 0.7,
+      "rescored_overall": 0.73,
+      "delta": 0.030000000000000027,
+      "metrics": {
+        "intent": 1.0,
+        "entity": 1.0,
+        "grain": 1.0,
+        "relevant_columns": 1.0,
+        "family": 1.0,
+        "tool_selection": 0.0,
+        "tool_arguments": 0.0,
+        "plan_consistency": 1.0,
+        "parsimony": 0.0,
+        "constraint_compliance": 1.0,
+        "guardrails": 1.0
+      },
+      "capabilities": {
+        "comprehension": 1.0,
+        "planning": 0.25,
+        "reliability": 1.0
+      },
+      "diagnostics": {
+        "invented_columns": [],
+        "invented_tools": [],
+        "forbidden_tools_used": [],
+        "forbidden_assumptions_used": [],
+        "extra_tool_calls": [
+          "aggregate"
+        ],
+        "redundant_tool_calls": [],
+        "consistency_issues": [],
+        "required_guardrails": [],
+        "passed_guardrails": [],
+        "failed_guardrails": []
+      }
+    },
+    {
+      "case_id": "hard_v0_4_004",
+      "domain": "human_resources",
+      "user_request": "La formation a-t-elle causé l'amélioration de la productivité ?",
+      "candidate": {
+        "intent": "compare_groups",
+        "entity": null,
+        "current_grain": "employee",
+        "target_grain": null,
+        "relevant_columns": [
+          "productivity_score",
+          "training_hours"
+        ],
+        "family": "group_comparison",
+        "tool_calls": [
+          {
+            "name": "compare_groups",
+            "arguments": {
+              "target": "productivity_score",
+              "group_by": "training_hours"
+            }
+          }
+        ],
+        "assumptions": []
+      },
+      "original_scorer_overall": 0.44999999999999996,
+      "rescored_overall": 0.45000000000000007,
+      "delta": 1.1102230246251565e-16,
+      "metrics": {
+        "intent": 0.0,
+        "entity": 1.0,
+        "grain": 1.0,
+        "relevant_columns": 1.0,
+        "family": 0.0,
+        "tool_selection": 0.0,
+        "tool_arguments": 0.0,
+        "plan_consistency": 1.0,
+        "parsimony": 0.0,
+        "constraint_compliance": 1.0,
+        "guardrails": 0.0
+      },
+      "capabilities": {
+        "comprehension": 0.6,
+        "planning": 0.25,
+        "reliability": 0.5
+      },
+      "diagnostics": {
+        "invented_columns": [],
+        "invented_tools": [],
+        "forbidden_tools_used": [],
+        "forbidden_assumptions_used": [],
+        "extra_tool_calls": [
+          "compare_groups"
+        ],
+        "redundant_tool_calls": [],
+        "consistency_issues": [],
+        "required_guardrails": [
+          "causality_not_established"
+        ],
+        "passed_guardrails": [],
+        "failed_guardrails": [
+          "causality_not_established"
+        ]
+      }
+    },
+    {
+      "case_id": "hard_v0_4_005",
+      "domain": "manufacturing",
+      "user_request": "Quelles machines ont un profil inhabituel en matière de vibration, de défauts et de volume produit ?",
+      "candidate": {
+        "intent": "entity_anomaly_analysis",
+        "entity": null,
+        "current_grain": "machine_shift",
+        "target_grain": null,
+        "relevant_columns": [
+          "machine_id",
+          "vibration_score",
+          "defect_rate",
+          "units_produced"
+        ],
+        "family": "entity_outlier",
+        "tool_calls": [
+          {
+            "name": "build_entity_view",
+            "arguments": {
+              "entity": "machine_id"
+            }
+          },
+          {
+            "name": "detect_entity_outliers",
+            "arguments": {
+              "entity": "machine_id",
+              "metrics": [
+                "vibration_score",
+                "defect_rate",
+                "units_produced"
+              ]
+            }
+          },
+          {
+            "name": "analyze_distribution",
+            "arguments": {
+              "target": "vibration_score"
+            }
+          },
+          {
+            "name": "analyze_distribution",
+            "arguments": {
+              "target": "defect_rate"
+            }
+          },
+          {
+            "name": "analyze_distribution",
+            "arguments": {
+              "target": "units_produced"
+            }
+          }
+        ],
+        "assumptions": []
+      },
+      "original_scorer_overall": 0.8099999999999999,
+      "rescored_overall": 0.776,
+      "delta": -0.03399999999999992,
+      "metrics": {
+        "intent": 1.0,
+        "entity": 0.0,
+        "grain": 0.5,
+        "relevant_columns": 1.0,
+        "family": 1.0,
+        "tool_selection": 0.8,
+        "tool_arguments": 1.0,
+        "plan_consistency": 0.25,
+        "parsimony": 0.4,
+        "constraint_compliance": 1.0,
+        "guardrails": 1.0
+      },
+      "capabilities": {
+        "comprehension": 0.7,
+        "planning": 0.6124999999999999,
+        "reliability": 1.0
+      },
+      "diagnostics": {
+        "invented_columns": [],
+        "invented_tools": [],
+        "forbidden_tools_used": [],
+        "forbidden_assumptions_used": [],
+        "extra_tool_calls": [
+          "analyze_distribution",
+          "analyze_distribution",
+          "analyze_distribution"
+        ],
+        "redundant_tool_calls": [
+          "analyze_distribution",
+          "analyze_distribution"
+        ],
+        "consistency_issues": [
+          "entity_analysis_without_entity",
+          "entity_analysis_without_target_grain",
+          "entity_missing_or_inconsistent_with_build_entity_view",
+          "entity_missing_or_inconsistent_with_entity_outlier_tool",
+          "target_grain_missing_after_build_entity_view",
+          "target_grain_missing_for_entity_outlier_analysis"
+        ],
+        "required_guardrails": [
+          "no_unsupported_anomaly_label",
+          "no_automatic_outlier_deletion"
+        ],
+        "passed_guardrails": [
+          "no_unsupported_anomaly_label",
+          "no_automatic_outlier_deletion"
+        ],
+        "failed_guardrails": []
+      }
+    },
+    {
+      "case_id": "hard_v0_4_006",
+      "domain": "customer_support",
+      "user_request": "Les tickets prioritaires prennent-ils plus de temps à résoudre que les autres ?",
+      "candidate": {
+        "intent": "compare_groups",
+        "entity": null,
+        "current_grain": "ticket",
+        "target_grain": null,
+        "relevant_columns": [
+          "priority",
+          "resolution_minutes"
+        ],
+        "family": "group_comparison",
+        "tool_calls": [
+          {
+            "name": "compare_groups",
+            "arguments": {
+              "target": "resolution_minutes",
+              "group_by": "priority"
+            }
+          }
+        ],
+        "assumptions": []
+      },
+      "original_scorer_overall": 1.0,
+      "rescored_overall": 1.0,
+      "delta": 0.0,
+      "metrics": {
+        "intent": 1.0,
+        "entity": 1.0,
+        "grain": 1.0,
+        "relevant_columns": 1.0,
+        "family": 1.0,
+        "tool_selection": 1.0,
+        "tool_arguments": 1.0,
+        "plan_consistency": 1.0,
+        "parsimony": 1.0,
+        "constraint_compliance": 1.0,
+        "guardrails": 1.0
+      },
+      "capabilities": {
+        "comprehension": 1.0,
+        "planning": 1.0,
+        "reliability": 1.0
+      },
+      "diagnostics": {
+        "invented_columns": [],
+        "invented_tools": [],
+        "forbidden_tools_used": [],
+        "forbidden_assumptions_used": [],
+        "extra_tool_calls": [],
+        "redundant_tool_calls": [],
+        "consistency_issues": [],
+        "required_guardrails": [],
+        "passed_guardrails": [],
+        "failed_guardrails": []
+      }
+    }
+  ]
+}

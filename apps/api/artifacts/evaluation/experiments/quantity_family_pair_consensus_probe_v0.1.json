@@ -1,0 +1,1062 @@
+{
+  "probe_version": "quantity_family_pair_consensus_probe_v0.1",
+  "model": "gemma3:4b",
+  "architecture": "batch_pair_adjudication_with_unanimous_consensus",
+  "views_per_dataset": 3,
+  "positive_rule": "true_only_if_all_three_final_votes_are_true",
+  "deterministic_safety": "known_quantity_dimension_conflict_veto",
+  "transitive_closure": false,
+  "successful_run_count": 5,
+  "failed_run_count": 1,
+  "all_runs_operational": false,
+  "all_cases_complete": false,
+  "all_cases_invariant": false,
+  "stable_case_count": 5,
+  "case_count": 21,
+  "consensus_metrics": {
+    "assertions": 21,
+    "tp": 0,
+    "fp": 0,
+    "tn": 12,
+    "fn": 9,
+    "accuracy": 0.5714285714285714,
+    "precision": null,
+    "recall": 0.0,
+    "specificity": 1.0
+  },
+  "consensus_records": [
+    {
+      "case_id": "estimated_charge_final_bill",
+      "left": "Estimated test charge",
+      "right": "Final laboratory bill",
+      "expected": true,
+      "dataset": "clinical_lab",
+      "votes": [
+        true,
+        false
+      ],
+      "complete": false,
+      "invariant": false,
+      "consensus_prediction": false,
+      "correct": false
+    },
+    {
+      "case_id": "estimated_charge_reagent_spend",
+      "left": "Estimated test charge",
+      "right": "Reagent spend",
+      "expected": false,
+      "dataset": "clinical_lab",
+      "votes": [
+        false,
+        false
+      ],
+      "complete": false,
+      "invariant": false,
+      "consensus_prediction": false,
+      "correct": true
+    },
+    {
+      "case_id": "final_bill_reagent_spend",
+      "left": "Final laboratory bill",
+      "right": "Reagent spend",
+      "expected": false,
+      "dataset": "clinical_lab",
+      "votes": [
+        false,
+        false
+      ],
+      "complete": false,
+      "invariant": false,
+      "consensus_prediction": false,
+      "correct": true
+    },
+    {
+      "case_id": "planned_mass_measured_weight",
+      "left": "Planned sample mass (grams)",
+      "right": "Measured specimen weight (kg)",
+      "expected": true,
+      "dataset": "clinical_lab",
+      "votes": [
+        true,
+        true
+      ],
+      "complete": false,
+      "invariant": false,
+      "consensus_prediction": false,
+      "correct": false
+    },
+    {
+      "case_id": "quality_rate_sla",
+      "left": "Quality pass rate (%)",
+      "right": "SLA compliance (%)",
+      "expected": false,
+      "dataset": "clinical_lab",
+      "votes": [
+        false,
+        false
+      ],
+      "complete": false,
+      "invariant": false,
+      "consensus_prediction": false,
+      "correct": true
+    },
+    {
+      "case_id": "reporting_time_analyzer_downtime",
+      "left": "Actual reporting time (minutes)",
+      "right": "Analyzer downtime (minutes)",
+      "expected": false,
+      "dataset": "clinical_lab",
+      "votes": [
+        true,
+        false
+      ],
+      "complete": false,
+      "invariant": false,
+      "consensus_prediction": false,
+      "correct": true
+    },
+    {
+      "case_id": "sample_mass_reagent_mass",
+      "left": "Planned sample mass (grams)",
+      "right": "Reagent mass used (kg)",
+      "expected": false,
+      "dataset": "clinical_lab",
+      "votes": [
+        false,
+        false
+      ],
+      "complete": false,
+      "invariant": false,
+      "consensus_prediction": false,
+      "correct": true
+    },
+    {
+      "case_id": "samples_analyzers",
+      "left": "Samples processed",
+      "right": "Analyzer units online",
+      "expected": false,
+      "dataset": "clinical_lab",
+      "votes": [
+        false,
+        false
+      ],
+      "complete": false,
+      "invariant": false,
+      "consensus_prediction": false,
+      "correct": true
+    },
+    {
+      "case_id": "specimen_weight_reagent_mass",
+      "left": "Measured specimen weight (kg)",
+      "right": "Reagent mass used (kg)",
+      "expected": false,
+      "dataset": "clinical_lab",
+      "votes": [
+        false,
+        false
+      ],
+      "complete": false,
+      "invariant": false,
+      "consensus_prediction": false,
+      "correct": true
+    },
+    {
+      "case_id": "specimens_received_samples_processed",
+      "left": "Specimens received",
+      "right": "Samples processed",
+      "expected": true,
+      "dataset": "clinical_lab",
+      "votes": [
+        true,
+        false
+      ],
+      "complete": false,
+      "invariant": false,
+      "consensus_prediction": false,
+      "correct": false
+    },
+    {
+      "case_id": "specimens_staff",
+      "left": "Specimens received",
+      "right": "Technicians scheduled",
+      "expected": false,
+      "dataset": "clinical_lab",
+      "votes": [
+        false,
+        false
+      ],
+      "complete": false,
+      "invariant": false,
+      "consensus_prediction": false,
+      "correct": true
+    },
+    {
+      "case_id": "staff_analyzers",
+      "left": "Lab staff on duty",
+      "right": "Analyzer units online",
+      "expected": false,
+      "dataset": "clinical_lab",
+      "votes": [
+        false,
+        false
+      ],
+      "complete": false,
+      "invariant": false,
+      "consensus_prediction": false,
+      "correct": true
+    },
+    {
+      "case_id": "target_turnaround_actual_reporting",
+      "left": "Target result turnaround (minutes)",
+      "right": "Actual reporting time (minutes)",
+      "expected": true,
+      "dataset": "clinical_lab",
+      "votes": [
+        true,
+        true
+      ],
+      "complete": false,
+      "invariant": false,
+      "consensus_prediction": false,
+      "correct": false
+    },
+    {
+      "case_id": "technicians_scheduled_staff_on_duty",
+      "left": "Technicians scheduled",
+      "right": "Lab staff on duty",
+      "expected": true,
+      "dataset": "clinical_lab",
+      "votes": [
+        true,
+        false
+      ],
+      "complete": false,
+      "invariant": false,
+      "consensus_prediction": false,
+      "correct": false
+    },
+    {
+      "case_id": "turnaround_analyzer_downtime",
+      "left": "Target result turnaround (minutes)",
+      "right": "Analyzer downtime (minutes)",
+      "expected": false,
+      "dataset": "clinical_lab",
+      "votes": [
+        true,
+        false
+      ],
+      "complete": false,
+      "invariant": false,
+      "consensus_prediction": false,
+      "correct": true
+    },
+    {
+      "case_id": "invoice_online_staff",
+      "left": "Final invoice amount",
+      "right": "Staff online",
+      "expected": false,
+      "dataset": "customer_support",
+      "votes": [
+        false,
+        false,
+        false
+      ],
+      "complete": true,
+      "invariant": true,
+      "consensus_prediction": false,
+      "correct": true
+    },
+    {
+      "case_id": "promised_observed_response_time",
+      "left": "Promised response time (minutes)",
+      "right": "Observed first-response delay (minutes)",
+      "expected": true,
+      "dataset": "customer_support",
+      "votes": [
+        false,
+        false,
+        true
+      ],
+      "complete": true,
+      "invariant": false,
+      "consensus_prediction": false,
+      "correct": false
+    },
+    {
+      "case_id": "quoted_cost_final_invoice",
+      "left": "Quoted service cost",
+      "right": "Final invoice amount",
+      "expected": true,
+      "dataset": "customer_support",
+      "votes": [
+        false,
+        false,
+        false
+      ],
+      "complete": true,
+      "invariant": true,
+      "consensus_prediction": false,
+      "correct": false
+    },
+    {
+      "case_id": "response_delay_sla_compliance",
+      "left": "Observed first-response delay (minutes)",
+      "right": "SLA compliance (%)",
+      "expected": false,
+      "dataset": "customer_support",
+      "votes": [
+        false,
+        false,
+        false
+      ],
+      "complete": true,
+      "invariant": true,
+      "consensus_prediction": false,
+      "correct": true
+    },
+    {
+      "case_id": "rostered_agents_online_staff",
+      "left": "Agents rostered",
+      "right": "Staff online",
+      "expected": true,
+      "dataset": "customer_support",
+      "votes": [
+        false,
+        false,
+        false
+      ],
+      "complete": true,
+      "invariant": true,
+      "consensus_prediction": false,
+      "correct": false
+    },
+    {
+      "case_id": "submitted_cases_resolved_tickets",
+      "left": "Cases submitted",
+      "right": "Tickets resolved",
+      "expected": true,
+      "dataset": "customer_support",
+      "votes": [
+        false,
+        false,
+        false
+      ],
+      "complete": true,
+      "invariant": true,
+      "consensus_prediction": false,
+      "correct": false
+    }
+  ],
+  "runs": [
+    {
+      "view": 1,
+      "dataset": "clinical_lab",
+      "operational_success": true,
+      "records": [
+        {
+          "case_id": "specimens_received_samples_processed",
+          "left": "Specimens received",
+          "right": "Samples processed",
+          "expected": true,
+          "raw_prediction": true,
+          "final_prediction": true,
+          "correct": true,
+          "confidence": "high",
+          "reason": "Both columns represent counts of laboratory operations.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "technicians_scheduled_staff_on_duty",
+          "left": "Technicians scheduled",
+          "right": "Lab staff on duty",
+          "expected": true,
+          "raw_prediction": true,
+          "final_prediction": true,
+          "correct": true,
+          "confidence": "high",
+          "reason": "Both columns represent counts of personnel involved in laboratory operations.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "estimated_charge_final_bill",
+          "left": "Estimated test charge",
+          "right": "Final laboratory bill",
+          "expected": true,
+          "raw_prediction": true,
+          "final_prediction": true,
+          "correct": true,
+          "confidence": "high",
+          "reason": "Both columns represent monetary values related to laboratory costs.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "target_turnaround_actual_reporting",
+          "left": "Target result turnaround (minutes)",
+          "right": "Actual reporting time (minutes)",
+          "expected": true,
+          "raw_prediction": true,
+          "final_prediction": true,
+          "correct": true,
+          "confidence": "high",
+          "reason": "Both columns measure durations related to test turnaround times.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "planned_mass_measured_weight",
+          "left": "Planned sample mass (grams)",
+          "right": "Measured specimen weight (kg)",
+          "expected": true,
+          "raw_prediction": true,
+          "final_prediction": true,
+          "correct": true,
+          "confidence": "high",
+          "reason": "Both columns measure mass quantities in different units.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "specimens_staff",
+          "left": "Specimens received",
+          "right": "Technicians scheduled",
+          "expected": false,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": true,
+          "confidence": "high",
+          "reason": "‘Specimens received’ is a count of specimens, while ‘Technicians scheduled’ is a count of staff.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "samples_analyzers",
+          "left": "Samples processed",
+          "right": "Analyzer units online",
+          "expected": false,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": true,
+          "confidence": "high",
+          "reason": "‘Samples processed’ is a count of samples, while ‘Analyzer units online’ is a count of available analyzers.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "staff_analyzers",
+          "left": "Lab staff on duty",
+          "right": "Analyzer units online",
+          "expected": false,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": true,
+          "confidence": "high",
+          "reason": "‘Lab staff on duty’ is a count of staff, while ‘Analyzer units online’ is a count of available analyzers.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "estimated_charge_reagent_spend",
+          "left": "Estimated test charge",
+          "right": "Reagent spend",
+          "expected": false,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": true,
+          "confidence": "high",
+          "reason": "‘Estimated test charge’ is an estimated cost, while ‘Reagent spend’ is an actual cost.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "final_bill_reagent_spend",
+          "left": "Final laboratory bill",
+          "right": "Reagent spend",
+          "expected": false,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": true,
+          "confidence": "high",
+          "reason": "‘Final laboratory bill’ is a final cost, while ‘Reagent spend’ is an actual cost.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "turnaround_analyzer_downtime",
+          "left": "Target result turnaround (minutes)",
+          "right": "Analyzer downtime (minutes)",
+          "expected": false,
+          "raw_prediction": true,
+          "final_prediction": true,
+          "correct": false,
+          "confidence": "high",
+          "reason": "Both columns measure durations related to equipment downtime.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "reporting_time_analyzer_downtime",
+          "left": "Actual reporting time (minutes)",
+          "right": "Analyzer downtime (minutes)",
+          "expected": false,
+          "raw_prediction": true,
+          "final_prediction": true,
+          "correct": false,
+          "confidence": "high",
+          "reason": "Both columns measure durations related to equipment downtime.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "quality_rate_sla",
+          "left": "Quality pass rate (%)",
+          "right": "SLA compliance (%)",
+          "expected": false,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": true,
+          "confidence": "high",
+          "reason": "'Quality pass rate (%)' is a percentage, while 'SLA compliance (%)' is also a percentage.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "sample_mass_reagent_mass",
+          "left": "Planned sample mass (grams)",
+          "right": "Reagent mass used (kg)",
+          "expected": false,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": true,
+          "confidence": "high",
+          "reason": "‘Planned sample mass’ is a mass quantity, while ‘Reagent mass used’ is a mass quantity.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "specimen_weight_reagent_mass",
+          "left": "Measured specimen weight (kg)",
+          "right": "Reagent mass used (kg)",
+          "expected": false,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": true,
+          "confidence": "high",
+          "reason": "‘Measured specimen weight’ is a mass quantity, while ‘Reagent mass used’ is a mass quantity.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        }
+      ],
+      "metrics": {
+        "tp": 5,
+        "fp": 2,
+        "tn": 8,
+        "fn": 0,
+        "accuracy": 0.8666666666666667,
+        "recall": 1.0,
+        "specificity": 0.8
+      }
+    },
+    {
+      "view": 1,
+      "dataset": "customer_support",
+      "operational_success": true,
+      "records": [
+        {
+          "case_id": "submitted_cases_resolved_tickets",
+          "left": "Cases submitted",
+          "right": "Tickets resolved",
+          "expected": true,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": false,
+          "confidence": "high",
+          "reason": "These columns represent distinct stages in the customer support process – the initial submission of a case versus the resolution of a ticket. They measure different outcomes.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "rostered_agents_online_staff",
+          "left": "Agents rostered",
+          "right": "Staff online",
+          "expected": true,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": false,
+          "confidence": "high",
+          "reason": "One measures the number of agents available, the other measures the duration of agents being online. These are distinct metrics related to staffing.",
+          "dimension_conflict": true,
+          "source": "dimension_veto"
+        },
+        {
+          "case_id": "quoted_cost_final_invoice",
+          "left": "Quoted service cost",
+          "right": "Final invoice amount",
+          "expected": true,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": false,
+          "confidence": "high",
+          "reason": "One represents the initial cost estimate, the other the final billed amount. These are related but distinct financial values.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "promised_observed_response_time",
+          "left": "Promised response time (minutes)",
+          "right": "Observed first-response delay (minutes)",
+          "expected": true,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": false,
+          "confidence": "high",
+          "reason": "One measures the expected response time, the other the actual observed delay. These are related but distinct measures of response time.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "response_delay_sla_compliance",
+          "left": "Observed first-response delay (minutes)",
+          "right": "SLA compliance (%)",
+          "expected": false,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": true,
+          "confidence": "high",
+          "reason": "One measures the observed delay, the other the percentage of time within SLA. These are related but distinct metrics.",
+          "dimension_conflict": true,
+          "source": "dimension_veto"
+        },
+        {
+          "case_id": "invoice_online_staff",
+          "left": "Final invoice amount",
+          "right": "Staff online",
+          "expected": false,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": true,
+          "confidence": "medium",
+          "reason": "One represents the final invoice amount, the other measures the duration of staff being online. These are conceptually related but measure different things.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        }
+      ],
+      "metrics": {
+        "tp": 0,
+        "fp": 0,
+        "tn": 2,
+        "fn": 4,
+        "accuracy": 0.3333333333333333,
+        "recall": 0.0,
+        "specificity": 1.0
+      }
+    },
+    {
+      "view": 2,
+      "dataset": "clinical_lab",
+      "operational_success": false,
+      "error": "Pair adjudication failed after two attempts. Last error: Duplicate pair decisions returned."
+    },
+    {
+      "view": 2,
+      "dataset": "customer_support",
+      "operational_success": true,
+      "records": [
+        {
+          "case_id": "submitted_cases_resolved_tickets",
+          "left": "Cases submitted",
+          "right": "Tickets resolved",
+          "expected": true,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": false,
+          "confidence": "high",
+          "reason": "Cases submitted is a count, while Tickets resolved is a count. These measure different things.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "rostered_agents_online_staff",
+          "left": "Agents rostered",
+          "right": "Staff online",
+          "expected": true,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": false,
+          "confidence": "high",
+          "reason": "Agents rostered is a count, while Staff online is a duration. These measure different things.",
+          "dimension_conflict": true,
+          "source": "dimension_veto"
+        },
+        {
+          "case_id": "quoted_cost_final_invoice",
+          "left": "Quoted service cost",
+          "right": "Final invoice amount",
+          "expected": true,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": false,
+          "confidence": "high",
+          "reason": "Quoted service cost is a currency value, while Final invoice amount is a currency value. These measure different things.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "promised_observed_response_time",
+          "left": "Promised response time (minutes)",
+          "right": "Observed first-response delay (minutes)",
+          "expected": true,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": false,
+          "confidence": "high",
+          "reason": "Promised response time (minutes) is a duration, while Observed first-response delay (minutes) is a duration. These measure different things.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "response_delay_sla_compliance",
+          "left": "Observed first-response delay (minutes)",
+          "right": "SLA compliance (%)",
+          "expected": false,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": true,
+          "confidence": "high",
+          "reason": "Observed first-response delay (minutes) is a duration, while SLA compliance (%) is a percentage of a target. These measure different things.",
+          "dimension_conflict": true,
+          "source": "dimension_veto"
+        },
+        {
+          "case_id": "invoice_online_staff",
+          "left": "Final invoice amount",
+          "right": "Staff online",
+          "expected": false,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": true,
+          "confidence": "high",
+          "reason": "Final invoice amount represents a monetary value, while Staff online represents a duration. These measure different things.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        }
+      ],
+      "metrics": {
+        "tp": 0,
+        "fp": 0,
+        "tn": 2,
+        "fn": 4,
+        "accuracy": 0.3333333333333333,
+        "recall": 0.0,
+        "specificity": 1.0
+      }
+    },
+    {
+      "view": 3,
+      "dataset": "clinical_lab",
+      "operational_success": true,
+      "records": [
+        {
+          "case_id": "specimens_received_samples_processed",
+          "left": "Specimens received",
+          "right": "Samples processed",
+          "expected": true,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": false,
+          "confidence": "high",
+          "reason": "One measures specimens received, the other measures samples processed.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "technicians_scheduled_staff_on_duty",
+          "left": "Technicians scheduled",
+          "right": "Lab staff on duty",
+          "expected": true,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": false,
+          "confidence": "high",
+          "reason": "One measures technicians scheduled, the other measures lab staff on duty.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "estimated_charge_final_bill",
+          "left": "Estimated test charge",
+          "right": "Final laboratory bill",
+          "expected": true,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": false,
+          "confidence": "high",
+          "reason": "One measures estimated test charge, the other measures the final laboratory bill.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "target_turnaround_actual_reporting",
+          "left": "Target result turnaround (minutes)",
+          "right": "Actual reporting time (minutes)",
+          "expected": true,
+          "raw_prediction": true,
+          "final_prediction": true,
+          "correct": true,
+          "confidence": "high",
+          "reason": "Both measure turnaround times, one target and one actual.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "planned_mass_measured_weight",
+          "left": "Planned sample mass (grams)",
+          "right": "Measured specimen weight (kg)",
+          "expected": true,
+          "raw_prediction": true,
+          "final_prediction": true,
+          "correct": true,
+          "confidence": "high",
+          "reason": "Both measure mass, one in grams and the other in kilograms.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "specimens_staff",
+          "left": "Specimens received",
+          "right": "Technicians scheduled",
+          "expected": false,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": true,
+          "confidence": "high",
+          "reason": "One measures the number of specimens received, the other measures the number of staff on duty.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "samples_analyzers",
+          "left": "Samples processed",
+          "right": "Analyzer units online",
+          "expected": false,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": true,
+          "confidence": "high",
+          "reason": "One measures the number of samples processed, the other measures the number of analyzer units online.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "staff_analyzers",
+          "left": "Lab staff on duty",
+          "right": "Analyzer units online",
+          "expected": false,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": true,
+          "confidence": "high",
+          "reason": "One measures the number of staff on duty, the other measures the number of analyzer units online.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "estimated_charge_reagent_spend",
+          "left": "Estimated test charge",
+          "right": "Reagent spend",
+          "expected": false,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": true,
+          "confidence": "high",
+          "reason": "One measures an estimated test charge, the other measures reagent spend.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "final_bill_reagent_spend",
+          "left": "Final laboratory bill",
+          "right": "Reagent spend",
+          "expected": false,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": true,
+          "confidence": "high",
+          "reason": "One measures the final laboratory bill, the other measures reagent spend.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "turnaround_analyzer_downtime",
+          "left": "Target result turnaround (minutes)",
+          "right": "Analyzer downtime (minutes)",
+          "expected": false,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": true,
+          "confidence": "high",
+          "reason": "One measures target turnaround time, the other measures analyzer downtime.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "reporting_time_analyzer_downtime",
+          "left": "Actual reporting time (minutes)",
+          "right": "Analyzer downtime (minutes)",
+          "expected": false,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": true,
+          "confidence": "high",
+          "reason": "One measures actual reporting time, the other measures analyzer downtime.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "quality_rate_sla",
+          "left": "Quality pass rate (%)",
+          "right": "SLA compliance (%)",
+          "expected": false,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": true,
+          "confidence": "high",
+          "reason": "One measures quality pass rate, the other measures SLA compliance.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "sample_mass_reagent_mass",
+          "left": "Planned sample mass (grams)",
+          "right": "Reagent mass used (kg)",
+          "expected": false,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": true,
+          "confidence": "high",
+          "reason": "One measures planned sample mass, the other measures reagent mass used.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "specimen_weight_reagent_mass",
+          "left": "Measured specimen weight (kg)",
+          "right": "Reagent mass used (kg)",
+          "expected": false,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": true,
+          "confidence": "high",
+          "reason": "One measures measured specimen weight, the other measures reagent mass used.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        }
+      ],
+      "metrics": {
+        "tp": 2,
+        "fp": 0,
+        "tn": 10,
+        "fn": 3,
+        "accuracy": 0.8,
+        "recall": 0.4,
+        "specificity": 1.0
+      }
+    },
+    {
+      "view": 3,
+      "dataset": "customer_support",
+      "operational_success": true,
+      "records": [
+        {
+          "case_id": "submitted_cases_resolved_tickets",
+          "left": "Cases submitted",
+          "right": "Tickets resolved",
+          "expected": true,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": false,
+          "confidence": "high",
+          "reason": "One measures the number of cases submitted, the other measures the number of tickets resolved – different concepts.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "rostered_agents_online_staff",
+          "left": "Agents rostered",
+          "right": "Staff online",
+          "expected": true,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": false,
+          "confidence": "high",
+          "reason": "One measures the number of agents rostered, the other measures staff availability – different concepts.",
+          "dimension_conflict": true,
+          "source": "dimension_veto"
+        },
+        {
+          "case_id": "quoted_cost_final_invoice",
+          "left": "Quoted service cost",
+          "right": "Final invoice amount",
+          "expected": true,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": false,
+          "confidence": "high",
+          "reason": "One measures the quoted service cost, the other measures the final invoice amount – different concepts.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "promised_observed_response_time",
+          "left": "Promised response time (minutes)",
+          "right": "Observed first-response delay (minutes)",
+          "expected": true,
+          "raw_prediction": true,
+          "final_prediction": true,
+          "correct": true,
+          "confidence": "high",
+          "reason": "Both measure response times, one planned and one observed.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        },
+        {
+          "case_id": "response_delay_sla_compliance",
+          "left": "Observed first-response delay (minutes)",
+          "right": "SLA compliance (%)",
+          "expected": false,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": true,
+          "confidence": "high",
+          "reason": "One measures a delay in minutes, the other measures compliance as a percentage – different concepts.",
+          "dimension_conflict": true,
+          "source": "dimension_veto"
+        },
+        {
+          "case_id": "invoice_online_staff",
+          "left": "Final invoice amount",
+          "right": "Staff online",
+          "expected": false,
+          "raw_prediction": false,
+          "final_prediction": false,
+          "correct": true,
+          "confidence": "high",
+          "reason": "One measures a final invoice amount, the other measures staff availability – different concepts.",
+          "dimension_conflict": false,
+          "source": "llm_pair"
+        }
+      ],
+      "metrics": {
+        "tp": 1,
+        "fp": 0,
+        "tn": 2,
+        "fn": 3,
+        "accuracy": 0.5,
+        "recall": 0.25,
+        "specificity": 1.0
+      }
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+case_id,runs,case_kind,pass_rate,planner_family_accuracy,planner_binding_accuracy,planner_dataset_selection_accuracy,planner_first_pass_rate,planner_retry_rate,planner_retry_classes,planner_retry_recovery_rate,planner_normalization_rate,tool_selection_accuracy,tool_argument_accuracy,tool_first_pass_rate,tool_retry_rate,tool_retry_recovery_rate,execution_accuracy,guardrail_accuracy,latency_mean_seconds,latency_median_seconds,planner_statuses,requested_tools,failure_count
+hard_ambiguous_performance_region,3,guardrail,1.0,1.0,,,1.0,0.0,none,,1.0,,,,,,1.0,1.0,3.505066666666667,3.5028,ambiguous,none,0
+hard_exact_net_revenue_distribution,3,executable,1.0,1.0,1.0,1.0,1.0,0.0,none,,1.0,1.0,1.0,1.0,0.0,,1.0,1.0,5.424633333333333,3.8748,validated,run_distribution,0
+hard_multi_dataset_online_explicit,3,executable,1.0,1.0,1.0,1.0,1.0,0.0,none,,1.0,1.0,1.0,1.0,0.0,,1.0,1.0,3.7088666666666668,3.6973,validated,run_distribution,0
+hard_multi_dataset_retail_explicit,3,executable,1.0,1.0,1.0,1.0,1.0,0.0,none,,0.0,1.0,1.0,1.0,0.0,,1.0,1.0,4.331833333333333,4.2743,validated,run_time_series,0
+hard_multi_dataset_unspecified,3,guardrail,1.0,1.0,,,1.0,0.0,none,,0.0,,,,,,1.0,1.0,3.4995,3.4497,ambiguous,none,0

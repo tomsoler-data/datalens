@@ -1,0 +1,803 @@
+{
+  "evaluation": "decision_router_runner_v0.7",
+  "prompt_version": "decision_router_prompt_v0.7_baseline",
+  "benchmark": "C:\\Users\\tomas\\datalens\\apps\\api\\evals\\decision_router_development_v0_7.jsonl",
+  "split": "validation",
+  "frozen": false,
+  "temperature": 0,
+  "thinking": false,
+  "models": [
+    "ministral-3:3b",
+    "qwen3:4b-instruct"
+  ],
+  "ranking": [
+    {
+      "rank": 1,
+      "model": "qwen3:4b-instruct",
+      "average_overall": 0.7555555555555555,
+      "decision_accuracy": 0.7777777777777778,
+      "reason_accuracy": 0.6666666666666666,
+      "route_quality": 0.7222222222222222,
+      "clarification_quality": 1.0,
+      "accuracy_by_expected": {
+        "analyze": 1.0,
+        "needs_clarification": 1.0,
+        "cannot_answer": 0.3333333333333333
+      },
+      "diagnostics": {
+        "unsafe_execution_count": 0,
+        "false_abstention_count": 0,
+        "wrong_abstention_type_count": 2
+      },
+      "generation_error_count": 0,
+      "average_inference_ms": 1427.4838888878649
+    },
+    {
+      "rank": 2,
+      "model": "ministral-3:3b",
+      "average_overall": 0.6444444444444444,
+      "decision_accuracy": 0.6666666666666666,
+      "reason_accuracy": 0.5555555555555556,
+      "route_quality": 0.6111111111111112,
+      "clarification_quality": 1.0,
+      "accuracy_by_expected": {
+        "analyze": 1.0,
+        "needs_clarification": 0.6666666666666666,
+        "cannot_answer": 0.3333333333333333
+      },
+      "diagnostics": {
+        "unsafe_execution_count": 3,
+        "false_abstention_count": 0,
+        "wrong_abstention_type_count": 0
+      },
+      "generation_error_count": 0,
+      "average_inference_ms": 1228.002844447878
+    }
+  ],
+  "reports": [
+    {
+      "runner_version": "decision_router_runner_v0.7",
+      "prompt_version": "decision_router_prompt_v0.7_baseline",
+      "contract_version": "decision_router_contract_v0.7",
+      "scorer_version": "decision_router_scorer_v0.7",
+      "model": "ministral-3:3b",
+      "case_count": 9,
+      "generation_success_count": 9,
+      "generation_error_count": 0,
+      "average_overall": 0.6444444444444444,
+      "decision_accuracy": 0.6666666666666666,
+      "reason_accuracy": 0.5555555555555556,
+      "route_quality": 0.6111111111111112,
+      "clarification_quality": 1.0,
+      "accuracy_by_expected": {
+        "analyze": 1.0,
+        "needs_clarification": 0.6666666666666666,
+        "cannot_answer": 0.3333333333333333
+      },
+      "confusion_matrix": {
+        "analyze": {
+          "analyze": 3,
+          "needs_clarification": 0,
+          "cannot_answer": 0,
+          "generation_error": 0
+        },
+        "needs_clarification": {
+          "analyze": 1,
+          "needs_clarification": 2,
+          "cannot_answer": 0,
+          "generation_error": 0
+        },
+        "cannot_answer": {
+          "analyze": 2,
+          "needs_clarification": 0,
+          "cannot_answer": 1,
+          "generation_error": 0
+        }
+      },
+      "diagnostics": {
+        "unsafe_execution_count": 3,
+        "false_abstention_count": 0,
+        "wrong_abstention_type_count": 0
+      },
+      "average_inference_ms": 1228.002844447878,
+      "results": [
+        {
+          "case_id": "router_v0_7_validation_001",
+          "split": "validation",
+          "domain": "real_estate",
+          "user_request": "La surface du logement est-elle associée à son prix de vente ?",
+          "expected_decision": "analyze",
+          "expected_reason": null,
+          "status": "ready",
+          "inference_ms": 4681.83269999281,
+          "candidate": {
+            "decision": "analyze",
+            "decision_reason": null,
+            "clarification_question": null
+          },
+          "score": {
+            "scorer_version": "decision_router_scorer_v0.7",
+            "case_id": "router_v0_7_validation_001",
+            "expected_decision": "analyze",
+            "actual_decision": "analyze",
+            "metrics": {
+              "decision": 1.0,
+              "decision_reason": 1.0,
+              "clarification": null,
+              "route_quality": 1.0
+            },
+            "diagnostics": {
+              "unsafe_execution": false,
+              "false_abstention": false,
+              "wrong_abstention_type": false
+            },
+            "overall": 1.0
+          },
+          "overall": 1.0,
+          "raw_content": "{\n  \"decision\": \"analyze\"\n  ,\n  \"decision_reason\": null,\n  \"clarification_question\": null\n}",
+          "error": null
+        },
+        {
+          "case_id": "router_v0_7_validation_002",
+          "split": "validation",
+          "domain": "restaurant_operations",
+          "user_request": "Le temps d'attente diffère-t-il selon le jour de la semaine ?",
+          "expected_decision": "analyze",
+          "expected_reason": null,
+          "status": "ready",
+          "inference_ms": 712.5648000073852,
+          "candidate": {
+            "decision": "analyze",
+            "decision_reason": null,
+            "clarification_question": null
+          },
+          "score": {
+            "scorer_version": "decision_router_scorer_v0.7",
+            "case_id": "router_v0_7_validation_002",
+            "expected_decision": "analyze",
+            "actual_decision": "analyze",
+            "metrics": {
+              "decision": 1.0,
+              "decision_reason": 1.0,
+              "clarification": null,
+              "route_quality": 1.0
+            },
+            "diagnostics": {
+              "unsafe_execution": false,
+              "false_abstention": false,
+              "wrong_abstention_type": false
+            },
+            "overall": 1.0
+          },
+          "overall": 1.0,
+          "raw_content": "{\n  \"decision\": \"analyze\"\n  ,\n  \"decision_reason\": null\n  ,\n  \"clarification_question\": null\n}",
+          "error": null
+        },
+        {
+          "case_id": "router_v0_7_validation_003",
+          "split": "validation",
+          "domain": "battery_monitoring",
+          "user_request": "La tension de batterie contient-elle des valeurs atypiques ?",
+          "expected_decision": "analyze",
+          "expected_reason": null,
+          "status": "ready",
+          "inference_ms": 708.2021000096574,
+          "candidate": {
+            "decision": "analyze",
+            "decision_reason": null,
+            "clarification_question": null
+          },
+          "score": {
+            "scorer_version": "decision_router_scorer_v0.7",
+            "case_id": "router_v0_7_validation_003",
+            "expected_decision": "analyze",
+            "actual_decision": "analyze",
+            "metrics": {
+              "decision": 1.0,
+              "decision_reason": 1.0,
+              "clarification": null,
+              "route_quality": 1.0
+            },
+            "diagnostics": {
+              "unsafe_execution": false,
+              "false_abstention": false,
+              "wrong_abstention_type": false
+            },
+            "overall": 1.0
+          },
+          "overall": 1.0,
+          "raw_content": "{\n  \"decision\": \"analyze\"\n  ,\n  \"decision_reason\": null\n  ,\n  \"clarification_question\": null\n}",
+          "error": null
+        },
+        {
+          "case_id": "router_v0_7_validation_004",
+          "split": "validation",
+          "domain": "renewable_energy_operations",
+          "user_request": "Quels sites performent le mieux ?",
+          "expected_decision": "needs_clarification",
+          "expected_reason": "ambiguous_request",
+          "status": "ready",
+          "inference_ms": 1069.9488000100246,
+          "candidate": {
+            "decision": "needs_clarification",
+            "decision_reason": "ambiguous_request",
+            "clarification_question": "Pour définir quels sites performent 'le mieux', quelles métriques ou critères précis souhaitez-vous utiliser (ex. : production énergétique, coût opérationnel, taux de disponibilité, etc.) ?"
+          },
+          "score": {
+            "scorer_version": "decision_router_scorer_v0.7",
+            "case_id": "router_v0_7_validation_004",
+            "expected_decision": "needs_clarification",
+            "actual_decision": "needs_clarification",
+            "metrics": {
+              "decision": 1.0,
+              "decision_reason": 1.0,
+              "clarification": 1.0,
+              "route_quality": 1.0
+            },
+            "diagnostics": {
+              "unsafe_execution": false,
+              "false_abstention": false,
+              "wrong_abstention_type": false
+            },
+            "overall": 1.0
+          },
+          "overall": 1.0,
+          "raw_content": "{\n  \"decision\": \"needs_clarification\",\n  \"decision_reason\": \"ambiguous_request\",\n  \"clarification_question\": \"Pour définir quels sites performent 'le mieux', quelles métriques ou critères précis souhaitez-vous utiliser (ex. : production énergétique, coût opérationnel, taux de disponibilité, etc.) ?\"\n}",
+          "error": null
+        },
+        {
+          "case_id": "router_v0_7_validation_005",
+          "split": "validation",
+          "domain": "contact_center",
+          "user_request": "Le temps d'attente actuel est-il acceptable ?",
+          "expected_decision": "needs_clarification",
+          "expected_reason": "insufficient_context",
+          "status": "ready",
+          "inference_ms": 1188.1897999992361,
+          "candidate": {
+            "decision": "needs_clarification",
+            "decision_reason": "ambiguous_request",
+            "clarification_question": "Pourriez-vous préciser ce que vous entendez par 'acceptable' dans le contexte du temps d'attente ? Par exemple, s'agit-il d'une comparaison avec une moyenne historique, un seuil métier défini, ou une référence externe (ex. : benchmark secteur) ?"
+          },
+          "score": {
+            "scorer_version": "decision_router_scorer_v0.7",
+            "case_id": "router_v0_7_validation_005",
+            "expected_decision": "needs_clarification",
+            "actual_decision": "needs_clarification",
+            "metrics": {
+              "decision": 1.0,
+              "decision_reason": 0.0,
+              "clarification": 1.0,
+              "route_quality": 0.5
+            },
+            "diagnostics": {
+              "unsafe_execution": false,
+              "false_abstention": false,
+              "wrong_abstention_type": false
+            },
+            "overall": 0.8
+          },
+          "overall": 0.8,
+          "raw_content": "{\n  \"decision\": \"needs_clarification\",\n  \"decision_reason\": \"ambiguous_request\",\n  \"clarification_question\": \"Pourriez-vous préciser ce que vous entendez par 'acceptable' dans le contexte du temps d'attente ? Par exemple, s'agit-il d'une comparaison avec une moyenne historique, un seuil métier défini, ou une référence externe (ex. : benchmark secteur) ?\"\n}",
+          "error": null
+        },
+        {
+          "case_id": "router_v0_7_validation_006",
+          "split": "validation",
+          "domain": "workforce_management",
+          "user_request": "Compare les équipes.",
+          "expected_decision": "needs_clarification",
+          "expected_reason": "ambiguous_request",
+          "status": "ready",
+          "inference_ms": 681.9690999982413,
+          "candidate": {
+            "decision": "analyze",
+            "decision_reason": null,
+            "clarification_question": null
+          },
+          "score": {
+            "scorer_version": "decision_router_scorer_v0.7",
+            "case_id": "router_v0_7_validation_006",
+            "expected_decision": "needs_clarification",
+            "actual_decision": "analyze",
+            "metrics": {
+              "decision": 0.0,
+              "decision_reason": 0.0,
+              "clarification": null,
+              "route_quality": 0.0
+            },
+            "diagnostics": {
+              "unsafe_execution": true,
+              "false_abstention": false,
+              "wrong_abstention_type": false
+            },
+            "overall": 0.0
+          },
+          "overall": 0.0,
+          "raw_content": "{\n  \"decision\": \"analyze\"\n  ,\n  \"decision_reason\": null\n  ,\n  \"clarification_question\": null\n}",
+          "error": null
+        },
+        {
+          "case_id": "router_v0_7_validation_007",
+          "split": "validation",
+          "domain": "digital_marketplace",
+          "user_request": "Quelle est la marge brute de chaque produit ?",
+          "expected_decision": "cannot_answer",
+          "expected_reason": "missing_column",
+          "status": "ready",
+          "inference_ms": 665.8781000005547,
+          "candidate": {
+            "decision": "analyze",
+            "decision_reason": null,
+            "clarification_question": null
+          },
+          "score": {
+            "scorer_version": "decision_router_scorer_v0.7",
+            "case_id": "router_v0_7_validation_007",
+            "expected_decision": "cannot_answer",
+            "actual_decision": "analyze",
+            "metrics": {
+              "decision": 0.0,
+              "decision_reason": 0.0,
+              "clarification": null,
+              "route_quality": 0.0
+            },
+            "diagnostics": {
+              "unsafe_execution": true,
+              "false_abstention": false,
+              "wrong_abstention_type": false
+            },
+            "overall": 0.0
+          },
+          "overall": 0.0,
+          "raw_content": "{\n  \"decision\": \"analyze\"\n  ,\n  \"decision_reason\": null\n  ,\n  \"clarification_question\": null\n}",
+          "error": null
+        },
+        {
+          "case_id": "router_v0_7_validation_008",
+          "split": "validation",
+          "domain": "urban_mobility",
+          "user_request": "La baisse du prix des trajets a-t-elle causé l'augmentation du nombre de déplacements ?",
+          "expected_decision": "cannot_answer",
+          "expected_reason": "causal_identification_missing",
+          "status": "ready",
+          "inference_ms": 670.4053000139538,
+          "candidate": {
+            "decision": "cannot_answer",
+            "decision_reason": "causal_identification_missing",
+            "clarification_question": null
+          },
+          "score": {
+            "scorer_version": "decision_router_scorer_v0.7",
+            "case_id": "router_v0_7_validation_008",
+            "expected_decision": "cannot_answer",
+            "actual_decision": "cannot_answer",
+            "metrics": {
+              "decision": 1.0,
+              "decision_reason": 1.0,
+              "clarification": null,
+              "route_quality": 1.0
+            },
+            "diagnostics": {
+              "unsafe_execution": false,
+              "false_abstention": false,
+              "wrong_abstention_type": false
+            },
+            "overall": 1.0
+          },
+          "overall": 1.0,
+          "raw_content": "{\n  \"decision\": \"cannot_answer\",\n  \"decision_reason\": \"causal_identification_missing\",\n  \"clarification_question\": null\n}",
+          "error": null
+        },
+        {
+          "case_id": "router_v0_7_validation_009",
+          "split": "validation",
+          "domain": "inventory_sales",
+          "user_request": "Les ruptures de stock sont-elles associées au chiffre d'affaires quotidien ?",
+          "expected_decision": "cannot_answer",
+          "expected_reason": "unsupported_analysis",
+          "status": "ready",
+          "inference_ms": 673.0348999990383,
+          "candidate": {
+            "decision": "analyze",
+            "decision_reason": null,
+            "clarification_question": null
+          },
+          "score": {
+            "scorer_version": "decision_router_scorer_v0.7",
+            "case_id": "router_v0_7_validation_009",
+            "expected_decision": "cannot_answer",
+            "actual_decision": "analyze",
+            "metrics": {
+              "decision": 0.0,
+              "decision_reason": 0.0,
+              "clarification": null,
+              "route_quality": 0.0
+            },
+            "diagnostics": {
+              "unsafe_execution": true,
+              "false_abstention": false,
+              "wrong_abstention_type": false
+            },
+            "overall": 0.0
+          },
+          "overall": 0.0,
+          "raw_content": "{\n  \"decision\": \"analyze\"\n  ,\n  \"decision_reason\": null\n  ,\n  \"clarification_question\": null\n}",
+          "error": null
+        }
+      ]
+    },
+    {
+      "runner_version": "decision_router_runner_v0.7",
+      "prompt_version": "decision_router_prompt_v0.7_baseline",
+      "contract_version": "decision_router_contract_v0.7",
+      "scorer_version": "decision_router_scorer_v0.7",
+      "model": "qwen3:4b-instruct",
+      "case_count": 9,
+      "generation_success_count": 9,
+      "generation_error_count": 0,
+      "average_overall": 0.7555555555555555,
+      "decision_accuracy": 0.7777777777777778,
+      "reason_accuracy": 0.6666666666666666,
+      "route_quality": 0.7222222222222222,
+      "clarification_quality": 1.0,
+      "accuracy_by_expected": {
+        "analyze": 1.0,
+        "needs_clarification": 1.0,
+        "cannot_answer": 0.3333333333333333
+      },
+      "confusion_matrix": {
+        "analyze": {
+          "analyze": 3,
+          "needs_clarification": 0,
+          "cannot_answer": 0,
+          "generation_error": 0
+        },
+        "needs_clarification": {
+          "analyze": 0,
+          "needs_clarification": 3,
+          "cannot_answer": 0,
+          "generation_error": 0
+        },
+        "cannot_answer": {
+          "analyze": 0,
+          "needs_clarification": 2,
+          "cannot_answer": 1,
+          "generation_error": 0
+        }
+      },
+      "diagnostics": {
+        "unsafe_execution_count": 0,
+        "false_abstention_count": 0,
+        "wrong_abstention_type_count": 2
+      },
+      "average_inference_ms": 1427.4838888878649,
+      "results": [
+        {
+          "case_id": "router_v0_7_validation_001",
+          "split": "validation",
+          "domain": "real_estate",
+          "user_request": "La surface du logement est-elle associée à son prix de vente ?",
+          "expected_decision": "analyze",
+          "expected_reason": null,
+          "status": "ready",
+          "inference_ms": 2612.272700003814,
+          "candidate": {
+            "decision": "analyze",
+            "decision_reason": null,
+            "clarification_question": null
+          },
+          "score": {
+            "scorer_version": "decision_router_scorer_v0.7",
+            "case_id": "router_v0_7_validation_001",
+            "expected_decision": "analyze",
+            "actual_decision": "analyze",
+            "metrics": {
+              "decision": 1.0,
+              "decision_reason": 1.0,
+              "clarification": null,
+              "route_quality": 1.0
+            },
+            "diagnostics": {
+              "unsafe_execution": false,
+              "false_abstention": false,
+              "wrong_abstention_type": false
+            },
+            "overall": 1.0
+          },
+          "overall": 1.0,
+          "raw_content": "{\n  \"decision\": \"analyze\",\n  \"decision_reason\": null,\n  \"clarification_question\": null\n}",
+          "error": null
+        },
+        {
+          "case_id": "router_v0_7_validation_002",
+          "split": "validation",
+          "domain": "restaurant_operations",
+          "user_request": "Le temps d'attente diffère-t-il selon le jour de la semaine ?",
+          "expected_decision": "analyze",
+          "expected_reason": null,
+          "status": "ready",
+          "inference_ms": 585.0661000004038,
+          "candidate": {
+            "decision": "analyze",
+            "decision_reason": null,
+            "clarification_question": null
+          },
+          "score": {
+            "scorer_version": "decision_router_scorer_v0.7",
+            "case_id": "router_v0_7_validation_002",
+            "expected_decision": "analyze",
+            "actual_decision": "analyze",
+            "metrics": {
+              "decision": 1.0,
+              "decision_reason": 1.0,
+              "clarification": null,
+              "route_quality": 1.0
+            },
+            "diagnostics": {
+              "unsafe_execution": false,
+              "false_abstention": false,
+              "wrong_abstention_type": false
+            },
+            "overall": 1.0
+          },
+          "overall": 1.0,
+          "raw_content": "{\n  \"decision\": \"analyze\",\n  \"decision_reason\": null,\n  \"clarification_question\": null\n}",
+          "error": null
+        },
+        {
+          "case_id": "router_v0_7_validation_003",
+          "split": "validation",
+          "domain": "battery_monitoring",
+          "user_request": "La tension de batterie contient-elle des valeurs atypiques ?",
+          "expected_decision": "analyze",
+          "expected_reason": null,
+          "status": "ready",
+          "inference_ms": 589.7708999982569,
+          "candidate": {
+            "decision": "analyze",
+            "decision_reason": null,
+            "clarification_question": null
+          },
+          "score": {
+            "scorer_version": "decision_router_scorer_v0.7",
+            "case_id": "router_v0_7_validation_003",
+            "expected_decision": "analyze",
+            "actual_decision": "analyze",
+            "metrics": {
+              "decision": 1.0,
+              "decision_reason": 1.0,
+              "clarification": null,
+              "route_quality": 1.0
+            },
+            "diagnostics": {
+              "unsafe_execution": false,
+              "false_abstention": false,
+              "wrong_abstention_type": false
+            },
+            "overall": 1.0
+          },
+          "overall": 1.0,
+          "raw_content": "{\n  \"decision\": \"analyze\",\n  \"decision_reason\": null,\n  \"clarification_question\": null\n}",
+          "error": null
+        },
+        {
+          "case_id": "router_v0_7_validation_004",
+          "split": "validation",
+          "domain": "renewable_energy_operations",
+          "user_request": "Quels sites performent le mieux ?",
+          "expected_decision": "needs_clarification",
+          "expected_reason": "ambiguous_request",
+          "status": "ready",
+          "inference_ms": 1062.9482999938773,
+          "candidate": {
+            "decision": "needs_clarification",
+            "decision_reason": "ambiguous_request",
+            "clarification_question": "Quelle mesure de performance utilisez-vous ? Par exemple, l'énergie générée, le coût d'exploitation ou un indicateur composite ?"
+          },
+          "score": {
+            "scorer_version": "decision_router_scorer_v0.7",
+            "case_id": "router_v0_7_validation_004",
+            "expected_decision": "needs_clarification",
+            "actual_decision": "needs_clarification",
+            "metrics": {
+              "decision": 1.0,
+              "decision_reason": 1.0,
+              "clarification": 1.0,
+              "route_quality": 1.0
+            },
+            "diagnostics": {
+              "unsafe_execution": false,
+              "false_abstention": false,
+              "wrong_abstention_type": false
+            },
+            "overall": 1.0
+          },
+          "overall": 1.0,
+          "raw_content": "{\n  \"decision\": \"needs_clarification\",\n  \"decision_reason\": \"ambiguous_request\",\n  \"clarification_question\": \"Quelle mesure de performance utilisez-vous ? Par exemple, l'énergie générée, le coût d'exploitation ou un indicateur composite ?\"\n}",
+          "error": null
+        },
+        {
+          "case_id": "router_v0_7_validation_005",
+          "split": "validation",
+          "domain": "contact_center",
+          "user_request": "Le temps d'attente actuel est-il acceptable ?",
+          "expected_decision": "needs_clarification",
+          "expected_reason": "insufficient_context",
+          "status": "ready",
+          "inference_ms": 950.0434000074165,
+          "candidate": {
+            "decision": "needs_clarification",
+            "decision_reason": "ambiguous_request",
+            "clarification_question": "Quelle est la référence ou le seuil de temps d'attente considéré comme acceptable ?"
+          },
+          "score": {
+            "scorer_version": "decision_router_scorer_v0.7",
+            "case_id": "router_v0_7_validation_005",
+            "expected_decision": "needs_clarification",
+            "actual_decision": "needs_clarification",
+            "metrics": {
+              "decision": 1.0,
+              "decision_reason": 0.0,
+              "clarification": 1.0,
+              "route_quality": 0.5
+            },
+            "diagnostics": {
+              "unsafe_execution": false,
+              "false_abstention": false,
+              "wrong_abstention_type": false
+            },
+            "overall": 0.8
+          },
+          "overall": 0.8,
+          "raw_content": "{\n  \"decision\": \"needs_clarification\",\n  \"decision_reason\": \"ambiguous_request\",\n  \"clarification_question\": \"Quelle est la référence ou le seuil de temps d'attente considéré comme acceptable ?\"\n}",
+          "error": null
+        },
+        {
+          "case_id": "router_v0_7_validation_006",
+          "split": "validation",
+          "domain": "workforce_management",
+          "user_request": "Compare les équipes.",
+          "expected_decision": "needs_clarification",
+          "expected_reason": "ambiguous_request",
+          "status": "ready",
+          "inference_ms": 1346.9853999995394,
+          "candidate": {
+            "decision": "needs_clarification",
+            "decision_reason": "ambiguous_request",
+            "clarification_question": "Quelle mesure souhaitez-vous comparer entre les équipes ? Par exemple, le nombre d'employés, le taux d'absence, le score de satisfaction ou les heures de travail en dehors des heures normales ?"
+          },
+          "score": {
+            "scorer_version": "decision_router_scorer_v0.7",
+            "case_id": "router_v0_7_validation_006",
+            "expected_decision": "needs_clarification",
+            "actual_decision": "needs_clarification",
+            "metrics": {
+              "decision": 1.0,
+              "decision_reason": 1.0,
+              "clarification": 1.0,
+              "route_quality": 1.0
+            },
+            "diagnostics": {
+              "unsafe_execution": false,
+              "false_abstention": false,
+              "wrong_abstention_type": false
+            },
+            "overall": 1.0
+          },
+          "overall": 1.0,
+          "raw_content": "{\n  \"decision\": \"needs_clarification\",\n  \"decision_reason\": \"ambiguous_request\",\n  \"clarification_question\": \"Quelle mesure souhaitez-vous comparer entre les équipes ? Par exemple, le nombre d'employés, le taux d'absence, le score de satisfaction ou les heures de travail en dehors des heures normales ?\"\n}",
+          "error": null
+        },
+        {
+          "case_id": "router_v0_7_validation_007",
+          "split": "validation",
+          "domain": "digital_marketplace",
+          "user_request": "Quelle est la marge brute de chaque produit ?",
+          "expected_decision": "cannot_answer",
+          "expected_reason": "missing_column",
+          "status": "ready",
+          "inference_ms": 3683.537899996736,
+          "candidate": {
+            "decision": "needs_clarification",
+            "decision_reason": "ambiguous_request",
+            "clarification_question": "Quelle est la définition de 'marge brute' dans ce contexte ? (Par exemple, est-elle calculée comme (revenue - cost) ou (revenue - variable_cost) ?)"
+          },
+          "score": {
+            "scorer_version": "decision_router_scorer_v0.7",
+            "case_id": "router_v0_7_validation_007",
+            "expected_decision": "cannot_answer",
+            "actual_decision": "needs_clarification",
+            "metrics": {
+              "decision": 0.0,
+              "decision_reason": 0.0,
+              "clarification": null,
+              "route_quality": 0.0
+            },
+            "diagnostics": {
+              "unsafe_execution": false,
+              "false_abstention": false,
+              "wrong_abstention_type": true
+            },
+            "overall": 0.0
+          },
+          "overall": 0.0,
+          "raw_content": "{\n  \"decision\": \"needs_clarification\",\n  \"decision_reason\": \"ambiguous_request\",\n  \"clarification_question\": \"Quelle est la définition de 'marge brute' dans ce contexte ? (Par exemple, est-elle calculée comme (revenue - cost) ou (revenue - variable_cost) ?)\"\n}",
+          "error": null
+        },
+        {
+          "case_id": "router_v0_7_validation_008",
+          "split": "validation",
+          "domain": "urban_mobility",
+          "user_request": "La baisse du prix des trajets a-t-elle causé l'augmentation du nombre de déplacements ?",
+          "expected_decision": "cannot_answer",
+          "expected_reason": "causal_identification_missing",
+          "status": "ready",
+          "inference_ms": 795.5822999938391,
+          "candidate": {
+            "decision": "cannot_answer",
+            "decision_reason": "causal_identification_missing",
+            "clarification_question": null
+          },
+          "score": {
+            "scorer_version": "decision_router_scorer_v0.7",
+            "case_id": "router_v0_7_validation_008",
+            "expected_decision": "cannot_answer",
+            "actual_decision": "cannot_answer",
+            "metrics": {
+              "decision": 1.0,
+              "decision_reason": 1.0,
+              "clarification": null,
+              "route_quality": 1.0
+            },
+            "diagnostics": {
+              "unsafe_execution": false,
+              "false_abstention": false,
+              "wrong_abstention_type": false
+            },
+            "overall": 1.0
+          },
+          "overall": 1.0,
+          "raw_content": "{\n  \"decision\": \"cannot_answer\",\n  \"decision_reason\": \"causal_identification_missing\"\n\n  ,\n  \"clarification_question\": null\n}",
+          "error": null
+        },
+        {
+          "case_id": "router_v0_7_validation_009",
+          "split": "validation",
+          "domain": "inventory_sales",
+          "user_request": "Les ruptures de stock sont-elles associées au chiffre d'affaires quotidien ?",
+          "expected_decision": "cannot_answer",
+          "expected_reason": "unsupported_analysis",
+          "status": "ready",
+          "inference_ms": 1221.1479999969015,
+          "candidate": {
+            "decision": "needs_clarification",
+            "decision_reason": "ambiguous_request",
+            "clarification_question": "Quelle est la mesure de chiffre d'affaires quotidien que vous souhaitez analyser ? (ex : daily_revenue dans le dataset sales, ou une autre métrique ?)"
+          },
+          "score": {
+            "scorer_version": "decision_router_scorer_v0.7",
+            "case_id": "router_v0_7_validation_009",
+            "expected_decision": "cannot_answer",
+            "actual_decision": "needs_clarification",
+            "metrics": {
+              "decision": 0.0,
+              "decision_reason": 0.0,
+              "clarification": null,
+              "route_quality": 0.0
+            },
+            "diagnostics": {
+              "unsafe_execution": false,
+              "false_abstention": false,
+              "wrong_abstention_type": true
+            },
+            "overall": 0.0
+          },
+          "overall": 0.0,
+          "raw_content": "{\n  \"decision\": \"needs_clarification\",\n  \"decision_reason\": \"ambiguous_request\",\n  \"clarification_question\": \"Quelle est la mesure de chiffre d'affaires quotidien que vous souhaitez analyser ? (ex : daily_revenue dans le dataset sales, ou une autre métrique ?)\"\n}",
+          "error": null
+        }
+      ]
+    }
+  ]
+}

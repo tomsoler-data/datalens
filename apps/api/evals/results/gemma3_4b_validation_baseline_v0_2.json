@@ -1,0 +1,138 @@
+{
+  "status": "complete",
+  "baseline_rule_version": "ollama_analytical_baseline_v0.2",
+  "candidate_contract_version": "analytical_candidate_strict_v0.2",
+  "model": "gemma3:4b",
+  "split": "validation",
+  "case_count": 2,
+  "generation_success_count": 2,
+  "generation_error_count": 0,
+  "total_inference_ms": 7370.994299999438,
+  "average_inference_ms": 3685.497149999719,
+  "average_metrics": {
+    "intent": 0.0,
+    "entity": 1.0,
+    "grain": 1.0,
+    "relevant_columns": 1.0,
+    "family": 1.0,
+    "tool_selection": 0.8333333333333333,
+    "tool_arguments": 0.75,
+    "safety": 1.0
+  },
+  "average_overall": 0.7916666666666665,
+  "invented_column_count": 0,
+  "invented_tool_count": 0,
+  "forbidden_tool_count": 0,
+  "forbidden_assumption_count": 0,
+  "results": [
+    {
+      "case_id": "ar_v1_004",
+      "domain": "customer_support",
+      "user_request": "Les équipes de nuit ont-elles des temps de résolution différents ?",
+      "model": "gemma3:4b",
+      "status": "ready",
+      "inference_ms": 4827.476899998146,
+      "candidate": {
+        "intent": "comparaison",
+        "entity": null,
+        "current_grain": "ticket",
+        "target_grain": null,
+        "relevant_columns": [
+          "shift",
+          "resolution_minutes"
+        ],
+        "family": "group_comparison",
+        "tool_calls": [
+          {
+            "name": "aggregate",
+            "arguments": {
+              "metrics": [
+                "resolution_minutes"
+              ],
+              "group_by": [
+                "shift"
+              ]
+            }
+          },
+          {
+            "name": "compare_groups",
+            "arguments": {
+              "target": "resolution_minutes",
+              "group_by": [
+                "shift"
+              ]
+            }
+          }
+        ],
+        "assumptions": []
+      },
+      "score_metrics": {
+        "intent": 0.0,
+        "entity": 1.0,
+        "grain": 1.0,
+        "relevant_columns": 1.0,
+        "family": 1.0,
+        "tool_selection": 0.6666666666666666,
+        "tool_arguments": 0.5,
+        "safety": 1.0
+      },
+      "score_diagnostics": {
+        "invented_columns": [],
+        "invented_tools": [],
+        "forbidden_tools_used": [],
+        "forbidden_assumptions_used": []
+      },
+      "overall": 0.7333333333333333,
+      "raw_content": "{\"intent\": \"comparaison\", \"entity\": null, \"current_grain\": \"ticket\", \"target_grain\": null, \"relevant_columns\": [\"shift\", \"resolution_minutes\"], \"family\": \"group_comparison\", \"tool_calls\": [{\"name\": \"aggregate\", \"arguments\": {\"metrics\": [\"resolution_minutes\"], \"group_by\": [\"shift\"]}}, {\"name\": \"compare_groups\", \"arguments\": {\"target\": \"resolution_minutes\", \"group_by\": [\"shift\"]}} ] , \"assumptions\": []}",
+      "error": null
+    },
+    {
+      "case_id": "ar_v1_005",
+      "domain": "energy",
+      "user_request": "Comment la consommation électrique évolue-t-elle au fil du temps ?",
+      "model": "gemma3:4b",
+      "status": "ready",
+      "inference_ms": 2543.517400001292,
+      "candidate": {
+        "intent": "analyse_time_series",
+        "entity": null,
+        "current_grain": "meter_day",
+        "target_grain": null,
+        "relevant_columns": [
+          "date",
+          "consumption_kwh"
+        ],
+        "family": "time_series",
+        "tool_calls": [
+          {
+            "name": "analyze_time_series",
+            "arguments": {
+              "date": "date",
+              "target": "consumption_kwh"
+            }
+          }
+        ],
+        "assumptions": []
+      },
+      "score_metrics": {
+        "intent": 0.0,
+        "entity": 1.0,
+        "grain": 1.0,
+        "relevant_columns": 1.0,
+        "family": 1.0,
+        "tool_selection": 1.0,
+        "tool_arguments": 1.0,
+        "safety": 1.0
+      },
+      "score_diagnostics": {
+        "invented_columns": [],
+        "invented_tools": [],
+        "forbidden_tools_used": [],
+        "forbidden_assumptions_used": []
+      },
+      "overall": 0.8499999999999999,
+      "raw_content": "{\"intent\": \"analyse_time_series\", \"entity\": null, \"current_grain\": \"meter_day\", \"target_grain\": null, \"relevant_columns\": [\"date\", \"consumption_kwh\"], \"family\": \"time_series\", \"tool_calls\": [{\"name\": \"analyze_time_series\", \"arguments\": {\"date\": \"date\", \"target\": \"consumption_kwh\"}}]\n    , \"assumptions\": []}",
+      "error": null
+    }
+  ]
+}

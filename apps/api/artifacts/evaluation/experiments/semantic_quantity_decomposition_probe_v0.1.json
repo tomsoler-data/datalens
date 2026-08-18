@@ -1,0 +1,782 @@
+{
+  "probe_version": "semantic_quantity_decomposition_probe_v0.1",
+  "model": "gemma3:4b",
+  "architecture": "semantic_subject_measurement_state_decomposition",
+  "final_boolean_generated_by": "python",
+  "llm_direct_same_quantity_decision": false,
+  "state_used_as_hard_difference": false,
+  "dimension_veto_policy": "trusted_explicit_evidence_only",
+  "case_count": 21,
+  "successful_call_count": 21,
+  "failed_call_count": 0,
+  "all_calls_operational": true,
+  "trusted_dimension_veto_count": 1,
+  "metrics": {
+    "tp": 4,
+    "fp": 6,
+    "tn": 6,
+    "fn": 5,
+    "accuracy": 0.47619047619047616,
+    "precision": 0.4,
+    "recall": 0.4444444444444444,
+    "specificity": 0.5
+  },
+  "records": [
+    {
+      "dataset": "clinical_lab",
+      "case_id": "specimens_received_samples_processed",
+      "left": "Specimens received",
+      "right": "Samples processed",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "source": "semantic_decomposition",
+      "operational_success": true,
+      "left_trusted_dimension": {
+        "dimension": "unknown",
+        "unit": "unknown",
+        "source": "none",
+        "trusted": false
+      },
+      "right_trusted_dimension": {
+        "dimension": "unknown",
+        "unit": "unknown",
+        "source": "none",
+        "trusted": false
+      },
+      "decomposition": {
+        "left_subject": "equivalent",
+        "right_subject": "equivalent",
+        "subject_relation": "same",
+        "left_measurement_attribute": "count",
+        "right_measurement_attribute": "count",
+        "measurement_relation": "same",
+        "left_state": "unknown",
+        "right_state": "unknown",
+        "state_relation": "uncertain",
+        "confidence": "high",
+        "reason": "Both columns describe the number of specimens/samples processed, indicating a similar underlying subject (laboratory operations) and measurement attribute (count). The 'unknown' state hints suggest further investigation is needed to determine specific states or conditions."
+      }
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "technicians_scheduled_staff_on_duty",
+      "left": "Technicians scheduled",
+      "right": "Lab staff on duty",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "source": "semantic_decomposition",
+      "operational_success": true,
+      "left_trusted_dimension": {
+        "dimension": "unknown",
+        "unit": "unknown",
+        "source": "none",
+        "trusted": false
+      },
+      "right_trusted_dimension": {
+        "dimension": "unknown",
+        "unit": "unknown",
+        "source": "none",
+        "trusted": false
+      },
+      "decomposition": {
+        "left_subject": "equivalent",
+        "right_subject": "equivalent",
+        "subject_relation": "same",
+        "left_measurement_attribute": "count",
+        "right_measurement_attribute": "count",
+        "measurement_relation": "same",
+        "left_state": "unknown",
+        "right_state": "on_duty",
+        "state_relation": "different",
+        "confidence": "high",
+        "reason": "Both columns measure the number of staff members present, differing only in the specific timeframe (scheduled vs. on duty)."
+      }
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "estimated_charge_final_bill",
+      "left": "Estimated test charge",
+      "right": "Final laboratory bill",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "source": "insufficient_semantic_equivalence",
+      "operational_success": true,
+      "left_trusted_dimension": {
+        "dimension": "unknown",
+        "unit": "unknown",
+        "source": "none",
+        "trusted": false
+      },
+      "right_trusted_dimension": {
+        "dimension": "unknown",
+        "unit": "unknown",
+        "source": "none",
+        "trusted": false
+      },
+      "decomposition": {
+        "left_subject": "equivalent",
+        "right_subject": "equivalent",
+        "subject_relation": "different",
+        "left_measurement_attribute": "monetary amount",
+        "right_measurement_attribute": "monetary amount",
+        "measurement_relation": "equivalent",
+        "left_state": "estimated",
+        "right_state": "final",
+        "state_relation": "different",
+        "confidence": "high",
+        "reason": "Both columns represent monetary charges related to laboratory services. 'Estimated test charge' is an estimate of the cost, while 'Final laboratory bill' is the actual billed amount. The different state hints (estimated vs. final) reflect this distinction."
+      }
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "target_turnaround_actual_reporting",
+      "left": "Target result turnaround (minutes)",
+      "right": "Actual reporting time (minutes)",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "source": "insufficient_semantic_equivalence",
+      "operational_success": true,
+      "left_trusted_dimension": {
+        "dimension": "duration",
+        "unit": "minute",
+        "source": "explicit_unit",
+        "trusted": true
+      },
+      "right_trusted_dimension": {
+        "dimension": "duration",
+        "unit": "minute",
+        "source": "explicit_unit",
+        "trusted": true
+      },
+      "decomposition": {
+        "left_subject": "equivalent",
+        "right_subject": "equivalent",
+        "subject_relation": "different",
+        "left_measurement_attribute": "duration",
+        "right_measurement_attribute": "duration",
+        "measurement_relation": "equivalent",
+        "left_state": "target",
+        "right_state": "actual",
+        "state_relation": "different",
+        "confidence": "high",
+        "reason": "Both columns measure turnaround time, specifically duration in minutes. One is the target turnaround time, and the other is the actual reporting time."
+      }
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "planned_mass_measured_weight",
+      "left": "Planned sample mass (grams)",
+      "right": "Measured specimen weight (kg)",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "source": "insufficient_semantic_equivalence",
+      "operational_success": true,
+      "left_trusted_dimension": {
+        "dimension": "mass",
+        "unit": "gram",
+        "source": "explicit_unit",
+        "trusted": true
+      },
+      "right_trusted_dimension": {
+        "dimension": "mass",
+        "unit": "kilogram",
+        "source": "explicit_unit",
+        "trusted": true
+      },
+      "decomposition": {
+        "left_subject": "equivalent",
+        "right_subject": "equivalent",
+        "subject_relation": "different",
+        "left_measurement_attribute": "mass",
+        "right_measurement_attribute": "mass",
+        "measurement_relation": "different",
+        "left_state": "planned",
+        "right_state": "unknown",
+        "state_relation": "different",
+        "confidence": "high",
+        "reason": "Both columns measure mass, a physical property of laboratory samples. One is planned, the other measured."
+      }
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "specimens_staff",
+      "left": "Specimens received",
+      "right": "Technicians scheduled",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "source": "insufficient_semantic_equivalence",
+      "operational_success": true,
+      "left_trusted_dimension": {
+        "dimension": "unknown",
+        "unit": "unknown",
+        "source": "none",
+        "trusted": false
+      },
+      "right_trusted_dimension": {
+        "dimension": "unknown",
+        "unit": "unknown",
+        "source": "none",
+        "trusted": false
+      },
+      "decomposition": {
+        "left_subject": "equivalent",
+        "right_subject": "equivalent",
+        "subject_relation": "different",
+        "left_measurement_attribute": "count",
+        "right_measurement_attribute": "count",
+        "measurement_relation": "different",
+        "left_state": "unknown",
+        "right_state": "unknown",
+        "state_relation": "different",
+        "confidence": "high",
+        "reason": "Both columns represent counts of personnel involved in laboratory operations. 'Specimens received' refers to the number of samples processed, while 'Technicians scheduled' refers to the number of technicians available for processing."
+      }
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "samples_analyzers",
+      "left": "Samples processed",
+      "right": "Analyzer units online",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "source": "insufficient_semantic_equivalence",
+      "operational_success": true,
+      "left_trusted_dimension": {
+        "dimension": "unknown",
+        "unit": "unknown",
+        "source": "none",
+        "trusted": false
+      },
+      "right_trusted_dimension": {
+        "dimension": "unknown",
+        "unit": "unknown",
+        "source": "none",
+        "trusted": false
+      },
+      "decomposition": {
+        "left_subject": "Samples processed",
+        "right_subject": "Analyzer units online",
+        "subject_relation": "different",
+        "left_measurement_attribute": "count",
+        "right_measurement_attribute": "count",
+        "measurement_relation": "different",
+        "left_state": "unknown",
+        "right_state": "online",
+        "state_relation": "different",
+        "confidence": "high",
+        "reason": "The columns measure distinct entities: samples processed and analyzer units online. 'Samples processed' refers to the number of samples handled, while 'Analyzer units online' refers to the number of analyzers operational."
+      }
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "staff_analyzers",
+      "left": "Lab staff on duty",
+      "right": "Analyzer units online",
+      "expected": false,
+      "predicted": true,
+      "correct": false,
+      "source": "semantic_decomposition",
+      "operational_success": true,
+      "left_trusted_dimension": {
+        "dimension": "unknown",
+        "unit": "unknown",
+        "source": "none",
+        "trusted": false
+      },
+      "right_trusted_dimension": {
+        "dimension": "unknown",
+        "unit": "unknown",
+        "source": "none",
+        "trusted": false
+      },
+      "decomposition": {
+        "left_subject": "lab_staff",
+        "right_subject": "analyzers",
+        "subject_relation": "equivalent",
+        "left_measurement_attribute": "count",
+        "right_measurement_attribute": "count",
+        "measurement_relation": "equivalent",
+        "left_state": "on_duty",
+        "right_state": "online",
+        "state_relation": "different",
+        "confidence": "high",
+        "reason": "Both columns represent the number of entities (staff or analyzers) in a specific operational state."
+      }
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "estimated_charge_reagent_spend",
+      "left": "Estimated test charge",
+      "right": "Reagent spend",
+      "expected": false,
+      "predicted": true,
+      "correct": false,
+      "source": "semantic_decomposition",
+      "operational_success": true,
+      "left_trusted_dimension": {
+        "dimension": "unknown",
+        "unit": "unknown",
+        "source": "none",
+        "trusted": false
+      },
+      "right_trusted_dimension": {
+        "dimension": "unknown",
+        "unit": "unknown",
+        "source": "none",
+        "trusted": false
+      },
+      "decomposition": {
+        "left_subject": "test",
+        "right_subject": "reagent",
+        "subject_relation": "equivalent",
+        "left_measurement_attribute": "monetary amount",
+        "right_measurement_attribute": "monetary amount",
+        "measurement_relation": "equivalent",
+        "left_state": "estimated",
+        "right_state": "unknown",
+        "state_relation": "different",
+        "confidence": "high",
+        "reason": "Both columns represent costs associated with laboratory operations. 'Estimated test charge' refers to the anticipated cost of a test, while 'Reagent spend' specifically tracks the cost of the reagents used in that test.  The use of 'monetary amount' as the measurement attribute is consistent across both."
+      }
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "final_bill_reagent_spend",
+      "left": "Final laboratory bill",
+      "right": "Reagent spend",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "source": "insufficient_semantic_equivalence",
+      "operational_success": true,
+      "left_trusted_dimension": {
+        "dimension": "unknown",
+        "unit": "unknown",
+        "source": "none",
+        "trusted": false
+      },
+      "right_trusted_dimension": {
+        "dimension": "unknown",
+        "unit": "unknown",
+        "source": "none",
+        "trusted": false
+      },
+      "decomposition": {
+        "left_subject": "equivalent",
+        "right_subject": "equivalent",
+        "subject_relation": "different",
+        "left_measurement_attribute": "monetary amount",
+        "right_measurement_attribute": "monetary amount",
+        "measurement_relation": "different",
+        "left_state": "final",
+        "right_state": "unknown",
+        "state_relation": "different",
+        "confidence": "high",
+        "reason": "Both columns represent financial aspects of laboratory operations, specifically related to costs. 'Final laboratory bill' represents the total cost, while 'Reagent spend' represents the cost of the reagents used. Although the wording differs, they both measure monetary values within the same domain."
+      }
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "turnaround_analyzer_downtime",
+      "left": "Target result turnaround (minutes)",
+      "right": "Analyzer downtime (minutes)",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "source": "insufficient_semantic_equivalence",
+      "operational_success": true,
+      "left_trusted_dimension": {
+        "dimension": "duration",
+        "unit": "minute",
+        "source": "explicit_unit",
+        "trusted": true
+      },
+      "right_trusted_dimension": {
+        "dimension": "duration",
+        "unit": "minute",
+        "source": "explicit_unit",
+        "trusted": true
+      },
+      "decomposition": {
+        "left_subject": "equivalent",
+        "right_subject": "equivalent",
+        "subject_relation": "different",
+        "left_measurement_attribute": "duration",
+        "right_measurement_attribute": "duration",
+        "measurement_relation": "different",
+        "left_state": "target",
+        "right_state": "unknown",
+        "state_relation": "different",
+        "confidence": "high",
+        "reason": "Both columns measure duration related to laboratory operations, one is the target turnaround time and the other is analyzer downtime."
+      }
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "reporting_time_analyzer_downtime",
+      "left": "Actual reporting time (minutes)",
+      "right": "Analyzer downtime (minutes)",
+      "expected": false,
+      "predicted": true,
+      "correct": false,
+      "source": "semantic_decomposition",
+      "operational_success": true,
+      "left_trusted_dimension": {
+        "dimension": "duration",
+        "unit": "minute",
+        "source": "explicit_unit",
+        "trusted": true
+      },
+      "right_trusted_dimension": {
+        "dimension": "duration",
+        "unit": "minute",
+        "source": "explicit_unit",
+        "trusted": true
+      },
+      "decomposition": {
+        "left_subject": "test",
+        "right_subject": "analyzer",
+        "subject_relation": "equivalent",
+        "left_measurement_attribute": "duration",
+        "right_measurement_attribute": "duration",
+        "measurement_relation": "equivalent",
+        "left_state": "actual",
+        "right_state": "unknown",
+        "state_relation": "different",
+        "confidence": "high",
+        "reason": "Both columns measure time related to clinical lab operations."
+      }
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "quality_rate_sla",
+      "left": "Quality pass rate (%)",
+      "right": "SLA compliance (%)",
+      "expected": false,
+      "predicted": true,
+      "correct": false,
+      "source": "semantic_decomposition",
+      "operational_success": true,
+      "left_trusted_dimension": {
+        "dimension": "proportion",
+        "unit": "percent",
+        "source": "explicit_percent_symbol",
+        "trusted": true
+      },
+      "right_trusted_dimension": {
+        "dimension": "proportion",
+        "unit": "percent",
+        "source": "explicit_percent_symbol",
+        "trusted": true
+      },
+      "decomposition": {
+        "left_subject": "laboratory_quality",
+        "right_subject": "laboratory_quality",
+        "subject_relation": "equivalent",
+        "left_measurement_attribute": "proportion",
+        "right_measurement_attribute": "proportion",
+        "measurement_relation": "equivalent",
+        "left_state": "pass_rate",
+        "right_state": "unknown",
+        "state_relation": "different",
+        "confidence": "high",
+        "reason": "Both columns measure the proportion of tests meeting a defined standard within a laboratory setting."
+      }
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "sample_mass_reagent_mass",
+      "left": "Planned sample mass (grams)",
+      "right": "Reagent mass used (kg)",
+      "expected": false,
+      "predicted": true,
+      "correct": false,
+      "source": "semantic_decomposition",
+      "operational_success": true,
+      "left_trusted_dimension": {
+        "dimension": "mass",
+        "unit": "gram",
+        "source": "explicit_unit",
+        "trusted": true
+      },
+      "right_trusted_dimension": {
+        "dimension": "mass",
+        "unit": "kilogram",
+        "source": "explicit_unit",
+        "trusted": true
+      },
+      "decomposition": {
+        "left_subject": "sample",
+        "right_subject": "reagent",
+        "subject_relation": "equivalent",
+        "left_measurement_attribute": "mass",
+        "right_measurement_attribute": "mass",
+        "measurement_relation": "equivalent",
+        "left_state": "planned",
+        "right_state": "used",
+        "state_relation": "different",
+        "confidence": "high",
+        "reason": "Both measurements relate to mass, one of a sample and the other of a reagent."
+      }
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "specimen_weight_reagent_mass",
+      "left": "Measured specimen weight (kg)",
+      "right": "Reagent mass used (kg)",
+      "expected": false,
+      "predicted": true,
+      "correct": false,
+      "source": "semantic_decomposition",
+      "operational_success": true,
+      "left_trusted_dimension": {
+        "dimension": "mass",
+        "unit": "kilogram",
+        "source": "explicit_unit",
+        "trusted": true
+      },
+      "right_trusted_dimension": {
+        "dimension": "mass",
+        "unit": "kilogram",
+        "source": "explicit_unit",
+        "trusted": true
+      },
+      "decomposition": {
+        "left_subject": "specimen",
+        "right_subject": "reagent",
+        "subject_relation": "equivalent",
+        "left_measurement_attribute": "mass",
+        "right_measurement_attribute": "mass",
+        "measurement_relation": "equivalent",
+        "left_state": "unknown",
+        "right_state": "used",
+        "state_relation": "different",
+        "confidence": "high",
+        "reason": "Both columns measure mass, specifically relating to laboratory materials."
+      }
+    },
+    {
+      "dataset": "customer_support",
+      "case_id": "submitted_cases_resolved_tickets",
+      "left": "Cases submitted",
+      "right": "Tickets resolved",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "source": "semantic_decomposition",
+      "operational_success": true,
+      "left_trusted_dimension": {
+        "dimension": "unknown",
+        "unit": "unknown",
+        "source": "none",
+        "trusted": false
+      },
+      "right_trusted_dimension": {
+        "dimension": "unknown",
+        "unit": "unknown",
+        "source": "none",
+        "trusted": false
+      },
+      "decomposition": {
+        "left_subject": "Cases submitted",
+        "right_subject": "Tickets resolved",
+        "subject_relation": "equivalent",
+        "left_measurement_attribute": "count",
+        "right_measurement_attribute": "count",
+        "measurement_relation": "equivalent",
+        "left_state": "unknown",
+        "right_state": "unknown",
+        "state_relation": "uncertain",
+        "confidence": "high",
+        "reason": "Both columns represent the number of instances of a support operation. 'Cases submitted' refers to the initial request, while 'Tickets resolved' refers to the completion of that request."
+      }
+    },
+    {
+      "dataset": "customer_support",
+      "case_id": "rostered_agents_online_staff",
+      "left": "Agents rostered",
+      "right": "Staff online",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "source": "semantic_decomposition",
+      "operational_success": true,
+      "left_trusted_dimension": {
+        "dimension": "unknown",
+        "unit": "unknown",
+        "source": "none",
+        "trusted": false
+      },
+      "right_trusted_dimension": {
+        "dimension": "unknown",
+        "unit": "unknown",
+        "source": "none",
+        "trusted": false
+      },
+      "decomposition": {
+        "left_subject": "equivalent",
+        "right_subject": "equivalent",
+        "subject_relation": "same",
+        "left_measurement_attribute": "count",
+        "right_measurement_attribute": "count",
+        "measurement_relation": "same",
+        "left_state": "unknown",
+        "right_state": "online",
+        "state_relation": "different",
+        "confidence": "high",
+        "reason": "Both columns measure the number of staff available or online, using different phrasing."
+      }
+    },
+    {
+      "dataset": "customer_support",
+      "case_id": "quoted_cost_final_invoice",
+      "left": "Quoted service cost",
+      "right": "Final invoice amount",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "source": "insufficient_semantic_equivalence",
+      "operational_success": true,
+      "left_trusted_dimension": {
+        "dimension": "unknown",
+        "unit": "unknown",
+        "source": "none",
+        "trusted": false
+      },
+      "right_trusted_dimension": {
+        "dimension": "unknown",
+        "unit": "unknown",
+        "source": "none",
+        "trusted": false
+      },
+      "decomposition": {
+        "left_subject": "equivalent",
+        "right_subject": "equivalent",
+        "subject_relation": "different",
+        "left_measurement_attribute": "monetary amount",
+        "right_measurement_attribute": "monetary amount",
+        "measurement_relation": "equivalent",
+        "left_state": "quoted",
+        "right_state": "unknown",
+        "state_relation": "different",
+        "confidence": "high",
+        "reason": "Both columns represent monetary values associated with customer support services, one as the quoted cost and the other as the final invoice amount."
+      }
+    },
+    {
+      "dataset": "customer_support",
+      "case_id": "promised_observed_response_time",
+      "left": "Promised response time (minutes)",
+      "right": "Observed first-response delay (minutes)",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "source": "insufficient_semantic_equivalence",
+      "operational_success": true,
+      "left_trusted_dimension": {
+        "dimension": "duration",
+        "unit": "minute",
+        "source": "explicit_unit",
+        "trusted": true
+      },
+      "right_trusted_dimension": {
+        "dimension": "duration",
+        "unit": "minute",
+        "source": "explicit_unit",
+        "trusted": true
+      },
+      "decomposition": {
+        "left_subject": "equivalent",
+        "right_subject": "equivalent",
+        "subject_relation": "different",
+        "left_measurement_attribute": "duration",
+        "right_measurement_attribute": "duration",
+        "measurement_relation": "equivalent",
+        "left_state": "actual",
+        "right_state": "actual",
+        "state_relation": "different",
+        "confidence": "high",
+        "reason": "Both columns measure response times, specifically durations in minutes. 'Promised response time' refers to the initially stated time, while 'Observed first-response delay' refers to the actual time taken for the first response. The unit is consistent."
+      }
+    },
+    {
+      "dataset": "customer_support",
+      "case_id": "response_delay_sla_compliance",
+      "left": "Observed first-response delay (minutes)",
+      "right": "SLA compliance (%)",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "source": "trusted_dimension_veto",
+      "operational_success": true,
+      "left_trusted_dimension": {
+        "dimension": "duration",
+        "unit": "minute",
+        "source": "explicit_unit",
+        "trusted": true
+      },
+      "right_trusted_dimension": {
+        "dimension": "proportion",
+        "unit": "percent",
+        "source": "explicit_percent_symbol",
+        "trusted": true
+      },
+      "decomposition": {
+        "left_subject": "customer_support",
+        "right_subject": "customer_support",
+        "subject_relation": "equivalent",
+        "left_measurement_attribute": "duration",
+        "right_measurement_attribute": "proportion",
+        "measurement_relation": "equivalent",
+        "left_state": "actual",
+        "right_state": "unknown",
+        "state_relation": "different",
+        "confidence": "high",
+        "reason": "Both columns relate to customer support operations and measure a time-based or percentage-based metric."
+      }
+    },
+    {
+      "dataset": "customer_support",
+      "case_id": "invoice_online_staff",
+      "left": "Final invoice amount",
+      "right": "Staff online",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "source": "insufficient_semantic_equivalence",
+      "operational_success": true,
+      "left_trusted_dimension": {
+        "dimension": "unknown",
+        "unit": "unknown",
+        "source": "none",
+        "trusted": false
+      },
+      "right_trusted_dimension": {
+        "dimension": "unknown",
+        "unit": "unknown",
+        "source": "none",
+        "trusted": false
+      },
+      "decomposition": {
+        "left_subject": "invoice",
+        "right_subject": "staff",
+        "subject_relation": "different",
+        "left_measurement_attribute": "monetary amount",
+        "right_measurement_attribute": "count",
+        "measurement_relation": "different",
+        "left_state": "final",
+        "right_state": "online",
+        "state_relation": "different",
+        "confidence": "high",
+        "reason": "The column 'Final invoice amount' represents the total monetary value of an invoice, while 'Staff online' represents the number of staff members actively online. These are distinct entities and measurements."
+      }
+    }
+  ]
+}

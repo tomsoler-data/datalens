@@ -1,0 +1,135 @@
+[
+  {
+    "case_id": "quantitative_salary_training",
+    "objective": "Étudier la relation entre salary et training_hours.",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "acceptable_families": [
+        "quantitative_association"
+      ],
+      "acceptable_bindings": [
+        {
+          "x": "salary",
+          "y": "training_hours"
+        },
+        {
+          "x": "training_hours",
+          "y": "salary"
+        }
+      ],
+      "tool": "run_quantitative_association",
+      "should_execute": true,
+      "chart_type": "scatter"
+    }
+  },
+  {
+    "case_id": "categorical_overtime_left",
+    "objective": "Étudier l'association entre overtime et left_company.",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "acceptable_families": [
+        "categorical_association"
+      ],
+      "acceptable_bindings": [
+        {
+          "x": "overtime",
+          "y": "left_company"
+        },
+        {
+          "x": "left_company",
+          "y": "overtime"
+        }
+      ],
+      "tool": "run_categorical_association",
+      "should_execute": true,
+      "chart_type": "heatmap"
+    }
+  },
+  {
+    "case_id": "group_salary_department",
+    "objective": "Comparer salary selon department.",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "acceptable_families": [
+        "group_comparison"
+      ],
+      "acceptable_bindings": [
+        {
+          "group": "department",
+          "value": "salary"
+        }
+      ],
+      "tool": "run_group_comparison",
+      "should_execute": true,
+      "chart_type": "boxplot"
+    }
+  },
+  {
+    "case_id": "distribution_salary",
+    "objective": "Analyser la distribution de salary.",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "acceptable_families": [
+        "distribution"
+      ],
+      "acceptable_bindings": [
+        {
+          "value": "salary"
+        }
+      ],
+      "tool": "run_distribution",
+      "should_execute": true,
+      "chart_type": "histogram"
+    }
+  },
+  {
+    "case_id": "time_salary_snapshot",
+    "objective": "Analyser l'évolution de la médiane de salary selon snapshot_date.",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "acceptable_families": [
+        "time_series"
+      ],
+      "acceptable_bindings": [
+        {
+          "time": "snapshot_date",
+          "value": "salary"
+        }
+      ],
+      "tool": "run_time_series",
+      "should_execute": true,
+      "chart_type": "line_band"
+    }
+  },
+  {
+    "case_id": "guardrail_missing_year",
+    "objective": "Analyser l'évolution de la médiane de salary selon Year.",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "blocked",
+        "rejected"
+      ],
+      "acceptable_families": [
+        "time_series",
+        "unresolved"
+      ],
+      "acceptable_bindings": [],
+      "tool": null,
+      "should_execute": false,
+      "chart_type": "",
+      "forbidden_columns": [
+        "snapshot_date"
+      ]
+    }
+  }
+]

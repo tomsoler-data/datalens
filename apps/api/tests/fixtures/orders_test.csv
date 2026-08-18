@@ -1,0 +1,7 @@
+order_id,discount_rate,customer_segment,age,signup_date,shipping_country,order_status
+ORD-001,10,Premium,35,2026-01-12,France,paid
+ORD-002,,Standard,42,2026-01-13,France,shipped
+ORD-003,,,1000,2026-02-31,Spain,pending
+ORD-004,5,Premium,29,2026-01-15,France,delivered
+ORD-005,,Standard,38,invalid,Spain,paid
+ORD-006,15,Basic,51,2026-01-18,,cancelled

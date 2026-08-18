@@ -1,0 +1,768 @@
+{
+  "evaluation": "analytical_planner_model_runner_v0.9",
+  "metadata": {
+    "runner_version": "analytical_planner_model_runner_v0.9",
+    "prompt_version": "analytical_planner_prompt_v0.9_baseline",
+    "contract_version": "analytical_planner_contract_v0.9",
+    "validator_version": "analytical_planner_validator_v0.9",
+    "scorer_version": "analytical_planner_scorer_v0.9",
+    "models": [
+      "ministral-3:3b",
+      "qwen3:4b-instruct"
+    ],
+    "temperature": 0,
+    "thinking": false
+  },
+  "benchmark": "C:\\Users\\tomas\\datalens\\apps\\api\\evals\\analytical_planner_development_v0_9.jsonl",
+  "split": "validation",
+  "frozen": false,
+  "case_count": 5,
+  "summaries": [
+    {
+      "model": "ministral-3:3b",
+      "case_count": 5,
+      "average_overall": 0.9,
+      "exact_plan_count": 2,
+      "exact_plan_accuracy": 0.4,
+      "valid_plan_count": 5,
+      "validator_acceptance_rate": 1.0,
+      "requirement_coverage_f1": 1.0,
+      "intent_accuracy": 1.0,
+      "family_accuracy": 1.0,
+      "target_grain_accuracy": 0.6,
+      "tool_sequence_score": 0.9333333333334,
+      "tool_argument_score": 0.7666666666668001,
+      "validator_score": 1.0,
+      "generation_error_count": 0,
+      "validator_issue_codes": [],
+      "average_inference_ms": 3445.9340800000064
+    },
+    {
+      "model": "qwen3:4b-instruct",
+      "case_count": 5,
+      "average_overall": 0.952,
+      "exact_plan_count": 4,
+      "exact_plan_accuracy": 0.8,
+      "valid_plan_count": 5,
+      "validator_acceptance_rate": 1.0,
+      "requirement_coverage_f1": 1.0,
+      "intent_accuracy": 1.0,
+      "family_accuracy": 1.0,
+      "target_grain_accuracy": 1.0,
+      "tool_sequence_score": 0.96,
+      "tool_argument_score": 0.8,
+      "validator_score": 1.0,
+      "generation_error_count": 0,
+      "validator_issue_codes": [],
+      "average_inference_ms": 3337.594519999948
+    }
+  ],
+  "ranking": [
+    "qwen3:4b-instruct",
+    "ministral-3:3b"
+  ],
+  "results": {
+    "ministral-3:3b": [
+      {
+        "case_id": "planner_v0_9_validation_001",
+        "domain": "marketplace",
+        "model": "ministral-3:3b",
+        "status": "ready",
+        "candidate": {
+          "plans": [
+            {
+              "requirement_id": "unusual_customers",
+              "intent": "entity_anomaly_analysis",
+              "family": "entity_outlier",
+              "target_grain": "customer_order",
+              "steps": [
+                {
+                  "step_id": "build_entity_view",
+                  "action": {
+                    "name": "build_entity_view",
+                    "entity": "customer_activity.customer_id"
+                  }
+                },
+                {
+                  "step_id": "derive_metrics",
+                  "action": {
+                    "name": "derive_metric",
+                    "inputs": [
+                      "customer_activity.revenue",
+                      "customer_activity.order_count"
+                    ],
+                    "output": "revenue_per_order",
+                    "formula": "revenue / order_count"
+                  }
+                },
+                {
+                  "step_id": "detect_outliers",
+                  "action": {
+                    "name": "detect_outliers",
+                    "target": "revenue_per_order"
+                  }
+                },
+                {
+                  "step_id": "detect_entity_outliers",
+                  "action": {
+                    "name": "detect_entity_outliers",
+                    "entity": "customer_activity.customer_id",
+                    "metrics": [
+                      "revenue_per_order"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "validation": {
+          "valid": true,
+          "validated_requirement_ids": [
+            "unusual_customers"
+          ],
+          "issues": []
+        },
+        "score": {
+          "scorer_version": "analytical_planner_scorer_v0.9",
+          "overall": 0.683333333333,
+          "metrics": {
+            "requirement_coverage_f1": 1.0,
+            "intent_accuracy": 1.0,
+            "family_accuracy": 1.0,
+            "target_grain_accuracy": 0.0,
+            "tool_sequence_score": 0.666666666667,
+            "tool_argument_score": 0.25,
+            "validator_acceptance": 1.0
+          },
+          "diagnostics": {
+            "missing_requirement_ids": [],
+            "extra_requirement_ids": [],
+            "invalid_requirement_ids": [],
+            "validator_issue_codes": [],
+            "exact_requirement_ids": []
+          }
+        },
+        "exact": false,
+        "inference_ms": 8699.33519999995,
+        "raw_content": "{\n  \"plans\": [\n    {\n      \"requirement_id\": \"unusual_customers\",\n      \"intent\": \"entity_anomaly_analysis\",\n      \"family\": \"entity_outlier\",\n      \"target_grain\": \"customer_order\",\n      \"steps\": [\n        {\n          \"step_id\": \"build_entity_view\",\n          \"action\": {\n            \"name\": \"build_entity_view\",\n            \"entity\": \"customer_activity.customer_id\"\n          }\n        },\n        {\n          \"step_id\": \"derive_metrics\",\n          \"action\": {\n            \"name\": \"derive_metric\",\n            \"inputs\": [\n              \"customer_activity.revenue\",\n              \"customer_activity.order_count\"\n            ],\n            \"output\": \"revenue_per_order\"\n          ,\n          \"formula\": \"revenue / order_count\"\n        }\n      },\n      {\n        \"step_id\": \"detect_outliers\",\n        \"action\": {\n          \"name\": \"detect_outliers\",\n          \"target\": \"revenue_per_order\"\n        }\n      },\n      {\n        \"step_id\": \"detect_entity_outliers\",\n        \"action\": {\n          \"name\": \"detect_entity_outliers\",\n          \"entity\": \"customer_activity.customer_id\",\n          \"metrics\": [\n            \"revenue_per_order\"\n          ]\n        }\n      }\n    ]\n  }\n] }",
+        "error": null
+      },
+      {
+        "case_id": "planner_v0_9_validation_002",
+        "domain": "digital_marketing",
+        "model": "ministral-3:3b",
+        "status": "ready",
+        "candidate": {
+          "plans": [
+            {
+              "requirement_id": "conversion_by_channel",
+              "intent": "compare_groups",
+              "family": "group_comparison",
+              "target_grain": "campaign_day",
+              "steps": [
+                {
+                  "step_id": "derive_conversion_rate",
+                  "action": {
+                    "name": "derive_metric",
+                    "inputs": [
+                      "marketing.visits",
+                      "marketing.conversions"
+                    ],
+                    "output": "conversion_rate",
+                    "formula": "marketing.conversions / marketing.visits"
+                  }
+                },
+                {
+                  "step_id": "compare_channels",
+                  "action": {
+                    "name": "compare_groups",
+                    "target": "marketing.channel",
+                    "group_by": "marketing.channel"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "validation": {
+          "valid": true,
+          "validated_requirement_ids": [
+            "conversion_by_channel"
+          ],
+          "issues": []
+        },
+        "score": {
+          "scorer_version": "analytical_planner_scorer_v0.9",
+          "overall": 0.916666666667,
+          "metrics": {
+            "requirement_coverage_f1": 1.0,
+            "intent_accuracy": 1.0,
+            "family_accuracy": 1.0,
+            "target_grain_accuracy": 1.0,
+            "tool_sequence_score": 1.0,
+            "tool_argument_score": 0.583333333334,
+            "validator_acceptance": 1.0
+          },
+          "diagnostics": {
+            "missing_requirement_ids": [],
+            "extra_requirement_ids": [],
+            "invalid_requirement_ids": [],
+            "validator_issue_codes": [],
+            "exact_requirement_ids": []
+          }
+        },
+        "exact": false,
+        "inference_ms": 2524.566699999923,
+        "raw_content": "{\n  \"plans\": [\n    {\n      \"requirement_id\": \"conversion_by_channel\",\n      \"intent\": \"compare_groups\",\n      \"family\": \"group_comparison\",\n      \"target_grain\": \"campaign_day\",\n      \"steps\": [\n        {\n          \"step_id\": \"derive_conversion_rate\",\n          \"action\": {\n            \"name\": \"derive_metric\",\n            \"inputs\": [\n              \"marketing.visits\",\n              \"marketing.conversions\"\n            ],\n            \"output\": \"conversion_rate\"\n            ,\n            \"formula\": \"marketing.conversions / marketing.visits\"\n          }\n        },\n        {\n          \"step_id\": \"compare_channels\",\n          \"action\": {\n            \"name\": \"compare_groups\",\n            \"target\": \"marketing.channel\",\n            \"group_by\": \"marketing.channel\"\n          }\n        }\n      ]\n    }\n  ]\n}",
+        "error": null
+      },
+      {
+        "case_id": "planner_v0_9_validation_003",
+        "domain": "vehicle_operations",
+        "model": "ministral-3:3b",
+        "status": "ready",
+        "candidate": {
+          "plans": [
+            {
+              "requirement_id": "fuel_maintenance_association",
+              "intent": "measure_relationship",
+              "family": "association",
+              "target_grain": "vehicle_month",
+              "steps": [
+                {
+                  "step_id": "measure_fuel_cost_association",
+                  "action": {
+                    "name": "measure_association",
+                    "target": "maintenance.maintenance_cost",
+                    "value": "fuel.fuel_liters"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "validation": {
+          "valid": true,
+          "validated_requirement_ids": [
+            "fuel_maintenance_association"
+          ],
+          "issues": []
+        },
+        "score": {
+          "scorer_version": "analytical_planner_scorer_v0.9",
+          "overall": 1.0,
+          "metrics": {
+            "requirement_coverage_f1": 1.0,
+            "intent_accuracy": 1.0,
+            "family_accuracy": 1.0,
+            "target_grain_accuracy": 1.0,
+            "tool_sequence_score": 1.0,
+            "tool_argument_score": 1.0,
+            "validator_acceptance": 1.0
+          },
+          "diagnostics": {
+            "missing_requirement_ids": [],
+            "extra_requirement_ids": [],
+            "invalid_requirement_ids": [],
+            "validator_issue_codes": [],
+            "exact_requirement_ids": [
+              "fuel_maintenance_association"
+            ]
+          }
+        },
+        "exact": true,
+        "inference_ms": 1815.761300000304,
+        "raw_content": "{\n  \"plans\": [\n    {\n      \"requirement_id\": \"fuel_maintenance_association\",\n      \"intent\": \"measure_relationship\",\n      \"family\": \"association\",\n      \"target_grain\": \"vehicle_month\",\n      \"steps\": [\n        {\n          \"step_id\": \"measure_fuel_cost_association\",\n          \"action\": {\n            \"name\": \"measure_association\",\n            \"target\": \"maintenance.maintenance_cost\",\n            \"value\": \"fuel.fuel_liters\"\n          }\n        }\n      ]\n    }\n  ]\n}",
+        "error": null
+      },
+      {
+        "case_id": "planner_v0_9_validation_004",
+        "domain": "regional_operations",
+        "model": "ministral-3:3b",
+        "status": "ready",
+        "candidate": {
+          "plans": [
+            {
+              "requirement_id": "sales_total",
+              "intent": "aggregate_metric",
+              "family": "aggregation",
+              "target_grain": "order",
+              "steps": [
+                {
+                  "step_id": "aggregate_sales",
+                  "action": {
+                    "name": "aggregate",
+                    "metrics": [
+                      "sales.revenue"
+                    ],
+                    "group_by": null
+                  }
+                }
+              ]
+            },
+            {
+              "requirement_id": "support_total",
+              "intent": "aggregate_metric",
+              "family": "aggregation",
+              "target_grain": "ticket",
+              "steps": [
+                {
+                  "step_id": "aggregate_support",
+                  "action": {
+                    "name": "aggregate",
+                    "metrics": [
+                      "support.ticket_count"
+                    ],
+                    "group_by": null
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "validation": {
+          "valid": true,
+          "validated_requirement_ids": [
+            "sales_total",
+            "support_total"
+          ],
+          "issues": []
+        },
+        "score": {
+          "scorer_version": "analytical_planner_scorer_v0.9",
+          "overall": 0.9,
+          "metrics": {
+            "requirement_coverage_f1": 1.0,
+            "intent_accuracy": 1.0,
+            "family_accuracy": 1.0,
+            "target_grain_accuracy": 0.0,
+            "tool_sequence_score": 1.0,
+            "tool_argument_score": 1.0,
+            "validator_acceptance": 1.0
+          },
+          "diagnostics": {
+            "missing_requirement_ids": [],
+            "extra_requirement_ids": [],
+            "invalid_requirement_ids": [],
+            "validator_issue_codes": [],
+            "exact_requirement_ids": []
+          }
+        },
+        "exact": false,
+        "inference_ms": 2674.6610000000146,
+        "raw_content": "{\n  \"plans\": [\n    {\n      \"requirement_id\": \"sales_total\",\n      \"intent\": \"aggregate_metric\",\n      \"family\": \"aggregation\",\n      \"target_grain\": \"order\",\n      \"steps\": [\n        {\n          \"step_id\": \"aggregate_sales\",\n          \"action\": {\n            \"name\": \"aggregate\",\n            \"metrics\": [\n              \"sales.revenue\"\n            ],\n            \"group_by\": null\n          }\n        }\n      ]\n    },\n    {\n      \"requirement_id\": \"support_total\",\n      \"intent\": \"aggregate_metric\",\n      \"family\": \"aggregation\",\n      \"target_grain\": \"ticket\",\n      \"steps\": [\n        {\n          \"step_id\": \"aggregate_support\",\n          \"action\": {\n            \"name\": \"aggregate\",\n            \"metrics\": [\n              \"support.ticket_count\"\n            ],\n            \"group_by\": null\n          }\n        }\n      ]\n    }\n  ]\n}",
+        "error": null
+      },
+      {
+        "case_id": "planner_v0_9_validation_005",
+        "domain": "parcel_delivery",
+        "model": "ministral-3:3b",
+        "status": "ready",
+        "candidate": {
+          "plans": [
+            {
+              "requirement_id": "delivery_distribution",
+              "intent": "distribution_analysis",
+              "family": "distribution",
+              "target_grain": "delivery",
+              "steps": [
+                {
+                  "step_id": "analyze_delivery_distribution",
+                  "action": {
+                    "name": "analyze_distribution",
+                    "target": "deliveries.delivery_days"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "validation": {
+          "valid": true,
+          "validated_requirement_ids": [
+            "delivery_distribution"
+          ],
+          "issues": []
+        },
+        "score": {
+          "scorer_version": "analytical_planner_scorer_v0.9",
+          "overall": 1.0,
+          "metrics": {
+            "requirement_coverage_f1": 1.0,
+            "intent_accuracy": 1.0,
+            "family_accuracy": 1.0,
+            "target_grain_accuracy": 1.0,
+            "tool_sequence_score": 1.0,
+            "tool_argument_score": 1.0,
+            "validator_acceptance": 1.0
+          },
+          "diagnostics": {
+            "missing_requirement_ids": [],
+            "extra_requirement_ids": [],
+            "invalid_requirement_ids": [],
+            "validator_issue_codes": [],
+            "exact_requirement_ids": [
+              "delivery_distribution"
+            ]
+          }
+        },
+        "exact": true,
+        "inference_ms": 1515.3461999998399,
+        "raw_content": "{\n  \"plans\": [\n    {\n      \"requirement_id\": \"delivery_distribution\",\n      \"intent\": \"distribution_analysis\",\n      \"family\": \"distribution\",\n      \"target_grain\": \"delivery\",\n      \"steps\": [\n        {\n          \"step_id\": \"analyze_delivery_distribution\",\n          \"action\": {\n            \"name\": \"analyze_distribution\",\n            \"target\": \"deliveries.delivery_days\"\n          }\n        }\n      ]\n    }\n  ]\n}",
+        "error": null
+      }
+    ],
+    "qwen3:4b-instruct": [
+      {
+        "case_id": "planner_v0_9_validation_001",
+        "domain": "marketplace",
+        "model": "qwen3:4b-instruct",
+        "status": "ready",
+        "candidate": {
+          "plans": [
+            {
+              "requirement_id": "unusual_customers",
+              "intent": "entity_anomaly_analysis",
+              "family": "entity_outlier",
+              "target_grain": "customer",
+              "steps": [
+                {
+                  "step_id": "build_entity_view",
+                  "action": {
+                    "name": "build_entity_view",
+                    "entity": "customer_activity.customer_id"
+                  }
+                },
+                {
+                  "step_id": "detect_entity_outliers",
+                  "action": {
+                    "name": "detect_entity_outliers",
+                    "entity": "customer_activity.customer_id",
+                    "metrics": [
+                      "customer_activity.revenue",
+                      "customer_activity.order_count"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "validation": {
+          "valid": true,
+          "validated_requirement_ids": [
+            "unusual_customers"
+          ],
+          "issues": []
+        },
+        "score": {
+          "scorer_version": "analytical_planner_scorer_v0.9",
+          "overall": 1.0,
+          "metrics": {
+            "requirement_coverage_f1": 1.0,
+            "intent_accuracy": 1.0,
+            "family_accuracy": 1.0,
+            "target_grain_accuracy": 1.0,
+            "tool_sequence_score": 1.0,
+            "tool_argument_score": 1.0,
+            "validator_acceptance": 1.0
+          },
+          "diagnostics": {
+            "missing_requirement_ids": [],
+            "extra_requirement_ids": [],
+            "invalid_requirement_ids": [],
+            "validator_issue_codes": [],
+            "exact_requirement_ids": [
+              "unusual_customers"
+            ]
+          }
+        },
+        "exact": true,
+        "inference_ms": 6096.6238999999405,
+        "raw_content": "{\n  \"plans\": [\n    {\n      \"requirement_id\": \"unusual_customers\",\n      \"intent\": \"entity_anomaly_analysis\",\n      \"family\": \"entity_outlier\",\n      \"target_grain\": \"customer\",\n      \"steps\": [\n        {\n          \"step_id\": \"build_entity_view\",\n          \"action\": {\n            \"name\": \"build_entity_view\",\n            \"entity\": \"customer_activity.customer_id\"\n          }\n        },\n        {\n          \"step_id\": \"detect_entity_outliers\",\n          \"action\": {\n            \"name\": \"detect_entity_outliers\",\n            \"entity\": \"customer_activity.customer_id\",\n            \"metrics\": [\n              \"customer_activity.revenue\",\n              \"customer_activity.order_count\"\n            ]\n          }\n        }\n      ]\n    }\n  ]\n}",
+        "error": null
+      },
+      {
+        "case_id": "planner_v0_9_validation_002",
+        "domain": "digital_marketing",
+        "model": "qwen3:4b-instruct",
+        "status": "ready",
+        "candidate": {
+          "plans": [
+            {
+              "requirement_id": "conversion_by_channel",
+              "intent": "compare_groups",
+              "family": "group_comparison",
+              "target_grain": "campaign_day",
+              "steps": [
+                {
+                  "step_id": "step_1",
+                  "action": {
+                    "name": "aggregate",
+                    "metrics": [
+                      "marketing.conversions",
+                      "marketing.visits"
+                    ],
+                    "group_by": [
+                      "marketing.channel"
+                    ]
+                  }
+                },
+                {
+                  "step_id": "step_2",
+                  "action": {
+                    "name": "derive_metric",
+                    "inputs": [
+                      "marketing.conversions",
+                      "marketing.visits"
+                    ],
+                    "output": "conversion_rate",
+                    "formula": "marketing.conversions / marketing.visits"
+                  }
+                },
+                {
+                  "step_id": "step_3",
+                  "action": {
+                    "name": "compare_groups",
+                    "target": "conversion_rate",
+                    "group_by": "marketing.channel"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "validation": {
+          "valid": true,
+          "validated_requirement_ids": [
+            "conversion_by_channel"
+          ],
+          "issues": []
+        },
+        "score": {
+          "scorer_version": "analytical_planner_scorer_v0.9",
+          "overall": 0.76,
+          "metrics": {
+            "requirement_coverage_f1": 1.0,
+            "intent_accuracy": 1.0,
+            "family_accuracy": 1.0,
+            "target_grain_accuracy": 1.0,
+            "tool_sequence_score": 0.8,
+            "tool_argument_score": 0.0,
+            "validator_acceptance": 1.0
+          },
+          "diagnostics": {
+            "missing_requirement_ids": [],
+            "extra_requirement_ids": [],
+            "invalid_requirement_ids": [],
+            "validator_issue_codes": [],
+            "exact_requirement_ids": []
+          }
+        },
+        "exact": false,
+        "inference_ms": 3657.507299999452,
+        "raw_content": "{\n  \"plans\": [\n    {\n      \"requirement_id\": \"conversion_by_channel\",\n      \"intent\": \"compare_groups\",\n      \"family\": \"group_comparison\",\n      \"target_grain\": \"campaign_day\",\n      \"steps\": [\n        {\n          \"step_id\": \"step_1\",\n          \"action\": {\n            \"name\": \"aggregate\",\n            \"metrics\": [\n              \"marketing.conversions\",\n              \"marketing.visits\"\n            ],\n            \"group_by\": [\n              \"marketing.channel\"\n            ]\n          }\n        },\n        {\n          \"step_id\": \"step_2\",\n          \"action\": {\n            \"name\": \"derive_metric\",\n            \"inputs\": [\n              \"marketing.conversions\",\n              \"marketing.visits\"\n            ],\n            \"output\": \"conversion_rate\",\n            \"formula\": \"marketing.conversions / marketing.visits\"\n          }\n        },\n        {\n          \"step_id\": \"step_3\",\n          \"action\": {\n            \"name\": \"compare_groups\",\n            \"target\": \"conversion_rate\",\n            \"group_by\": \"marketing.channel\"\n          }\n        }\n      ]\n    }\n  ]\n}",
+        "error": null
+      },
+      {
+        "case_id": "planner_v0_9_validation_003",
+        "domain": "vehicle_operations",
+        "model": "qwen3:4b-instruct",
+        "status": "ready",
+        "candidate": {
+          "plans": [
+            {
+              "requirement_id": "fuel_maintenance_association",
+              "intent": "measure_relationship",
+              "family": "association",
+              "target_grain": "vehicle_month",
+              "steps": [
+                {
+                  "step_id": "measure_association",
+                  "action": {
+                    "name": "measure_association",
+                    "target": "fuel.fuel_liters",
+                    "value": "maintenance.maintenance_cost"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "validation": {
+          "valid": true,
+          "validated_requirement_ids": [
+            "fuel_maintenance_association"
+          ],
+          "issues": []
+        },
+        "score": {
+          "scorer_version": "analytical_planner_scorer_v0.9",
+          "overall": 1.0,
+          "metrics": {
+            "requirement_coverage_f1": 1.0,
+            "intent_accuracy": 1.0,
+            "family_accuracy": 1.0,
+            "target_grain_accuracy": 1.0,
+            "tool_sequence_score": 1.0,
+            "tool_argument_score": 1.0,
+            "validator_acceptance": 1.0
+          },
+          "diagnostics": {
+            "missing_requirement_ids": [],
+            "extra_requirement_ids": [],
+            "invalid_requirement_ids": [],
+            "validator_issue_codes": [],
+            "exact_requirement_ids": [
+              "fuel_maintenance_association"
+            ]
+          }
+        },
+        "exact": true,
+        "inference_ms": 2031.9209000008414,
+        "raw_content": "{\n  \"plans\": [\n    {\n      \"requirement_id\": \"fuel_maintenance_association\",\n      \"intent\": \"measure_relationship\",\n      \"family\": \"association\",\n      \"target_grain\": \"vehicle_month\",\n      \"steps\": [\n        {\n          \"step_id\": \"measure_association\",\n          \"action\": {\n            \"name\": \"measure_association\",\n            \"target\": \"fuel.fuel_liters\",\n            \"value\": \"maintenance.maintenance_cost\"\n          }\n        }\n      ]\n    }\n  ]\n}",
+        "error": null
+      },
+      {
+        "case_id": "planner_v0_9_validation_004",
+        "domain": "regional_operations",
+        "model": "qwen3:4b-instruct",
+        "status": "ready",
+        "candidate": {
+          "plans": [
+            {
+              "requirement_id": "sales_total",
+              "intent": "aggregate_metric",
+              "family": "aggregation",
+              "target_grain": "global",
+              "steps": [
+                {
+                  "step_id": "sales_aggregate",
+                  "action": {
+                    "name": "aggregate",
+                    "metrics": [
+                      "sales.revenue"
+                    ],
+                    "group_by": null
+                  }
+                }
+              ]
+            },
+            {
+              "requirement_id": "support_total",
+              "intent": "aggregate_metric",
+              "family": "aggregation",
+              "target_grain": "global",
+              "steps": [
+                {
+                  "step_id": "support_aggregate",
+                  "action": {
+                    "name": "aggregate",
+                    "metrics": [
+                      "support.ticket_count"
+                    ],
+                    "group_by": null
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "validation": {
+          "valid": true,
+          "validated_requirement_ids": [
+            "sales_total",
+            "support_total"
+          ],
+          "issues": []
+        },
+        "score": {
+          "scorer_version": "analytical_planner_scorer_v0.9",
+          "overall": 1.0,
+          "metrics": {
+            "requirement_coverage_f1": 1.0,
+            "intent_accuracy": 1.0,
+            "family_accuracy": 1.0,
+            "target_grain_accuracy": 1.0,
+            "tool_sequence_score": 1.0,
+            "tool_argument_score": 1.0,
+            "validator_acceptance": 1.0
+          },
+          "diagnostics": {
+            "missing_requirement_ids": [],
+            "extra_requirement_ids": [],
+            "invalid_requirement_ids": [],
+            "validator_issue_codes": [],
+            "exact_requirement_ids": [
+              "sales_total",
+              "support_total"
+            ]
+          }
+        },
+        "exact": true,
+        "inference_ms": 3212.9783000000316,
+        "raw_content": "{\n  \"plans\": [\n    {\n      \"requirement_id\": \"sales_total\",\n      \"intent\": \"aggregate_metric\",\n      \"family\": \"aggregation\",\n      \"target_grain\": \"global\",\n      \"steps\": [\n        {\n          \"step_id\": \"sales_aggregate\",\n          \"action\": {\n            \"name\": \"aggregate\",\n            \"metrics\": [\n              \"sales.revenue\"\n            ],\n            \"group_by\": null\n          }\n        }\n      ]\n    },\n    {\n      \"requirement_id\": \"support_total\",\n      \"intent\": \"aggregate_metric\",\n      \"family\": \"aggregation\",\n      \"target_grain\": \"global\",\n      \"steps\": [\n        {\n          \"step_id\": \"support_aggregate\",\n          \"action\": {\n            \"name\": \"aggregate\",\n            \"metrics\": [\n              \"support.ticket_count\"\n            ],\n            \"group_by\": null\n          }\n        }\n      ]\n    }\n  ]\n}",
+        "error": null
+      },
+      {
+        "case_id": "planner_v0_9_validation_005",
+        "domain": "parcel_delivery",
+        "model": "qwen3:4b-instruct",
+        "status": "ready",
+        "candidate": {
+          "plans": [
+            {
+              "requirement_id": "delivery_distribution",
+              "intent": "distribution_analysis",
+              "family": "distribution",
+              "target_grain": "delivery",
+              "steps": [
+                {
+                  "step_id": "analyze_delivery_days_distribution",
+                  "action": {
+                    "name": "analyze_distribution",
+                    "target": "deliveries.delivery_days"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "validation": {
+          "valid": true,
+          "validated_requirement_ids": [
+            "delivery_distribution"
+          ],
+          "issues": []
+        },
+        "score": {
+          "scorer_version": "analytical_planner_scorer_v0.9",
+          "overall": 1.0,
+          "metrics": {
+            "requirement_coverage_f1": 1.0,
+            "intent_accuracy": 1.0,
+            "family_accuracy": 1.0,
+            "target_grain_accuracy": 1.0,
+            "tool_sequence_score": 1.0,
+            "tool_argument_score": 1.0,
+            "validator_acceptance": 1.0
+          },
+          "diagnostics": {
+            "missing_requirement_ids": [],
+            "extra_requirement_ids": [],
+            "invalid_requirement_ids": [],
+            "validator_issue_codes": [],
+            "exact_requirement_ids": [
+              "delivery_distribution"
+            ]
+          }
+        },
+        "exact": true,
+        "inference_ms": 1688.9421999994738,
+        "raw_content": "{\n  \"plans\": [\n    {\n      \"requirement_id\": \"delivery_distribution\",\n      \"intent\": \"distribution_analysis\",\n      \"family\": \"distribution\",\n      \"target_grain\": \"delivery\",\n      \"steps\": [\n        {\n          \"step_id\": \"analyze_delivery_days_distribution\",\n          \"action\": {\n            \"name\": \"analyze_distribution\",\n            \"target\": \"deliveries.delivery_days\"\n          }\n        }\n      ]\n    }\n  ]\n}",
+        "error": null
+      }
+    ]
+  }
+}

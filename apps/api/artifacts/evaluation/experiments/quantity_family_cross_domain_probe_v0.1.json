@@ -1,0 +1,703 @@
+{
+  "experiment_version": "quantity_family_cross_domain_probe_v0.1",
+  "model": "gemma3:4b",
+  "development_data": true,
+  "domains": [
+    "manufacturing",
+    "logistics",
+    "cloud",
+    "electric_mobility"
+  ],
+  "run_count_per_domain": 3,
+  "prompt_contains_domain_specific_examples": false,
+  "metrics": {
+    "tp": 7,
+    "fp": 0,
+    "tn": 39,
+    "fn": 14,
+    "accuracy": 0.7666666666666667,
+    "precision": 1.0,
+    "recall": 0.3333333333333333,
+    "specificity": 1.0
+  },
+  "partition_stats": {
+    "manufacturing": {
+      "unique_partition_count": 2,
+      "partition_invariant": false
+    },
+    "logistics": {
+      "unique_partition_count": 1,
+      "partition_invariant": true
+    },
+    "cloud": {
+      "unique_partition_count": 2,
+      "partition_invariant": false
+    },
+    "electric_mobility": {
+      "unique_partition_count": 2,
+      "partition_invariant": false
+    }
+  },
+  "records": [
+    {
+      "domain": "manufacturing",
+      "run": 1,
+      "seed": 20260916,
+      "pair_id": "planned_actual_production",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "left_family": "production_units",
+      "right_family": "production_units"
+    },
+    {
+      "domain": "manufacturing",
+      "run": 1,
+      "seed": 20260916,
+      "pair_id": "production_defect_rate",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "production_units",
+      "right_family": "defect_rate"
+    },
+    {
+      "domain": "manufacturing",
+      "run": 1,
+      "seed": 20260916,
+      "pair_id": "energy_maintenance_cost",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "energy_consumption",
+      "right_family": "maintenance_cost"
+    },
+    {
+      "domain": "manufacturing",
+      "run": 1,
+      "seed": 20260916,
+      "pair_id": "downtime_rejected_units",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "downtime",
+      "right_family": "rejected_units"
+    },
+    {
+      "domain": "manufacturing",
+      "run": 2,
+      "seed": 20260917,
+      "pair_id": "planned_actual_production",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "left_family": "planned_production_volume",
+      "right_family": "actual_production_volume"
+    },
+    {
+      "domain": "manufacturing",
+      "run": 2,
+      "seed": 20260917,
+      "pair_id": "production_defect_rate",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "actual_production_volume",
+      "right_family": "production_quality_rate"
+    },
+    {
+      "domain": "manufacturing",
+      "run": 2,
+      "seed": 20260917,
+      "pair_id": "energy_maintenance_cost",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "energy_consumption",
+      "right_family": "maintenance_cost"
+    },
+    {
+      "domain": "manufacturing",
+      "run": 2,
+      "seed": 20260917,
+      "pair_id": "downtime_rejected_units",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "equipment_availability_time",
+      "right_family": "production_output_volume"
+    },
+    {
+      "domain": "manufacturing",
+      "run": 3,
+      "seed": 20260918,
+      "pair_id": "planned_actual_production",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "left_family": "production_volume",
+      "right_family": "production_volume"
+    },
+    {
+      "domain": "manufacturing",
+      "run": 3,
+      "seed": 20260918,
+      "pair_id": "production_defect_rate",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "production_volume",
+      "right_family": "defect_rate"
+    },
+    {
+      "domain": "manufacturing",
+      "run": 3,
+      "seed": 20260918,
+      "pair_id": "energy_maintenance_cost",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "energy_consumption",
+      "right_family": "maintenance_cost"
+    },
+    {
+      "domain": "manufacturing",
+      "run": 3,
+      "seed": 20260918,
+      "pair_id": "downtime_rejected_units",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "equipment_availability",
+      "right_family": "production_output"
+    },
+    {
+      "domain": "logistics",
+      "run": 1,
+      "seed": 20261016,
+      "pair_id": "expected_completed_deliveries",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "left_family": "expected_deliveries",
+      "right_family": "completed_deliveries"
+    },
+    {
+      "domain": "logistics",
+      "run": 1,
+      "seed": 20261016,
+      "pair_id": "deliveries_freight_cost",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "completed_deliveries",
+      "right_family": "transport_cost"
+    },
+    {
+      "domain": "logistics",
+      "run": 1,
+      "seed": 20261016,
+      "pair_id": "transit_on_time_rate",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "delivery_time",
+      "right_family": "delivery_performance"
+    },
+    {
+      "domain": "logistics",
+      "run": 1,
+      "seed": 20261016,
+      "pair_id": "weight_distance",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "weight",
+      "right_family": "transport_distance"
+    },
+    {
+      "domain": "logistics",
+      "run": 1,
+      "seed": 20261016,
+      "pair_id": "late_freight_cost",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "late_deliveries",
+      "right_family": "transport_cost"
+    },
+    {
+      "domain": "logistics",
+      "run": 2,
+      "seed": 20261017,
+      "pair_id": "expected_completed_deliveries",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "left_family": "expected_deliveries",
+      "right_family": "completed_deliveries"
+    },
+    {
+      "domain": "logistics",
+      "run": 2,
+      "seed": 20261017,
+      "pair_id": "deliveries_freight_cost",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "completed_deliveries",
+      "right_family": "transport_cost"
+    },
+    {
+      "domain": "logistics",
+      "run": 2,
+      "seed": 20261017,
+      "pair_id": "transit_on_time_rate",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "delivery_time",
+      "right_family": "on_time_delivery_rate"
+    },
+    {
+      "domain": "logistics",
+      "run": 2,
+      "seed": 20261017,
+      "pair_id": "weight_distance",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "package_weight",
+      "right_family": "transport_distance"
+    },
+    {
+      "domain": "logistics",
+      "run": 2,
+      "seed": 20261017,
+      "pair_id": "late_freight_cost",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "late_deliveries",
+      "right_family": "transport_cost"
+    },
+    {
+      "domain": "logistics",
+      "run": 3,
+      "seed": 20261018,
+      "pair_id": "expected_completed_deliveries",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "left_family": "expected_deliveries",
+      "right_family": "completed_deliveries"
+    },
+    {
+      "domain": "logistics",
+      "run": 3,
+      "seed": 20261018,
+      "pair_id": "deliveries_freight_cost",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "completed_deliveries",
+      "right_family": "transport_cost"
+    },
+    {
+      "domain": "logistics",
+      "run": 3,
+      "seed": 20261018,
+      "pair_id": "transit_on_time_rate",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "delivery_time",
+      "right_family": "delivery_performance"
+    },
+    {
+      "domain": "logistics",
+      "run": 3,
+      "seed": 20261018,
+      "pair_id": "weight_distance",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "package_weight",
+      "right_family": "transport_distance"
+    },
+    {
+      "domain": "logistics",
+      "run": 3,
+      "seed": 20261018,
+      "pair_id": "late_freight_cost",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "late_deliveries",
+      "right_family": "transport_cost"
+    },
+    {
+      "domain": "cloud",
+      "run": 1,
+      "seed": 20261116,
+      "pair_id": "requested_allocated_cpu",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "left_family": "cpu_cores",
+      "right_family": "cpu_cores"
+    },
+    {
+      "domain": "cloud",
+      "run": 1,
+      "seed": 20261116,
+      "pair_id": "provisioned_used_storage",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "left_family": "storage",
+      "right_family": "storage"
+    },
+    {
+      "domain": "cloud",
+      "run": 1,
+      "seed": 20261116,
+      "pair_id": "cpu_cores_cpu_utilization",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "cpu_cores",
+      "right_family": "cpu_utilization"
+    },
+    {
+      "domain": "cloud",
+      "run": 1,
+      "seed": 20261116,
+      "pair_id": "queue_time_compute_cost",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "compute_performance",
+      "right_family": "infrastructure_costs"
+    },
+    {
+      "domain": "cloud",
+      "run": 1,
+      "seed": 20261116,
+      "pair_id": "failed_jobs_storage",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "job_failure_rate",
+      "right_family": "storage"
+    },
+    {
+      "domain": "cloud",
+      "run": 2,
+      "seed": 20261117,
+      "pair_id": "requested_allocated_cpu",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "left_family": "requested_cpu_cores",
+      "right_family": "allocated_cpu_cores"
+    },
+    {
+      "domain": "cloud",
+      "run": 2,
+      "seed": 20261117,
+      "pair_id": "provisioned_used_storage",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "left_family": "provisioned_storage",
+      "right_family": "used_storage"
+    },
+    {
+      "domain": "cloud",
+      "run": 2,
+      "seed": 20261117,
+      "pair_id": "cpu_cores_cpu_utilization",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "allocated_cpu_cores",
+      "right_family": "cpu_utilization"
+    },
+    {
+      "domain": "cloud",
+      "run": 2,
+      "seed": 20261117,
+      "pair_id": "queue_time_compute_cost",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "queue_latency",
+      "right_family": "compute_cost"
+    },
+    {
+      "domain": "cloud",
+      "run": 2,
+      "seed": 20261117,
+      "pair_id": "failed_jobs_storage",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "job_failure_rate",
+      "right_family": "used_storage"
+    },
+    {
+      "domain": "cloud",
+      "run": 3,
+      "seed": 20261118,
+      "pair_id": "requested_allocated_cpu",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "left_family": "requested_cpu_cores",
+      "right_family": "allocated_cpu_cores"
+    },
+    {
+      "domain": "cloud",
+      "run": 3,
+      "seed": 20261118,
+      "pair_id": "provisioned_used_storage",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "left_family": "provisioned_storage",
+      "right_family": "used_storage"
+    },
+    {
+      "domain": "cloud",
+      "run": 3,
+      "seed": 20261118,
+      "pair_id": "cpu_cores_cpu_utilization",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "allocated_cpu_cores",
+      "right_family": "cpu_utilization"
+    },
+    {
+      "domain": "cloud",
+      "run": 3,
+      "seed": 20261118,
+      "pair_id": "queue_time_compute_cost",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "compute_performance",
+      "right_family": "compute_costs"
+    },
+    {
+      "domain": "cloud",
+      "run": 3,
+      "seed": 20261118,
+      "pair_id": "failed_jobs_storage",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "job_failure_rate",
+      "right_family": "used_storage"
+    },
+    {
+      "domain": "electric_mobility",
+      "run": 1,
+      "seed": 20261216,
+      "pair_id": "target_actual_distance",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "left_family": "target_route_distance",
+      "right_family": "actual_route_distance"
+    },
+    {
+      "domain": "electric_mobility",
+      "run": 1,
+      "seed": 20261216,
+      "pair_id": "planned_actual_mass",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "left_family": "planned_cargo_mass",
+      "right_family": "actual_cargo_mass"
+    },
+    {
+      "domain": "electric_mobility",
+      "run": 1,
+      "seed": 20261216,
+      "pair_id": "planned_actual_energy",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "left_family": "planned_energy_consumption",
+      "right_family": "actual_energy_consumption"
+    },
+    {
+      "domain": "electric_mobility",
+      "run": 1,
+      "seed": 20261216,
+      "pair_id": "charging_time_cost",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "electric_vehicle_charging_time",
+      "right_family": "electric_vehicle_charging_cost"
+    },
+    {
+      "domain": "electric_mobility",
+      "run": 1,
+      "seed": 20261216,
+      "pair_id": "energy_battery_soc",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "actual_energy_consumption",
+      "right_family": "battery_state_of_charge"
+    },
+    {
+      "domain": "electric_mobility",
+      "run": 1,
+      "seed": 20261216,
+      "pair_id": "distance_mass",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "actual_route_distance",
+      "right_family": "actual_cargo_mass"
+    },
+    {
+      "domain": "electric_mobility",
+      "run": 2,
+      "seed": 20261217,
+      "pair_id": "target_actual_distance",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "left_family": "target_route_distance",
+      "right_family": "actual_route_distance"
+    },
+    {
+      "domain": "electric_mobility",
+      "run": 2,
+      "seed": 20261217,
+      "pair_id": "planned_actual_mass",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "left_family": "planned_cargo_mass",
+      "right_family": "actual_cargo_mass"
+    },
+    {
+      "domain": "electric_mobility",
+      "run": 2,
+      "seed": 20261217,
+      "pair_id": "planned_actual_energy",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "left_family": "planned_energy_consumption",
+      "right_family": "actual_energy_consumption"
+    },
+    {
+      "domain": "electric_mobility",
+      "run": 2,
+      "seed": 20261217,
+      "pair_id": "charging_time_cost",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "charging_time",
+      "right_family": "charging_cost"
+    },
+    {
+      "domain": "electric_mobility",
+      "run": 2,
+      "seed": 20261217,
+      "pair_id": "energy_battery_soc",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "actual_energy_consumption",
+      "right_family": "battery_state_of_charge"
+    },
+    {
+      "domain": "electric_mobility",
+      "run": 2,
+      "seed": 20261217,
+      "pair_id": "distance_mass",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "actual_route_distance",
+      "right_family": "actual_cargo_mass"
+    },
+    {
+      "domain": "electric_mobility",
+      "run": 3,
+      "seed": 20261218,
+      "pair_id": "target_actual_distance",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "left_family": "route_distance",
+      "right_family": "route_distance"
+    },
+    {
+      "domain": "electric_mobility",
+      "run": 3,
+      "seed": 20261218,
+      "pair_id": "planned_actual_mass",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "left_family": "cargo_mass",
+      "right_family": "cargo_mass"
+    },
+    {
+      "domain": "electric_mobility",
+      "run": 3,
+      "seed": 20261218,
+      "pair_id": "planned_actual_energy",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "left_family": "energy_consumption",
+      "right_family": "energy_consumption"
+    },
+    {
+      "domain": "electric_mobility",
+      "run": 3,
+      "seed": 20261218,
+      "pair_id": "charging_time_cost",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "electric_vehicle_charging_time",
+      "right_family": "electric_vehicle_charging_cost"
+    },
+    {
+      "domain": "electric_mobility",
+      "run": 3,
+      "seed": 20261218,
+      "pair_id": "energy_battery_soc",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "energy_consumption",
+      "right_family": "battery_state"
+    },
+    {
+      "domain": "electric_mobility",
+      "run": 3,
+      "seed": 20261218,
+      "pair_id": "distance_mass",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "route_distance",
+      "right_family": "cargo_mass"
+    }
+  ]
+}

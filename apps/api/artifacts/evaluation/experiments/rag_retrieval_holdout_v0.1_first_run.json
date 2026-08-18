@@ -1,0 +1,448 @@
+{
+  "holdout_version": "rag_retrieval_holdout_v0.1",
+  "retrieval_rule_version": "rag_retrieval_v0.2",
+  "embedding_model": "embeddinggemma",
+  "freeze_sha256": "dd0d964952fff7b3f0b106588ec4fd9c832dd60337b6750697c1afe0facd3502",
+  "documents_sha256": "e9cf0a38e462e8c56f5694bf52d3a773da46786f36e721b01cee2cd01881ddde",
+  "cases_sha256": "f24513602d34c4e26ede9165ba05e2967c3a2ea8280c6a1bd8efe73f9b97bf35",
+  "top_k": 3,
+  "document_count": 12,
+  "chunk_count": 12,
+  "case_count": 12,
+  "metrics": {
+    "recall_at_1": 1.0,
+    "recall_at_3": 1.0,
+    "mrr": 1.0
+  },
+  "gates": {
+    "minimum_recall_at_1": 0.8,
+    "minimum_recall_at_3": 0.95,
+    "minimum_mrr": 0.85,
+    "recall_at_1_pass": true,
+    "recall_at_3_pass": true,
+    "mrr_pass": true,
+    "holdout_pass": true
+  },
+  "cases": [
+    {
+      "case_id": "future_information_in_features",
+      "query": "Pourquoi un modèle peut-il sembler anormalement performant lorsque certaines variables contiennent des informations qui ne seront connues qu'après la prédiction ?",
+      "relevant_document_ids": [
+        "data_leakage"
+      ],
+      "ranked_document_ids": [
+        "data_leakage",
+        "staffing_queue",
+        "confidence_interval"
+      ],
+      "scores": [
+        {
+          "rank": 1,
+          "document_id": "data_leakage",
+          "filename": "data_leakage.txt",
+          "score": 0.5420046083535532
+        },
+        {
+          "rank": 2,
+          "document_id": "staffing_queue",
+          "filename": "staffing_queue.txt",
+          "score": 0.2549634855623192
+        },
+        {
+          "rank": 3,
+          "document_id": "confidence_interval",
+          "filename": "confidence_interval.txt",
+          "score": 0.24558826784913765
+        }
+      ],
+      "recall_at_1": true,
+      "recall_at_3": true,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "case_id": "signup_month_retention",
+      "query": "Comment comparer la fidélisation de clients inscrits à différentes périodes et voir combien restent actifs plusieurs mois plus tard ?",
+      "relevant_document_ids": [
+        "cohort_retention"
+      ],
+      "ranked_document_ids": [
+        "cohort_retention",
+        "subscription_churn",
+        "staffing_queue"
+      ],
+      "scores": [
+        {
+          "rank": 1,
+          "document_id": "cohort_retention",
+          "filename": "cohort_retention.txt",
+          "score": 0.46209241286925934
+        },
+        {
+          "rank": 2,
+          "document_id": "subscription_churn",
+          "filename": "subscription_churn.txt",
+          "score": 0.33109446985915403
+        },
+        {
+          "rank": 3,
+          "document_id": "staffing_queue",
+          "filename": "staffing_queue.txt",
+          "score": 0.29801594576064594
+        }
+      ],
+      "recall_at_1": true,
+      "recall_at_3": true,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "case_id": "duplicate_customer_identity",
+      "query": "Deux bases contiennent probablement le même client, mais son nom et son adresse ne sont pas écrits exactement de la même façon. Quel problème faut-il résoudre ?",
+      "relevant_document_ids": [
+        "entity_resolution"
+      ],
+      "ranked_document_ids": [
+        "entity_resolution",
+        "staffing_queue",
+        "subscription_churn"
+      ],
+      "scores": [
+        {
+          "rank": 1,
+          "document_id": "entity_resolution",
+          "filename": "entity_resolution.txt",
+          "score": 0.5160657562717083
+        },
+        {
+          "rank": 2,
+          "document_id": "staffing_queue",
+          "filename": "staffing_queue.txt",
+          "score": 0.2400330689815428
+        },
+        {
+          "rank": 3,
+          "document_id": "subscription_churn",
+          "filename": "subscription_churn.txt",
+          "score": 0.170685724446724
+        }
+      ],
+      "recall_at_1": true,
+      "recall_at_3": true,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "case_id": "uncertainty_around_estimate",
+      "query": "Comment représenter une plage d'incertitude autour d'une estimation statistique plutôt que de présenter uniquement une valeur ponctuelle ?",
+      "relevant_document_ids": [
+        "confidence_interval"
+      ],
+      "ranked_document_ids": [
+        "confidence_interval",
+        "sensor_drift",
+        "data_leakage"
+      ],
+      "scores": [
+        {
+          "rank": 1,
+          "document_id": "confidence_interval",
+          "filename": "confidence_interval.txt",
+          "score": 0.5838530853416476
+        },
+        {
+          "rank": 2,
+          "document_id": "sensor_drift",
+          "filename": "sensor_drift.txt",
+          "score": 0.24234063258578786
+        },
+        {
+          "rank": 3,
+          "document_id": "data_leakage",
+          "filename": "data_leakage.txt",
+          "score": 0.2198886682869727
+        }
+      ],
+      "recall_at_1": true,
+      "recall_at_3": true,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "case_id": "marketing_causal_lift",
+      "query": "Comment savoir si une campagne a réellement généré des conversions supplémentaires au lieu de simplement toucher des personnes qui auraient acheté de toute façon ?",
+      "relevant_document_ids": [
+        "campaign_incrementality"
+      ],
+      "ranked_document_ids": [
+        "campaign_incrementality",
+        "staffing_queue",
+        "subscription_churn"
+      ],
+      "scores": [
+        {
+          "rank": 1,
+          "document_id": "campaign_incrementality",
+          "filename": "campaign_incrementality.txt",
+          "score": 0.6505312308280117
+        },
+        {
+          "rank": 2,
+          "document_id": "staffing_queue",
+          "filename": "staffing_queue.txt",
+          "score": 0.24299742622360723
+        },
+        {
+          "rank": 3,
+          "document_id": "subscription_churn",
+          "filename": "subscription_churn.txt",
+          "score": 0.22686698974952818
+        }
+      ],
+      "recall_at_1": true,
+      "recall_at_3": true,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "case_id": "measurement_bias_over_time",
+      "query": "Un appareil donne des valeurs progressivement plus éloignées d'une référence alors qu'il fonctionnait correctement au départ. Quel phénomène faut-il rechercher ?",
+      "relevant_document_ids": [
+        "sensor_drift"
+      ],
+      "ranked_document_ids": [
+        "sensor_drift",
+        "data_leakage",
+        "subscription_churn"
+      ],
+      "scores": [
+        {
+          "rank": 1,
+          "document_id": "sensor_drift",
+          "filename": "sensor_drift.txt",
+          "score": 0.5829530694696049
+        },
+        {
+          "rank": 2,
+          "document_id": "data_leakage",
+          "filename": "data_leakage.txt",
+          "score": 0.32160679842159623
+        },
+        {
+          "rank": 3,
+          "document_id": "subscription_churn",
+          "filename": "subscription_churn.txt",
+          "score": 0.32084356950530946
+        }
+      ],
+      "recall_at_1": true,
+      "recall_at_3": true,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "case_id": "support_waiting_capacity",
+      "query": "Pourquoi le temps d'attente des clients augmente-t-il lorsque les demandes arrivent plus vite que les équipes ne peuvent les traiter ?",
+      "relevant_document_ids": [
+        "staffing_queue"
+      ],
+      "ranked_document_ids": [
+        "staffing_queue",
+        "fulfillment_delay",
+        "subscription_churn"
+      ],
+      "scores": [
+        {
+          "rank": 1,
+          "document_id": "staffing_queue",
+          "filename": "staffing_queue.txt",
+          "score": 0.6402175744021829
+        },
+        {
+          "rank": 2,
+          "document_id": "fulfillment_delay",
+          "filename": "fulfillment_delay.txt",
+          "score": 0.4328208117636449
+        },
+        {
+          "rank": 3,
+          "document_id": "subscription_churn",
+          "filename": "subscription_churn.txt",
+          "score": 0.3172075079651931
+        }
+      ],
+      "recall_at_1": true,
+      "recall_at_3": true,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "case_id": "short_term_payment_capacity",
+      "query": "Quelle analyse permet de savoir si une entreprise dispose réellement d'assez d'argent disponible pour payer ses engagements proches ?",
+      "relevant_document_ids": [
+        "cashflow_liquidity"
+      ],
+      "ranked_document_ids": [
+        "cashflow_liquidity",
+        "subscription_churn",
+        "cohort_retention"
+      ],
+      "scores": [
+        {
+          "rank": 1,
+          "document_id": "cashflow_liquidity",
+          "filename": "cashflow_liquidity.txt",
+          "score": 0.4299298559414574
+        },
+        {
+          "rank": 2,
+          "document_id": "subscription_churn",
+          "filename": "subscription_churn.txt",
+          "score": 0.29470090065426924
+        },
+        {
+          "rank": 3,
+          "document_id": "cohort_retention",
+          "filename": "cohort_retention.txt",
+          "score": 0.27954212554419416
+        }
+      ],
+      "recall_at_1": true,
+      "recall_at_3": true,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "case_id": "warehouse_bottleneck",
+      "query": "Des commandes restent longtemps en attente après leur préparation mais avant leur remise au transporteur. Quel processus mérite d'être examiné ?",
+      "relevant_document_ids": [
+        "fulfillment_delay"
+      ],
+      "ranked_document_ids": [
+        "fulfillment_delay",
+        "staffing_queue",
+        "seasonal_demand"
+      ],
+      "scores": [
+        {
+          "rank": 1,
+          "document_id": "fulfillment_delay",
+          "filename": "fulfillment_delay.txt",
+          "score": 0.643150392331427
+        },
+        {
+          "rank": 2,
+          "document_id": "staffing_queue",
+          "filename": "staffing_queue.txt",
+          "score": 0.36958481483430206
+        },
+        {
+          "rank": 3,
+          "document_id": "seasonal_demand",
+          "filename": "seasonal_demand.txt",
+          "score": 0.24170536637023407
+        }
+      ],
+      "recall_at_1": true,
+      "recall_at_3": true,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "case_id": "minimum_permissions",
+      "query": "Quelle règle de sécurité recommande de ne donner à chaque compte que les droits strictement nécessaires à son travail ?",
+      "relevant_document_ids": [
+        "access_control"
+      ],
+      "ranked_document_ids": [
+        "access_control",
+        "entity_resolution",
+        "cashflow_liquidity"
+      ],
+      "scores": [
+        {
+          "rank": 1,
+          "document_id": "access_control",
+          "filename": "access_control.txt",
+          "score": 0.4713119083590167
+        },
+        {
+          "rank": 2,
+          "document_id": "entity_resolution",
+          "filename": "entity_resolution.txt",
+          "score": 0.2017908074256215
+        },
+        {
+          "rank": 3,
+          "document_id": "cashflow_liquidity",
+          "filename": "cashflow_liquidity.txt",
+          "score": 0.19449039485916092
+        }
+      ],
+      "recall_at_1": true,
+      "recall_at_3": true,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "case_id": "recurring_demand_cycles",
+      "query": "Comment qualifier des pics d'activité qui réapparaissent selon un rythme régulier, par exemple chaque semaine ou chaque année ?",
+      "relevant_document_ids": [
+        "seasonal_demand"
+      ],
+      "ranked_document_ids": [
+        "seasonal_demand",
+        "subscription_churn",
+        "cohort_retention"
+      ],
+      "scores": [
+        {
+          "rank": 1,
+          "document_id": "seasonal_demand",
+          "filename": "seasonal_demand.txt",
+          "score": 0.4345353025821127
+        },
+        {
+          "rank": 2,
+          "document_id": "subscription_churn",
+          "filename": "subscription_churn.txt",
+          "score": 0.3025312216782959
+        },
+        {
+          "rank": 3,
+          "document_id": "cohort_retention",
+          "filename": "cohort_retention.txt",
+          "score": 0.26168360013040337
+        }
+      ],
+      "recall_at_1": true,
+      "recall_at_3": true,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "case_id": "signals_before_cancellation",
+      "query": "Quels comportements peuvent annoncer qu'un abonné risque de quitter un service avant que sa résiliation ne soit effectivement enregistrée ?",
+      "relevant_document_ids": [
+        "subscription_churn"
+      ],
+      "ranked_document_ids": [
+        "subscription_churn",
+        "data_leakage",
+        "access_control"
+      ],
+      "scores": [
+        {
+          "rank": 1,
+          "document_id": "subscription_churn",
+          "filename": "subscription_churn.txt",
+          "score": 0.45813991662152237
+        },
+        {
+          "rank": 2,
+          "document_id": "data_leakage",
+          "filename": "data_leakage.txt",
+          "score": 0.307150466538915
+        },
+        {
+          "rank": 3,
+          "document_id": "access_control",
+          "filename": "access_control.txt",
+          "score": 0.23269802652070068
+        }
+      ],
+      "recall_at_1": true,
+      "recall_at_3": true,
+      "reciprocal_rank": 1.0
+    }
+  ]
+}

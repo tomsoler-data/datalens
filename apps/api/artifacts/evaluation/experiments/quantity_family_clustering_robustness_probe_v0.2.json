@@ -1,0 +1,1224 @@
+{
+  "experiment_version": "quantity_family_clustering_robustness_probe_v0.2",
+  "model": "gemma3:4b",
+  "dataset": "synthetic_customer_support_operations.csv",
+  "development_data": true,
+  "run_count": 10,
+  "base_seed": 20260815,
+  "customer_support_specific_examples_removed": true,
+  "column_order_permuted": true,
+  "metrics": {
+    "tp": 25,
+    "fp": 0,
+    "tn": 80,
+    "fn": 15,
+    "accuracy": 0.875,
+    "precision": 1.0,
+    "recall": 0.625,
+    "specificity": 1.0,
+    "unique_partition_count": 2,
+    "identical_to_first_partition_count": 5
+  },
+  "records": [
+    {
+      "run": 1,
+      "seed": 20260816,
+      "pair_id": "cases_tickets",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "support_operations"
+    },
+    {
+      "run": 1,
+      "seed": 20260816,
+      "pair_id": "agents_staff",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "left_family": "staff_availability",
+      "right_family": "staff_availability"
+    },
+    {
+      "run": 1,
+      "seed": 20260816,
+      "pair_id": "quoted_invoice",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "left_family": "service_cost",
+      "right_family": "invoice_amount"
+    },
+    {
+      "run": 1,
+      "seed": 20260816,
+      "pair_id": "promised_observed",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "left_family": "response_time",
+      "right_family": "response_time"
+    },
+    {
+      "run": 1,
+      "seed": 20260816,
+      "pair_id": "response_sla",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "response_time",
+      "right_family": "sla_compliance"
+    },
+    {
+      "run": 1,
+      "seed": 20260816,
+      "pair_id": "invoice_staff",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "invoice_amount",
+      "right_family": "staff_availability"
+    },
+    {
+      "run": 1,
+      "seed": 20260816,
+      "pair_id": "cases_agents",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "staff_availability"
+    },
+    {
+      "run": 1,
+      "seed": 20260816,
+      "pair_id": "cases_invoice",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "invoice_amount"
+    },
+    {
+      "run": 1,
+      "seed": 20260816,
+      "pair_id": "tickets_response",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "response_time"
+    },
+    {
+      "run": 1,
+      "seed": 20260816,
+      "pair_id": "staff_sla",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "staff_availability",
+      "right_family": "sla_compliance"
+    },
+    {
+      "run": 1,
+      "seed": 20260816,
+      "pair_id": "quoted_response",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "service_cost",
+      "right_family": "response_time"
+    },
+    {
+      "run": 1,
+      "seed": 20260816,
+      "pair_id": "agents_invoice",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "staff_availability",
+      "right_family": "invoice_amount"
+    },
+    {
+      "run": 2,
+      "seed": 20260817,
+      "pair_id": "cases_tickets",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "support_operations"
+    },
+    {
+      "run": 2,
+      "seed": 20260817,
+      "pair_id": "agents_staff",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "left_family": "staff_availability",
+      "right_family": "staff_availability"
+    },
+    {
+      "run": 2,
+      "seed": 20260817,
+      "pair_id": "quoted_invoice",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "left_family": "service_cost",
+      "right_family": "invoice_amount"
+    },
+    {
+      "run": 2,
+      "seed": 20260817,
+      "pair_id": "promised_observed",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "left_family": "response_time",
+      "right_family": "response_time"
+    },
+    {
+      "run": 2,
+      "seed": 20260817,
+      "pair_id": "response_sla",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "response_time",
+      "right_family": "sla_compliance"
+    },
+    {
+      "run": 2,
+      "seed": 20260817,
+      "pair_id": "invoice_staff",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "invoice_amount",
+      "right_family": "staff_availability"
+    },
+    {
+      "run": 2,
+      "seed": 20260817,
+      "pair_id": "cases_agents",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "staff_availability"
+    },
+    {
+      "run": 2,
+      "seed": 20260817,
+      "pair_id": "cases_invoice",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "invoice_amount"
+    },
+    {
+      "run": 2,
+      "seed": 20260817,
+      "pair_id": "tickets_response",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "response_time"
+    },
+    {
+      "run": 2,
+      "seed": 20260817,
+      "pair_id": "staff_sla",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "staff_availability",
+      "right_family": "sla_compliance"
+    },
+    {
+      "run": 2,
+      "seed": 20260817,
+      "pair_id": "quoted_response",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "service_cost",
+      "right_family": "response_time"
+    },
+    {
+      "run": 2,
+      "seed": 20260817,
+      "pair_id": "agents_invoice",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "staff_availability",
+      "right_family": "invoice_amount"
+    },
+    {
+      "run": 3,
+      "seed": 20260818,
+      "pair_id": "cases_tickets",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "support_operations"
+    },
+    {
+      "run": 3,
+      "seed": 20260818,
+      "pair_id": "agents_staff",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "left_family": "staff_availability",
+      "right_family": "staff_availability"
+    },
+    {
+      "run": 3,
+      "seed": 20260818,
+      "pair_id": "quoted_invoice",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "left_family": "cost_of_service",
+      "right_family": "financial_transactions"
+    },
+    {
+      "run": 3,
+      "seed": 20260818,
+      "pair_id": "promised_observed",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "left_family": "service_response_time",
+      "right_family": "first_response_delay"
+    },
+    {
+      "run": 3,
+      "seed": 20260818,
+      "pair_id": "response_sla",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "first_response_delay",
+      "right_family": "service_level_agreement"
+    },
+    {
+      "run": 3,
+      "seed": 20260818,
+      "pair_id": "invoice_staff",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "financial_transactions",
+      "right_family": "staff_availability"
+    },
+    {
+      "run": 3,
+      "seed": 20260818,
+      "pair_id": "cases_agents",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "staff_availability"
+    },
+    {
+      "run": 3,
+      "seed": 20260818,
+      "pair_id": "cases_invoice",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "financial_transactions"
+    },
+    {
+      "run": 3,
+      "seed": 20260818,
+      "pair_id": "tickets_response",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "service_response_time"
+    },
+    {
+      "run": 3,
+      "seed": 20260818,
+      "pair_id": "staff_sla",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "staff_availability",
+      "right_family": "service_level_agreement"
+    },
+    {
+      "run": 3,
+      "seed": 20260818,
+      "pair_id": "quoted_response",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "cost_of_service",
+      "right_family": "service_response_time"
+    },
+    {
+      "run": 3,
+      "seed": 20260818,
+      "pair_id": "agents_invoice",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "staff_availability",
+      "right_family": "financial_transactions"
+    },
+    {
+      "run": 4,
+      "seed": 20260819,
+      "pair_id": "cases_tickets",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "support_operations"
+    },
+    {
+      "run": 4,
+      "seed": 20260819,
+      "pair_id": "agents_staff",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "left_family": "staff_availability",
+      "right_family": "staff_availability"
+    },
+    {
+      "run": 4,
+      "seed": 20260819,
+      "pair_id": "quoted_invoice",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "left_family": "cost_of_service",
+      "right_family": "financial_transactions"
+    },
+    {
+      "run": 4,
+      "seed": 20260819,
+      "pair_id": "promised_observed",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "left_family": "service_response_time",
+      "right_family": "first_response_delay"
+    },
+    {
+      "run": 4,
+      "seed": 20260819,
+      "pair_id": "response_sla",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "first_response_delay",
+      "right_family": "service_level_agreement"
+    },
+    {
+      "run": 4,
+      "seed": 20260819,
+      "pair_id": "invoice_staff",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "financial_transactions",
+      "right_family": "staff_availability"
+    },
+    {
+      "run": 4,
+      "seed": 20260819,
+      "pair_id": "cases_agents",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "staff_availability"
+    },
+    {
+      "run": 4,
+      "seed": 20260819,
+      "pair_id": "cases_invoice",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "financial_transactions"
+    },
+    {
+      "run": 4,
+      "seed": 20260819,
+      "pair_id": "tickets_response",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "service_response_time"
+    },
+    {
+      "run": 4,
+      "seed": 20260819,
+      "pair_id": "staff_sla",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "staff_availability",
+      "right_family": "service_level_agreement"
+    },
+    {
+      "run": 4,
+      "seed": 20260819,
+      "pair_id": "quoted_response",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "cost_of_service",
+      "right_family": "service_response_time"
+    },
+    {
+      "run": 4,
+      "seed": 20260819,
+      "pair_id": "agents_invoice",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "staff_availability",
+      "right_family": "financial_transactions"
+    },
+    {
+      "run": 5,
+      "seed": 20260820,
+      "pair_id": "cases_tickets",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "support_operations"
+    },
+    {
+      "run": 5,
+      "seed": 20260820,
+      "pair_id": "agents_staff",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "left_family": "staff_availability",
+      "right_family": "staff_availability"
+    },
+    {
+      "run": 5,
+      "seed": 20260820,
+      "pair_id": "quoted_invoice",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "left_family": "cost_of_service",
+      "right_family": "financial_transactions"
+    },
+    {
+      "run": 5,
+      "seed": 20260820,
+      "pair_id": "promised_observed",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "left_family": "service_response_time",
+      "right_family": "first_response_delay"
+    },
+    {
+      "run": 5,
+      "seed": 20260820,
+      "pair_id": "response_sla",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "first_response_delay",
+      "right_family": "service_level_agreement"
+    },
+    {
+      "run": 5,
+      "seed": 20260820,
+      "pair_id": "invoice_staff",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "financial_transactions",
+      "right_family": "staff_availability"
+    },
+    {
+      "run": 5,
+      "seed": 20260820,
+      "pair_id": "cases_agents",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "staff_availability"
+    },
+    {
+      "run": 5,
+      "seed": 20260820,
+      "pair_id": "cases_invoice",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "financial_transactions"
+    },
+    {
+      "run": 5,
+      "seed": 20260820,
+      "pair_id": "tickets_response",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "service_response_time"
+    },
+    {
+      "run": 5,
+      "seed": 20260820,
+      "pair_id": "staff_sla",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "staff_availability",
+      "right_family": "service_level_agreement"
+    },
+    {
+      "run": 5,
+      "seed": 20260820,
+      "pair_id": "quoted_response",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "cost_of_service",
+      "right_family": "service_response_time"
+    },
+    {
+      "run": 5,
+      "seed": 20260820,
+      "pair_id": "agents_invoice",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "staff_availability",
+      "right_family": "financial_transactions"
+    },
+    {
+      "run": 6,
+      "seed": 20260821,
+      "pair_id": "cases_tickets",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "support_operations"
+    },
+    {
+      "run": 6,
+      "seed": 20260821,
+      "pair_id": "agents_staff",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "left_family": "staff_availability",
+      "right_family": "staff_availability"
+    },
+    {
+      "run": 6,
+      "seed": 20260821,
+      "pair_id": "quoted_invoice",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "left_family": "cost_of_service",
+      "right_family": "invoice_amount"
+    },
+    {
+      "run": 6,
+      "seed": 20260821,
+      "pair_id": "promised_observed",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "left_family": "service_response_time",
+      "right_family": "first_response_delay"
+    },
+    {
+      "run": 6,
+      "seed": 20260821,
+      "pair_id": "response_sla",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "first_response_delay",
+      "right_family": "service_level_agreement"
+    },
+    {
+      "run": 6,
+      "seed": 20260821,
+      "pair_id": "invoice_staff",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "invoice_amount",
+      "right_family": "staff_availability"
+    },
+    {
+      "run": 6,
+      "seed": 20260821,
+      "pair_id": "cases_agents",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "staff_availability"
+    },
+    {
+      "run": 6,
+      "seed": 20260821,
+      "pair_id": "cases_invoice",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "invoice_amount"
+    },
+    {
+      "run": 6,
+      "seed": 20260821,
+      "pair_id": "tickets_response",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "service_response_time"
+    },
+    {
+      "run": 6,
+      "seed": 20260821,
+      "pair_id": "staff_sla",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "staff_availability",
+      "right_family": "service_level_agreement"
+    },
+    {
+      "run": 6,
+      "seed": 20260821,
+      "pair_id": "quoted_response",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "cost_of_service",
+      "right_family": "service_response_time"
+    },
+    {
+      "run": 6,
+      "seed": 20260821,
+      "pair_id": "agents_invoice",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "staff_availability",
+      "right_family": "invoice_amount"
+    },
+    {
+      "run": 7,
+      "seed": 20260822,
+      "pair_id": "cases_tickets",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "support_operations"
+    },
+    {
+      "run": 7,
+      "seed": 20260822,
+      "pair_id": "agents_staff",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "left_family": "staff_availability",
+      "right_family": "staff_availability"
+    },
+    {
+      "run": 7,
+      "seed": 20260822,
+      "pair_id": "quoted_invoice",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "left_family": "service_cost",
+      "right_family": "invoice_amount"
+    },
+    {
+      "run": 7,
+      "seed": 20260822,
+      "pair_id": "promised_observed",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "left_family": "response_time",
+      "right_family": "response_time"
+    },
+    {
+      "run": 7,
+      "seed": 20260822,
+      "pair_id": "response_sla",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "response_time",
+      "right_family": "sla_compliance"
+    },
+    {
+      "run": 7,
+      "seed": 20260822,
+      "pair_id": "invoice_staff",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "invoice_amount",
+      "right_family": "staff_availability"
+    },
+    {
+      "run": 7,
+      "seed": 20260822,
+      "pair_id": "cases_agents",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "staff_availability"
+    },
+    {
+      "run": 7,
+      "seed": 20260822,
+      "pair_id": "cases_invoice",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "invoice_amount"
+    },
+    {
+      "run": 7,
+      "seed": 20260822,
+      "pair_id": "tickets_response",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "response_time"
+    },
+    {
+      "run": 7,
+      "seed": 20260822,
+      "pair_id": "staff_sla",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "staff_availability",
+      "right_family": "sla_compliance"
+    },
+    {
+      "run": 7,
+      "seed": 20260822,
+      "pair_id": "quoted_response",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "service_cost",
+      "right_family": "response_time"
+    },
+    {
+      "run": 7,
+      "seed": 20260822,
+      "pair_id": "agents_invoice",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "staff_availability",
+      "right_family": "invoice_amount"
+    },
+    {
+      "run": 8,
+      "seed": 20260823,
+      "pair_id": "cases_tickets",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "support_operations"
+    },
+    {
+      "run": 8,
+      "seed": 20260823,
+      "pair_id": "agents_staff",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "left_family": "staff_availability",
+      "right_family": "staff_availability"
+    },
+    {
+      "run": 8,
+      "seed": 20260823,
+      "pair_id": "quoted_invoice",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "left_family": "service_cost",
+      "right_family": "invoice_amount"
+    },
+    {
+      "run": 8,
+      "seed": 20260823,
+      "pair_id": "promised_observed",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "left_family": "response_time",
+      "right_family": "first_response_delay"
+    },
+    {
+      "run": 8,
+      "seed": 20260823,
+      "pair_id": "response_sla",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "first_response_delay",
+      "right_family": "service_level_agreement"
+    },
+    {
+      "run": 8,
+      "seed": 20260823,
+      "pair_id": "invoice_staff",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "invoice_amount",
+      "right_family": "staff_availability"
+    },
+    {
+      "run": 8,
+      "seed": 20260823,
+      "pair_id": "cases_agents",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "staff_availability"
+    },
+    {
+      "run": 8,
+      "seed": 20260823,
+      "pair_id": "cases_invoice",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "invoice_amount"
+    },
+    {
+      "run": 8,
+      "seed": 20260823,
+      "pair_id": "tickets_response",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "response_time"
+    },
+    {
+      "run": 8,
+      "seed": 20260823,
+      "pair_id": "staff_sla",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "staff_availability",
+      "right_family": "service_level_agreement"
+    },
+    {
+      "run": 8,
+      "seed": 20260823,
+      "pair_id": "quoted_response",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "service_cost",
+      "right_family": "response_time"
+    },
+    {
+      "run": 8,
+      "seed": 20260823,
+      "pair_id": "agents_invoice",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "staff_availability",
+      "right_family": "invoice_amount"
+    },
+    {
+      "run": 9,
+      "seed": 20260824,
+      "pair_id": "cases_tickets",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "support_operations"
+    },
+    {
+      "run": 9,
+      "seed": 20260824,
+      "pair_id": "agents_staff",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "left_family": "staff_availability",
+      "right_family": "staff_availability"
+    },
+    {
+      "run": 9,
+      "seed": 20260824,
+      "pair_id": "quoted_invoice",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "left_family": "service_cost",
+      "right_family": "invoice_amount"
+    },
+    {
+      "run": 9,
+      "seed": 20260824,
+      "pair_id": "promised_observed",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "left_family": "response_time",
+      "right_family": "response_time"
+    },
+    {
+      "run": 9,
+      "seed": 20260824,
+      "pair_id": "response_sla",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "response_time",
+      "right_family": "service_level_agreement"
+    },
+    {
+      "run": 9,
+      "seed": 20260824,
+      "pair_id": "invoice_staff",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "invoice_amount",
+      "right_family": "staff_availability"
+    },
+    {
+      "run": 9,
+      "seed": 20260824,
+      "pair_id": "cases_agents",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "staff_availability"
+    },
+    {
+      "run": 9,
+      "seed": 20260824,
+      "pair_id": "cases_invoice",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "invoice_amount"
+    },
+    {
+      "run": 9,
+      "seed": 20260824,
+      "pair_id": "tickets_response",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "response_time"
+    },
+    {
+      "run": 9,
+      "seed": 20260824,
+      "pair_id": "staff_sla",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "staff_availability",
+      "right_family": "service_level_agreement"
+    },
+    {
+      "run": 9,
+      "seed": 20260824,
+      "pair_id": "quoted_response",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "service_cost",
+      "right_family": "response_time"
+    },
+    {
+      "run": 9,
+      "seed": 20260824,
+      "pair_id": "agents_invoice",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "staff_availability",
+      "right_family": "invoice_amount"
+    },
+    {
+      "run": 10,
+      "seed": 20260825,
+      "pair_id": "cases_tickets",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "support_operations"
+    },
+    {
+      "run": 10,
+      "seed": 20260825,
+      "pair_id": "agents_staff",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "left_family": "staff_availability",
+      "right_family": "staff_availability"
+    },
+    {
+      "run": 10,
+      "seed": 20260825,
+      "pair_id": "quoted_invoice",
+      "expected": true,
+      "predicted": false,
+      "correct": false,
+      "left_family": "service_cost",
+      "right_family": "invoice_amount"
+    },
+    {
+      "run": 10,
+      "seed": 20260825,
+      "pair_id": "promised_observed",
+      "expected": true,
+      "predicted": true,
+      "correct": true,
+      "left_family": "response_time",
+      "right_family": "response_time"
+    },
+    {
+      "run": 10,
+      "seed": 20260825,
+      "pair_id": "response_sla",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "response_time",
+      "right_family": "sla_compliance"
+    },
+    {
+      "run": 10,
+      "seed": 20260825,
+      "pair_id": "invoice_staff",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "invoice_amount",
+      "right_family": "staff_availability"
+    },
+    {
+      "run": 10,
+      "seed": 20260825,
+      "pair_id": "cases_agents",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "staff_availability"
+    },
+    {
+      "run": 10,
+      "seed": 20260825,
+      "pair_id": "cases_invoice",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "invoice_amount"
+    },
+    {
+      "run": 10,
+      "seed": 20260825,
+      "pair_id": "tickets_response",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "support_operations",
+      "right_family": "response_time"
+    },
+    {
+      "run": 10,
+      "seed": 20260825,
+      "pair_id": "staff_sla",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "staff_availability",
+      "right_family": "sla_compliance"
+    },
+    {
+      "run": 10,
+      "seed": 20260825,
+      "pair_id": "quoted_response",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "service_cost",
+      "right_family": "response_time"
+    },
+    {
+      "run": 10,
+      "seed": 20260825,
+      "pair_id": "agents_invoice",
+      "expected": false,
+      "predicted": false,
+      "correct": true,
+      "left_family": "staff_availability",
+      "right_family": "invoice_amount"
+    }
+  ]
+}

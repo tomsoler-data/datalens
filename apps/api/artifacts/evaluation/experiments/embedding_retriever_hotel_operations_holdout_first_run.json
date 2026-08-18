@@ -1,0 +1,957 @@
+{
+  "experiment": "embedding_retriever_hotel_operations_holdout_first_run",
+  "status": "historical_first_run",
+  "benchmark_id": "semantic:hotel_operations:holdout:v0.1",
+  "benchmark_version": "hotel_operations_semantic_holdout_v0.1",
+  "dataset_id": "hotel_operations:0001",
+  "domain": "hotel_operations",
+  "embedding_model": "embeddinggemma",
+  "reference_top_k": 3,
+  "freeze_artifact": "artifacts\\evaluation\\holdouts\\hotel_operations_holdout_v0.1_freeze.json",
+  "frozen_hashes": {
+    "source_sha256": "30303a2c30603cdb8a2b727a8f0e286112f123f76c6ac6723a56048610a427cb",
+    "suite_sha256": "5ac0c4cbd7dd12e4272592e5af58b71feca122f318bf1af79a3513e9a2864b50",
+    "cases_sha256": "4524eed8210ad67a022f033323bd0c6e3d84a2bda48265dbad983d2b47d57915",
+    "dataset_sha256": "0d5b8790bfb1c4656d23e176b5b5e28f90666e112e0355c6fd3be6bd0aeeffd0"
+  },
+  "freeze_integrity": {
+    "source_match": true,
+    "suite_match": true,
+    "cases_match": true,
+    "dataset_match": true,
+    "pass": true
+  },
+  "preregistered_gates": {
+    "reference_top_k": 3,
+    "minimum_strong_pair_recall": 0.9,
+    "minimum_pair_reduction": 0.4,
+    "maximum_embedding_call_failures": 0,
+    "candidate_generation_only": true,
+    "safety_authority": false
+  },
+  "execution": {
+    "embedding_call_count": 1,
+    "embedding_call_failures": 0,
+    "execution_error": null,
+    "operational_pass": true
+  },
+  "metrics": {
+    "column_count": 22,
+    "all_possible_pair_count": 231,
+    "candidate_pair_count": 44,
+    "pair_reduction": 0.8095238095238095,
+    "strong_pair_count": 6,
+    "recovered_strong_pair_count": 6,
+    "missed_strong_pair_count": 0,
+    "strong_pair_recall": 1.0
+  },
+  "gate_results": {
+    "recall_gate": true,
+    "reduction_gate": true,
+    "failure_gate": true,
+    "one_embedding_batch": true,
+    "independent_holdout_pass": true
+  },
+  "missed_strong_pairs": [],
+  "candidate_result": {
+    "dataset_id": "hotel_operations:0001",
+    "embedding_model": "embeddinggemma",
+    "top_k": 3,
+    "column_count": 22,
+    "all_possible_pair_count": 231,
+    "candidate_pair_count": 44,
+    "reduction_ratio": 0.8095238095238095,
+    "retrievals": [
+      {
+        "column": "Reservation requests received",
+        "neighbours": [
+          {
+            "column": "Stays booked",
+            "rank": 1,
+            "cosine_similarity": 0.6051500473005917
+          },
+          {
+            "column": "Rooms actually occupied",
+            "rank": 2,
+            "cosine_similarity": 0.5453976467201213
+          },
+          {
+            "column": "Realized room revenue",
+            "rank": 3,
+            "cosine_similarity": 0.5402307278086428
+          }
+        ]
+      },
+      {
+        "column": "Stays booked",
+        "neighbours": [
+          {
+            "column": "Rooms actually occupied",
+            "rank": 1,
+            "cosine_similarity": 0.6549500662353755
+          },
+          {
+            "column": "Projected lodging revenue",
+            "rank": 2,
+            "cosine_similarity": 0.6184648434880461
+          },
+          {
+            "column": "Reservation requests received",
+            "rank": 3,
+            "cosine_similarity": 0.6051500473005917
+          }
+        ]
+      },
+      {
+        "column": "Housekeepers rostered",
+        "neighbours": [
+          {
+            "column": "Cleaning staff present",
+            "rank": 1,
+            "cosine_similarity": 0.5901810483343095
+          },
+          {
+            "column": "Stays booked",
+            "rank": 2,
+            "cosine_similarity": 0.524635688786102
+          },
+          {
+            "column": "Forecast occupied rooms",
+            "rank": 3,
+            "cosine_similarity": 0.5107856869728681
+          }
+        ]
+      },
+      {
+        "column": "Cleaning staff present",
+        "neighbours": [
+          {
+            "column": "Housekeepers rostered",
+            "rank": 1,
+            "cosine_similarity": 0.5901810483343095
+          },
+          {
+            "column": "Rooms actually occupied",
+            "rank": 2,
+            "cosine_similarity": 0.4600191973385213
+          },
+          {
+            "column": "Observed front-desk service time (minutes)",
+            "rank": 3,
+            "cosine_similarity": 0.419376408889469
+          }
+        ]
+      },
+      {
+        "column": "Projected lodging revenue",
+        "neighbours": [
+          {
+            "column": "Realized room revenue",
+            "rank": 1,
+            "cosine_similarity": 0.767301930832267
+          },
+          {
+            "column": "Restaurant revenue",
+            "rank": 2,
+            "cosine_similarity": 0.704989610685782
+          },
+          {
+            "column": "Stays booked",
+            "rank": 3,
+            "cosine_similarity": 0.6184648434880461
+          }
+        ]
+      },
+      {
+        "column": "Realized room revenue",
+        "neighbours": [
+          {
+            "column": "Projected lodging revenue",
+            "rank": 1,
+            "cosine_similarity": 0.767301930832267
+          },
+          {
+            "column": "Restaurant revenue",
+            "rank": 2,
+            "cosine_similarity": 0.7278963458539983
+          },
+          {
+            "column": "Rooms actually occupied",
+            "rank": 3,
+            "cosine_similarity": 0.6598910311476855
+          }
+        ]
+      },
+      {
+        "column": "Target check-in duration (minutes)",
+        "neighbours": [
+          {
+            "column": "Elevator downtime (minutes)",
+            "rank": 1,
+            "cosine_similarity": 0.5695733056025567
+          },
+          {
+            "column": "Observed front-desk service time (minutes)",
+            "rank": 2,
+            "cosine_similarity": 0.558374495854079
+          },
+          {
+            "column": "Planned linen load (kg)",
+            "rank": 3,
+            "cosine_similarity": 0.4227050615985311
+          }
+        ]
+      },
+      {
+        "column": "Observed front-desk service time (minutes)",
+        "neighbours": [
+          {
+            "column": "Elevator downtime (minutes)",
+            "rank": 1,
+            "cosine_similarity": 0.6375493825671881
+          },
+          {
+            "column": "Target check-in duration (minutes)",
+            "rank": 2,
+            "cosine_similarity": 0.558374495854079
+          },
+          {
+            "column": "Guest satisfaction (%)",
+            "rank": 3,
+            "cosine_similarity": 0.5430851432130553
+          }
+        ]
+      },
+      {
+        "column": "Planned linen load (kg)",
+        "neighbours": [
+          {
+            "column": "Measured laundry weight (kg)",
+            "rank": 1,
+            "cosine_similarity": 0.7439106148088377
+          },
+          {
+            "column": "Forecast occupied rooms",
+            "rank": 2,
+            "cosine_similarity": 0.5382572415520505
+          },
+          {
+            "column": "Waste collected (kg)",
+            "rank": 3,
+            "cosine_similarity": 0.5256240759632612
+          }
+        ]
+      },
+      {
+        "column": "Measured laundry weight (kg)",
+        "neighbours": [
+          {
+            "column": "Planned linen load (kg)",
+            "rank": 1,
+            "cosine_similarity": 0.7439106148088377
+          },
+          {
+            "column": "Waste collected (kg)",
+            "rank": 2,
+            "cosine_similarity": 0.6049890667580763
+          },
+          {
+            "column": "Maintenance spend",
+            "rank": 3,
+            "cosine_similarity": 0.4726369223869831
+          }
+        ]
+      },
+      {
+        "column": "Forecast occupied rooms",
+        "neighbours": [
+          {
+            "column": "Rooms actually occupied",
+            "rank": 1,
+            "cosine_similarity": 0.7639850902041916
+          },
+          {
+            "column": "Occupancy rate (%)",
+            "rank": 2,
+            "cosine_similarity": 0.639053922419133
+          },
+          {
+            "column": "Projected lodging revenue",
+            "rank": 3,
+            "cosine_similarity": 0.5985293711188433
+          }
+        ]
+      },
+      {
+        "column": "Rooms actually occupied",
+        "neighbours": [
+          {
+            "column": "Forecast occupied rooms",
+            "rank": 1,
+            "cosine_similarity": 0.7639850902041916
+          },
+          {
+            "column": "Occupancy rate (%)",
+            "rank": 2,
+            "cosine_similarity": 0.7116523001845054
+          },
+          {
+            "column": "Rooms out of service",
+            "rank": 3,
+            "cosine_similarity": 0.6753804235318773
+          }
+        ]
+      },
+      {
+        "column": "Guest complaints resolved",
+        "neighbours": [
+          {
+            "column": "Guest satisfaction (%)",
+            "rank": 1,
+            "cosine_similarity": 0.5431170326025239
+          },
+          {
+            "column": "Stays booked",
+            "rank": 2,
+            "cosine_similarity": 0.505528766187317
+          },
+          {
+            "column": "Reservation requests received",
+            "rank": 3,
+            "cosine_similarity": 0.46071458469747817
+          }
+        ]
+      },
+      {
+        "column": "Elevators operational",
+        "neighbours": [
+          {
+            "column": "Elevator downtime (minutes)",
+            "rank": 1,
+            "cosine_similarity": 0.6629757683338623
+          },
+          {
+            "column": "Rooms out of service",
+            "rank": 2,
+            "cosine_similarity": 0.557284473167508
+          },
+          {
+            "column": "Rooms actually occupied",
+            "rank": 3,
+            "cosine_similarity": 0.5549629345215071
+          }
+        ]
+      },
+      {
+        "column": "Maintenance spend",
+        "neighbours": [
+          {
+            "column": "Elevator downtime (minutes)",
+            "rank": 1,
+            "cosine_similarity": 0.5165885059360549
+          },
+          {
+            "column": "Restaurant revenue",
+            "rank": 2,
+            "cosine_similarity": 0.5150636573258487
+          },
+          {
+            "column": "Stays booked",
+            "rank": 3,
+            "cosine_similarity": 0.48505289137751667
+          }
+        ]
+      },
+      {
+        "column": "Restaurant revenue",
+        "neighbours": [
+          {
+            "column": "Realized room revenue",
+            "rank": 1,
+            "cosine_similarity": 0.7278963458539983
+          },
+          {
+            "column": "Projected lodging revenue",
+            "rank": 2,
+            "cosine_similarity": 0.704989610685782
+          },
+          {
+            "column": "Maintenance spend",
+            "rank": 3,
+            "cosine_similarity": 0.5150636573258487
+          }
+        ]
+      },
+      {
+        "column": "Elevator downtime (minutes)",
+        "neighbours": [
+          {
+            "column": "Elevators operational",
+            "rank": 1,
+            "cosine_similarity": 0.6629757683338623
+          },
+          {
+            "column": "Observed front-desk service time (minutes)",
+            "rank": 2,
+            "cosine_similarity": 0.6375493825671881
+          },
+          {
+            "column": "Target check-in duration (minutes)",
+            "rank": 3,
+            "cosine_similarity": 0.5695733056025567
+          }
+        ]
+      },
+      {
+        "column": "Waste collected (kg)",
+        "neighbours": [
+          {
+            "column": "Measured laundry weight (kg)",
+            "rank": 1,
+            "cosine_similarity": 0.6049890667580763
+          },
+          {
+            "column": "Planned linen load (kg)",
+            "rank": 2,
+            "cosine_similarity": 0.5256240759632612
+          },
+          {
+            "column": "Rooms actually occupied",
+            "rank": 3,
+            "cosine_similarity": 0.48261046676444164
+          }
+        ]
+      },
+      {
+        "column": "Occupancy rate (%)",
+        "neighbours": [
+          {
+            "column": "Rooms actually occupied",
+            "rank": 1,
+            "cosine_similarity": 0.7116523001845054
+          },
+          {
+            "column": "Guest satisfaction (%)",
+            "rank": 2,
+            "cosine_similarity": 0.6881547071695279
+          },
+          {
+            "column": "Booking cancellation rate (%)",
+            "rank": 3,
+            "cosine_similarity": 0.6852814632746094
+          }
+        ]
+      },
+      {
+        "column": "Guest satisfaction (%)",
+        "neighbours": [
+          {
+            "column": "Booking cancellation rate (%)",
+            "rank": 1,
+            "cosine_similarity": 0.7006490343799687
+          },
+          {
+            "column": "Occupancy rate (%)",
+            "rank": 2,
+            "cosine_similarity": 0.6881547071695279
+          },
+          {
+            "column": "Guest complaints resolved",
+            "rank": 3,
+            "cosine_similarity": 0.5431170326025239
+          }
+        ]
+      },
+      {
+        "column": "Booking cancellation rate (%)",
+        "neighbours": [
+          {
+            "column": "Guest satisfaction (%)",
+            "rank": 1,
+            "cosine_similarity": 0.7006490343799687
+          },
+          {
+            "column": "Occupancy rate (%)",
+            "rank": 2,
+            "cosine_similarity": 0.6852814632746094
+          },
+          {
+            "column": "Stays booked",
+            "rank": 3,
+            "cosine_similarity": 0.5070402115692938
+          }
+        ]
+      },
+      {
+        "column": "Rooms out of service",
+        "neighbours": [
+          {
+            "column": "Rooms actually occupied",
+            "rank": 1,
+            "cosine_similarity": 0.6753804235318773
+          },
+          {
+            "column": "Stays booked",
+            "rank": 2,
+            "cosine_similarity": 0.5808803214299245
+          },
+          {
+            "column": "Elevators operational",
+            "rank": 3,
+            "cosine_similarity": 0.557284473167508
+          }
+        ]
+      }
+    ],
+    "candidate_pairs": [
+      {
+        "left_column": "Booking cancellation rate (%)",
+        "right_column": "Guest satisfaction (%)",
+        "cosine_similarity": 0.7006490343799687,
+        "left_to_right_rank": 1,
+        "right_to_left_rank": 1,
+        "retrieved_from_left": true,
+        "retrieved_from_right": true,
+        "mutual_retrieval": true
+      },
+      {
+        "left_column": "Booking cancellation rate (%)",
+        "right_column": "Occupancy rate (%)",
+        "cosine_similarity": 0.6852814632746094,
+        "left_to_right_rank": 2,
+        "right_to_left_rank": 3,
+        "retrieved_from_left": true,
+        "retrieved_from_right": true,
+        "mutual_retrieval": true
+      },
+      {
+        "left_column": "Booking cancellation rate (%)",
+        "right_column": "Stays booked",
+        "cosine_similarity": 0.5070402115692938,
+        "left_to_right_rank": 3,
+        "right_to_left_rank": null,
+        "retrieved_from_left": true,
+        "retrieved_from_right": false,
+        "mutual_retrieval": false
+      },
+      {
+        "left_column": "Cleaning staff present",
+        "right_column": "Housekeepers rostered",
+        "cosine_similarity": 0.5901810483343095,
+        "left_to_right_rank": 1,
+        "right_to_left_rank": 1,
+        "retrieved_from_left": true,
+        "retrieved_from_right": true,
+        "mutual_retrieval": true
+      },
+      {
+        "left_column": "Cleaning staff present",
+        "right_column": "Observed front-desk service time (minutes)",
+        "cosine_similarity": 0.419376408889469,
+        "left_to_right_rank": 3,
+        "right_to_left_rank": null,
+        "retrieved_from_left": true,
+        "retrieved_from_right": false,
+        "mutual_retrieval": false
+      },
+      {
+        "left_column": "Cleaning staff present",
+        "right_column": "Rooms actually occupied",
+        "cosine_similarity": 0.4600191973385213,
+        "left_to_right_rank": 2,
+        "right_to_left_rank": null,
+        "retrieved_from_left": true,
+        "retrieved_from_right": false,
+        "mutual_retrieval": false
+      },
+      {
+        "left_column": "Elevator downtime (minutes)",
+        "right_column": "Elevators operational",
+        "cosine_similarity": 0.6629757683338623,
+        "left_to_right_rank": 1,
+        "right_to_left_rank": 1,
+        "retrieved_from_left": true,
+        "retrieved_from_right": true,
+        "mutual_retrieval": true
+      },
+      {
+        "left_column": "Elevator downtime (minutes)",
+        "right_column": "Maintenance spend",
+        "cosine_similarity": 0.5165885059360549,
+        "left_to_right_rank": null,
+        "right_to_left_rank": 1,
+        "retrieved_from_left": false,
+        "retrieved_from_right": true,
+        "mutual_retrieval": false
+      },
+      {
+        "left_column": "Elevator downtime (minutes)",
+        "right_column": "Observed front-desk service time (minutes)",
+        "cosine_similarity": 0.6375493825671881,
+        "left_to_right_rank": 2,
+        "right_to_left_rank": 1,
+        "retrieved_from_left": true,
+        "retrieved_from_right": true,
+        "mutual_retrieval": true
+      },
+      {
+        "left_column": "Elevator downtime (minutes)",
+        "right_column": "Target check-in duration (minutes)",
+        "cosine_similarity": 0.5695733056025567,
+        "left_to_right_rank": 3,
+        "right_to_left_rank": 1,
+        "retrieved_from_left": true,
+        "retrieved_from_right": true,
+        "mutual_retrieval": true
+      },
+      {
+        "left_column": "Elevators operational",
+        "right_column": "Rooms actually occupied",
+        "cosine_similarity": 0.5549629345215071,
+        "left_to_right_rank": 3,
+        "right_to_left_rank": null,
+        "retrieved_from_left": true,
+        "retrieved_from_right": false,
+        "mutual_retrieval": false
+      },
+      {
+        "left_column": "Elevators operational",
+        "right_column": "Rooms out of service",
+        "cosine_similarity": 0.557284473167508,
+        "left_to_right_rank": 2,
+        "right_to_left_rank": 3,
+        "retrieved_from_left": true,
+        "retrieved_from_right": true,
+        "mutual_retrieval": true
+      },
+      {
+        "left_column": "Forecast occupied rooms",
+        "right_column": "Housekeepers rostered",
+        "cosine_similarity": 0.5107856869728681,
+        "left_to_right_rank": null,
+        "right_to_left_rank": 3,
+        "retrieved_from_left": false,
+        "retrieved_from_right": true,
+        "mutual_retrieval": false
+      },
+      {
+        "left_column": "Forecast occupied rooms",
+        "right_column": "Occupancy rate (%)",
+        "cosine_similarity": 0.639053922419133,
+        "left_to_right_rank": 2,
+        "right_to_left_rank": null,
+        "retrieved_from_left": true,
+        "retrieved_from_right": false,
+        "mutual_retrieval": false
+      },
+      {
+        "left_column": "Forecast occupied rooms",
+        "right_column": "Planned linen load (kg)",
+        "cosine_similarity": 0.5382572415520505,
+        "left_to_right_rank": null,
+        "right_to_left_rank": 2,
+        "retrieved_from_left": false,
+        "retrieved_from_right": true,
+        "mutual_retrieval": false
+      },
+      {
+        "left_column": "Forecast occupied rooms",
+        "right_column": "Projected lodging revenue",
+        "cosine_similarity": 0.5985293711188433,
+        "left_to_right_rank": 3,
+        "right_to_left_rank": null,
+        "retrieved_from_left": true,
+        "retrieved_from_right": false,
+        "mutual_retrieval": false
+      },
+      {
+        "left_column": "Forecast occupied rooms",
+        "right_column": "Rooms actually occupied",
+        "cosine_similarity": 0.7639850902041916,
+        "left_to_right_rank": 1,
+        "right_to_left_rank": 1,
+        "retrieved_from_left": true,
+        "retrieved_from_right": true,
+        "mutual_retrieval": true
+      },
+      {
+        "left_column": "Guest complaints resolved",
+        "right_column": "Guest satisfaction (%)",
+        "cosine_similarity": 0.5431170326025239,
+        "left_to_right_rank": 1,
+        "right_to_left_rank": 3,
+        "retrieved_from_left": true,
+        "retrieved_from_right": true,
+        "mutual_retrieval": true
+      },
+      {
+        "left_column": "Guest complaints resolved",
+        "right_column": "Reservation requests received",
+        "cosine_similarity": 0.46071458469747817,
+        "left_to_right_rank": 3,
+        "right_to_left_rank": null,
+        "retrieved_from_left": true,
+        "retrieved_from_right": false,
+        "mutual_retrieval": false
+      },
+      {
+        "left_column": "Guest complaints resolved",
+        "right_column": "Stays booked",
+        "cosine_similarity": 0.505528766187317,
+        "left_to_right_rank": 2,
+        "right_to_left_rank": null,
+        "retrieved_from_left": true,
+        "retrieved_from_right": false,
+        "mutual_retrieval": false
+      },
+      {
+        "left_column": "Guest satisfaction (%)",
+        "right_column": "Observed front-desk service time (minutes)",
+        "cosine_similarity": 0.5430851432130553,
+        "left_to_right_rank": null,
+        "right_to_left_rank": 3,
+        "retrieved_from_left": false,
+        "retrieved_from_right": true,
+        "mutual_retrieval": false
+      },
+      {
+        "left_column": "Guest satisfaction (%)",
+        "right_column": "Occupancy rate (%)",
+        "cosine_similarity": 0.6881547071695279,
+        "left_to_right_rank": 2,
+        "right_to_left_rank": 2,
+        "retrieved_from_left": true,
+        "retrieved_from_right": true,
+        "mutual_retrieval": true
+      },
+      {
+        "left_column": "Housekeepers rostered",
+        "right_column": "Stays booked",
+        "cosine_similarity": 0.524635688786102,
+        "left_to_right_rank": 2,
+        "right_to_left_rank": null,
+        "retrieved_from_left": true,
+        "retrieved_from_right": false,
+        "mutual_retrieval": false
+      },
+      {
+        "left_column": "Maintenance spend",
+        "right_column": "Measured laundry weight (kg)",
+        "cosine_similarity": 0.4726369223869831,
+        "left_to_right_rank": null,
+        "right_to_left_rank": 3,
+        "retrieved_from_left": false,
+        "retrieved_from_right": true,
+        "mutual_retrieval": false
+      },
+      {
+        "left_column": "Maintenance spend",
+        "right_column": "Restaurant revenue",
+        "cosine_similarity": 0.5150636573258487,
+        "left_to_right_rank": 2,
+        "right_to_left_rank": 3,
+        "retrieved_from_left": true,
+        "retrieved_from_right": true,
+        "mutual_retrieval": true
+      },
+      {
+        "left_column": "Maintenance spend",
+        "right_column": "Stays booked",
+        "cosine_similarity": 0.48505289137751667,
+        "left_to_right_rank": 3,
+        "right_to_left_rank": null,
+        "retrieved_from_left": true,
+        "retrieved_from_right": false,
+        "mutual_retrieval": false
+      },
+      {
+        "left_column": "Measured laundry weight (kg)",
+        "right_column": "Planned linen load (kg)",
+        "cosine_similarity": 0.7439106148088377,
+        "left_to_right_rank": 1,
+        "right_to_left_rank": 1,
+        "retrieved_from_left": true,
+        "retrieved_from_right": true,
+        "mutual_retrieval": true
+      },
+      {
+        "left_column": "Measured laundry weight (kg)",
+        "right_column": "Waste collected (kg)",
+        "cosine_similarity": 0.6049890667580763,
+        "left_to_right_rank": 2,
+        "right_to_left_rank": 1,
+        "retrieved_from_left": true,
+        "retrieved_from_right": true,
+        "mutual_retrieval": true
+      },
+      {
+        "left_column": "Observed front-desk service time (minutes)",
+        "right_column": "Target check-in duration (minutes)",
+        "cosine_similarity": 0.558374495854079,
+        "left_to_right_rank": 2,
+        "right_to_left_rank": 2,
+        "retrieved_from_left": true,
+        "retrieved_from_right": true,
+        "mutual_retrieval": true
+      },
+      {
+        "left_column": "Occupancy rate (%)",
+        "right_column": "Rooms actually occupied",
+        "cosine_similarity": 0.7116523001845054,
+        "left_to_right_rank": 1,
+        "right_to_left_rank": 2,
+        "retrieved_from_left": true,
+        "retrieved_from_right": true,
+        "mutual_retrieval": true
+      },
+      {
+        "left_column": "Planned linen load (kg)",
+        "right_column": "Target check-in duration (minutes)",
+        "cosine_similarity": 0.4227050615985311,
+        "left_to_right_rank": null,
+        "right_to_left_rank": 3,
+        "retrieved_from_left": false,
+        "retrieved_from_right": true,
+        "mutual_retrieval": false
+      },
+      {
+        "left_column": "Planned linen load (kg)",
+        "right_column": "Waste collected (kg)",
+        "cosine_similarity": 0.5256240759632612,
+        "left_to_right_rank": 3,
+        "right_to_left_rank": 2,
+        "retrieved_from_left": true,
+        "retrieved_from_right": true,
+        "mutual_retrieval": true
+      },
+      {
+        "left_column": "Projected lodging revenue",
+        "right_column": "Realized room revenue",
+        "cosine_similarity": 0.767301930832267,
+        "left_to_right_rank": 1,
+        "right_to_left_rank": 1,
+        "retrieved_from_left": true,
+        "retrieved_from_right": true,
+        "mutual_retrieval": true
+      },
+      {
+        "left_column": "Projected lodging revenue",
+        "right_column": "Restaurant revenue",
+        "cosine_similarity": 0.704989610685782,
+        "left_to_right_rank": 2,
+        "right_to_left_rank": 2,
+        "retrieved_from_left": true,
+        "retrieved_from_right": true,
+        "mutual_retrieval": true
+      },
+      {
+        "left_column": "Projected lodging revenue",
+        "right_column": "Stays booked",
+        "cosine_similarity": 0.6184648434880461,
+        "left_to_right_rank": 3,
+        "right_to_left_rank": 2,
+        "retrieved_from_left": true,
+        "retrieved_from_right": true,
+        "mutual_retrieval": true
+      },
+      {
+        "left_column": "Realized room revenue",
+        "right_column": "Reservation requests received",
+        "cosine_similarity": 0.5402307278086428,
+        "left_to_right_rank": null,
+        "right_to_left_rank": 3,
+        "retrieved_from_left": false,
+        "retrieved_from_right": true,
+        "mutual_retrieval": false
+      },
+      {
+        "left_column": "Realized room revenue",
+        "right_column": "Restaurant revenue",
+        "cosine_similarity": 0.7278963458539983,
+        "left_to_right_rank": 2,
+        "right_to_left_rank": 1,
+        "retrieved_from_left": true,
+        "retrieved_from_right": true,
+        "mutual_retrieval": true
+      },
+      {
+        "left_column": "Realized room revenue",
+        "right_column": "Rooms actually occupied",
+        "cosine_similarity": 0.6598910311476855,
+        "left_to_right_rank": 3,
+        "right_to_left_rank": null,
+        "retrieved_from_left": true,
+        "retrieved_from_right": false,
+        "mutual_retrieval": false
+      },
+      {
+        "left_column": "Reservation requests received",
+        "right_column": "Rooms actually occupied",
+        "cosine_similarity": 0.5453976467201213,
+        "left_to_right_rank": 2,
+        "right_to_left_rank": null,
+        "retrieved_from_left": true,
+        "retrieved_from_right": false,
+        "mutual_retrieval": false
+      },
+      {
+        "left_column": "Reservation requests received",
+        "right_column": "Stays booked",
+        "cosine_similarity": 0.6051500473005917,
+        "left_to_right_rank": 1,
+        "right_to_left_rank": 3,
+        "retrieved_from_left": true,
+        "retrieved_from_right": true,
+        "mutual_retrieval": true
+      },
+      {
+        "left_column": "Rooms actually occupied",
+        "right_column": "Rooms out of service",
+        "cosine_similarity": 0.6753804235318773,
+        "left_to_right_rank": 3,
+        "right_to_left_rank": 1,
+        "retrieved_from_left": true,
+        "retrieved_from_right": true,
+        "mutual_retrieval": true
+      },
+      {
+        "left_column": "Rooms actually occupied",
+        "right_column": "Stays booked",
+        "cosine_similarity": 0.6549500662353755,
+        "left_to_right_rank": null,
+        "right_to_left_rank": 1,
+        "retrieved_from_left": false,
+        "retrieved_from_right": true,
+        "mutual_retrieval": false
+      },
+      {
+        "left_column": "Rooms actually occupied",
+        "right_column": "Waste collected (kg)",
+        "cosine_similarity": 0.48261046676444164,
+        "left_to_right_rank": null,
+        "right_to_left_rank": 3,
+        "retrieved_from_left": false,
+        "retrieved_from_right": true,
+        "mutual_retrieval": false
+      },
+      {
+        "left_column": "Rooms out of service",
+        "right_column": "Stays booked",
+        "cosine_similarity": 0.5808803214299245,
+        "left_to_right_rank": 2,
+        "right_to_left_rank": null,
+        "retrieved_from_left": true,
+        "retrieved_from_right": false,
+        "mutual_retrieval": false
+      }
+    ],
+    "safety_role": "none_candidate_generation_only",
+    "retriever_version": "embedding_candidate_retriever_v0.1"
+  },
+  "important_interpretation": [
+    "This is the first embedding execution on the frozen Hotel Operations holdout.",
+    "The result must not be overwritten or silently rerun as a replacement measurement.",
+    "Candidate retrieval has no analytical safety authority.",
+    "If this holdout is inspected and used for tuning, Hotel Operations becomes development data."
+  ]
+}

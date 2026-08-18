@@ -1,0 +1,2119 @@
+{
+  "experiment_id": "semantic-s0-regression",
+  "created_at": "2026-08-15T21:13:24.874256+02:00",
+  "phase": "regression_baseline",
+  "split": "regression",
+  "benchmark_ids": [
+    "semantic:dwfa:regression:v0.1",
+    "semantic:ecommerce:regression:v0.1"
+  ],
+  "benchmark_versions": {
+    "semantic:dwfa:regression:v0.1": "dwfa_semantic_regression_v0.1",
+    "semantic:ecommerce:regression:v0.1": "ecommerce_semantic_regression_v0.1"
+  },
+  "system": {
+    "system_label": "DataLens Semantic System S0",
+    "model_name": "gemma3:4b",
+    "component_versions": {
+      "semantic_profiler": "semantic_data_profiler_v0.2",
+      "semantic_normalizer": "semantic_normalizer_v0.1",
+      "semantic_comparator": "comparator_v0.2",
+      "semantic_preparation": "semantic_preparation_pipeline_v0.1",
+      "semantic_advisor": "semantic_discovery_advisor_v0.1",
+      "ranking_overlay": "semantic_ranking_overlay_v0.1",
+      "benchmark_registry": "semantic_benchmark_registry_v0.2",
+      "benchmark_runner": "semantic_global_benchmark_runner_v0.1"
+    },
+    "notes": [
+      "S0 is the frozen semantic baseline before adapting rules to Manufacturing Holdout #1."
+    ]
+  },
+  "result": {
+    "split": "regression",
+    "suite_count": 2,
+    "domain_count": 2,
+    "domains": [
+      "commerce",
+      "public_health_water"
+    ],
+    "raw_correct_count": 77,
+    "raw_assertion_count": 102,
+    "normalized_correct_count": 102,
+    "normalized_assertion_count": 102,
+    "raw_micro_accuracy": 0.754902,
+    "normalized_micro_accuracy": 1.0,
+    "micro_accuracy_delta": 0.245098,
+    "raw_macro_accuracy": 0.696371,
+    "normalized_macro_accuracy": 1.0,
+    "macro_accuracy_delta": 0.303629,
+    "raw_safety_assertion_count": 20,
+    "raw_safety_failure_count": 4,
+    "normalized_safety_assertion_count": 20,
+    "normalized_safety_failure_count": 0,
+    "normalized_failure_count": 0,
+    "safety_gate_passed": true,
+    "regression_gate_passed": true,
+    "suites": [
+      {
+        "benchmark_id": "semantic:dwfa:regression:v0.1",
+        "benchmark_name": "DWFA semantic regression",
+        "domain": "public_health_water",
+        "split": "regression",
+        "raw_columns": {
+          "benchmark_name": "semantic:dwfa:regression:v0.1:raw:columns",
+          "case_count": 8,
+          "assertion_count": 36,
+          "correct_count": 34,
+          "incorrect_count": 2,
+          "accuracy": 0.944444,
+          "field_accuracy": {
+            "concept": 1.0,
+            "domain": 1.0,
+            "measure_kind": 1.0,
+            "semantic_group": 0.666667,
+            "unit_kind": 1.0,
+            "variant": 1.0
+          },
+          "assertions": [
+            {
+              "case_id": "basic_water",
+              "dataset_id": "dataset:0001",
+              "subject": "Population using at least basic drinking-water services (%)",
+              "field": "concept",
+              "expected": "drinking_water_access",
+              "actual": "drinking_water_access",
+              "correct": true
+            },
+            {
+              "case_id": "basic_water",
+              "dataset_id": "dataset:0001",
+              "subject": "Population using at least basic drinking-water services (%)",
+              "field": "domain",
+              "expected": "water_access",
+              "actual": "water_access",
+              "correct": true
+            },
+            {
+              "case_id": "basic_water",
+              "dataset_id": "dataset:0001",
+              "subject": "Population using at least basic drinking-water services (%)",
+              "field": "semantic_group",
+              "expected": "population_drinking_water_services",
+              "actual": "basic_drinking_water_access",
+              "correct": false
+            },
+            {
+              "case_id": "basic_water",
+              "dataset_id": "dataset:0001",
+              "subject": "Population using at least basic drinking-water services (%)",
+              "field": "variant",
+              "expected": "basic",
+              "actual": "basic",
+              "correct": true
+            },
+            {
+              "case_id": "basic_water",
+              "dataset_id": "dataset:0001",
+              "subject": "Population using at least basic drinking-water services (%)",
+              "field": "measure_kind",
+              "expected": "percentage",
+              "actual": "percentage",
+              "correct": true
+            },
+            {
+              "case_id": "basic_water",
+              "dataset_id": "dataset:0001",
+              "subject": "Population using at least basic drinking-water services (%)",
+              "field": "unit_kind",
+              "expected": "percent",
+              "actual": "percent",
+              "correct": true
+            },
+            {
+              "case_id": "safe_water",
+              "dataset_id": "dataset:0001",
+              "subject": "Population using safely managed drinking-water services (%)",
+              "field": "concept",
+              "expected": "drinking_water_access",
+              "actual": "drinking_water_access",
+              "correct": true
+            },
+            {
+              "case_id": "safe_water",
+              "dataset_id": "dataset:0001",
+              "subject": "Population using safely managed drinking-water services (%)",
+              "field": "domain",
+              "expected": "water_access",
+              "actual": "water_access",
+              "correct": true
+            },
+            {
+              "case_id": "safe_water",
+              "dataset_id": "dataset:0001",
+              "subject": "Population using safely managed drinking-water services (%)",
+              "field": "semantic_group",
+              "expected": "population_drinking_water_services",
+              "actual": "safely_managed_drinking_water_access",
+              "correct": false
+            },
+            {
+              "case_id": "safe_water",
+              "dataset_id": "dataset:0001",
+              "subject": "Population using safely managed drinking-water services (%)",
+              "field": "variant",
+              "expected": "safely_managed",
+              "actual": "safely_managed",
+              "correct": true
+            },
+            {
+              "case_id": "safe_water",
+              "dataset_id": "dataset:0001",
+              "subject": "Population using safely managed drinking-water services (%)",
+              "field": "measure_kind",
+              "expected": "percentage",
+              "actual": "percentage",
+              "correct": true
+            },
+            {
+              "case_id": "safe_water",
+              "dataset_id": "dataset:0001",
+              "subject": "Population using safely managed drinking-water services (%)",
+              "field": "unit_kind",
+              "expected": "percent",
+              "actual": "percent",
+              "correct": true
+            },
+            {
+              "case_id": "mortality_rate",
+              "dataset_id": "dataset:0002",
+              "subject": "Mortality rate attributed to exposure to unsafe WASH services",
+              "field": "domain",
+              "expected": "health",
+              "actual": "health",
+              "correct": true
+            },
+            {
+              "case_id": "mortality_rate",
+              "dataset_id": "dataset:0002",
+              "subject": "Mortality rate attributed to exposure to unsafe WASH services",
+              "field": "measure_kind",
+              "expected": "rate",
+              "actual": "rate",
+              "correct": true
+            },
+            {
+              "case_id": "mortality_rate",
+              "dataset_id": "dataset:0002",
+              "subject": "Mortality rate attributed to exposure to unsafe WASH services",
+              "field": "unit_kind",
+              "expected": "rate",
+              "actual": "rate",
+              "correct": true
+            },
+            {
+              "case_id": "wash_deaths",
+              "dataset_id": "dataset:0002",
+              "subject": "WASH deaths",
+              "field": "domain",
+              "expected": "health",
+              "actual": "health",
+              "correct": true
+            },
+            {
+              "case_id": "wash_deaths",
+              "dataset_id": "dataset:0002",
+              "subject": "WASH deaths",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "wash_deaths",
+              "dataset_id": "dataset:0002",
+              "subject": "WASH deaths",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "political_stability",
+              "dataset_id": "dataset:0003",
+              "subject": "Political_Stability",
+              "field": "concept",
+              "expected": "political_stability",
+              "actual": "political_stability",
+              "correct": true
+            },
+            {
+              "case_id": "political_stability",
+              "dataset_id": "dataset:0003",
+              "subject": "Political_Stability",
+              "field": "domain",
+              "expected": "governance",
+              "actual": "governance",
+              "correct": true
+            },
+            {
+              "case_id": "political_stability",
+              "dataset_id": "dataset:0003",
+              "subject": "Political_Stability",
+              "field": "semantic_group",
+              "expected": "political_stability",
+              "actual": "political_stability",
+              "correct": true
+            },
+            {
+              "case_id": "population",
+              "dataset_id": "dataset:0004",
+              "subject": "Population",
+              "field": "concept",
+              "expected": "population",
+              "actual": "population",
+              "correct": true
+            },
+            {
+              "case_id": "population",
+              "dataset_id": "dataset:0004",
+              "subject": "Population",
+              "field": "domain",
+              "expected": "demography",
+              "actual": "demography",
+              "correct": true
+            },
+            {
+              "case_id": "population",
+              "dataset_id": "dataset:0004",
+              "subject": "Population",
+              "field": "semantic_group",
+              "expected": "population_count",
+              "actual": "population_count",
+              "correct": true
+            },
+            {
+              "case_id": "population",
+              "dataset_id": "dataset:0004",
+              "subject": "Population",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "population",
+              "dataset_id": "dataset:0004",
+              "subject": "Population",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "region_display",
+              "dataset_id": "dataset:0005",
+              "subject": "REGION (DISPLAY)",
+              "field": "concept",
+              "expected": "region",
+              "actual": "region",
+              "correct": true
+            },
+            {
+              "case_id": "region_display",
+              "dataset_id": "dataset:0005",
+              "subject": "REGION (DISPLAY)",
+              "field": "domain",
+              "expected": "geography",
+              "actual": "geography",
+              "correct": true
+            },
+            {
+              "case_id": "region_display",
+              "dataset_id": "dataset:0005",
+              "subject": "REGION (DISPLAY)",
+              "field": "semantic_group",
+              "expected": "geography",
+              "actual": "geography",
+              "correct": true
+            },
+            {
+              "case_id": "region_display",
+              "dataset_id": "dataset:0005",
+              "subject": "REGION (DISPLAY)",
+              "field": "measure_kind",
+              "expected": "category",
+              "actual": "category",
+              "correct": true
+            },
+            {
+              "case_id": "region_display",
+              "dataset_id": "dataset:0005",
+              "subject": "REGION (DISPLAY)",
+              "field": "unit_kind",
+              "expected": "category",
+              "actual": "category",
+              "correct": true
+            },
+            {
+              "case_id": "country_display",
+              "dataset_id": "dataset:0005",
+              "subject": "COUNTRY (DISPLAY)",
+              "field": "concept",
+              "expected": "country",
+              "actual": "country",
+              "correct": true
+            },
+            {
+              "case_id": "country_display",
+              "dataset_id": "dataset:0005",
+              "subject": "COUNTRY (DISPLAY)",
+              "field": "domain",
+              "expected": "geography",
+              "actual": "geography",
+              "correct": true
+            },
+            {
+              "case_id": "country_display",
+              "dataset_id": "dataset:0005",
+              "subject": "COUNTRY (DISPLAY)",
+              "field": "semantic_group",
+              "expected": "geography",
+              "actual": "geography",
+              "correct": true
+            },
+            {
+              "case_id": "country_display",
+              "dataset_id": "dataset:0005",
+              "subject": "COUNTRY (DISPLAY)",
+              "field": "measure_kind",
+              "expected": "category",
+              "actual": "category",
+              "correct": true
+            },
+            {
+              "case_id": "country_display",
+              "dataset_id": "dataset:0005",
+              "subject": "COUNTRY (DISPLAY)",
+              "field": "unit_kind",
+              "expected": "category",
+              "actual": "category",
+              "correct": true
+            }
+          ],
+          "benchmark_rule_version": "semantic_benchmark_v0.2"
+        },
+        "normalized_columns": {
+          "benchmark_name": "semantic:dwfa:regression:v0.1:normalized:columns",
+          "case_count": 8,
+          "assertion_count": 36,
+          "correct_count": 36,
+          "incorrect_count": 0,
+          "accuracy": 1.0,
+          "field_accuracy": {
+            "concept": 1.0,
+            "domain": 1.0,
+            "measure_kind": 1.0,
+            "semantic_group": 1.0,
+            "unit_kind": 1.0,
+            "variant": 1.0
+          },
+          "assertions": [
+            {
+              "case_id": "basic_water",
+              "dataset_id": "dataset:0001",
+              "subject": "Population using at least basic drinking-water services (%)",
+              "field": "concept",
+              "expected": "drinking_water_access",
+              "actual": "drinking_water_access",
+              "correct": true
+            },
+            {
+              "case_id": "basic_water",
+              "dataset_id": "dataset:0001",
+              "subject": "Population using at least basic drinking-water services (%)",
+              "field": "domain",
+              "expected": "water_access",
+              "actual": "water_access",
+              "correct": true
+            },
+            {
+              "case_id": "basic_water",
+              "dataset_id": "dataset:0001",
+              "subject": "Population using at least basic drinking-water services (%)",
+              "field": "semantic_group",
+              "expected": "population_drinking_water_services",
+              "actual": "population_drinking_water_services",
+              "correct": true
+            },
+            {
+              "case_id": "basic_water",
+              "dataset_id": "dataset:0001",
+              "subject": "Population using at least basic drinking-water services (%)",
+              "field": "variant",
+              "expected": "basic",
+              "actual": "basic",
+              "correct": true
+            },
+            {
+              "case_id": "basic_water",
+              "dataset_id": "dataset:0001",
+              "subject": "Population using at least basic drinking-water services (%)",
+              "field": "measure_kind",
+              "expected": "percentage",
+              "actual": "percentage",
+              "correct": true
+            },
+            {
+              "case_id": "basic_water",
+              "dataset_id": "dataset:0001",
+              "subject": "Population using at least basic drinking-water services (%)",
+              "field": "unit_kind",
+              "expected": "percent",
+              "actual": "percent",
+              "correct": true
+            },
+            {
+              "case_id": "safe_water",
+              "dataset_id": "dataset:0001",
+              "subject": "Population using safely managed drinking-water services (%)",
+              "field": "concept",
+              "expected": "drinking_water_access",
+              "actual": "drinking_water_access",
+              "correct": true
+            },
+            {
+              "case_id": "safe_water",
+              "dataset_id": "dataset:0001",
+              "subject": "Population using safely managed drinking-water services (%)",
+              "field": "domain",
+              "expected": "water_access",
+              "actual": "water_access",
+              "correct": true
+            },
+            {
+              "case_id": "safe_water",
+              "dataset_id": "dataset:0001",
+              "subject": "Population using safely managed drinking-water services (%)",
+              "field": "semantic_group",
+              "expected": "population_drinking_water_services",
+              "actual": "population_drinking_water_services",
+              "correct": true
+            },
+            {
+              "case_id": "safe_water",
+              "dataset_id": "dataset:0001",
+              "subject": "Population using safely managed drinking-water services (%)",
+              "field": "variant",
+              "expected": "safely_managed",
+              "actual": "safely_managed",
+              "correct": true
+            },
+            {
+              "case_id": "safe_water",
+              "dataset_id": "dataset:0001",
+              "subject": "Population using safely managed drinking-water services (%)",
+              "field": "measure_kind",
+              "expected": "percentage",
+              "actual": "percentage",
+              "correct": true
+            },
+            {
+              "case_id": "safe_water",
+              "dataset_id": "dataset:0001",
+              "subject": "Population using safely managed drinking-water services (%)",
+              "field": "unit_kind",
+              "expected": "percent",
+              "actual": "percent",
+              "correct": true
+            },
+            {
+              "case_id": "mortality_rate",
+              "dataset_id": "dataset:0002",
+              "subject": "Mortality rate attributed to exposure to unsafe WASH services",
+              "field": "domain",
+              "expected": "health",
+              "actual": "health",
+              "correct": true
+            },
+            {
+              "case_id": "mortality_rate",
+              "dataset_id": "dataset:0002",
+              "subject": "Mortality rate attributed to exposure to unsafe WASH services",
+              "field": "measure_kind",
+              "expected": "rate",
+              "actual": "rate",
+              "correct": true
+            },
+            {
+              "case_id": "mortality_rate",
+              "dataset_id": "dataset:0002",
+              "subject": "Mortality rate attributed to exposure to unsafe WASH services",
+              "field": "unit_kind",
+              "expected": "rate",
+              "actual": "rate",
+              "correct": true
+            },
+            {
+              "case_id": "wash_deaths",
+              "dataset_id": "dataset:0002",
+              "subject": "WASH deaths",
+              "field": "domain",
+              "expected": "health",
+              "actual": "health",
+              "correct": true
+            },
+            {
+              "case_id": "wash_deaths",
+              "dataset_id": "dataset:0002",
+              "subject": "WASH deaths",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "wash_deaths",
+              "dataset_id": "dataset:0002",
+              "subject": "WASH deaths",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "political_stability",
+              "dataset_id": "dataset:0003",
+              "subject": "Political_Stability",
+              "field": "concept",
+              "expected": "political_stability",
+              "actual": "political_stability",
+              "correct": true
+            },
+            {
+              "case_id": "political_stability",
+              "dataset_id": "dataset:0003",
+              "subject": "Political_Stability",
+              "field": "domain",
+              "expected": "governance",
+              "actual": "governance",
+              "correct": true
+            },
+            {
+              "case_id": "political_stability",
+              "dataset_id": "dataset:0003",
+              "subject": "Political_Stability",
+              "field": "semantic_group",
+              "expected": "political_stability",
+              "actual": "political_stability",
+              "correct": true
+            },
+            {
+              "case_id": "population",
+              "dataset_id": "dataset:0004",
+              "subject": "Population",
+              "field": "concept",
+              "expected": "population",
+              "actual": "population",
+              "correct": true
+            },
+            {
+              "case_id": "population",
+              "dataset_id": "dataset:0004",
+              "subject": "Population",
+              "field": "domain",
+              "expected": "demography",
+              "actual": "demography",
+              "correct": true
+            },
+            {
+              "case_id": "population",
+              "dataset_id": "dataset:0004",
+              "subject": "Population",
+              "field": "semantic_group",
+              "expected": "population_count",
+              "actual": "population_count",
+              "correct": true
+            },
+            {
+              "case_id": "population",
+              "dataset_id": "dataset:0004",
+              "subject": "Population",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "population",
+              "dataset_id": "dataset:0004",
+              "subject": "Population",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "region_display",
+              "dataset_id": "dataset:0005",
+              "subject": "REGION (DISPLAY)",
+              "field": "concept",
+              "expected": "region",
+              "actual": "region",
+              "correct": true
+            },
+            {
+              "case_id": "region_display",
+              "dataset_id": "dataset:0005",
+              "subject": "REGION (DISPLAY)",
+              "field": "domain",
+              "expected": "geography",
+              "actual": "geography",
+              "correct": true
+            },
+            {
+              "case_id": "region_display",
+              "dataset_id": "dataset:0005",
+              "subject": "REGION (DISPLAY)",
+              "field": "semantic_group",
+              "expected": "geography",
+              "actual": "geography",
+              "correct": true
+            },
+            {
+              "case_id": "region_display",
+              "dataset_id": "dataset:0005",
+              "subject": "REGION (DISPLAY)",
+              "field": "measure_kind",
+              "expected": "category",
+              "actual": "category",
+              "correct": true
+            },
+            {
+              "case_id": "region_display",
+              "dataset_id": "dataset:0005",
+              "subject": "REGION (DISPLAY)",
+              "field": "unit_kind",
+              "expected": "category",
+              "actual": "category",
+              "correct": true
+            },
+            {
+              "case_id": "country_display",
+              "dataset_id": "dataset:0005",
+              "subject": "COUNTRY (DISPLAY)",
+              "field": "concept",
+              "expected": "country",
+              "actual": "country",
+              "correct": true
+            },
+            {
+              "case_id": "country_display",
+              "dataset_id": "dataset:0005",
+              "subject": "COUNTRY (DISPLAY)",
+              "field": "domain",
+              "expected": "geography",
+              "actual": "geography",
+              "correct": true
+            },
+            {
+              "case_id": "country_display",
+              "dataset_id": "dataset:0005",
+              "subject": "COUNTRY (DISPLAY)",
+              "field": "semantic_group",
+              "expected": "geography",
+              "actual": "geography",
+              "correct": true
+            },
+            {
+              "case_id": "country_display",
+              "dataset_id": "dataset:0005",
+              "subject": "COUNTRY (DISPLAY)",
+              "field": "measure_kind",
+              "expected": "category",
+              "actual": "category",
+              "correct": true
+            },
+            {
+              "case_id": "country_display",
+              "dataset_id": "dataset:0005",
+              "subject": "COUNTRY (DISPLAY)",
+              "field": "unit_kind",
+              "expected": "category",
+              "actual": "category",
+              "correct": true
+            }
+          ],
+          "benchmark_rule_version": "semantic_benchmark_v0.2"
+        },
+        "raw_pairs": {
+          "benchmark_name": "semantic:dwfa:regression:v0.1:raw:pairs",
+          "case_count": 6,
+          "assertion_count": 26,
+          "correct_count": 26,
+          "incorrect_count": 0,
+          "accuracy": 1.0,
+          "field_accuracy": {
+            "compatible_units": 1.0,
+            "derived_gap_compatible": 1.0,
+            "distinct_variants": 1.0,
+            "same_concept_family": 1.0,
+            "same_domain": 1.0
+          },
+          "assertions": [
+            {
+              "case_id": "basic_safe_water",
+              "dataset_id": "dataset:0001",
+              "subject": "Population using at least basic drinking-water services (%) vs Population using safely managed drinking-water services (%)",
+              "field": "same_concept_family",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "basic_safe_water",
+              "dataset_id": "dataset:0001",
+              "subject": "Population using at least basic drinking-water services (%) vs Population using safely managed drinking-water services (%)",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "basic_safe_water",
+              "dataset_id": "dataset:0001",
+              "subject": "Population using at least basic drinking-water services (%) vs Population using safely managed drinking-water services (%)",
+              "field": "distinct_variants",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "basic_safe_water",
+              "dataset_id": "dataset:0001",
+              "subject": "Population using at least basic drinking-water services (%) vs Population using safely managed drinking-water services (%)",
+              "field": "compatible_units",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "basic_safe_water",
+              "dataset_id": "dataset:0001",
+              "subject": "Population using at least basic drinking-water services (%) vs Population using safely managed drinking-water services (%)",
+              "field": "derived_gap_compatible",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "mortality_deaths",
+              "dataset_id": "dataset:0002",
+              "subject": "Mortality rate attributed to exposure to unsafe WASH services vs WASH deaths",
+              "field": "same_concept_family",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "mortality_deaths",
+              "dataset_id": "dataset:0002",
+              "subject": "Mortality rate attributed to exposure to unsafe WASH services vs WASH deaths",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "mortality_deaths",
+              "dataset_id": "dataset:0002",
+              "subject": "Mortality rate attributed to exposure to unsafe WASH services vs WASH deaths",
+              "field": "distinct_variants",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "mortality_deaths",
+              "dataset_id": "dataset:0002",
+              "subject": "Mortality rate attributed to exposure to unsafe WASH services vs WASH deaths",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "mortality_deaths",
+              "dataset_id": "dataset:0002",
+              "subject": "Mortality rate attributed to exposure to unsafe WASH services vs WASH deaths",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "basic_political",
+              "dataset_id": "dataset:0001::dataset:0003",
+              "subject": "Population using at least basic drinking-water services (%) vs Political_Stability",
+              "field": "same_concept_family",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "basic_political",
+              "dataset_id": "dataset:0001::dataset:0003",
+              "subject": "Population using at least basic drinking-water services (%) vs Political_Stability",
+              "field": "same_domain",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "basic_political",
+              "dataset_id": "dataset:0001::dataset:0003",
+              "subject": "Population using at least basic drinking-water services (%) vs Political_Stability",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "basic_political",
+              "dataset_id": "dataset:0001::dataset:0003",
+              "subject": "Population using at least basic drinking-water services (%) vs Political_Stability",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "safe_political",
+              "dataset_id": "dataset:0001::dataset:0003",
+              "subject": "Population using safely managed drinking-water services (%) vs Political_Stability",
+              "field": "same_concept_family",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "safe_political",
+              "dataset_id": "dataset:0001::dataset:0003",
+              "subject": "Population using safely managed drinking-water services (%) vs Political_Stability",
+              "field": "same_domain",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "safe_political",
+              "dataset_id": "dataset:0001::dataset:0003",
+              "subject": "Population using safely managed drinking-water services (%) vs Political_Stability",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "safe_political",
+              "dataset_id": "dataset:0001::dataset:0003",
+              "subject": "Population using safely managed drinking-water services (%) vs Political_Stability",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "political_population",
+              "dataset_id": "dataset:0003::dataset:0004",
+              "subject": "Political_Stability vs Population",
+              "field": "same_concept_family",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "political_population",
+              "dataset_id": "dataset:0003::dataset:0004",
+              "subject": "Political_Stability vs Population",
+              "field": "same_domain",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "political_population",
+              "dataset_id": "dataset:0003::dataset:0004",
+              "subject": "Political_Stability vs Population",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "political_population",
+              "dataset_id": "dataset:0003::dataset:0004",
+              "subject": "Political_Stability vs Population",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "mortality_basic",
+              "dataset_id": "dataset:0002::dataset:0001",
+              "subject": "Mortality rate attributed to exposure to unsafe WASH services vs Population using at least basic drinking-water services (%)",
+              "field": "same_concept_family",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "mortality_basic",
+              "dataset_id": "dataset:0002::dataset:0001",
+              "subject": "Mortality rate attributed to exposure to unsafe WASH services vs Population using at least basic drinking-water services (%)",
+              "field": "same_domain",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "mortality_basic",
+              "dataset_id": "dataset:0002::dataset:0001",
+              "subject": "Mortality rate attributed to exposure to unsafe WASH services vs Population using at least basic drinking-water services (%)",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "mortality_basic",
+              "dataset_id": "dataset:0002::dataset:0001",
+              "subject": "Mortality rate attributed to exposure to unsafe WASH services vs Population using at least basic drinking-water services (%)",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            }
+          ],
+          "benchmark_rule_version": "semantic_benchmark_v0.2"
+        },
+        "normalized_pairs": {
+          "benchmark_name": "semantic:dwfa:regression:v0.1:normalized:pairs",
+          "case_count": 6,
+          "assertion_count": 26,
+          "correct_count": 26,
+          "incorrect_count": 0,
+          "accuracy": 1.0,
+          "field_accuracy": {
+            "compatible_units": 1.0,
+            "derived_gap_compatible": 1.0,
+            "distinct_variants": 1.0,
+            "same_concept_family": 1.0,
+            "same_domain": 1.0
+          },
+          "assertions": [
+            {
+              "case_id": "basic_safe_water",
+              "dataset_id": "dataset:0001",
+              "subject": "Population using at least basic drinking-water services (%) vs Population using safely managed drinking-water services (%)",
+              "field": "same_concept_family",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "basic_safe_water",
+              "dataset_id": "dataset:0001",
+              "subject": "Population using at least basic drinking-water services (%) vs Population using safely managed drinking-water services (%)",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "basic_safe_water",
+              "dataset_id": "dataset:0001",
+              "subject": "Population using at least basic drinking-water services (%) vs Population using safely managed drinking-water services (%)",
+              "field": "distinct_variants",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "basic_safe_water",
+              "dataset_id": "dataset:0001",
+              "subject": "Population using at least basic drinking-water services (%) vs Population using safely managed drinking-water services (%)",
+              "field": "compatible_units",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "basic_safe_water",
+              "dataset_id": "dataset:0001",
+              "subject": "Population using at least basic drinking-water services (%) vs Population using safely managed drinking-water services (%)",
+              "field": "derived_gap_compatible",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "mortality_deaths",
+              "dataset_id": "dataset:0002",
+              "subject": "Mortality rate attributed to exposure to unsafe WASH services vs WASH deaths",
+              "field": "same_concept_family",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "mortality_deaths",
+              "dataset_id": "dataset:0002",
+              "subject": "Mortality rate attributed to exposure to unsafe WASH services vs WASH deaths",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "mortality_deaths",
+              "dataset_id": "dataset:0002",
+              "subject": "Mortality rate attributed to exposure to unsafe WASH services vs WASH deaths",
+              "field": "distinct_variants",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "mortality_deaths",
+              "dataset_id": "dataset:0002",
+              "subject": "Mortality rate attributed to exposure to unsafe WASH services vs WASH deaths",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "mortality_deaths",
+              "dataset_id": "dataset:0002",
+              "subject": "Mortality rate attributed to exposure to unsafe WASH services vs WASH deaths",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "basic_political",
+              "dataset_id": "dataset:0001::dataset:0003",
+              "subject": "Population using at least basic drinking-water services (%) vs Political_Stability",
+              "field": "same_concept_family",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "basic_political",
+              "dataset_id": "dataset:0001::dataset:0003",
+              "subject": "Population using at least basic drinking-water services (%) vs Political_Stability",
+              "field": "same_domain",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "basic_political",
+              "dataset_id": "dataset:0001::dataset:0003",
+              "subject": "Population using at least basic drinking-water services (%) vs Political_Stability",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "basic_political",
+              "dataset_id": "dataset:0001::dataset:0003",
+              "subject": "Population using at least basic drinking-water services (%) vs Political_Stability",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "safe_political",
+              "dataset_id": "dataset:0001::dataset:0003",
+              "subject": "Population using safely managed drinking-water services (%) vs Political_Stability",
+              "field": "same_concept_family",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "safe_political",
+              "dataset_id": "dataset:0001::dataset:0003",
+              "subject": "Population using safely managed drinking-water services (%) vs Political_Stability",
+              "field": "same_domain",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "safe_political",
+              "dataset_id": "dataset:0001::dataset:0003",
+              "subject": "Population using safely managed drinking-water services (%) vs Political_Stability",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "safe_political",
+              "dataset_id": "dataset:0001::dataset:0003",
+              "subject": "Population using safely managed drinking-water services (%) vs Political_Stability",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "political_population",
+              "dataset_id": "dataset:0003::dataset:0004",
+              "subject": "Political_Stability vs Population",
+              "field": "same_concept_family",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "political_population",
+              "dataset_id": "dataset:0003::dataset:0004",
+              "subject": "Political_Stability vs Population",
+              "field": "same_domain",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "political_population",
+              "dataset_id": "dataset:0003::dataset:0004",
+              "subject": "Political_Stability vs Population",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "political_population",
+              "dataset_id": "dataset:0003::dataset:0004",
+              "subject": "Political_Stability vs Population",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "mortality_basic",
+              "dataset_id": "dataset:0002::dataset:0001",
+              "subject": "Mortality rate attributed to exposure to unsafe WASH services vs Population using at least basic drinking-water services (%)",
+              "field": "same_concept_family",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "mortality_basic",
+              "dataset_id": "dataset:0002::dataset:0001",
+              "subject": "Mortality rate attributed to exposure to unsafe WASH services vs Population using at least basic drinking-water services (%)",
+              "field": "same_domain",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "mortality_basic",
+              "dataset_id": "dataset:0002::dataset:0001",
+              "subject": "Mortality rate attributed to exposure to unsafe WASH services vs Population using at least basic drinking-water services (%)",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "mortality_basic",
+              "dataset_id": "dataset:0002::dataset:0001",
+              "subject": "Mortality rate attributed to exposure to unsafe WASH services vs Population using at least basic drinking-water services (%)",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            }
+          ],
+          "benchmark_rule_version": "semantic_benchmark_v0.2"
+        },
+        "raw_correct_count": 60,
+        "raw_assertion_count": 62,
+        "normalized_correct_count": 62,
+        "normalized_assertion_count": 62,
+        "raw_accuracy": 0.967742,
+        "normalized_accuracy": 1.0,
+        "raw_safety_assertion_count": 12,
+        "raw_safety_failure_count": 0,
+        "normalized_safety_assertion_count": 12,
+        "normalized_safety_failure_count": 0,
+        "raw_safety_failures": [],
+        "normalized_safety_failures": [],
+        "normalized_failures": []
+      },
+      {
+        "benchmark_id": "semantic:ecommerce:regression:v0.1",
+        "benchmark_name": "E-commerce semantic regression",
+        "domain": "commerce",
+        "split": "regression",
+        "raw_columns": {
+          "benchmark_name": "semantic:ecommerce:regression:v0.1:raw:columns",
+          "case_count": 7,
+          "assertion_count": 22,
+          "correct_count": 6,
+          "incorrect_count": 16,
+          "accuracy": 0.272727,
+          "field_accuracy": {
+            "measure_kind": 0.571429,
+            "semantic_group": 0.5,
+            "unit_kind": 0.0,
+            "variant": 0.0
+          },
+          "assertions": [
+            {
+              "case_id": "retail_price",
+              "dataset_id": "commerce:0001",
+              "subject": "Retail price",
+              "field": "semantic_group",
+              "expected": "price",
+              "actual": "price",
+              "correct": true
+            },
+            {
+              "case_id": "retail_price",
+              "dataset_id": "commerce:0001",
+              "subject": "Retail price",
+              "field": "variant",
+              "expected": "retail",
+              "actual": "target",
+              "correct": false
+            },
+            {
+              "case_id": "retail_price",
+              "dataset_id": "commerce:0001",
+              "subject": "Retail price",
+              "field": "measure_kind",
+              "expected": "currency",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "retail_price",
+              "dataset_id": "commerce:0001",
+              "subject": "Retail price",
+              "field": "unit_kind",
+              "expected": "currency",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "wholesale_price",
+              "dataset_id": "commerce:0001",
+              "subject": "Wholesale price",
+              "field": "semantic_group",
+              "expected": "price",
+              "actual": "price",
+              "correct": true
+            },
+            {
+              "case_id": "wholesale_price",
+              "dataset_id": "commerce:0001",
+              "subject": "Wholesale price",
+              "field": "variant",
+              "expected": "wholesale",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "wholesale_price",
+              "dataset_id": "commerce:0001",
+              "subject": "Wholesale price",
+              "field": "measure_kind",
+              "expected": "currency",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "wholesale_price",
+              "dataset_id": "commerce:0001",
+              "subject": "Wholesale price",
+              "field": "unit_kind",
+              "expected": "currency",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "units_ordered",
+              "dataset_id": "commerce:0001",
+              "subject": "Units ordered",
+              "field": "semantic_group",
+              "expected": "units",
+              "actual": "order_volume",
+              "correct": false
+            },
+            {
+              "case_id": "units_ordered",
+              "dataset_id": "commerce:0001",
+              "subject": "Units ordered",
+              "field": "variant",
+              "expected": "ordered",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "units_ordered",
+              "dataset_id": "commerce:0001",
+              "subject": "Units ordered",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "units_ordered",
+              "dataset_id": "commerce:0001",
+              "subject": "Units ordered",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "units_shipped",
+              "dataset_id": "commerce:0001",
+              "subject": "Units shipped",
+              "field": "semantic_group",
+              "expected": "units",
+              "actual": "shipments",
+              "correct": false
+            },
+            {
+              "case_id": "units_shipped",
+              "dataset_id": "commerce:0001",
+              "subject": "Units shipped",
+              "field": "variant",
+              "expected": "shipped",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "units_shipped",
+              "dataset_id": "commerce:0001",
+              "subject": "Units shipped",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "units_shipped",
+              "dataset_id": "commerce:0001",
+              "subject": "Units shipped",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "website_sessions",
+              "dataset_id": "commerce:0001",
+              "subject": "Website sessions",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "website_sessions",
+              "dataset_id": "commerce:0001",
+              "subject": "Website sessions",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "customer_tenure",
+              "dataset_id": "commerce:0001",
+              "subject": "Customer tenure (months)",
+              "field": "measure_kind",
+              "expected": "duration",
+              "actual": "duration",
+              "correct": true
+            },
+            {
+              "case_id": "customer_tenure",
+              "dataset_id": "commerce:0001",
+              "subject": "Customer tenure (months)",
+              "field": "unit_kind",
+              "expected": "duration",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "sales_amount",
+              "dataset_id": "commerce:0001",
+              "subject": "Sales amount",
+              "field": "measure_kind",
+              "expected": "currency",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "sales_amount",
+              "dataset_id": "commerce:0001",
+              "subject": "Sales amount",
+              "field": "unit_kind",
+              "expected": "currency",
+              "actual": "unknown",
+              "correct": false
+            }
+          ],
+          "benchmark_rule_version": "semantic_benchmark_v0.2"
+        },
+        "normalized_columns": {
+          "benchmark_name": "semantic:ecommerce:regression:v0.1:normalized:columns",
+          "case_count": 7,
+          "assertion_count": 22,
+          "correct_count": 22,
+          "incorrect_count": 0,
+          "accuracy": 1.0,
+          "field_accuracy": {
+            "measure_kind": 1.0,
+            "semantic_group": 1.0,
+            "unit_kind": 1.0,
+            "variant": 1.0
+          },
+          "assertions": [
+            {
+              "case_id": "retail_price",
+              "dataset_id": "commerce:0001",
+              "subject": "Retail price",
+              "field": "semantic_group",
+              "expected": "price",
+              "actual": "price",
+              "correct": true
+            },
+            {
+              "case_id": "retail_price",
+              "dataset_id": "commerce:0001",
+              "subject": "Retail price",
+              "field": "variant",
+              "expected": "retail",
+              "actual": "retail",
+              "correct": true
+            },
+            {
+              "case_id": "retail_price",
+              "dataset_id": "commerce:0001",
+              "subject": "Retail price",
+              "field": "measure_kind",
+              "expected": "currency",
+              "actual": "currency",
+              "correct": true
+            },
+            {
+              "case_id": "retail_price",
+              "dataset_id": "commerce:0001",
+              "subject": "Retail price",
+              "field": "unit_kind",
+              "expected": "currency",
+              "actual": "currency",
+              "correct": true
+            },
+            {
+              "case_id": "wholesale_price",
+              "dataset_id": "commerce:0001",
+              "subject": "Wholesale price",
+              "field": "semantic_group",
+              "expected": "price",
+              "actual": "price",
+              "correct": true
+            },
+            {
+              "case_id": "wholesale_price",
+              "dataset_id": "commerce:0001",
+              "subject": "Wholesale price",
+              "field": "variant",
+              "expected": "wholesale",
+              "actual": "wholesale",
+              "correct": true
+            },
+            {
+              "case_id": "wholesale_price",
+              "dataset_id": "commerce:0001",
+              "subject": "Wholesale price",
+              "field": "measure_kind",
+              "expected": "currency",
+              "actual": "currency",
+              "correct": true
+            },
+            {
+              "case_id": "wholesale_price",
+              "dataset_id": "commerce:0001",
+              "subject": "Wholesale price",
+              "field": "unit_kind",
+              "expected": "currency",
+              "actual": "currency",
+              "correct": true
+            },
+            {
+              "case_id": "units_ordered",
+              "dataset_id": "commerce:0001",
+              "subject": "Units ordered",
+              "field": "semantic_group",
+              "expected": "units",
+              "actual": "units",
+              "correct": true
+            },
+            {
+              "case_id": "units_ordered",
+              "dataset_id": "commerce:0001",
+              "subject": "Units ordered",
+              "field": "variant",
+              "expected": "ordered",
+              "actual": "ordered",
+              "correct": true
+            },
+            {
+              "case_id": "units_ordered",
+              "dataset_id": "commerce:0001",
+              "subject": "Units ordered",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "units_ordered",
+              "dataset_id": "commerce:0001",
+              "subject": "Units ordered",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "units_shipped",
+              "dataset_id": "commerce:0001",
+              "subject": "Units shipped",
+              "field": "semantic_group",
+              "expected": "units",
+              "actual": "units",
+              "correct": true
+            },
+            {
+              "case_id": "units_shipped",
+              "dataset_id": "commerce:0001",
+              "subject": "Units shipped",
+              "field": "variant",
+              "expected": "shipped",
+              "actual": "shipped",
+              "correct": true
+            },
+            {
+              "case_id": "units_shipped",
+              "dataset_id": "commerce:0001",
+              "subject": "Units shipped",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "units_shipped",
+              "dataset_id": "commerce:0001",
+              "subject": "Units shipped",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "website_sessions",
+              "dataset_id": "commerce:0001",
+              "subject": "Website sessions",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "website_sessions",
+              "dataset_id": "commerce:0001",
+              "subject": "Website sessions",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "customer_tenure",
+              "dataset_id": "commerce:0001",
+              "subject": "Customer tenure (months)",
+              "field": "measure_kind",
+              "expected": "duration",
+              "actual": "duration",
+              "correct": true
+            },
+            {
+              "case_id": "customer_tenure",
+              "dataset_id": "commerce:0001",
+              "subject": "Customer tenure (months)",
+              "field": "unit_kind",
+              "expected": "duration",
+              "actual": "duration",
+              "correct": true
+            },
+            {
+              "case_id": "sales_amount",
+              "dataset_id": "commerce:0001",
+              "subject": "Sales amount",
+              "field": "measure_kind",
+              "expected": "currency",
+              "actual": "currency",
+              "correct": true
+            },
+            {
+              "case_id": "sales_amount",
+              "dataset_id": "commerce:0001",
+              "subject": "Sales amount",
+              "field": "unit_kind",
+              "expected": "currency",
+              "actual": "currency",
+              "correct": true
+            }
+          ],
+          "benchmark_rule_version": "semantic_benchmark_v0.2"
+        },
+        "raw_pairs": {
+          "benchmark_name": "semantic:ecommerce:regression:v0.1:raw:pairs",
+          "case_count": 4,
+          "assertion_count": 18,
+          "correct_count": 11,
+          "incorrect_count": 7,
+          "accuracy": 0.611111,
+          "field_accuracy": {
+            "compatible_units": 0.5,
+            "derived_gap_compatible": 0.5,
+            "distinct_variants": 0.0,
+            "same_concept_family": 0.75,
+            "same_domain": 1.0
+          },
+          "assertions": [
+            {
+              "case_id": "retail_wholesale",
+              "dataset_id": "commerce:0001",
+              "subject": "Retail price vs Wholesale price",
+              "field": "same_concept_family",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "retail_wholesale",
+              "dataset_id": "commerce:0001",
+              "subject": "Retail price vs Wholesale price",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "retail_wholesale",
+              "dataset_id": "commerce:0001",
+              "subject": "Retail price vs Wholesale price",
+              "field": "distinct_variants",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "retail_wholesale",
+              "dataset_id": "commerce:0001",
+              "subject": "Retail price vs Wholesale price",
+              "field": "compatible_units",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "retail_wholesale",
+              "dataset_id": "commerce:0001",
+              "subject": "Retail price vs Wholesale price",
+              "field": "derived_gap_compatible",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "ordered_shipped",
+              "dataset_id": "commerce:0001",
+              "subject": "Units ordered vs Units shipped",
+              "field": "same_concept_family",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "ordered_shipped",
+              "dataset_id": "commerce:0001",
+              "subject": "Units ordered vs Units shipped",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "ordered_shipped",
+              "dataset_id": "commerce:0001",
+              "subject": "Units ordered vs Units shipped",
+              "field": "distinct_variants",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "ordered_shipped",
+              "dataset_id": "commerce:0001",
+              "subject": "Units ordered vs Units shipped",
+              "field": "compatible_units",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "ordered_shipped",
+              "dataset_id": "commerce:0001",
+              "subject": "Units ordered vs Units shipped",
+              "field": "derived_gap_compatible",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "tenure_sales",
+              "dataset_id": "commerce:0001",
+              "subject": "Customer tenure (months) vs Sales amount",
+              "field": "same_concept_family",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "tenure_sales",
+              "dataset_id": "commerce:0001",
+              "subject": "Customer tenure (months) vs Sales amount",
+              "field": "same_domain",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "tenure_sales",
+              "dataset_id": "commerce:0001",
+              "subject": "Customer tenure (months) vs Sales amount",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "tenure_sales",
+              "dataset_id": "commerce:0001",
+              "subject": "Customer tenure (months) vs Sales amount",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "sessions_sales",
+              "dataset_id": "commerce:0001",
+              "subject": "Website sessions vs Sales amount",
+              "field": "same_concept_family",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "sessions_sales",
+              "dataset_id": "commerce:0001",
+              "subject": "Website sessions vs Sales amount",
+              "field": "same_domain",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "sessions_sales",
+              "dataset_id": "commerce:0001",
+              "subject": "Website sessions vs Sales amount",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "sessions_sales",
+              "dataset_id": "commerce:0001",
+              "subject": "Website sessions vs Sales amount",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            }
+          ],
+          "benchmark_rule_version": "semantic_benchmark_v0.2"
+        },
+        "normalized_pairs": {
+          "benchmark_name": "semantic:ecommerce:regression:v0.1:normalized:pairs",
+          "case_count": 4,
+          "assertion_count": 18,
+          "correct_count": 18,
+          "incorrect_count": 0,
+          "accuracy": 1.0,
+          "field_accuracy": {
+            "compatible_units": 1.0,
+            "derived_gap_compatible": 1.0,
+            "distinct_variants": 1.0,
+            "same_concept_family": 1.0,
+            "same_domain": 1.0
+          },
+          "assertions": [
+            {
+              "case_id": "retail_wholesale",
+              "dataset_id": "commerce:0001",
+              "subject": "Retail price vs Wholesale price",
+              "field": "same_concept_family",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "retail_wholesale",
+              "dataset_id": "commerce:0001",
+              "subject": "Retail price vs Wholesale price",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "retail_wholesale",
+              "dataset_id": "commerce:0001",
+              "subject": "Retail price vs Wholesale price",
+              "field": "distinct_variants",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "retail_wholesale",
+              "dataset_id": "commerce:0001",
+              "subject": "Retail price vs Wholesale price",
+              "field": "compatible_units",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "retail_wholesale",
+              "dataset_id": "commerce:0001",
+              "subject": "Retail price vs Wholesale price",
+              "field": "derived_gap_compatible",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "ordered_shipped",
+              "dataset_id": "commerce:0001",
+              "subject": "Units ordered vs Units shipped",
+              "field": "same_concept_family",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "ordered_shipped",
+              "dataset_id": "commerce:0001",
+              "subject": "Units ordered vs Units shipped",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "ordered_shipped",
+              "dataset_id": "commerce:0001",
+              "subject": "Units ordered vs Units shipped",
+              "field": "distinct_variants",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "ordered_shipped",
+              "dataset_id": "commerce:0001",
+              "subject": "Units ordered vs Units shipped",
+              "field": "compatible_units",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "ordered_shipped",
+              "dataset_id": "commerce:0001",
+              "subject": "Units ordered vs Units shipped",
+              "field": "derived_gap_compatible",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "tenure_sales",
+              "dataset_id": "commerce:0001",
+              "subject": "Customer tenure (months) vs Sales amount",
+              "field": "same_concept_family",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "tenure_sales",
+              "dataset_id": "commerce:0001",
+              "subject": "Customer tenure (months) vs Sales amount",
+              "field": "same_domain",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "tenure_sales",
+              "dataset_id": "commerce:0001",
+              "subject": "Customer tenure (months) vs Sales amount",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "tenure_sales",
+              "dataset_id": "commerce:0001",
+              "subject": "Customer tenure (months) vs Sales amount",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "sessions_sales",
+              "dataset_id": "commerce:0001",
+              "subject": "Website sessions vs Sales amount",
+              "field": "same_concept_family",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "sessions_sales",
+              "dataset_id": "commerce:0001",
+              "subject": "Website sessions vs Sales amount",
+              "field": "same_domain",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "sessions_sales",
+              "dataset_id": "commerce:0001",
+              "subject": "Website sessions vs Sales amount",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "sessions_sales",
+              "dataset_id": "commerce:0001",
+              "subject": "Website sessions vs Sales amount",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            }
+          ],
+          "benchmark_rule_version": "semantic_benchmark_v0.2"
+        },
+        "raw_correct_count": 17,
+        "raw_assertion_count": 40,
+        "normalized_correct_count": 40,
+        "normalized_assertion_count": 40,
+        "raw_accuracy": 0.425,
+        "normalized_accuracy": 1.0,
+        "raw_safety_assertion_count": 8,
+        "raw_safety_failure_count": 4,
+        "normalized_safety_assertion_count": 8,
+        "normalized_safety_failure_count": 0,
+        "raw_safety_failures": [
+          {
+            "case_id": "retail_wholesale",
+            "dataset_id": "commerce:0001",
+            "subject": "Retail price vs Wholesale price",
+            "field": "compatible_units",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "retail_wholesale",
+            "dataset_id": "commerce:0001",
+            "subject": "Retail price vs Wholesale price",
+            "field": "derived_gap_compatible",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "ordered_shipped",
+            "dataset_id": "commerce:0001",
+            "subject": "Units ordered vs Units shipped",
+            "field": "compatible_units",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "ordered_shipped",
+            "dataset_id": "commerce:0001",
+            "subject": "Units ordered vs Units shipped",
+            "field": "derived_gap_compatible",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          }
+        ],
+        "normalized_safety_failures": [],
+        "normalized_failures": []
+      }
+    ],
+    "runner_rule_version": "semantic_global_benchmark_runner_v0.1"
+  },
+  "notes": [
+    "Frozen regression baseline before Manufacturing Holdout #1 adaptation."
+  ],
+  "snapshot_rule_version": "semantic_experiment_snapshot_v0.1"
+}

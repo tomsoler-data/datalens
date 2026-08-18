@@ -1,0 +1,130 @@
+{
+  "status": "ready",
+  "planner": {
+    "status": "ready",
+    "objective": "Analyser la distribution de revenue.",
+    "model": "gemma3:4b",
+    "proposal_count": 1,
+    "validated_count": 0,
+    "blocked_count": 0,
+    "ambiguous_count": 1,
+    "rejected_count": 0,
+    "items": [
+      {
+        "proposal_index": 1,
+        "validation_status": "ambiguous",
+        "raw_proposal": {
+          "decision": "propose",
+          "title": "Analyser la distribution de revenue",
+          "family": "distribution",
+          "dataset_id": "dataset:0001",
+          "analytical_grain": "none",
+          "x_column": null,
+          "y_column": "revenue",
+          "group_column": null,
+          "value_column": "revenue",
+          "time_column": null,
+          "dimension_column": null,
+          "entity_column": null,
+          "aggregation_function": "none",
+          "ranking_order": "none",
+          "ranking_limit": null,
+          "window_operation": "none",
+          "window_size": null,
+          "blockers": [],
+          "reasons": [],
+          "confidence": 0.95
+        },
+        "proposal": {
+          "decision": "ambiguous",
+          "title": "Analyser la distribution de revenue",
+          "family": "distribution",
+          "dataset_id": null,
+          "analytical_grain": "none",
+          "x_column": null,
+          "y_column": null,
+          "group_column": null,
+          "value_column": null,
+          "time_column": null,
+          "dimension_column": null,
+          "entity_column": null,
+          "aggregation_function": "none",
+          "ranking_order": "none",
+          "ranking_limit": null,
+          "window_operation": "none",
+          "window_size": null,
+          "blockers": [
+            "AMBIGUÏTÉ DATASET : plusieurs datasets peuvent exécuter exactement cette demande avec les mêmes rôles de colonnes (online_sales.csv, retail_sales.csv). Précisez le fichier à utiliser."
+          ],
+          "reasons": [
+            "Python a refusé le dataset_id choisi par le LLM car plusieurs datasets sont déterministiquement compatibles."
+          ],
+          "confidence": 0.95
+        },
+        "contract": {
+          "contract_id": "ai:9c540c693e74786c:01",
+          "contract_version": "analytical_contract_v0.2",
+          "origin": "ai_planner",
+          "status": "ambiguous",
+          "title": "Analyser la distribution de revenue",
+          "request_text": "Analyser la distribution de revenue.",
+          "family": "distribution",
+          "required_dataset_ids": [],
+          "required_dataset_filenames": [],
+          "analytical_grain": "none",
+          "bindings": [],
+          "aggregation": null,
+          "ranking": null,
+          "window": null,
+          "filters": [],
+          "joins": [],
+          "derived_variables": [],
+          "required_operations": [],
+          "provenance": null,
+          "reasons": [
+            "Python a refusé le dataset_id choisi par le LLM car plusieurs datasets sont déterministiquement compatibles."
+          ],
+          "blockers": [
+            "AMBIGUÏTÉ DATASET : plusieurs datasets peuvent exécuter exactement cette demande avec les mêmes rôles de colonnes (online_sales.csv, retail_sales.csv). Précisez le fichier à utiliser."
+          ],
+          "planner_confidence": 0.95
+        },
+        "errors": [],
+        "warnings": [],
+        "normalizations": [
+          "Python a supprimé des rôles de protocole non pertinents pour `distribution` : y_column. Le contrat canonique conserve uniquement value."
+        ]
+      }
+    ],
+    "attempt_count": 1,
+    "retry_count": 0,
+    "retry_triggered": false,
+    "retry_feedback": [],
+    "normalization_count": 1,
+    "normalization_applied": true,
+    "planner_rule_version": "ai_analytical_planner_v0.14"
+  },
+  "planner_model": "gemma3:4b",
+  "tool_model": "qwen2.5:1.5b-instruct",
+  "supported_native_families": [
+    "categorical_association",
+    "distribution",
+    "group_comparison",
+    "quantitative_association",
+    "time_series"
+  ],
+  "validated_contract_count": 0,
+  "pipeline_item_count": 0,
+  "executed_count": 0,
+  "not_supported_count": 0,
+  "rejected_count": 0,
+  "items": [],
+  "notes": [
+    "Stage 1: Gemma proposes a structured analytical contract from the user objective and dataset catalog.",
+    "Stage 2: Python validates dataset ids, column names, analytical types and contract invariants.",
+    "Stage 3: Qwen selects one matching function from the native DataLens tool catalog.",
+    "Stage 4: Python verifies the selected tool against the validated family and checks every argument.",
+    "Stage 5: the deterministic DataLens executor computes the result."
+  ],
+  "pipeline_rule_version": "ai_native_pipeline_v0.2"
+}

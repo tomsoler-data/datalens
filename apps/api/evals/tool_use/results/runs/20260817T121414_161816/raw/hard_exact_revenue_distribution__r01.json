@@ -1,0 +1,339 @@
+{
+  "status": "ready",
+  "planner": {
+    "status": "ready",
+    "objective": "Analyser la distribution de revenue.",
+    "model": "gemma3:4b",
+    "proposal_count": 1,
+    "validated_count": 1,
+    "blocked_count": 0,
+    "ambiguous_count": 0,
+    "rejected_count": 0,
+    "items": [
+      {
+        "proposal_index": 1,
+        "validation_status": "validated",
+        "raw_proposal": {
+          "decision": "propose",
+          "title": "Analyser la distribution de revenue",
+          "family": "distribution",
+          "dataset_id": "dataset:0001",
+          "analytical_grain": "none",
+          "x_column": null,
+          "y_column": "revenue",
+          "group_column": null,
+          "value_column": "revenue",
+          "time_column": null,
+          "dimension_column": null,
+          "entity_column": null,
+          "aggregation_function": "none",
+          "ranking_order": "none",
+          "ranking_limit": null,
+          "window_operation": "none",
+          "window_size": null,
+          "blockers": [],
+          "reasons": [],
+          "confidence": 0.95
+        },
+        "proposal": {
+          "decision": "propose",
+          "title": "Analyser la distribution de revenue",
+          "family": "distribution",
+          "dataset_id": "dataset:0001",
+          "analytical_grain": "none",
+          "x_column": null,
+          "y_column": null,
+          "group_column": null,
+          "value_column": "revenue",
+          "time_column": null,
+          "dimension_column": null,
+          "entity_column": null,
+          "aggregation_function": "none",
+          "ranking_order": "none",
+          "ranking_limit": null,
+          "window_operation": "none",
+          "window_size": null,
+          "blockers": [],
+          "reasons": [],
+          "confidence": 0.95
+        },
+        "contract": {
+          "contract_id": "ai:ec9c6e89b7e5ddc3:01",
+          "contract_version": "analytical_contract_v0.2",
+          "origin": "ai_planner",
+          "status": "validated",
+          "title": "Analyser la distribution de revenue",
+          "request_text": "Analyser la distribution de revenue.",
+          "family": "distribution",
+          "required_dataset_ids": [
+            "dataset:0001"
+          ],
+          "required_dataset_filenames": [
+            "semantic_collision_benchmark.csv"
+          ],
+          "analytical_grain": "none",
+          "bindings": [
+            {
+              "role": "value",
+              "column": "revenue",
+              "dataset_id": "dataset:0001",
+              "dataset_filename": "semantic_collision_benchmark.csv",
+              "semantic_concept": null,
+              "analysis_kind": "quantitative"
+            }
+          ],
+          "aggregation": null,
+          "ranking": null,
+          "window": null,
+          "filters": [],
+          "joins": [],
+          "derived_variables": [],
+          "required_operations": [
+            "Validate AI-proposed analytical plan against the deterministic dataset catalog.",
+            "Execute only through a deterministic distribution tool."
+          ],
+          "provenance": null,
+          "reasons": [
+            "Le LLM local a proposé la famille analytique et les rôles de colonnes.",
+            "Python a supprimé des rôles de protocole non pertinents pour `distribution` : y_column. Le contrat canonique conserve uniquement value.",
+            "Python a vérifié dataset_id, noms de colonnes, types analytiques et invariants du contrat avant promotion vers `validated`."
+          ],
+          "blockers": [],
+          "planner_confidence": 0.95
+        },
+        "errors": [],
+        "warnings": [],
+        "normalizations": [
+          "Python a supprimé des rôles de protocole non pertinents pour `distribution` : y_column. Le contrat canonique conserve uniquement value."
+        ]
+      }
+    ],
+    "attempt_count": 1,
+    "retry_count": 0,
+    "retry_triggered": false,
+    "retry_feedback": [],
+    "normalization_count": 1,
+    "normalization_applied": true,
+    "planner_rule_version": "ai_analytical_planner_v0.14"
+  },
+  "planner_model": "gemma3:4b",
+  "tool_model": "qwen2.5:1.5b-instruct",
+  "supported_native_families": [
+    "categorical_association",
+    "distribution",
+    "group_comparison",
+    "quantitative_association",
+    "time_series"
+  ],
+  "validated_contract_count": 1,
+  "pipeline_item_count": 1,
+  "executed_count": 1,
+  "not_supported_count": 0,
+  "rejected_count": 0,
+  "items": [
+    {
+      "contract_id": "ai:ec9c6e89b7e5ddc3:01",
+      "family": "distribution",
+      "pipeline_status": "executed",
+      "native_tool": {
+        "status": "ready",
+        "model": "qwen2.5:1.5b-instruct",
+        "contract_id": "ai:ec9c6e89b7e5ddc3:01",
+        "contract_family": "distribution",
+        "available_tools": [
+          "run_categorical_association",
+          "run_distribution",
+          "run_group_comparison",
+          "run_quantitative_association",
+          "run_time_series"
+        ],
+        "expected_tool": "run_distribution",
+        "tool_call_received": true,
+        "requested_tool": "run_distribution",
+        "requested_arguments": {
+          "dataset_id": "dataset:0001",
+          "value_column": "revenue"
+        },
+        "validation_status": "validated",
+        "validation_errors": [],
+        "attempt_count": 1,
+        "retry_count": 0,
+        "attempts": [
+          {
+            "attempt_index": 1,
+            "prompt_variant": "standard",
+            "tool_call_count": 1,
+            "assistant_content": "",
+            "selected_tool_name": "run_distribution",
+            "errors": []
+          }
+        ],
+        "execution": {
+          "call_index": 1,
+          "contract_id": "ai:ec9c6e89b7e5ddc3:01",
+          "family": "distribution",
+          "tool_name": "run_distribution",
+          "selection_source": "validated_contract_family",
+          "execution_status": "executed",
+          "dataset_id": "dataset:0001",
+          "dataset_filename": "semantic_collision_benchmark.csv",
+          "arguments": {
+            "family": "distribution",
+            "dataset_ids": [
+              "dataset:0001"
+            ],
+            "analytical_grain": "none",
+            "variables": {
+              "value": "revenue"
+            },
+            "aggregation": null
+          },
+          "result": {
+            "analysis_id": "ai_tool:ai:ec9c6e89b7e5ddc3:01",
+            "dataset_id": "dataset:0001",
+            "dataset_filename": "semantic_collision_benchmark.csv",
+            "title": "Analyser la distribution de revenue",
+            "family": "distribution",
+            "planned_readiness": "executable_now",
+            "execution_status": "complete",
+            "chart_type": "histogram",
+            "summary": [
+              "288 valeur(s) valides ont été analysées pour revenue.",
+              "La médiane est 3291 et l'intervalle interquartile s'étend de 2930 à 3652.",
+              "0 observation(s) se situent en dehors des bornes IQR 1,5."
+            ],
+            "metrics": {
+              "column": "revenue",
+              "count": 288,
+              "missing_count": 0,
+              "mean": 3294.616666666667,
+              "median": 3291.0,
+              "std": 467.8203529647717,
+              "min": 2281.0,
+              "q1": 2930.5,
+              "q3": 3651.5,
+              "max": 4327.8,
+              "iqr": 721.0,
+              "outlier_count_iqr": 0,
+              "outlier_ratio_iqr": 0.0,
+              "skewness": 0.0061973601990099715
+            },
+            "chart_data": [
+              {
+                "bin_start": 2281.0,
+                "bin_end": 2408.925,
+                "count": 5
+              },
+              {
+                "bin_start": 2408.925,
+                "bin_end": 2536.85,
+                "count": 9
+              },
+              {
+                "bin_start": 2536.85,
+                "bin_end": 2664.775,
+                "count": 15
+              },
+              {
+                "bin_start": 2664.775,
+                "bin_end": 2792.7,
+                "count": 18
+              },
+              {
+                "bin_start": 2792.7,
+                "bin_end": 2920.625,
+                "count": 23
+              },
+              {
+                "bin_start": 2920.625,
+                "bin_end": 3048.55,
+                "count": 26
+              },
+              {
+                "bin_start": 3048.55,
+                "bin_end": 3176.4750000000004,
+                "count": 25
+              },
+              {
+                "bin_start": 3176.4750000000004,
+                "bin_end": 3304.4,
+                "count": 26
+              },
+              {
+                "bin_start": 3304.4,
+                "bin_end": 3432.325,
+                "count": 25
+              },
+              {
+                "bin_start": 3432.325,
+                "bin_end": 3560.25,
+                "count": 25
+              },
+              {
+                "bin_start": 3560.25,
+                "bin_end": 3688.175,
+                "count": 26
+              },
+              {
+                "bin_start": 3688.175,
+                "bin_end": 3816.1000000000004,
+                "count": 22
+              },
+              {
+                "bin_start": 3816.1000000000004,
+                "bin_end": 3944.025,
+                "count": 17
+              },
+              {
+                "bin_start": 3944.025,
+                "bin_end": 4071.9500000000003,
+                "count": 13
+              },
+              {
+                "bin_start": 4071.9500000000003,
+                "bin_end": 4199.875,
+                "count": 8
+              },
+              {
+                "bin_start": 4199.875,
+                "bin_end": 4327.8,
+                "count": 5
+              }
+            ],
+            "statistical_decision": null,
+            "statistical_result": null,
+            "visualization": null,
+            "warnings": [],
+            "limitations": [
+              "AI tool orchestration v0.2 supports only single-dataset contracts and does not allow LLM-generated joins, derived variables or arbitrary Python code."
+            ],
+            "execution_rule_version": "analysis_executor_v0.1"
+          },
+          "errors": [],
+          "warnings": [
+            "The LLM did not execute Python. It produced the analytical intent; Python selected and ran a whitelisted deterministic tool."
+          ]
+        },
+        "notes": [
+          "The local tool model selected one function from the native DataLens tool catalog.",
+          "Python verified that the selected tool matched the validated analytical family and that every argument exactly matched the validated contract.",
+          "A missing tool call may trigger one stricter retry; ordinary assistant prose is never treated as executable.",
+          "The deterministic DataLens executor performed the statistical calculation."
+        ],
+        "native_tool_rule_version": "native_tool_calling_v0.6"
+      },
+      "errors": [],
+      "warnings": [
+        "The planner model and native tool model had separate roles. Python validated both boundaries before deterministic execution."
+      ]
+    }
+  ],
+  "notes": [
+    "Stage 1: Gemma proposes a structured analytical contract from the user objective and dataset catalog.",
+    "Stage 2: Python validates dataset ids, column names, analytical types and contract invariants.",
+    "Stage 3: Qwen selects one matching function from the native DataLens tool catalog.",
+    "Stage 4: Python verifies the selected tool against the validated family and checks every argument.",
+    "Stage 5: the deterministic DataLens executor computes the result."
+  ],
+  "pipeline_rule_version": "ai_native_pipeline_v0.2"
+}

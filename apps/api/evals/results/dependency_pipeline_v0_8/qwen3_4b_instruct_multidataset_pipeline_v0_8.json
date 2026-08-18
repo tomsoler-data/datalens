@@ -1,0 +1,213 @@
+{
+  "pipeline_version": "dataset_dependency_pipeline_v0.8",
+  "benchmark": "C:\\Users\\tomas\\datalens\\apps\\api\\evals\\decision_router_multidataset_train_v0_7_2.jsonl",
+  "extractor_result": "C:\\Users\\tomas\\datalens\\apps\\api\\evals\\results\\dependency_extractor_v0_8\\qwen3_4b_instruct_multidataset_train_v0_8.json",
+  "model_inference_performed": false,
+  "case_count": 6,
+  "summary": {
+    "exact_pipeline_verdicts": 6,
+    "failures": 0,
+    "executable": 3,
+    "blocked": 3
+  },
+  "results": [
+    {
+      "case_id": "router_md_v0_7_2_train_001",
+      "domain": "warehouse_operations",
+      "candidate": {
+        "requirements": [
+          {
+            "requirement_id": "stockout_daily_association",
+            "dataset_ids": [
+              "inventory",
+              "sales"
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "executable": false,
+        "feasibilities": [
+          "missing_combination_capability"
+        ],
+        "routing_override_reason": "unsupported_analysis"
+      },
+      "actual": {
+        "executable": false,
+        "feasibilities": [
+          "missing_combination_capability"
+        ],
+        "blocking_requirements": [
+          "stockout_daily_association"
+        ],
+        "routing_override_reason": "unsupported_analysis"
+      },
+      "exact": true
+    },
+    {
+      "case_id": "router_md_v0_7_2_train_002",
+      "domain": "hotel_marketing",
+      "candidate": {
+        "requirements": [
+          {
+            "requirement_id": "ad_spend_occupancy_relationship",
+            "dataset_ids": [
+              "marketing",
+              "occupancy"
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "executable": false,
+        "feasibilities": [
+          "missing_combination_capability"
+        ],
+        "routing_override_reason": "unsupported_analysis"
+      },
+      "actual": {
+        "executable": false,
+        "feasibilities": [
+          "missing_combination_capability"
+        ],
+        "blocking_requirements": [
+          "ad_spend_occupancy_relationship"
+        ],
+        "routing_override_reason": "unsupported_analysis"
+      },
+      "exact": true
+    },
+    {
+      "case_id": "router_md_v0_7_2_train_003",
+      "domain": "online_retail",
+      "candidate": {
+        "requirements": [
+          {
+            "requirement_id": "total_revenue",
+            "dataset_ids": [
+              "sales"
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "executable": true,
+        "feasibilities": [
+          "not_required"
+        ],
+        "routing_override_reason": null
+      },
+      "actual": {
+        "executable": true,
+        "feasibilities": [
+          "not_required"
+        ],
+        "blocking_requirements": [],
+        "routing_override_reason": null
+      },
+      "exact": true
+    },
+    {
+      "case_id": "router_md_v0_7_2_train_004",
+      "domain": "customer_commerce",
+      "candidate": {
+        "requirements": [
+          {
+            "requirement_id": "support_ticket_count_relationship_to_revenue",
+            "dataset_ids": [
+              "support",
+              "commerce"
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "executable": true,
+        "feasibilities": [
+          "supported"
+        ],
+        "routing_override_reason": null
+      },
+      "actual": {
+        "executable": true,
+        "feasibilities": [
+          "supported"
+        ],
+        "blocking_requirements": [],
+        "routing_override_reason": null
+      },
+      "exact": true
+    },
+    {
+      "case_id": "router_md_v0_7_2_train_005",
+      "domain": "manufacturing_hr",
+      "candidate": {
+        "requirements": [
+          {
+            "requirement_id": "absence_defect_association",
+            "dataset_ids": [
+              "employees",
+              "production"
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "executable": false,
+        "feasibilities": [
+          "missing_validated_relationship"
+        ],
+        "routing_override_reason": "unsupported_analysis"
+      },
+      "actual": {
+        "executable": false,
+        "feasibilities": [
+          "missing_validated_relationship"
+        ],
+        "blocking_requirements": [
+          "absence_defect_association"
+        ],
+        "routing_override_reason": "unsupported_analysis"
+      },
+      "exact": true
+    },
+    {
+      "case_id": "router_md_v0_7_2_train_006",
+      "domain": "regional_operations",
+      "candidate": {
+        "requirements": [
+          {
+            "requirement_id": "sales_total",
+            "dataset_ids": [
+              "sales"
+            ]
+          },
+          {
+            "requirement_id": "support_total",
+            "dataset_ids": [
+              "support"
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "executable": true,
+        "feasibilities": [
+          "not_required",
+          "not_required"
+        ],
+        "routing_override_reason": null
+      },
+      "actual": {
+        "executable": true,
+        "feasibilities": [
+          "not_required",
+          "not_required"
+        ],
+        "blocking_requirements": [],
+        "routing_override_reason": null
+      },
+      "exact": true
+    }
+  ]
+}

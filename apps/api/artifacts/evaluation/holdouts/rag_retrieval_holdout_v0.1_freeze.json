@@ -1,0 +1,20 @@
+{
+  "holdout_version": "rag_retrieval_holdout_v0.1",
+  "retrieval_rule_version": "rag_retrieval_v0.2",
+  "embedding_model": "embeddinggemma",
+  "top_k": 3,
+  "document_count": 12,
+  "case_count": 12,
+  "documents_sha256": "e9cf0a38e462e8c56f5694bf52d3a773da46786f36e721b01cee2cd01881ddde",
+  "cases_sha256": "f24513602d34c4e26ede9165ba05e2967c3a2ea8280c6a1bd8efe73f9b97bf35",
+  "preregistered_gates": {
+    "minimum_recall_at_1": 0.8,
+    "minimum_recall_at_3": 0.95,
+    "minimum_mrr": 0.85
+  },
+  "policy": {
+    "freeze_before_first_embedding_execution": true,
+    "first_run_artifact_is_immutable": true,
+    "tuning_on_this_holdout_requires_new_holdout": true
+  }
+}

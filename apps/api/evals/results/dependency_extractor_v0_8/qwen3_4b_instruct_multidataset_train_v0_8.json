@@ -1,0 +1,396 @@
+{
+  "evaluation": "dataset_dependency_extractor_v0.8",
+  "prompt_version": "dataset_dependency_prompt_v0.8_baseline",
+  "scorer_version": "dataset_dependency_scorer_v0.8",
+  "model": "qwen3:4b-instruct",
+  "benchmark": "C:\\Users\\tomas\\datalens\\apps\\api\\evals\\decision_router_multidataset_train_v0_7_2.jsonl",
+  "split": "train",
+  "case_count": 6,
+  "summary": {
+    "average_overall": 1.0,
+    "exact_group_accuracy": 1.0,
+    "dataset_f1": 1.0,
+    "grouping_f1": 1.0,
+    "missing_dataset_reference_count": 0,
+    "hallucinated_dataset_reference_count": 0,
+    "reference_validation_failure_count": 0,
+    "generation_error_count": 0,
+    "average_inference_ms": 1405.565733332575
+  },
+  "results": [
+    {
+      "case_id": "router_md_v0_7_2_train_001",
+      "domain": "warehouse_operations",
+      "status": "ready",
+      "expected_groups": [
+        [
+          "inventory",
+          "sales"
+        ]
+      ],
+      "candidate": {
+        "requirements": [
+          {
+            "requirement_id": "stockout_daily_association",
+            "dataset_ids": [
+              "inventory",
+              "sales"
+            ]
+          }
+        ]
+      },
+      "actual_groups": [
+        [
+          "inventory",
+          "sales"
+        ]
+      ],
+      "score": {
+        "scorer_version": "dataset_dependency_scorer_v0.8",
+        "metrics": {
+          "exact_groups": 1.0,
+          "dataset_f1": 1.0,
+          "pairwise_grouping_f1": 1.0,
+          "requirement_count": 1.0
+        },
+        "diagnostics": {
+          "expected_groups": [
+            [
+              "inventory",
+              "sales"
+            ]
+          ],
+          "actual_groups": [
+            [
+              "inventory",
+              "sales"
+            ]
+          ],
+          "missing_dataset_ids": [],
+          "hallucinated_dataset_ids": [],
+          "duplicate_requirement_groups": []
+        },
+        "overall": 1.0
+      },
+      "reference_validation": true,
+      "reference_validation_error": null,
+      "inference_ms": 4324.14090000384,
+      "overall": 1.0,
+      "raw_content": "{\n  \"requirements\": [\n    {\n      \"requirement_id\": \"stockout_daily_association\",\n      \"dataset_ids\": [\n        \"inventory\",\n        \"sales\"\n      ]\n    }\n  ]\n}",
+      "error": null
+    },
+    {
+      "case_id": "router_md_v0_7_2_train_002",
+      "domain": "hotel_marketing",
+      "status": "ready",
+      "expected_groups": [
+        [
+          "marketing",
+          "occupancy"
+        ]
+      ],
+      "candidate": {
+        "requirements": [
+          {
+            "requirement_id": "ad_spend_occupancy_relationship",
+            "dataset_ids": [
+              "marketing",
+              "occupancy"
+            ]
+          }
+        ]
+      },
+      "actual_groups": [
+        [
+          "marketing",
+          "occupancy"
+        ]
+      ],
+      "score": {
+        "scorer_version": "dataset_dependency_scorer_v0.8",
+        "metrics": {
+          "exact_groups": 1.0,
+          "dataset_f1": 1.0,
+          "pairwise_grouping_f1": 1.0,
+          "requirement_count": 1.0
+        },
+        "diagnostics": {
+          "expected_groups": [
+            [
+              "marketing",
+              "occupancy"
+            ]
+          ],
+          "actual_groups": [
+            [
+              "marketing",
+              "occupancy"
+            ]
+          ],
+          "missing_dataset_ids": [],
+          "hallucinated_dataset_ids": [],
+          "duplicate_requirement_groups": []
+        },
+        "overall": 1.0
+      },
+      "reference_validation": true,
+      "reference_validation_error": null,
+      "inference_ms": 827.4732999998378,
+      "overall": 1.0,
+      "raw_content": "{\n  \"requirements\": [\n    {\n      \"requirement_id\": \"ad_spend_occupancy_relationship\",\n      \"dataset_ids\": [\n        \"marketing\",\n        \"occupancy\"\n      ]\n    }\n  ]\n}",
+      "error": null
+    },
+    {
+      "case_id": "router_md_v0_7_2_train_003",
+      "domain": "online_retail",
+      "status": "ready",
+      "expected_groups": [
+        [
+          "sales"
+        ]
+      ],
+      "candidate": {
+        "requirements": [
+          {
+            "requirement_id": "total_revenue",
+            "dataset_ids": [
+              "sales"
+            ]
+          }
+        ]
+      },
+      "actual_groups": [
+        [
+          "sales"
+        ]
+      ],
+      "score": {
+        "scorer_version": "dataset_dependency_scorer_v0.8",
+        "metrics": {
+          "exact_groups": 1.0,
+          "dataset_f1": 1.0,
+          "pairwise_grouping_f1": 1.0,
+          "requirement_count": 1.0
+        },
+        "diagnostics": {
+          "expected_groups": [
+            [
+              "sales"
+            ]
+          ],
+          "actual_groups": [
+            [
+              "sales"
+            ]
+          ],
+          "missing_dataset_ids": [],
+          "hallucinated_dataset_ids": [],
+          "duplicate_requirement_groups": []
+        },
+        "overall": 1.0
+      },
+      "reference_validation": true,
+      "reference_validation_error": null,
+      "inference_ms": 679.5711000013398,
+      "overall": 1.0,
+      "raw_content": "{\n  \"requirements\": [\n    {\n      \"requirement_id\": \"total_revenue\",\n      \"dataset_ids\": [\n        \"sales\"\n      ]\n    }\n  ]\n}",
+      "error": null
+    },
+    {
+      "case_id": "router_md_v0_7_2_train_004",
+      "domain": "customer_commerce",
+      "status": "ready",
+      "expected_groups": [
+        [
+          "support",
+          "commerce"
+        ]
+      ],
+      "candidate": {
+        "requirements": [
+          {
+            "requirement_id": "support_ticket_count_relationship_to_revenue",
+            "dataset_ids": [
+              "support",
+              "commerce"
+            ]
+          }
+        ]
+      },
+      "actual_groups": [
+        [
+          "support",
+          "commerce"
+        ]
+      ],
+      "score": {
+        "scorer_version": "dataset_dependency_scorer_v0.8",
+        "metrics": {
+          "exact_groups": 1.0,
+          "dataset_f1": 1.0,
+          "pairwise_grouping_f1": 1.0,
+          "requirement_count": 1.0
+        },
+        "diagnostics": {
+          "expected_groups": [
+            [
+              "commerce",
+              "support"
+            ]
+          ],
+          "actual_groups": [
+            [
+              "commerce",
+              "support"
+            ]
+          ],
+          "missing_dataset_ids": [],
+          "hallucinated_dataset_ids": [],
+          "duplicate_requirement_groups": []
+        },
+        "overall": 1.0
+      },
+      "reference_validation": true,
+      "reference_validation_error": null,
+      "inference_ms": 792.7625999873271,
+      "overall": 1.0,
+      "raw_content": "{\n  \"requirements\": [\n    {\n      \"requirement_id\": \"support_ticket_count_relationship_to_revenue\",\n      \"dataset_ids\": [\n        \"support\",\n        \"commerce\"\n      ]\n    }\n  ]\n}",
+      "error": null
+    },
+    {
+      "case_id": "router_md_v0_7_2_train_005",
+      "domain": "manufacturing_hr",
+      "status": "ready",
+      "expected_groups": [
+        [
+          "employees",
+          "production"
+        ]
+      ],
+      "candidate": {
+        "requirements": [
+          {
+            "requirement_id": "absence_defect_association",
+            "dataset_ids": [
+              "employees",
+              "production"
+            ]
+          }
+        ]
+      },
+      "actual_groups": [
+        [
+          "employees",
+          "production"
+        ]
+      ],
+      "score": {
+        "scorer_version": "dataset_dependency_scorer_v0.8",
+        "metrics": {
+          "exact_groups": 1.0,
+          "dataset_f1": 1.0,
+          "pairwise_grouping_f1": 1.0,
+          "requirement_count": 1.0
+        },
+        "diagnostics": {
+          "expected_groups": [
+            [
+              "employees",
+              "production"
+            ]
+          ],
+          "actual_groups": [
+            [
+              "employees",
+              "production"
+            ]
+          ],
+          "missing_dataset_ids": [],
+          "hallucinated_dataset_ids": [],
+          "duplicate_requirement_groups": []
+        },
+        "overall": 1.0
+      },
+      "reference_validation": true,
+      "reference_validation_error": null,
+      "inference_ms": 790.029499999946,
+      "overall": 1.0,
+      "raw_content": "{\n  \"requirements\": [\n    {\n      \"requirement_id\": \"absence_defect_association\",\n      \"dataset_ids\": [\n        \"employees\",\n        \"production\"\n      ]\n    }\n  ]\n}",
+      "error": null
+    },
+    {
+      "case_id": "router_md_v0_7_2_train_006",
+      "domain": "regional_operations",
+      "status": "ready",
+      "expected_groups": [
+        [
+          "sales"
+        ],
+        [
+          "support"
+        ]
+      ],
+      "candidate": {
+        "requirements": [
+          {
+            "requirement_id": "sales_total",
+            "dataset_ids": [
+              "sales"
+            ]
+          },
+          {
+            "requirement_id": "support_total",
+            "dataset_ids": [
+              "support"
+            ]
+          }
+        ]
+      },
+      "actual_groups": [
+        [
+          "sales"
+        ],
+        [
+          "support"
+        ]
+      ],
+      "score": {
+        "scorer_version": "dataset_dependency_scorer_v0.8",
+        "metrics": {
+          "exact_groups": 1.0,
+          "dataset_f1": 1.0,
+          "pairwise_grouping_f1": 1.0,
+          "requirement_count": 1.0
+        },
+        "diagnostics": {
+          "expected_groups": [
+            [
+              "sales"
+            ],
+            [
+              "support"
+            ]
+          ],
+          "actual_groups": [
+            [
+              "sales"
+            ],
+            [
+              "support"
+            ]
+          ],
+          "missing_dataset_ids": [],
+          "hallucinated_dataset_ids": [],
+          "duplicate_requirement_groups": []
+        },
+        "overall": 1.0
+      },
+      "reference_validation": true,
+      "reference_validation_error": null,
+      "inference_ms": 1019.417000003159,
+      "overall": 1.0,
+      "raw_content": "{\n  \"requirements\": [\n    {\n      \"requirement_id\": \"sales_total\",\n      \"dataset_ids\": [\n        \"sales\"\n      ]\n    },\n    {\n      \"requirement_id\": \"support_total\",\n      \"dataset_ids\": [\n        \"support\"\n      ]\n    }\n  ]\n}",
+      "error": null
+    }
+  ]
+}

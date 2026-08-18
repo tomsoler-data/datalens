@@ -1,0 +1,168 @@
+{
+  "probe_version": "embedding_candidate_graph_efficiency_probe_v0.1",
+  "embedding_model": "embeddinggemma",
+  "ground_truth_version": "metric_relation_taxonomy_development_v0.1",
+  "role": "candidate_generation_only",
+  "safety_role": "none",
+  "pair_inclusion_policy": "retain undirected pair if either endpoint retrieves the other within top-k",
+  "embedding_dimension": 768,
+  "dataset_column_counts": {
+    "clinical_lab": 16,
+    "customer_support": 9
+  },
+  "total_possible_pair_count": 156,
+  "total_strong_pair_count": 9,
+  "results_by_k": {
+    "1": {
+      "top_k": 1,
+      "candidate_pair_count": 16,
+      "all_possible_pair_count": 156,
+      "reduction_ratio": 0.8974358974358975,
+      "strong_pair_count": 9,
+      "recovered_strong_pair_count": 8,
+      "strong_pair_recall": 0.8888888888888888,
+      "strong_pair_density": 0.5,
+      "datasets": {
+        "clinical_lab": {
+          "column_count": 16,
+          "all_pair_count": 120,
+          "directed_edge_count": 16,
+          "candidate_pair_count": 10,
+          "reduction_ratio": 0.9166666666666666,
+          "strong_pair_count": 5,
+          "recovered_strong_pair_count": 5,
+          "strong_pair_recall": 1.0,
+          "strong_pair_density": 0.5,
+          "missed_strong_pairs": []
+        },
+        "customer_support": {
+          "column_count": 9,
+          "all_pair_count": 36,
+          "directed_edge_count": 9,
+          "candidate_pair_count": 6,
+          "reduction_ratio": 0.8333333333333334,
+          "strong_pair_count": 4,
+          "recovered_strong_pair_count": 3,
+          "strong_pair_recall": 0.75,
+          "strong_pair_density": 0.5,
+          "missed_strong_pairs": [
+            [
+              "Agents rostered",
+              "Staff online"
+            ]
+          ]
+        }
+      }
+    },
+    "2": {
+      "top_k": 2,
+      "candidate_pair_count": 30,
+      "all_possible_pair_count": 156,
+      "reduction_ratio": 0.8076923076923077,
+      "strong_pair_count": 9,
+      "recovered_strong_pair_count": 9,
+      "strong_pair_recall": 1.0,
+      "strong_pair_density": 0.3,
+      "datasets": {
+        "clinical_lab": {
+          "column_count": 16,
+          "all_pair_count": 120,
+          "directed_edge_count": 32,
+          "candidate_pair_count": 20,
+          "reduction_ratio": 0.8333333333333334,
+          "strong_pair_count": 5,
+          "recovered_strong_pair_count": 5,
+          "strong_pair_recall": 1.0,
+          "strong_pair_density": 0.25,
+          "missed_strong_pairs": []
+        },
+        "customer_support": {
+          "column_count": 9,
+          "all_pair_count": 36,
+          "directed_edge_count": 18,
+          "candidate_pair_count": 10,
+          "reduction_ratio": 0.7222222222222222,
+          "strong_pair_count": 4,
+          "recovered_strong_pair_count": 4,
+          "strong_pair_recall": 1.0,
+          "strong_pair_density": 0.4,
+          "missed_strong_pairs": []
+        }
+      }
+    },
+    "3": {
+      "top_k": 3,
+      "candidate_pair_count": 47,
+      "all_possible_pair_count": 156,
+      "reduction_ratio": 0.6987179487179487,
+      "strong_pair_count": 9,
+      "recovered_strong_pair_count": 9,
+      "strong_pair_recall": 1.0,
+      "strong_pair_density": 0.19148936170212766,
+      "datasets": {
+        "clinical_lab": {
+          "column_count": 16,
+          "all_pair_count": 120,
+          "directed_edge_count": 48,
+          "candidate_pair_count": 30,
+          "reduction_ratio": 0.75,
+          "strong_pair_count": 5,
+          "recovered_strong_pair_count": 5,
+          "strong_pair_recall": 1.0,
+          "strong_pair_density": 0.16666666666666666,
+          "missed_strong_pairs": []
+        },
+        "customer_support": {
+          "column_count": 9,
+          "all_pair_count": 36,
+          "directed_edge_count": 27,
+          "candidate_pair_count": 17,
+          "reduction_ratio": 0.5277777777777778,
+          "strong_pair_count": 4,
+          "recovered_strong_pair_count": 4,
+          "strong_pair_recall": 1.0,
+          "strong_pair_density": 0.23529411764705882,
+          "missed_strong_pairs": []
+        }
+      }
+    },
+    "5": {
+      "top_k": 5,
+      "candidate_pair_count": 75,
+      "all_possible_pair_count": 156,
+      "reduction_ratio": 0.5192307692307692,
+      "strong_pair_count": 9,
+      "recovered_strong_pair_count": 9,
+      "strong_pair_recall": 1.0,
+      "strong_pair_density": 0.12,
+      "datasets": {
+        "clinical_lab": {
+          "column_count": 16,
+          "all_pair_count": 120,
+          "directed_edge_count": 80,
+          "candidate_pair_count": 48,
+          "reduction_ratio": 0.6,
+          "strong_pair_count": 5,
+          "recovered_strong_pair_count": 5,
+          "strong_pair_recall": 1.0,
+          "strong_pair_density": 0.10416666666666667,
+          "missed_strong_pairs": []
+        },
+        "customer_support": {
+          "column_count": 9,
+          "all_pair_count": 36,
+          "directed_edge_count": 45,
+          "candidate_pair_count": 27,
+          "reduction_ratio": 0.25,
+          "strong_pair_count": 4,
+          "recovered_strong_pair_count": 4,
+          "strong_pair_recall": 1.0,
+          "strong_pair_density": 0.14814814814814814,
+          "missed_strong_pairs": []
+        }
+      }
+    }
+  },
+  "smallest_k_with_complete_development_recall": 2,
+  "reference_k": 3
+}

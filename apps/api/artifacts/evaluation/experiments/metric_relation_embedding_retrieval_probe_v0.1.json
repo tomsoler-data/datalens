@@ -1,0 +1,633 @@
+{
+  "probe_version": "metric_relation_embedding_retrieval_probe_v0.1",
+  "embedding_model": "embeddinggemma",
+  "ground_truth_version": "metric_relation_taxonomy_development_v0.1",
+  "purpose": "Evaluate raw-name embeddings as a semantic candidate-generation and retrieval signal.",
+  "safety_role": "none; retrieval only",
+  "case_pair_count": 9,
+  "directed_query_count": 18,
+  "embedding_dimension": 768,
+  "metrics": {
+    "recall_at_1": 0.7777777777777778,
+    "recall_at_2": 1.0,
+    "recall_at_3": 1.0,
+    "recall_at_5": 1.0,
+    "mrr": 0.8888888888888888,
+    "mean_target_rank": 1.2222222222222223,
+    "median_target_rank": 1.0
+  },
+  "per_relation": {
+    "same_process_different_stage": {
+      "query_count": 4,
+      "mean_rank": 1.0,
+      "median_rank": 1.0,
+      "recall_at_1": 1.0,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0
+    },
+    "same_metric_different_state": {
+      "query_count": 14,
+      "mean_rank": 1.2857142857142858,
+      "median_rank": 1.0,
+      "recall_at_1": 0.7142857142857143,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0
+    }
+  },
+  "records": [
+    {
+      "dataset": "clinical_lab",
+      "case_id": "specimens_received_samples_processed",
+      "relation": "same_process_different_stage",
+      "query": "Specimens received",
+      "target": "Samples processed",
+      "direction": "left_to_right",
+      "target_rank": 1,
+      "target_similarity": 0.6832598897776249,
+      "reciprocal_rank": 1.0,
+      "top_5": [
+        {
+          "column": "Samples processed",
+          "similarity": 0.6832598897776249
+        },
+        {
+          "column": "Measured specimen weight (kg)",
+          "similarity": 0.5162618596697756
+        },
+        {
+          "column": "Final laboratory bill",
+          "similarity": 0.5047900547352596
+        },
+        {
+          "column": "Planned sample mass (grams)",
+          "similarity": 0.48798803741165403
+        },
+        {
+          "column": "Lab staff on duty",
+          "similarity": 0.48702687650400656
+        }
+      ]
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "specimens_received_samples_processed",
+      "relation": "same_process_different_stage",
+      "query": "Samples processed",
+      "target": "Specimens received",
+      "direction": "right_to_left",
+      "target_rank": 1,
+      "target_similarity": 0.6832598897776249,
+      "reciprocal_rank": 1.0,
+      "top_5": [
+        {
+          "column": "Specimens received",
+          "similarity": 0.6832598897776249
+        },
+        {
+          "column": "Planned sample mass (grams)",
+          "similarity": 0.5446295089578607
+        },
+        {
+          "column": "Final laboratory bill",
+          "similarity": 0.5007959997529392
+        },
+        {
+          "column": "Reagent spend",
+          "similarity": 0.48291629124829416
+        },
+        {
+          "column": "Measured specimen weight (kg)",
+          "similarity": 0.48017145395790567
+        }
+      ]
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "technicians_scheduled_staff_on_duty",
+      "relation": "same_metric_different_state",
+      "query": "Technicians scheduled",
+      "target": "Lab staff on duty",
+      "direction": "left_to_right",
+      "target_rank": 1,
+      "target_similarity": 0.4991824917221745,
+      "reciprocal_rank": 1.0,
+      "top_5": [
+        {
+          "column": "Lab staff on duty",
+          "similarity": 0.4991824917221745
+        },
+        {
+          "column": "Samples processed",
+          "similarity": 0.4485963359398595
+        },
+        {
+          "column": "Specimens received",
+          "similarity": 0.4098141195234682
+        },
+        {
+          "column": "Estimated test charge",
+          "similarity": 0.40435542133188634
+        },
+        {
+          "column": "Analyzer units online",
+          "similarity": 0.3944215076132907
+        }
+      ]
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "technicians_scheduled_staff_on_duty",
+      "relation": "same_metric_different_state",
+      "query": "Lab staff on duty",
+      "target": "Technicians scheduled",
+      "direction": "right_to_left",
+      "target_rank": 2,
+      "target_similarity": 0.4991824917221745,
+      "reciprocal_rank": 0.5,
+      "top_5": [
+        {
+          "column": "Final laboratory bill",
+          "similarity": 0.5158517900245636
+        },
+        {
+          "column": "Technicians scheduled",
+          "similarity": 0.4991824917221745
+        },
+        {
+          "column": "Specimens received",
+          "similarity": 0.48702687650400656
+        },
+        {
+          "column": "Samples processed",
+          "similarity": 0.47453723769900547
+        },
+        {
+          "column": "Analyzer units online",
+          "similarity": 0.4147085601710573
+        }
+      ]
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "estimated_charge_final_bill",
+      "relation": "same_metric_different_state",
+      "query": "Estimated test charge",
+      "target": "Final laboratory bill",
+      "direction": "left_to_right",
+      "target_rank": 1,
+      "target_similarity": 0.5089703575987018,
+      "reciprocal_rank": 1.0,
+      "top_5": [
+        {
+          "column": "Final laboratory bill",
+          "similarity": 0.5089703575987018
+        },
+        {
+          "column": "Reagent spend",
+          "similarity": 0.488281287869239
+        },
+        {
+          "column": "Samples processed",
+          "similarity": 0.45218534128859
+        },
+        {
+          "column": "Planned sample mass (grams)",
+          "similarity": 0.4343573988074722
+        },
+        {
+          "column": "Target result turnaround (minutes)",
+          "similarity": 0.4128178622024163
+        }
+      ]
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "estimated_charge_final_bill",
+      "relation": "same_metric_different_state",
+      "query": "Final laboratory bill",
+      "target": "Estimated test charge",
+      "direction": "right_to_left",
+      "target_rank": 2,
+      "target_similarity": 0.5089703575987018,
+      "reciprocal_rank": 0.5,
+      "top_5": [
+        {
+          "column": "Lab staff on duty",
+          "similarity": 0.5158517900245636
+        },
+        {
+          "column": "Estimated test charge",
+          "similarity": 0.5089703575987018
+        },
+        {
+          "column": "Specimens received",
+          "similarity": 0.5047900547352596
+        },
+        {
+          "column": "Samples processed",
+          "similarity": 0.5007959997529392
+        },
+        {
+          "column": "Reagent spend",
+          "similarity": 0.47682234543374397
+        }
+      ]
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "target_turnaround_actual_reporting",
+      "relation": "same_metric_different_state",
+      "query": "Target result turnaround (minutes)",
+      "target": "Actual reporting time (minutes)",
+      "direction": "left_to_right",
+      "target_rank": 1,
+      "target_similarity": 0.6558817246270114,
+      "reciprocal_rank": 1.0,
+      "top_5": [
+        {
+          "column": "Actual reporting time (minutes)",
+          "similarity": 0.6558817246270114
+        },
+        {
+          "column": "Analyzer downtime (minutes)",
+          "similarity": 0.5643544809192155
+        },
+        {
+          "column": "Quality pass rate (%)",
+          "similarity": 0.45848506464539623
+        },
+        {
+          "column": "Reagent mass used (kg)",
+          "similarity": 0.4326189558242466
+        },
+        {
+          "column": "SLA compliance (%)",
+          "similarity": 0.42625975555662515
+        }
+      ]
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "target_turnaround_actual_reporting",
+      "relation": "same_metric_different_state",
+      "query": "Actual reporting time (minutes)",
+      "target": "Target result turnaround (minutes)",
+      "direction": "right_to_left",
+      "target_rank": 1,
+      "target_similarity": 0.6558817246270114,
+      "reciprocal_rank": 1.0,
+      "top_5": [
+        {
+          "column": "Target result turnaround (minutes)",
+          "similarity": 0.6558817246270114
+        },
+        {
+          "column": "Analyzer downtime (minutes)",
+          "similarity": 0.5331067043880648
+        },
+        {
+          "column": "SLA compliance (%)",
+          "similarity": 0.39316176485400806
+        },
+        {
+          "column": "Technicians scheduled",
+          "similarity": 0.39101100349339246
+        },
+        {
+          "column": "Measured specimen weight (kg)",
+          "similarity": 0.381307663759511
+        }
+      ]
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "planned_mass_measured_weight",
+      "relation": "same_metric_different_state",
+      "query": "Planned sample mass (grams)",
+      "target": "Measured specimen weight (kg)",
+      "direction": "left_to_right",
+      "target_rank": 1,
+      "target_similarity": 0.7174119283175138,
+      "reciprocal_rank": 1.0,
+      "top_5": [
+        {
+          "column": "Measured specimen weight (kg)",
+          "similarity": 0.7174119283175138
+        },
+        {
+          "column": "Reagent mass used (kg)",
+          "similarity": 0.6411284117133957
+        },
+        {
+          "column": "Samples processed",
+          "similarity": 0.5446295089578607
+        },
+        {
+          "column": "Specimens received",
+          "similarity": 0.48798803741165403
+        },
+        {
+          "column": "Estimated test charge",
+          "similarity": 0.4343573988074722
+        }
+      ]
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "planned_mass_measured_weight",
+      "relation": "same_metric_different_state",
+      "query": "Measured specimen weight (kg)",
+      "target": "Planned sample mass (grams)",
+      "direction": "right_to_left",
+      "target_rank": 1,
+      "target_similarity": 0.7174119283175138,
+      "reciprocal_rank": 1.0,
+      "top_5": [
+        {
+          "column": "Planned sample mass (grams)",
+          "similarity": 0.7174119283175138
+        },
+        {
+          "column": "Reagent mass used (kg)",
+          "similarity": 0.6938624134532665
+        },
+        {
+          "column": "Specimens received",
+          "similarity": 0.5162618596697756
+        },
+        {
+          "column": "Samples processed",
+          "similarity": 0.48017145395790567
+        },
+        {
+          "column": "Target result turnaround (minutes)",
+          "similarity": 0.4193600020603812
+        }
+      ]
+    },
+    {
+      "dataset": "customer_support",
+      "case_id": "submitted_cases_resolved_tickets",
+      "relation": "same_process_different_stage",
+      "query": "Cases submitted",
+      "target": "Tickets resolved",
+      "direction": "left_to_right",
+      "target_rank": 1,
+      "target_similarity": 0.5088704076275851,
+      "reciprocal_rank": 1.0,
+      "top_5": [
+        {
+          "column": "Tickets resolved",
+          "similarity": 0.5088704076275851
+        },
+        {
+          "column": "Agents rostered",
+          "similarity": 0.4258249539260577
+        },
+        {
+          "column": "Staff online",
+          "similarity": 0.38929175549297723
+        },
+        {
+          "column": "Quoted service cost",
+          "similarity": 0.38347480434933845
+        },
+        {
+          "column": "SLA compliance (%)",
+          "similarity": 0.3814523119663116
+        }
+      ]
+    },
+    {
+      "dataset": "customer_support",
+      "case_id": "submitted_cases_resolved_tickets",
+      "relation": "same_process_different_stage",
+      "query": "Tickets resolved",
+      "target": "Cases submitted",
+      "direction": "right_to_left",
+      "target_rank": 1,
+      "target_similarity": 0.5088704076275851,
+      "reciprocal_rank": 1.0,
+      "top_5": [
+        {
+          "column": "Cases submitted",
+          "similarity": 0.5088704076275851
+        },
+        {
+          "column": "Staff online",
+          "similarity": 0.4193324975286953
+        },
+        {
+          "column": "Agents rostered",
+          "similarity": 0.4064416646105263
+        },
+        {
+          "column": "Final invoice amount",
+          "similarity": 0.37778672304901517
+        },
+        {
+          "column": "Quoted service cost",
+          "similarity": 0.3422486924735541
+        }
+      ]
+    },
+    {
+      "dataset": "customer_support",
+      "case_id": "rostered_agents_online_staff",
+      "relation": "same_metric_different_state",
+      "query": "Agents rostered",
+      "target": "Staff online",
+      "direction": "left_to_right",
+      "target_rank": 2,
+      "target_similarity": 0.4113284658879773,
+      "reciprocal_rank": 0.5,
+      "top_5": [
+        {
+          "column": "Cases submitted",
+          "similarity": 0.4258249539260577
+        },
+        {
+          "column": "Staff online",
+          "similarity": 0.4113284658879773
+        },
+        {
+          "column": "Tickets resolved",
+          "similarity": 0.4064416646105263
+        },
+        {
+          "column": "Quoted service cost",
+          "similarity": 0.32139346752217507
+        },
+        {
+          "column": "Final invoice amount",
+          "similarity": 0.2930204903144901
+        }
+      ]
+    },
+    {
+      "dataset": "customer_support",
+      "case_id": "rostered_agents_online_staff",
+      "relation": "same_metric_different_state",
+      "query": "Staff online",
+      "target": "Agents rostered",
+      "direction": "right_to_left",
+      "target_rank": 2,
+      "target_similarity": 0.4113284658879773,
+      "reciprocal_rank": 0.5,
+      "top_5": [
+        {
+          "column": "Tickets resolved",
+          "similarity": 0.4193324975286953
+        },
+        {
+          "column": "Agents rostered",
+          "similarity": 0.4113284658879773
+        },
+        {
+          "column": "Cases submitted",
+          "similarity": 0.38929175549297723
+        },
+        {
+          "column": "Observed first-response delay (minutes)",
+          "similarity": 0.3741834900041409
+        },
+        {
+          "column": "Promised response time (minutes)",
+          "similarity": 0.3696608315147763
+        }
+      ]
+    },
+    {
+      "dataset": "customer_support",
+      "case_id": "quoted_cost_final_invoice",
+      "relation": "same_metric_different_state",
+      "query": "Quoted service cost",
+      "target": "Final invoice amount",
+      "direction": "left_to_right",
+      "target_rank": 1,
+      "target_similarity": 0.46856063901990974,
+      "reciprocal_rank": 1.0,
+      "top_5": [
+        {
+          "column": "Final invoice amount",
+          "similarity": 0.46856063901990974
+        },
+        {
+          "column": "Cases submitted",
+          "similarity": 0.38347480434933845
+        },
+        {
+          "column": "Promised response time (minutes)",
+          "similarity": 0.35564278904823127
+        },
+        {
+          "column": "Staff online",
+          "similarity": 0.35417910855202006
+        },
+        {
+          "column": "SLA compliance (%)",
+          "similarity": 0.3519834540107475
+        }
+      ]
+    },
+    {
+      "dataset": "customer_support",
+      "case_id": "quoted_cost_final_invoice",
+      "relation": "same_metric_different_state",
+      "query": "Final invoice amount",
+      "target": "Quoted service cost",
+      "direction": "right_to_left",
+      "target_rank": 1,
+      "target_similarity": 0.46856063901990974,
+      "reciprocal_rank": 1.0,
+      "top_5": [
+        {
+          "column": "Quoted service cost",
+          "similarity": 0.46856063901990974
+        },
+        {
+          "column": "Tickets resolved",
+          "similarity": 0.37778672304901517
+        },
+        {
+          "column": "Cases submitted",
+          "similarity": 0.32504458266849207
+        },
+        {
+          "column": "Agents rostered",
+          "similarity": 0.2930204903144901
+        },
+        {
+          "column": "Promised response time (minutes)",
+          "similarity": 0.28693972062545736
+        }
+      ]
+    },
+    {
+      "dataset": "customer_support",
+      "case_id": "promised_observed_response_time",
+      "relation": "same_metric_different_state",
+      "query": "Promised response time (minutes)",
+      "target": "Observed first-response delay (minutes)",
+      "direction": "left_to_right",
+      "target_rank": 1,
+      "target_similarity": 0.7401902667812182,
+      "reciprocal_rank": 1.0,
+      "top_5": [
+        {
+          "column": "Observed first-response delay (minutes)",
+          "similarity": 0.7401902667812182
+        },
+        {
+          "column": "SLA compliance (%)",
+          "similarity": 0.41614784193103155
+        },
+        {
+          "column": "Staff online",
+          "similarity": 0.3696608315147763
+        },
+        {
+          "column": "Quoted service cost",
+          "similarity": 0.35564278904823127
+        },
+        {
+          "column": "Tickets resolved",
+          "similarity": 0.33955764663439586
+        }
+      ]
+    },
+    {
+      "dataset": "customer_support",
+      "case_id": "promised_observed_response_time",
+      "relation": "same_metric_different_state",
+      "query": "Observed first-response delay (minutes)",
+      "target": "Promised response time (minutes)",
+      "direction": "right_to_left",
+      "target_rank": 1,
+      "target_similarity": 0.7401902667812182,
+      "reciprocal_rank": 1.0,
+      "top_5": [
+        {
+          "column": "Promised response time (minutes)",
+          "similarity": 0.7401902667812182
+        },
+        {
+          "column": "SLA compliance (%)",
+          "similarity": 0.5048219135588634
+        },
+        {
+          "column": "Staff online",
+          "similarity": 0.3741834900041409
+        },
+        {
+          "column": "Quoted service cost",
+          "similarity": 0.34092001971028174
+        },
+        {
+          "column": "Cases submitted",
+          "similarity": 0.3368261867689885
+        }
+      ]
+    }
+  ]
+}

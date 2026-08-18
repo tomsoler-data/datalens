@@ -1,0 +1,1159 @@
+{
+  "runner_version": "frozen_decision_eval_v0.6",
+  "decision_contract_version": "analytical_decision_contract_v0.6",
+  "decision_scorer_version": "analytical_decision_scorer_v0.6",
+  "model": "ministral-3:3b",
+  "case_count": 15,
+  "generation_success_count": 15,
+  "generation_error_count": 0,
+  "average_inference_ms": 2681.0431266659484,
+  "average_overall": 0.5486666666666667,
+  "decision_accuracy": 0.6,
+  "route_quality": 0.5144444444444445,
+  "average_analytical_plan": 0.9595238095238096,
+  "decision_accuracy_by_expected": {
+    "analyze": 1.0,
+    "needs_clarification": 0.0,
+    "cannot_answer": 0.4
+  },
+  "confusion_matrix": {
+    "analyze": {
+      "analyze": 7,
+      "needs_clarification": 0,
+      "cannot_answer": 0,
+      "generation_error": 0
+    },
+    "needs_clarification": {
+      "analyze": 3,
+      "needs_clarification": 0,
+      "cannot_answer": 0,
+      "generation_error": 0
+    },
+    "cannot_answer": {
+      "analyze": 3,
+      "needs_clarification": 0,
+      "cannot_answer": 2,
+      "generation_error": 0
+    }
+  },
+  "diagnostics": {
+    "unsafe_execution_count": 6,
+    "false_abstention_count": 0,
+    "wrong_abstention_type_count": 0
+  },
+  "results": [
+    {
+      "case_id": "frozen_v0_6_001",
+      "domain": "ecommerce",
+      "user_request": "Quel est le chiffre d'affaires total ?",
+      "expected_decision": "analyze",
+      "status": "ready",
+      "inference_ms": 6283.271199994488,
+      "candidate": {
+        "decision": "analyze",
+        "decision_reason": null,
+        "clarification_question": null,
+        "intent": "aggregate_metric",
+        "entity": null,
+        "current_grain": "order",
+        "target_grain": null,
+        "relevant_columns": [
+          "revenue"
+        ],
+        "family": "aggregation",
+        "tool_calls": [
+          {
+            "name": "aggregate",
+            "arguments": {
+              "metrics": [
+                "revenue"
+              ],
+              "group_by": null
+            }
+          }
+        ],
+        "assumptions": []
+      },
+      "score": {
+        "scorer_version": "analytical_decision_scorer_v0.6",
+        "case_id": "frozen_v0_6_001",
+        "expected_decision": "analyze",
+        "actual_decision": "analyze",
+        "metrics": {
+          "decision": 1.0,
+          "decision_reason": 1.0,
+          "clarification": null,
+          "analytical_plan": 1.0,
+          "route_quality": 1.0
+        },
+        "diagnostics": {
+          "unsafe_execution": false,
+          "false_abstention": false,
+          "wrong_abstention_type": false
+        },
+        "analytical_details": {
+          "scorer_rule_version": "analytical_scorer_v0.2",
+          "case_id": "frozen_v0_6_001",
+          "metrics": {
+            "intent": 1.0,
+            "entity": 1.0,
+            "grain": 1.0,
+            "relevant_columns": 1.0,
+            "family": 1.0,
+            "tool_selection": 1.0,
+            "tool_arguments": 1.0,
+            "plan_consistency": 1.0,
+            "parsimony": 1.0,
+            "constraint_compliance": 1.0,
+            "guardrails": 1.0
+          },
+          "capabilities": {
+            "comprehension": 1.0,
+            "planning": 1.0,
+            "reliability": 1.0
+          },
+          "diagnostics": {
+            "invented_columns": [],
+            "invented_tools": [],
+            "forbidden_tools_used": [],
+            "forbidden_assumptions_used": [],
+            "extra_tool_calls": [],
+            "redundant_tool_calls": [],
+            "consistency_issues": [],
+            "required_guardrails": [],
+            "passed_guardrails": [],
+            "failed_guardrails": []
+          },
+          "overall": 1.0
+        },
+        "overall": 1.0
+      },
+      "overall": 1.0,
+      "raw_content": "{\n  \"decision\": \"analyze\",\n  \"decision_reason\": null,\n  \"clarification_question\": null,\n  \"intent\": \"aggregate_metric\",\n  \"entity\": null,\n  \"current_grain\": \"order\",\n  \"target_grain\": null,\n  \"relevant_columns\": [\n    \"revenue\"\n  ],\n  \"family\": \"aggregation\",\n  \"tool_calls\": [\n    {\n      \"name\": \"aggregate\",\n      \"arguments\": {\n        \"metrics\": [\"revenue\"],\n        \"group_by\": null\n      }\n    }\n  ],\n  \"assumptions\": []\n}",
+      "error": null
+    },
+    {
+      "case_id": "frozen_v0_6_002",
+      "domain": "healthcare_operations",
+      "user_request": "Les temps d'attente diffèrent-ils selon le service hospitalier ?",
+      "expected_decision": "analyze",
+      "status": "ready",
+      "inference_ms": 2191.0325000062585,
+      "candidate": {
+        "decision": "analyze",
+        "decision_reason": null,
+        "clarification_question": null,
+        "intent": "compare_groups",
+        "entity": null,
+        "current_grain": "visit",
+        "target_grain": null,
+        "relevant_columns": [
+          "department",
+          "wait_minutes"
+        ],
+        "family": "group_comparison",
+        "tool_calls": [
+          {
+            "name": "compare_groups",
+            "arguments": {
+              "target": "wait_minutes",
+              "group_by": "department"
+            }
+          }
+        ],
+        "assumptions": []
+      },
+      "score": {
+        "scorer_version": "analytical_decision_scorer_v0.6",
+        "case_id": "frozen_v0_6_002",
+        "expected_decision": "analyze",
+        "actual_decision": "analyze",
+        "metrics": {
+          "decision": 1.0,
+          "decision_reason": 1.0,
+          "clarification": null,
+          "analytical_plan": 1.0,
+          "route_quality": 1.0
+        },
+        "diagnostics": {
+          "unsafe_execution": false,
+          "false_abstention": false,
+          "wrong_abstention_type": false
+        },
+        "analytical_details": {
+          "scorer_rule_version": "analytical_scorer_v0.2",
+          "case_id": "frozen_v0_6_002",
+          "metrics": {
+            "intent": 1.0,
+            "entity": 1.0,
+            "grain": 1.0,
+            "relevant_columns": 1.0,
+            "family": 1.0,
+            "tool_selection": 1.0,
+            "tool_arguments": 1.0,
+            "plan_consistency": 1.0,
+            "parsimony": 1.0,
+            "constraint_compliance": 1.0,
+            "guardrails": 1.0
+          },
+          "capabilities": {
+            "comprehension": 1.0,
+            "planning": 1.0,
+            "reliability": 1.0
+          },
+          "diagnostics": {
+            "invented_columns": [],
+            "invented_tools": [],
+            "forbidden_tools_used": [],
+            "forbidden_assumptions_used": [],
+            "extra_tool_calls": [],
+            "redundant_tool_calls": [],
+            "consistency_issues": [],
+            "required_guardrails": [],
+            "passed_guardrails": [],
+            "failed_guardrails": []
+          },
+          "overall": 1.0
+        },
+        "overall": 1.0
+      },
+      "overall": 1.0,
+      "raw_content": "{\n  \"decision\": \"analyze\",\n  \"decision_reason\": null,\n  \"clarification_question\": null,\n  \"intent\": \"compare_groups\",\n  \"entity\": null,\n  \"current_grain\": \"visit\",\n  \"target_grain\": null,\n  \"relevant_columns\": [\n    \"department\",\n    \"wait_minutes\"\n  ],\n  \"family\": \"group_comparison\",\n  \"tool_calls\": [\n    {\n      \"name\": \"compare_groups\",\n      \"arguments\": {\n        \"target\": \"wait_minutes\",\n        \"group_by\": \"department\"\n      }\n    }\n  ],\n  \"assumptions\": []\n}",
+      "error": null
+    },
+    {
+      "case_id": "frozen_v0_6_003",
+      "domain": "hospitality",
+      "user_request": "Le prix moyen d'une nuit est-il associé au taux d'occupation ?",
+      "expected_decision": "analyze",
+      "status": "ready",
+      "inference_ms": 2259.3206000019563,
+      "candidate": {
+        "decision": "analyze",
+        "decision_reason": null,
+        "clarification_question": null,
+        "intent": "measure_relationship",
+        "entity": null,
+        "current_grain": "hotel_day",
+        "target_grain": null,
+        "relevant_columns": [
+          "average_daily_rate",
+          "occupancy_rate"
+        ],
+        "family": "association",
+        "tool_calls": [
+          {
+            "name": "measure_association",
+            "arguments": {
+              "target": "average_daily_rate",
+              "value": "occupancy_rate"
+            }
+          }
+        ],
+        "assumptions": []
+      },
+      "score": {
+        "scorer_version": "analytical_decision_scorer_v0.6",
+        "case_id": "frozen_v0_6_003",
+        "expected_decision": "analyze",
+        "actual_decision": "analyze",
+        "metrics": {
+          "decision": 1.0,
+          "decision_reason": 1.0,
+          "clarification": null,
+          "analytical_plan": 1.0,
+          "route_quality": 1.0
+        },
+        "diagnostics": {
+          "unsafe_execution": false,
+          "false_abstention": false,
+          "wrong_abstention_type": false
+        },
+        "analytical_details": {
+          "scorer_rule_version": "analytical_scorer_v0.2",
+          "case_id": "frozen_v0_6_003",
+          "metrics": {
+            "intent": 1.0,
+            "entity": 1.0,
+            "grain": 1.0,
+            "relevant_columns": 1.0,
+            "family": 1.0,
+            "tool_selection": 1.0,
+            "tool_arguments": 1.0,
+            "plan_consistency": 1.0,
+            "parsimony": 1.0,
+            "constraint_compliance": 1.0,
+            "guardrails": 1.0
+          },
+          "capabilities": {
+            "comprehension": 1.0,
+            "planning": 1.0,
+            "reliability": 1.0
+          },
+          "diagnostics": {
+            "invented_columns": [],
+            "invented_tools": [],
+            "forbidden_tools_used": [],
+            "forbidden_assumptions_used": [],
+            "extra_tool_calls": [],
+            "redundant_tool_calls": [],
+            "consistency_issues": [],
+            "required_guardrails": [],
+            "passed_guardrails": [],
+            "failed_guardrails": []
+          },
+          "overall": 1.0
+        },
+        "overall": 1.0
+      },
+      "overall": 1.0,
+      "raw_content": "{\n  \"decision\": \"analyze\",\n  \"decision_reason\": null,\n  \"clarification_question\": null,\n  \"intent\": \"measure_relationship\",\n  \"entity\": null,\n  \"current_grain\": \"hotel_day\",\n  \"target_grain\": null,\n  \"relevant_columns\": [\n    \"average_daily_rate\",\n    \"occupancy_rate\"\n  ],\n  \"family\": \"association\",\n  \"tool_calls\": [\n    {\n      \"name\": \"measure_association\",\n      \"arguments\": {\n        \"target\": \"average_daily_rate\",\n        \"value\": \"occupancy_rate\"\n      }\n    }\n  ],\n  \"assumptions\": []\n}",
+      "error": null
+    },
+    {
+      "case_id": "frozen_v0_6_004",
+      "domain": "mobility",
+      "user_request": "Comment le nombre de trajets évolue-t-il au fil des semaines ?",
+      "expected_decision": "analyze",
+      "status": "ready",
+      "inference_ms": 2208.8355000014417,
+      "candidate": {
+        "decision": "analyze",
+        "decision_reason": null,
+        "clarification_question": null,
+        "intent": "time_series_analysis",
+        "entity": null,
+        "current_grain": "station_week",
+        "target_grain": null,
+        "relevant_columns": [
+          "week_start",
+          "trip_count"
+        ],
+        "family": "time_series",
+        "tool_calls": [
+          {
+            "name": "analyze_time_series",
+            "arguments": {
+              "date": "week_start",
+              "target": "trip_count"
+            }
+          }
+        ],
+        "assumptions": []
+      },
+      "score": {
+        "scorer_version": "analytical_decision_scorer_v0.6",
+        "case_id": "frozen_v0_6_004",
+        "expected_decision": "analyze",
+        "actual_decision": "analyze",
+        "metrics": {
+          "decision": 1.0,
+          "decision_reason": 1.0,
+          "clarification": null,
+          "analytical_plan": 1.0,
+          "route_quality": 1.0
+        },
+        "diagnostics": {
+          "unsafe_execution": false,
+          "false_abstention": false,
+          "wrong_abstention_type": false
+        },
+        "analytical_details": {
+          "scorer_rule_version": "analytical_scorer_v0.2",
+          "case_id": "frozen_v0_6_004",
+          "metrics": {
+            "intent": 1.0,
+            "entity": 1.0,
+            "grain": 1.0,
+            "relevant_columns": 1.0,
+            "family": 1.0,
+            "tool_selection": 1.0,
+            "tool_arguments": 1.0,
+            "plan_consistency": 1.0,
+            "parsimony": 1.0,
+            "constraint_compliance": 1.0,
+            "guardrails": 1.0
+          },
+          "capabilities": {
+            "comprehension": 1.0,
+            "planning": 1.0,
+            "reliability": 1.0
+          },
+          "diagnostics": {
+            "invented_columns": [],
+            "invented_tools": [],
+            "forbidden_tools_used": [],
+            "forbidden_assumptions_used": [],
+            "extra_tool_calls": [],
+            "redundant_tool_calls": [],
+            "consistency_issues": [],
+            "required_guardrails": [],
+            "passed_guardrails": [],
+            "failed_guardrails": []
+          },
+          "overall": 1.0
+        },
+        "overall": 1.0
+      },
+      "overall": 1.0,
+      "raw_content": "{\n  \"decision\": \"analyze\",\n  \"decision_reason\": null,\n  \"clarification_question\": null,\n  \"intent\": \"time_series_analysis\",\n  \"entity\": null,\n  \"current_grain\": \"station_week\",\n  \"target_grain\": null,\n  \"relevant_columns\": [\n    \"week_start\",\n    \"trip_count\"\n  ],\n  \"family\": \"time_series\",\n  \"tool_calls\": [\n    {\n      \"name\": \"analyze_time_series\",\n      \"arguments\": {\n        \"date\": \"week_start\",\n        \"target\": \"trip_count\"\n      }\n    }\n  ],\n  \"assumptions\": []\n}",
+      "error": null
+    },
+    {
+      "case_id": "frozen_v0_6_005",
+      "domain": "industrial_iot",
+      "user_request": "La température moteur contient-elle des valeurs atypiques ?",
+      "expected_decision": "analyze",
+      "status": "ready",
+      "inference_ms": 2797.955499991076,
+      "candidate": {
+        "decision": "analyze",
+        "decision_reason": null,
+        "clarification_question": null,
+        "intent": "distribution_analysis",
+        "entity": "engine_id",
+        "current_grain": "sensor_reading",
+        "target_grain": "engine",
+        "relevant_columns": [
+          "engine_id",
+          "engine_temp_c"
+        ],
+        "family": "distribution",
+        "tool_calls": [
+          {
+            "name": "build_entity_view",
+            "arguments": {
+              "entity": "engine_id"
+            }
+          },
+          {
+            "name": "analyze_distribution",
+            "arguments": {
+              "target": "engine_temp_c"
+            }
+          },
+          {
+            "name": "detect_outliers",
+            "arguments": {
+              "target": "engine_temp_c"
+            }
+          }
+        ],
+        "assumptions": []
+      },
+      "score": {
+        "scorer_version": "analytical_decision_scorer_v0.6",
+        "case_id": "frozen_v0_6_005",
+        "expected_decision": "analyze",
+        "actual_decision": "analyze",
+        "metrics": {
+          "decision": 1.0,
+          "decision_reason": 1.0,
+          "clarification": null,
+          "analytical_plan": 0.7566666666666666,
+          "route_quality": 0.7566666666666666
+        },
+        "diagnostics": {
+          "unsafe_execution": false,
+          "false_abstention": false,
+          "wrong_abstention_type": false
+        },
+        "analytical_details": {
+          "scorer_rule_version": "analytical_scorer_v0.2",
+          "case_id": "frozen_v0_6_005",
+          "metrics": {
+            "intent": 1.0,
+            "entity": 0.0,
+            "grain": 0.5,
+            "relevant_columns": 0.6666666666666666,
+            "family": 1.0,
+            "tool_selection": 0.5,
+            "tool_arguments": 1.0,
+            "plan_consistency": 1.0,
+            "parsimony": 0.3333333333333333,
+            "constraint_compliance": 1.0,
+            "guardrails": 1.0
+          },
+          "capabilities": {
+            "comprehension": 0.6333333333333333,
+            "planning": 0.7083333333333334,
+            "reliability": 1.0
+          },
+          "diagnostics": {
+            "invented_columns": [],
+            "invented_tools": [],
+            "forbidden_tools_used": [],
+            "forbidden_assumptions_used": [],
+            "extra_tool_calls": [
+              "analyze_distribution",
+              "build_entity_view"
+            ],
+            "redundant_tool_calls": [],
+            "consistency_issues": [],
+            "required_guardrails": [
+              "no_automatic_outlier_deletion"
+            ],
+            "passed_guardrails": [
+              "no_automatic_outlier_deletion"
+            ],
+            "failed_guardrails": []
+          },
+          "overall": 0.7566666666666666
+        },
+        "overall": 0.854
+      },
+      "overall": 0.854,
+      "raw_content": "{\n  \"decision\": \"analyze\",\n  \"decision_reason\": null,\n  \"clarification_question\": null,\n  \"intent\": \"distribution_analysis\",\n  \"entity\": \"engine_id\",\n  \"current_grain\": \"sensor_reading\",\n  \"target_grain\": \"engine\",\n  \"relevant_columns\": [\n    \"engine_id\",\n    \"engine_temp_c\"\n  ],\n  \"family\": \"distribution\",\n  \"tool_calls\": [\n    {\n      \"name\": \"build_entity_view\",\n      \"arguments\": {\n        \"entity\": \"engine_id\"\n      }\n    },\n    {\n      \"name\": \"analyze_distribution\",\n      \"arguments\": {\n        \"target\": \"engine_temp_c\"\n      }\n    },\n    {\n      \"name\": \"detect_outliers\",\n      \"arguments\": {\n        \"target\": \"engine_temp_c\"\n      }\n    }\n  ],\n  \"assumptions\": []\n}",
+      "error": null
+    },
+    {
+      "case_id": "frozen_v0_6_006",
+      "domain": "insurance",
+      "user_request": "Certains courtiers ont-ils un comportement inhabituel en termes de nombre de contrats, de primes et de taux de sinistres ?",
+      "expected_decision": "analyze",
+      "status": "ready",
+      "inference_ms": 3019.1685000027064,
+      "candidate": {
+        "decision": "analyze",
+        "decision_reason": null,
+        "clarification_question": null,
+        "intent": "entity_anomaly_analysis",
+        "entity": "broker_id",
+        "current_grain": "broker_month",
+        "target_grain": "broker_month",
+        "relevant_columns": [
+          "broker_id",
+          "contract_count",
+          "premium_amount",
+          "claim_rate"
+        ],
+        "family": "entity_outlier",
+        "tool_calls": [
+          {
+            "name": "build_entity_view",
+            "arguments": {
+              "entity": "broker_id"
+            }
+          },
+          {
+            "name": "detect_entity_outliers",
+            "arguments": {
+              "entity": "broker_id",
+              "metrics": [
+                "contract_count",
+                "premium_amount",
+                "claim_rate"
+              ]
+            }
+          }
+        ],
+        "assumptions": []
+      },
+      "score": {
+        "scorer_version": "analytical_decision_scorer_v0.6",
+        "case_id": "frozen_v0_6_006",
+        "expected_decision": "analyze",
+        "actual_decision": "analyze",
+        "metrics": {
+          "decision": 1.0,
+          "decision_reason": 1.0,
+          "clarification": null,
+          "analytical_plan": 0.96,
+          "route_quality": 0.96
+        },
+        "diagnostics": {
+          "unsafe_execution": false,
+          "false_abstention": false,
+          "wrong_abstention_type": false
+        },
+        "analytical_details": {
+          "scorer_rule_version": "analytical_scorer_v0.2",
+          "case_id": "frozen_v0_6_006",
+          "metrics": {
+            "intent": 1.0,
+            "entity": 1.0,
+            "grain": 0.5,
+            "relevant_columns": 1.0,
+            "family": 1.0,
+            "tool_selection": 1.0,
+            "tool_arguments": 1.0,
+            "plan_consistency": 1.0,
+            "parsimony": 1.0,
+            "constraint_compliance": 1.0,
+            "guardrails": 1.0
+          },
+          "capabilities": {
+            "comprehension": 0.9,
+            "planning": 1.0,
+            "reliability": 1.0
+          },
+          "diagnostics": {
+            "invented_columns": [],
+            "invented_tools": [],
+            "forbidden_tools_used": [],
+            "forbidden_assumptions_used": [],
+            "extra_tool_calls": [],
+            "redundant_tool_calls": [],
+            "consistency_issues": [],
+            "required_guardrails": [
+              "no_unsupported_anomaly_label",
+              "no_automatic_outlier_deletion"
+            ],
+            "passed_guardrails": [
+              "no_unsupported_anomaly_label",
+              "no_automatic_outlier_deletion"
+            ],
+            "failed_guardrails": []
+          },
+          "overall": 0.96
+        },
+        "overall": 0.976
+      },
+      "overall": 0.976,
+      "raw_content": "{\n  \"decision\": \"analyze\",\n  \"decision_reason\": null,\n  \"clarification_question\": null,\n  \"intent\": \"entity_anomaly_analysis\",\n  \"entity\": \"broker_id\",\n  \"current_grain\": \"broker_month\",\n  \"target_grain\": \"broker_month\",\n  \"relevant_columns\": [\n    \"broker_id\",\n    \"contract_count\",\n    \"premium_amount\",\n    \"claim_rate\"\n  ],\n  \"family\": \"entity_outlier\",\n  \"tool_calls\": [\n    {\n      \"name\": \"build_entity_view\",\n      \"arguments\": {\n        \"entity\": \"broker_id\"\n      }\n    },\n    {\n      \"name\": \"detect_entity_outliers\",\n      \"arguments\": {\n        \"entity\": \"broker_id\",\n        \"metrics\": [\n          \"contract_count\",\n          \"premium_amount\",\n          \"claim_rate\"\n        ]\n      }\n    }\n  ],\n  \"assumptions\": []\n}",
+      "error": null
+    },
+    {
+      "case_id": "frozen_v0_6_007",
+      "domain": "logistics",
+      "user_request": "Les délais de livraison diffèrent-ils selon le transporteur ?",
+      "expected_decision": "analyze",
+      "status": "ready",
+      "inference_ms": 2202.896300004795,
+      "candidate": {
+        "decision": "analyze",
+        "decision_reason": null,
+        "clarification_question": null,
+        "intent": "compare_groups",
+        "entity": null,
+        "current_grain": "shipment",
+        "target_grain": null,
+        "relevant_columns": [
+          "carrier",
+          "delivery_delay_days"
+        ],
+        "family": "group_comparison",
+        "tool_calls": [
+          {
+            "name": "compare_groups",
+            "arguments": {
+              "target": "delivery_delay_days",
+              "group_by": "carrier"
+            }
+          }
+        ],
+        "assumptions": []
+      },
+      "score": {
+        "scorer_version": "analytical_decision_scorer_v0.6",
+        "case_id": "frozen_v0_6_007",
+        "expected_decision": "analyze",
+        "actual_decision": "analyze",
+        "metrics": {
+          "decision": 1.0,
+          "decision_reason": 1.0,
+          "clarification": null,
+          "analytical_plan": 1.0,
+          "route_quality": 1.0
+        },
+        "diagnostics": {
+          "unsafe_execution": false,
+          "false_abstention": false,
+          "wrong_abstention_type": false
+        },
+        "analytical_details": {
+          "scorer_rule_version": "analytical_scorer_v0.2",
+          "case_id": "frozen_v0_6_007",
+          "metrics": {
+            "intent": 1.0,
+            "entity": 1.0,
+            "grain": 1.0,
+            "relevant_columns": 1.0,
+            "family": 1.0,
+            "tool_selection": 1.0,
+            "tool_arguments": 1.0,
+            "plan_consistency": 1.0,
+            "parsimony": 1.0,
+            "constraint_compliance": 1.0,
+            "guardrails": 1.0
+          },
+          "capabilities": {
+            "comprehension": 1.0,
+            "planning": 1.0,
+            "reliability": 1.0
+          },
+          "diagnostics": {
+            "invented_columns": [],
+            "invented_tools": [],
+            "forbidden_tools_used": [],
+            "forbidden_assumptions_used": [],
+            "extra_tool_calls": [],
+            "redundant_tool_calls": [],
+            "consistency_issues": [],
+            "required_guardrails": [],
+            "passed_guardrails": [],
+            "failed_guardrails": []
+          },
+          "overall": 1.0
+        },
+        "overall": 1.0
+      },
+      "overall": 1.0,
+      "raw_content": "{\n  \"decision\": \"analyze\",\n  \"decision_reason\": null,\n  \"clarification_question\": null,\n  \"intent\": \"compare_groups\",\n  \"entity\": null,\n  \"current_grain\": \"shipment\",\n  \"target_grain\": null,\n  \"relevant_columns\": [\n    \"carrier\",\n    \"delivery_delay_days\"\n  ],\n  \"family\": \"group_comparison\",\n  \"tool_calls\": [\n    {\n      \"name\": \"compare_groups\",\n      \"arguments\": {\n        \"target\": \"delivery_delay_days\",\n        \"group_by\": \"carrier\"\n      }\n    }\n  ],\n  \"assumptions\": []\n}",
+      "error": null
+    },
+    {
+      "case_id": "frozen_v0_6_008",
+      "domain": "education",
+      "user_request": "Les heures de tutorat ont-elles causé l'amélioration des notes des étudiants ?",
+      "expected_decision": "cannot_answer",
+      "status": "ready",
+      "inference_ms": 2460.153199994238,
+      "candidate": {
+        "decision": "cannot_answer",
+        "decision_reason": "causal_identification_missing",
+        "clarification_question": "Pourriez-vous préciser si vous souhaitez analyser une corrélation statistique entre les heures de tutorat et les notes des étudiants, ou si vous cherchez à établir une causalité explicite (par exemple, des interventions spécifiques des heures de tutorat ayant directement amélioré les résultats) ?",
+        "intent": null,
+        "entity": null,
+        "current_grain": "student",
+        "target_grain": null,
+        "relevant_columns": [],
+        "family": null,
+        "tool_calls": [],
+        "assumptions": []
+      },
+      "score": {
+        "scorer_version": "analytical_decision_scorer_v0.6",
+        "case_id": "frozen_v0_6_008",
+        "expected_decision": "cannot_answer",
+        "actual_decision": "cannot_answer",
+        "metrics": {
+          "decision": 1.0,
+          "decision_reason": 1.0,
+          "clarification": null,
+          "analytical_plan": null,
+          "route_quality": 1.0
+        },
+        "diagnostics": {
+          "unsafe_execution": false,
+          "false_abstention": false,
+          "wrong_abstention_type": false
+        },
+        "analytical_details": null,
+        "overall": 1.0
+      },
+      "overall": 1.0,
+      "raw_content": "{\n  \"decision\": \"cannot_answer\",\n  \"decision_reason\": \"causal_identification_missing\"\n  ,\n  \"clarification_question\": \"Pourriez-vous préciser si vous souhaitez analyser une corrélation statistique entre les heures de tutorat et les notes des étudiants, ou si vous cherchez à établir une causalité explicite (par exemple, des interventions spécifiques des heures de tutorat ayant directement amélioré les résultats) ?\"\n  ,\n  \"intent\": null,\n  \"entity\": null,\n  \"current_grain\": \"student\",\n  \"target_grain\": null,\n  \"relevant_columns\": [],\n  \"family\": null,\n  \"tool_calls\": [],\n  \"assumptions\": []\n}",
+      "error": null
+    },
+    {
+      "case_id": "frozen_v0_6_009",
+      "domain": "retail",
+      "user_request": "Quels produits performent le mieux ?",
+      "expected_decision": "needs_clarification",
+      "status": "ready",
+      "inference_ms": 2372.8181999904336,
+      "candidate": {
+        "decision": "analyze",
+        "decision_reason": null,
+        "clarification_question": null,
+        "intent": "aggregate_metric",
+        "entity": "product_id",
+        "current_grain": "product_month",
+        "target_grain": null,
+        "relevant_columns": [
+          "units_sold",
+          "revenue",
+          "margin_rate"
+        ],
+        "family": "aggregation",
+        "tool_calls": [
+          {
+            "name": "aggregate",
+            "arguments": {
+              "metrics": [
+                "units_sold",
+                "revenue",
+                "margin_rate"
+              ],
+              "group_by": [
+                "product_id"
+              ]
+            }
+          }
+        ],
+        "assumptions": []
+      },
+      "score": {
+        "scorer_version": "analytical_decision_scorer_v0.6",
+        "case_id": "frozen_v0_6_009",
+        "expected_decision": "needs_clarification",
+        "actual_decision": "analyze",
+        "metrics": {
+          "decision": 0.0,
+          "decision_reason": 0.0,
+          "clarification": null,
+          "analytical_plan": null,
+          "route_quality": 0.0
+        },
+        "diagnostics": {
+          "unsafe_execution": true,
+          "false_abstention": false,
+          "wrong_abstention_type": false
+        },
+        "analytical_details": null,
+        "overall": 0.0
+      },
+      "overall": 0.0,
+      "raw_content": "{\n  \"decision\": \"analyze\",\n  \"decision_reason\": null,\n  \"clarification_question\": null,\n  \"intent\": \"aggregate_metric\",\n  \"entity\": \"product_id\",\n  \"current_grain\": \"product_month\",\n  \"target_grain\": null,\n  \"relevant_columns\": [\n    \"units_sold\",\n    \"revenue\",\n    \"margin_rate\"\n  ],\n  \"family\": \"aggregation\",\n  \"tool_calls\": [\n    {\n      \"name\": \"aggregate\",\n      \"arguments\": {\n        \"metrics\": [\"units_sold\", \"revenue\", \"margin_rate\"],\n        \"group_by\": [\"product_id\"]\n      }\n    }\n  ],\n  \"assumptions\": []\n}",
+      "error": null
+    },
+    {
+      "case_id": "frozen_v0_6_010",
+      "domain": "human_resources",
+      "user_request": "Compare les départements.",
+      "expected_decision": "needs_clarification",
+      "status": "ready",
+      "inference_ms": 3629.3367000034777,
+      "candidate": {
+        "decision": "analyze",
+        "decision_reason": null,
+        "clarification_question": null,
+        "intent": "compare_groups",
+        "entity": "department",
+        "current_grain": "department_month",
+        "target_grain": null,
+        "relevant_columns": [
+          "department",
+          "headcount",
+          "absence_rate",
+          "turnover_rate",
+          "satisfaction_score"
+        ],
+        "family": "group_comparison",
+        "tool_calls": [
+          {
+            "name": "compare_groups",
+            "arguments": {
+              "target": "headcount",
+              "group_by": "department"
+            }
+          },
+          {
+            "name": "compare_groups",
+            "arguments": {
+              "target": "absence_rate",
+              "group_by": "department"
+            }
+          },
+          {
+            "name": "compare_groups",
+            "arguments": {
+              "target": "turnover_rate",
+              "group_by": "department"
+            }
+          },
+          {
+            "name": "compare_groups",
+            "arguments": {
+              "target": "satisfaction_score",
+              "group_by": "department"
+            }
+          }
+        ],
+        "assumptions": []
+      },
+      "score": {
+        "scorer_version": "analytical_decision_scorer_v0.6",
+        "case_id": "frozen_v0_6_010",
+        "expected_decision": "needs_clarification",
+        "actual_decision": "analyze",
+        "metrics": {
+          "decision": 0.0,
+          "decision_reason": 0.0,
+          "clarification": null,
+          "analytical_plan": null,
+          "route_quality": 0.0
+        },
+        "diagnostics": {
+          "unsafe_execution": true,
+          "false_abstention": false,
+          "wrong_abstention_type": false
+        },
+        "analytical_details": null,
+        "overall": 0.0
+      },
+      "overall": 0.0,
+      "raw_content": "{\n  \"decision\": \"analyze\",\n  \"decision_reason\": null,\n  \"clarification_question\": null,\n  \"intent\": \"compare_groups\",\n  \"entity\": \"department\",\n  \"current_grain\": \"department_month\",\n  \"target_grain\": null,\n  \"relevant_columns\": [\n    \"department\",\n    \"headcount\",\n    \"absence_rate\",\n    \"turnover_rate\",\n    \"satisfaction_score\"\n  ],\n  \"family\": \"group_comparison\",\n  \"tool_calls\": [\n    {\n      \"name\": \"compare_groups\",\n      \"arguments\": {\n        \"target\": \"headcount\",\n        \"group_by\": \"department\"\n      }\n    },\n    {\n      \"name\": \"compare_groups\",\n      \"arguments\": {\n        \"target\": \"absence_rate\",\n        \"group_by\": \"department\"\n      }\n    },\n    {\n      \"name\": \"compare_groups\",\n      \"arguments\": {\n        \"target\": \"turnover_rate\",\n        \"group_by\": \"department\"\n      }\n    },\n    {\n      \"name\": \"compare_groups\",\n      \"arguments\": {\n        \"target\": \"satisfaction_score\",\n        \"group_by\": \"department\"\n      }\n    }\n  ],\n  \"assumptions\": []\n}",
+      "error": null
+    },
+    {
+      "case_id": "frozen_v0_6_011",
+      "domain": "commerce",
+      "user_request": "Quelle est la marge réalisée sur chaque commande ?",
+      "expected_decision": "cannot_answer",
+      "status": "ready",
+      "inference_ms": 2207.0246000075713,
+      "candidate": {
+        "decision": "analyze",
+        "decision_reason": null,
+        "clarification_question": null,
+        "intent": "aggregate_metric",
+        "entity": null,
+        "current_grain": "order",
+        "target_grain": null,
+        "relevant_columns": [
+          "order_id",
+          "revenue",
+          "quantity"
+        ],
+        "family": "aggregation",
+        "tool_calls": [
+          {
+            "name": "aggregate",
+            "arguments": {
+              "metrics": [
+                "revenue",
+                "quantity"
+              ],
+              "group_by": [
+                "order_id"
+              ]
+            }
+          }
+        ],
+        "assumptions": []
+      },
+      "score": {
+        "scorer_version": "analytical_decision_scorer_v0.6",
+        "case_id": "frozen_v0_6_011",
+        "expected_decision": "cannot_answer",
+        "actual_decision": "analyze",
+        "metrics": {
+          "decision": 0.0,
+          "decision_reason": 0.0,
+          "clarification": null,
+          "analytical_plan": null,
+          "route_quality": 0.0
+        },
+        "diagnostics": {
+          "unsafe_execution": true,
+          "false_abstention": false,
+          "wrong_abstention_type": false
+        },
+        "analytical_details": null,
+        "overall": 0.0
+      },
+      "overall": 0.0,
+      "raw_content": "{\n  \"decision\": \"analyze\",\n  \"decision_reason\": null,\n  \"clarification_question\": null,\n  \"intent\": \"aggregate_metric\",\n  \"entity\": null,\n  \"current_grain\": \"order\",\n  \"target_grain\": null,\n  \"relevant_columns\": [\n    \"order_id\",\n    \"revenue\",\n    \"quantity\"\n  ],\n  \"family\": \"aggregation\",\n  \"tool_calls\": [\n    {\n      \"name\": \"aggregate\",\n      \"arguments\": {\n        \"metrics\": [\"revenue\", \"quantity\"],\n        \"group_by\": [\"order_id\"]\n      }\n    }\n  ],\n  \"assumptions\": []\n}",
+      "error": null
+    },
+    {
+      "case_id": "frozen_v0_6_012",
+      "domain": "saas",
+      "user_request": "Le nombre de tickets support est-il lié au churn des clients ?",
+      "expected_decision": "cannot_answer",
+      "status": "ready",
+      "inference_ms": 2246.947399995406,
+      "candidate": {
+        "decision": "cannot_answer",
+        "decision_reason": "causal_identification_missing",
+        "clarification_question": "L'utilisateur demande si le nombre de tickets support est une cause du churn des clients. Pouvez-vous préciser si vous souhaitez analyser une relation causale ou simplement une association statistique entre ces deux variables ?",
+        "intent": null,
+        "entity": null,
+        "current_grain": "customer_month",
+        "target_grain": null,
+        "relevant_columns": [],
+        "family": null,
+        "tool_calls": [],
+        "assumptions": []
+      },
+      "score": {
+        "scorer_version": "analytical_decision_scorer_v0.6",
+        "case_id": "frozen_v0_6_012",
+        "expected_decision": "cannot_answer",
+        "actual_decision": "cannot_answer",
+        "metrics": {
+          "decision": 1.0,
+          "decision_reason": 0.0,
+          "clarification": null,
+          "analytical_plan": null,
+          "route_quality": 0.0
+        },
+        "diagnostics": {
+          "unsafe_execution": false,
+          "false_abstention": false,
+          "wrong_abstention_type": false
+        },
+        "analytical_details": null,
+        "overall": 0.4
+      },
+      "overall": 0.4,
+      "raw_content": "{\n  \"decision\": \"cannot_answer\",\n  \"decision_reason\": \"causal_identification_missing\"\n  ,\n  \"clarification_question\": \"L'utilisateur demande si le nombre de tickets support est une cause du churn des clients. Pouvez-vous préciser si vous souhaitez analyser une relation causale ou simplement une association statistique entre ces deux variables ?\"\n  ,\n  \"intent\": null,\n  \"entity\": null,\n  \"current_grain\": \"customer_month\",\n  \"target_grain\": null,\n  \"relevant_columns\": [],\n  \"family\": null,\n  \"tool_calls\": [],\n  \"assumptions\": []\n}",
+      "error": null
+    },
+    {
+      "case_id": "frozen_v0_6_013",
+      "domain": "energy",
+      "user_request": "Prédis la consommation électrique du mois prochain.",
+      "expected_decision": "cannot_answer",
+      "status": "ready",
+      "inference_ms": 2107.94590000296,
+      "candidate": {
+        "decision": "analyze",
+        "decision_reason": null,
+        "clarification_question": null,
+        "intent": "time_series_analysis",
+        "entity": null,
+        "current_grain": "day",
+        "target_grain": null,
+        "relevant_columns": [
+          "date",
+          "consumption_kwh"
+        ],
+        "family": "time_series",
+        "tool_calls": [
+          {
+            "name": "analyze_time_series",
+            "arguments": {
+              "date": "date",
+              "target": "consumption_kwh"
+            }
+          }
+        ],
+        "assumptions": []
+      },
+      "score": {
+        "scorer_version": "analytical_decision_scorer_v0.6",
+        "case_id": "frozen_v0_6_013",
+        "expected_decision": "cannot_answer",
+        "actual_decision": "analyze",
+        "metrics": {
+          "decision": 0.0,
+          "decision_reason": 0.0,
+          "clarification": null,
+          "analytical_plan": null,
+          "route_quality": 0.0
+        },
+        "diagnostics": {
+          "unsafe_execution": true,
+          "false_abstention": false,
+          "wrong_abstention_type": false
+        },
+        "analytical_details": null,
+        "overall": 0.0
+      },
+      "overall": 0.0,
+      "raw_content": "{\n  \"decision\": \"analyze\",\n  \"decision_reason\": null,\n  \"clarification_question\": null,\n  \"intent\": \"time_series_analysis\",\n  \"entity\": null,\n  \"current_grain\": \"day\",\n  \"target_grain\": null,\n  \"relevant_columns\": [\"date\", \"consumption_kwh\"],\n  \"family\": \"time_series\",\n  \"tool_calls\": [\n    {\n      \"name\": \"analyze_time_series\",\n      \"arguments\": {\n        \"date\": \"date\",\n        \"target\": \"consumption_kwh\"\n      }\n    }\n  ],\n  \"assumptions\": []\n}",
+      "error": null
+    },
+    {
+      "case_id": "frozen_v0_6_014",
+      "domain": "marketing_finance",
+      "user_request": "Les dépenses publicitaires sont-elles associées au chiffre d'affaires quotidien ?",
+      "expected_decision": "cannot_answer",
+      "status": "ready",
+      "inference_ms": 2205.558999994537,
+      "candidate": {
+        "decision": "analyze",
+        "decision_reason": null,
+        "clarification_question": null,
+        "intent": "measure_relationship",
+        "entity": null,
+        "current_grain": "day",
+        "target_grain": null,
+        "relevant_columns": [
+          "ad_spend",
+          "daily_revenue"
+        ],
+        "family": "association",
+        "tool_calls": [
+          {
+            "name": "measure_association",
+            "arguments": {
+              "target": "ad_spend",
+              "value": "daily_revenue"
+            }
+          }
+        ],
+        "assumptions": []
+      },
+      "score": {
+        "scorer_version": "analytical_decision_scorer_v0.6",
+        "case_id": "frozen_v0_6_014",
+        "expected_decision": "cannot_answer",
+        "actual_decision": "analyze",
+        "metrics": {
+          "decision": 0.0,
+          "decision_reason": 0.0,
+          "clarification": null,
+          "analytical_plan": null,
+          "route_quality": 0.0
+        },
+        "diagnostics": {
+          "unsafe_execution": true,
+          "false_abstention": false,
+          "wrong_abstention_type": false
+        },
+        "analytical_details": null,
+        "overall": 0.0
+      },
+      "overall": 0.0,
+      "raw_content": "{\n  \"decision\": \"analyze\",\n  \"decision_reason\": null,\n  \"clarification_question\": null,\n  \"intent\": \"measure_relationship\",\n  \"entity\": null,\n  \"current_grain\": \"day\",\n  \"target_grain\": null,\n  \"relevant_columns\": [\n    \"ad_spend\",\n    \"daily_revenue\"\n  ],\n  \"family\": \"association\",\n  \"tool_calls\": [\n    {\n      \"name\": \"measure_association\",\n      \"arguments\": {\n        \"target\": \"ad_spend\",\n        \"value\": \"daily_revenue\"\n      }\n    }\n  ],\n  \"assumptions\": []\n}",
+      "error": null
+    },
+    {
+      "case_id": "frozen_v0_6_015",
+      "domain": "operations",
+      "user_request": "Les délais de traitement sont-ils élevés ?",
+      "expected_decision": "needs_clarification",
+      "status": "ready",
+      "inference_ms": 2023.3817999978783,
+      "candidate": {
+        "decision": "analyze",
+        "decision_reason": null,
+        "clarification_question": null,
+        "intent": "distribution_analysis",
+        "entity": "case_id",
+        "current_grain": "case",
+        "target_grain": null,
+        "relevant_columns": [
+          "processing_minutes"
+        ],
+        "family": "distribution",
+        "tool_calls": [
+          {
+            "name": "analyze_distribution",
+            "arguments": {
+              "target": "processing_minutes"
+            }
+          }
+        ],
+        "assumptions": []
+      },
+      "score": {
+        "scorer_version": "analytical_decision_scorer_v0.6",
+        "case_id": "frozen_v0_6_015",
+        "expected_decision": "needs_clarification",
+        "actual_decision": "analyze",
+        "metrics": {
+          "decision": 0.0,
+          "decision_reason": 0.0,
+          "clarification": null,
+          "analytical_plan": null,
+          "route_quality": 0.0
+        },
+        "diagnostics": {
+          "unsafe_execution": true,
+          "false_abstention": false,
+          "wrong_abstention_type": false
+        },
+        "analytical_details": null,
+        "overall": 0.0
+      },
+      "overall": 0.0,
+      "raw_content": "{\n  \"decision\": \"analyze\",\n  \"decision_reason\": null,\n  \"clarification_question\": null,\n  \"intent\": \"distribution_analysis\",\n  \"entity\": \"case_id\",\n  \"current_grain\": \"case\",\n  \"target_grain\": null,\n  \"relevant_columns\": [\n    \"processing_minutes\"\n  ],\n  \"family\": \"distribution\",\n  \"tool_calls\": [\n    {\n      \"name\": \"analyze_distribution\",\n      \"arguments\": {\n        \"target\": \"processing_minutes\"\n      }\n    }\n  ],\n  \"assumptions\": []\n}",
+      "error": null
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "benchmark_version": "rag_explanation_benchmark_v0.1",
+  "explanation_rule_version": "rag_explanation_v0.1",
+  "model": "gemma3:4b",
+  "cases_sha256": "110fec89c9035cdd97ea049464c67660ccd9a3bdddac81fe65e382b7cdc5a8f7",
+  "metrics": {
+    "case_count": 6,
+    "successful_cases": 0,
+    "abstentions": 6,
+    "success_rate": 0.0,
+    "invalid_citations": 0,
+    "invalid_evidence_quotes": 0,
+    "numeric_violations": 0
+  },
+  "gates": {
+    "minimum_success_rate": 0.8,
+    "maximum_invalid_citations": 0,
+    "maximum_invalid_evidence_quotes": 0,
+    "maximum_numeric_violations": 0,
+    "success_rate_pass": false,
+    "citation_pass": true,
+    "evidence_pass": true,
+    "numeric_pass": true,
+    "benchmark_pass": false
+  },
+  "cases": [
+    {
+      "case_id": "water_gap",
+      "status": "abstained",
+      "success": false,
+      "explanation": "",
+      "claims": []
+    },
+    {
+      "case_id": "missing_values",
+      "status": "abstained",
+      "success": false,
+      "explanation": "",
+      "claims": []
+    },
+    {
+      "case_id": "join_grain",
+      "status": "abstained",
+      "success": false,
+      "explanation": "",
+      "claims": []
+    },
+    {
+      "case_id": "correlation",
+      "status": "abstained",
+      "success": false,
+      "explanation": "",
+      "claims": []
+    },
+    {
+      "case_id": "sensor_drift",
+      "status": "abstained",
+      "success": false,
+      "explanation": "",
+      "claims": []
+    },
+    {
+      "case_id": "least_privilege",
+      "status": "abstained",
+      "success": false,
+      "explanation": "",
+      "claims": []
+    }
+  ]
+}

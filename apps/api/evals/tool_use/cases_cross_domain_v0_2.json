@@ -1,0 +1,276 @@
+[
+  {
+    "case_id": "quantitative_salary_training",
+    "description": "Association quantitative entre deux colonnes numériques explicitement nommées.",
+    "objective": "Étudier la relation entre salary et training_hours.",
+    "fixture": "fixtures/tool_use_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "quantitative_association",
+      "acceptable_bindings": [
+        {
+          "x": "salary",
+          "y": "training_hours"
+        },
+        {
+          "x": "training_hours",
+          "y": "salary"
+        }
+      ],
+      "tool": "run_quantitative_association",
+      "should_execute": true,
+      "chart_type": "scatter"
+    }
+  },
+  {
+    "case_id": "categorical_overtime_left",
+    "description": "Association catégorielle entre deux variables booléennes/catégorielles.",
+    "objective": "Étudier l'association entre overtime et left_company.",
+    "fixture": "fixtures/tool_use_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "categorical_association",
+      "acceptable_bindings": [
+        {
+          "x": "overtime",
+          "y": "left_company"
+        },
+        {
+          "x": "left_company",
+          "y": "overtime"
+        }
+      ],
+      "tool": "run_categorical_association",
+      "should_execute": true,
+      "chart_type": "heatmap"
+    }
+  },
+  {
+    "case_id": "group_salary_department",
+    "description": "Comparaison descriptive d'une variable quantitative selon un groupe catégoriel.",
+    "objective": "Comparer salary selon department.",
+    "fixture": "fixtures/tool_use_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "group_comparison",
+      "acceptable_bindings": [
+        {
+          "group": "department",
+          "value": "salary"
+        }
+      ],
+      "tool": "run_group_comparison",
+      "should_execute": true,
+      "chart_type": "boxplot"
+    }
+  },
+  {
+    "case_id": "distribution_salary",
+    "description": "Distribution descriptive d'une seule variable quantitative.",
+    "objective": "Analyser la distribution de salary.",
+    "fixture": "fixtures/tool_use_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "distribution",
+      "acceptable_bindings": [
+        {
+          "value": "salary"
+        }
+      ],
+      "tool": "run_distribution",
+      "should_execute": true,
+      "chart_type": "histogram"
+    }
+  },
+  {
+    "case_id": "time_salary_snapshot",
+    "description": "Série temporelle médiane + IQR avec colonne temporelle explicite existante.",
+    "objective": "Analyser l'évolution de la médiane de salary selon snapshot_date.",
+    "fixture": "fixtures/tool_use_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "time_series",
+      "acceptable_bindings": [
+        {
+          "time": "snapshot_date",
+          "value": "salary"
+        }
+      ],
+      "tool": "run_time_series",
+      "should_execute": true,
+      "chart_type": "line_band",
+      "aggregation_function": "median"
+    }
+  },
+  {
+    "case_id": "guardrail_missing_year",
+    "description": "Garde-fou de fidélité : Year est explicitement demandé mais absent du dataset.",
+    "objective": "Analyser l'évolution de la médiane de salary selon Year.",
+    "fixture": "fixtures/tool_use_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "blocked",
+        "rejected"
+      ],
+      "family": "time_series",
+      "acceptable_bindings": [],
+      "tool": null,
+      "should_execute": false,
+      "forbidden_columns": [
+        "snapshot_date"
+      ],
+      "must_have_fidelity_guard": true,
+      "acceptable_families": [
+        "time_series",
+        "unresolved"
+      ]
+    }
+  },
+  {
+    "case_id": "sales_quantitative_revenue_marketing",
+    "description": "Cross-domain sales: association quantitative between revenue and marketing_spend.",
+    "objective": "Étudier la relation entre revenue et marketing_spend.",
+    "fixture": "fixtures/tool_use_sales_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "quantitative_association",
+      "acceptable_bindings": [
+        {
+          "x": "revenue",
+          "y": "marketing_spend"
+        },
+        {
+          "x": "marketing_spend",
+          "y": "revenue"
+        }
+      ],
+      "tool": "run_quantitative_association",
+      "should_execute": true,
+      "chart_type": "scatter"
+    }
+  },
+  {
+    "case_id": "sales_categorical_channel_returned",
+    "description": "Cross-domain sales: categorical association between channel and returned.",
+    "objective": "Étudier l'association entre channel et returned.",
+    "fixture": "fixtures/tool_use_sales_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "categorical_association",
+      "acceptable_bindings": [
+        {
+          "x": "channel",
+          "y": "returned"
+        },
+        {
+          "x": "returned",
+          "y": "channel"
+        }
+      ],
+      "tool": "run_categorical_association",
+      "should_execute": true,
+      "chart_type": "heatmap"
+    }
+  },
+  {
+    "case_id": "sales_group_revenue_region",
+    "description": "Cross-domain sales: revenue comparison by region.",
+    "objective": "Comparer revenue selon region.",
+    "fixture": "fixtures/tool_use_sales_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "group_comparison",
+      "acceptable_bindings": [
+        {
+          "group": "region",
+          "value": "revenue"
+        }
+      ],
+      "tool": "run_group_comparison",
+      "should_execute": true,
+      "chart_type": "boxplot"
+    }
+  },
+  {
+    "case_id": "sales_distribution_revenue",
+    "description": "Cross-domain sales: revenue distribution.",
+    "objective": "Analyser la distribution de revenue.",
+    "fixture": "fixtures/tool_use_sales_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "distribution",
+      "acceptable_bindings": [
+        {
+          "value": "revenue"
+        }
+      ],
+      "tool": "run_distribution",
+      "should_execute": true,
+      "chart_type": "histogram"
+    }
+  },
+  {
+    "case_id": "sales_time_revenue_order_date",
+    "description": "Cross-domain sales: median revenue by explicit temporal column.",
+    "objective": "Analyser l'évolution de la médiane de revenue selon order_date.",
+    "fixture": "fixtures/tool_use_sales_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "time_series",
+      "acceptable_bindings": [
+        {
+          "time": "order_date",
+          "value": "revenue"
+        }
+      ],
+      "tool": "run_time_series",
+      "should_execute": true,
+      "chart_type": "line_band",
+      "aggregation_function": "median"
+    }
+  },
+  {
+    "case_id": "sales_guardrail_missing_profit",
+    "description": "Cross-domain guardrail: explicitly requested profit column is absent and must not be silently replaced by revenue.",
+    "objective": "Analyser la distribution de profit.",
+    "fixture": "fixtures/tool_use_sales_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "blocked",
+        "rejected"
+      ],
+      "family": "distribution",
+      "acceptable_families": [
+        "distribution",
+        "unresolved"
+      ],
+      "acceptable_bindings": [],
+      "tool": null,
+      "should_execute": false,
+      "forbidden_columns": [
+        "revenue"
+      ],
+      "must_have_fidelity_guard": true
+    }
+  }
+]

@@ -1,0 +1,208 @@
+.wrapper {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid rgba(126, 177, 255, 0.12);
+  border-radius: 14px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(49, 89, 151, 0.055),
+      rgba(255, 255, 255, 0.012)
+    );
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.eyebrow {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.44;
+}
+
+.currentTitle {
+  display: block;
+  font-size: 0.88rem;
+  line-height: 1.25;
+}
+
+.currentDescription {
+  max-width: 760px;
+  margin: 6px 0 0;
+  font-size: 0.64rem;
+  line-height: 1.5;
+  opacity: 0.56;
+}
+
+.progress {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 999px;
+  font-size: 0.56rem;
+  font-weight: 700;
+  opacity: 0.62;
+}
+
+.scroller {
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color:
+    rgba(126, 177, 255, 0.18)
+    transparent;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(128px, 1fr));
+  gap: 7px;
+  min-width: 680px;
+}
+
+.step {
+  position: relative;
+  min-height: 78px;
+  padding: 10px 10px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.055);
+  border-radius: 10px;
+  color: inherit;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.012);
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease,
+    opacity 160ms ease;
+}
+
+.step:not(:disabled):hover {
+  transform: translateY(-1px);
+  border-color: rgba(126, 177, 255, 0.18);
+  background: rgba(126, 177, 255, 0.035);
+}
+
+.step:disabled {
+  cursor: not-allowed;
+  opacity: 0.38;
+}
+
+.active {
+  border-color: rgba(126, 177, 255, 0.3);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(80, 132, 216, 0.12),
+      rgba(80, 132, 216, 0.035)
+    );
+}
+
+.stepTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.index {
+  font-size: 0.54rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  opacity: 0.42;
+}
+
+.symbol {
+  display: grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+  font-size: 0.56rem;
+  font-weight: 800;
+}
+
+.label {
+  display: block;
+  margin-top: 9px;
+  font-size: 0.66rem;
+  line-height: 1.25;
+}
+
+.status {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.52rem;
+  opacity: 0.47;
+}
+
+.done .symbol {
+  border-color: rgba(122, 203, 160, 0.25);
+  color: rgb(153, 223, 184);
+}
+
+.done {
+  border-color: rgba(122, 203, 160, 0.1);
+}
+
+.attention .symbol {
+  border-color: rgba(255, 178, 107, 0.28);
+  color: rgb(255, 190, 128);
+}
+
+.attention {
+  border-color: rgba(255, 178, 107, 0.12);
+}
+
+.current .symbol {
+  border-color: rgba(126, 177, 255, 0.3);
+  color: rgb(159, 196, 255);
+}
+
+.skipped .symbol {
+  color: rgba(255, 255, 255, 0.58);
+}
+
+.mobileLabel {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .wrapper {
+    padding: 12px;
+  }
+
+  .header {
+    margin-bottom: 10px;
+  }
+
+  .currentDescription {
+    font-size: 0.62rem;
+  }
+
+  .steps {
+    grid-template-columns: repeat(5, minmax(116px, 1fr));
+    min-width: 620px;
+  }
+
+  .step {
+    min-height: 72px;
+  }
+
+  .desktopLabel {
+    display: none;
+  }
+
+  .mobileLabel {
+    display: inline;
+  }
+}

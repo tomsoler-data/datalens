@@ -1,0 +1,312 @@
+{
+  "status": "ready",
+  "planner": {
+    "status": "ready",
+    "objective": "Je voudrais comparer les niveaux de salary entre les différents department.",
+    "model": "gemma3:4b",
+    "proposal_count": 1,
+    "validated_count": 1,
+    "blocked_count": 0,
+    "ambiguous_count": 0,
+    "rejected_count": 0,
+    "items": [
+      {
+        "proposal_index": 1,
+        "validation_status": "validated",
+        "raw_proposal": {
+          "decision": "propose",
+          "title": "Comparer les niveaux de salary entre les différents department.",
+          "family": "group_comparison",
+          "dataset_id": "dataset:0001",
+          "analytical_grain": null,
+          "x_column": null,
+          "y_column": "department",
+          "group_column": "department",
+          "value_column": "salary",
+          "time_column": null,
+          "dimension_column": null,
+          "entity_column": null,
+          "aggregation_function": "none",
+          "ranking_order": "none",
+          "ranking_limit": null,
+          "window_operation": "none",
+          "window_size": null,
+          "blockers": [],
+          "reasons": [
+            "missing value_column"
+          ],
+          "confidence": 0.95
+        },
+        "proposal": {
+          "decision": "propose",
+          "title": "Comparer les niveaux de salary entre les différents department.",
+          "family": "group_comparison",
+          "dataset_id": "dataset:0001",
+          "analytical_grain": null,
+          "x_column": null,
+          "y_column": null,
+          "group_column": "department",
+          "value_column": "salary",
+          "time_column": null,
+          "dimension_column": null,
+          "entity_column": null,
+          "aggregation_function": "none",
+          "ranking_order": "none",
+          "ranking_limit": null,
+          "window_operation": "none",
+          "window_size": null,
+          "blockers": [],
+          "reasons": [
+            "missing value_column"
+          ],
+          "confidence": 0.95
+        },
+        "contract": {
+          "contract_id": "ai:0ffe3a9de5d4010d:01",
+          "contract_version": "analytical_contract_v0.2",
+          "origin": "ai_planner",
+          "status": "validated",
+          "title": "Comparer les niveaux de salary entre les différents department.",
+          "request_text": "Je voudrais comparer les niveaux de salary entre les différents department.",
+          "family": "group_comparison",
+          "required_dataset_ids": [
+            "dataset:0001"
+          ],
+          "required_dataset_filenames": [
+            "tool_use_benchmark.csv"
+          ],
+          "analytical_grain": null,
+          "bindings": [
+            {
+              "role": "group",
+              "column": "department",
+              "dataset_id": "dataset:0001",
+              "dataset_filename": "tool_use_benchmark.csv",
+              "semantic_concept": null,
+              "analysis_kind": "categorical"
+            },
+            {
+              "role": "value",
+              "column": "salary",
+              "dataset_id": "dataset:0001",
+              "dataset_filename": "tool_use_benchmark.csv",
+              "semantic_concept": null,
+              "analysis_kind": "quantitative"
+            }
+          ],
+          "aggregation": null,
+          "ranking": null,
+          "window": null,
+          "filters": [],
+          "joins": [],
+          "derived_variables": [],
+          "required_operations": [
+            "Validate AI-proposed analytical plan against the deterministic dataset catalog.",
+            "Execute only through a deterministic group_comparison tool."
+          ],
+          "provenance": null,
+          "reasons": [
+            "Le LLM local a proposé la famille analytique et les rôles de colonnes.",
+            "Python a supprimé des rôles de protocole non pertinents pour `group_comparison` : y_column. Le contrat canonique conserve uniquement group/value.",
+            "Python a vérifié dataset_id, noms de colonnes, types analytiques et invariants du contrat avant promotion vers `validated`."
+          ],
+          "blockers": [],
+          "planner_confidence": 0.95
+        },
+        "errors": [],
+        "warnings": [],
+        "normalizations": [
+          "Python a supprimé des rôles de protocole non pertinents pour `group_comparison` : y_column. Le contrat canonique conserve uniquement group/value."
+        ]
+      }
+    ],
+    "attempt_count": 2,
+    "retry_count": 1,
+    "retry_triggered": true,
+    "retry_feedback": [
+      "Proposition 1: family=group_comparison.",
+      "Rôle(s) obligatoire(s) manquant(s) pour group_comparison : value."
+    ],
+    "normalization_count": 1,
+    "normalization_applied": true,
+    "planner_rule_version": "ai_analytical_planner_v0.12"
+  },
+  "planner_model": "gemma3:4b",
+  "tool_model": "qwen2.5:1.5b-instruct",
+  "supported_native_families": [
+    "categorical_association",
+    "distribution",
+    "group_comparison",
+    "quantitative_association",
+    "time_series"
+  ],
+  "validated_contract_count": 1,
+  "pipeline_item_count": 1,
+  "executed_count": 1,
+  "not_supported_count": 0,
+  "rejected_count": 0,
+  "items": [
+    {
+      "contract_id": "ai:0ffe3a9de5d4010d:01",
+      "family": "group_comparison",
+      "pipeline_status": "executed",
+      "native_tool": {
+        "status": "ready",
+        "model": "qwen2.5:1.5b-instruct",
+        "contract_id": "ai:0ffe3a9de5d4010d:01",
+        "contract_family": "group_comparison",
+        "available_tools": [
+          "run_categorical_association",
+          "run_distribution",
+          "run_group_comparison",
+          "run_quantitative_association",
+          "run_time_series"
+        ],
+        "expected_tool": "run_group_comparison",
+        "tool_call_received": true,
+        "requested_tool": "run_group_comparison",
+        "requested_arguments": {
+          "group_column": "department",
+          "value_column": "salary",
+          "dataset_id": "dataset:0001"
+        },
+        "validation_status": "validated",
+        "validation_errors": [],
+        "attempt_count": 1,
+        "retry_count": 0,
+        "attempts": [
+          {
+            "attempt_index": 1,
+            "prompt_variant": "standard",
+            "tool_call_count": 1,
+            "assistant_content": "",
+            "selected_tool_name": "run_group_comparison",
+            "errors": []
+          }
+        ],
+        "execution": {
+          "call_index": 1,
+          "contract_id": "ai:0ffe3a9de5d4010d:01",
+          "family": "group_comparison",
+          "tool_name": "run_group_comparison",
+          "selection_source": "validated_contract_family",
+          "execution_status": "executed",
+          "dataset_id": "dataset:0001",
+          "dataset_filename": "tool_use_benchmark.csv",
+          "arguments": {
+            "family": "group_comparison",
+            "dataset_ids": [
+              "dataset:0001"
+            ],
+            "analytical_grain": null,
+            "variables": {
+              "group": "department",
+              "value": "salary"
+            },
+            "aggregation": null
+          },
+          "result": {
+            "analysis_id": "ai_tool:ai:0ffe3a9de5d4010d:01",
+            "dataset_id": "dataset:0001",
+            "dataset_filename": "tool_use_benchmark.csv",
+            "title": "Comparer les niveaux de salary entre les différents department.",
+            "family": "group_comparison",
+            "planned_readiness": "executable_now",
+            "execution_status": "descriptive_only",
+            "chart_type": "boxplot",
+            "summary": [
+              "4 groupe(s) ont été comparés pour salary.",
+              "DataLens calculated the sample size, mean, median, dispersion and quartiles for each group."
+            ],
+            "metrics": {
+              "group_column": "department",
+              "value_column": "salary",
+              "group_count": 4,
+              "valid_observations": 240,
+              "repeated_measure_structure": null
+            },
+            "chart_data": [
+              {
+                "group": "Analytics",
+                "count": 60,
+                "mean": 70898.0,
+                "median": 71120.0,
+                "std": 5136.501084379376,
+                "min": 59780.0,
+                "q1": 66900.0,
+                "q3": 74780.0,
+                "max": 79860.0
+              },
+              {
+                "group": "Engineering",
+                "count": 60,
+                "mean": 78189.0,
+                "median": 78315.0,
+                "std": 5182.268726392174,
+                "min": 67955.0,
+                "q1": 74355.0,
+                "q3": 82215.0,
+                "max": 87395.0
+              },
+              {
+                "group": "Finance",
+                "count": 60,
+                "mean": 76480.0,
+                "median": 77130.0,
+                "std": 5575.367738878648,
+                "min": 64410.0,
+                "q1": 72230.0,
+                "q3": 80870.0,
+                "max": 86570.0
+              },
+              {
+                "group": "Operations",
+                "count": 60,
+                "mean": 72181.66666666667,
+                "median": 73065.0,
+                "std": 6137.530190244134,
+                "min": 59105.0,
+                "q1": 67755.0,
+                "q3": 76835.0,
+                "max": 83745.0
+              }
+            ],
+            "statistical_decision": null,
+            "statistical_result": null,
+            "visualization": null,
+            "warnings": [
+              "This execution compares group distributions descriptively. No inferential group-comparison test has been applied yet."
+            ],
+            "limitations": [
+              "AI tool orchestration v0.2 supports only single-dataset contracts and does not allow LLM-generated joins, derived variables or arbitrary Python code."
+            ],
+            "execution_rule_version": "analysis_executor_v0.1"
+          },
+          "errors": [],
+          "warnings": [
+            "The LLM did not execute Python. It produced the analytical intent; Python selected and ran a whitelisted deterministic tool."
+          ]
+        },
+        "notes": [
+          "The local tool model selected one function from the native DataLens tool catalog.",
+          "Python verified that the selected tool matched the validated analytical family and that every argument exactly matched the validated contract.",
+          "A missing tool call may trigger one stricter retry; ordinary assistant prose is never treated as executable.",
+          "The deterministic DataLens executor performed the statistical calculation."
+        ],
+        "native_tool_rule_version": "native_tool_calling_v0.6"
+      },
+      "errors": [],
+      "warnings": [
+        "The planner model and native tool model had separate roles. Python validated both boundaries before deterministic execution."
+      ]
+    }
+  ],
+  "notes": [
+    "Stage 1: Gemma proposes a structured analytical contract from the user objective and dataset catalog.",
+    "Stage 2: Python validates dataset ids, column names, analytical types and contract invariants.",
+    "Stage 3: Qwen selects one matching function from the native DataLens tool catalog.",
+    "Stage 4: Python verifies the selected tool against the validated family and checks every argument.",
+    "Stage 5: the deterministic DataLens executor computes the result."
+  ],
+  "pipeline_rule_version": "ai_native_pipeline_v0.2"
+}

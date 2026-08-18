@@ -1,0 +1,1169 @@
+{
+  "experiment_id": "semantic-s3-electric-mobility-holdout",
+  "created_at": "2026-08-15T21:50:38.965680+02:00",
+  "phase": "pre_adaptation_holdout",
+  "split": "holdout",
+  "benchmark_ids": [
+    "semantic:electric_mobility:holdout:v0.1"
+  ],
+  "benchmark_versions": {
+    "semantic:electric_mobility:holdout:v0.1": "electric_mobility_semantic_holdout_v0.1"
+  },
+  "system": {
+    "system_label": "DataLens Semantic System S3",
+    "model_name": "gemma3:4b",
+    "component_versions": {
+      "semantic_profiler": "semantic_data_profiler_v0.2",
+      "semantic_normalizer": "semantic_normalizer_v0.4",
+      "quantity_semantics": "quantity_semantics_v0.1",
+      "semantic_comparator": "semantic_profile_comparator_v0.3",
+      "semantic_preparation": "semantic_preparation_pipeline_v0.1",
+      "semantic_advisor": "semantic_discovery_advisor_v0.1",
+      "ranking_overlay": "semantic_ranking_overlay_v0.1",
+      "benchmark_registry": "semantic_benchmark_registry_v0.2",
+      "benchmark_runner": "semantic_global_benchmark_runner_v0.2",
+      "safety_gate": "analytical_safety_gate_v0.2"
+    },
+    "notes": [
+      "S3 is frozen before the first Electric Mobility Holdout #4 execution.",
+      "Quantity Semantics v0.1 has not been adapted using this benchmark."
+    ]
+  },
+  "result": {
+    "split": "holdout",
+    "suite_count": 1,
+    "domain_count": 1,
+    "domains": [
+      "electric_mobility"
+    ],
+    "raw_correct_count": 26,
+    "raw_assertion_count": 51,
+    "normalized_correct_count": 51,
+    "normalized_assertion_count": 51,
+    "raw_micro_accuracy": 0.509804,
+    "normalized_micro_accuracy": 1.0,
+    "micro_accuracy_delta": 0.490196,
+    "raw_macro_accuracy": 0.509804,
+    "normalized_macro_accuracy": 1.0,
+    "macro_accuracy_delta": 0.490196,
+    "raw_safety_assertion_count": 12,
+    "raw_safety_failure_count": 4,
+    "normalized_safety_assertion_count": 12,
+    "normalized_safety_failure_count": 0,
+    "raw_safety_decisions": {
+      "assertion_count": 12,
+      "true_positive_count": 0,
+      "false_positive_count": 0,
+      "true_negative_count": 8,
+      "false_negative_count": 4,
+      "unclassified_count": 0,
+      "accuracy": 0.666667,
+      "precision": null,
+      "recall": 0.0,
+      "specificity": 1.0,
+      "f1": null,
+      "decision_rule_version": "analytical_safety_decision_v0.2"
+    },
+    "normalized_safety_decisions": {
+      "assertion_count": 12,
+      "true_positive_count": 4,
+      "false_positive_count": 0,
+      "true_negative_count": 8,
+      "false_negative_count": 0,
+      "unclassified_count": 0,
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "specificity": 1.0,
+      "f1": 1.0,
+      "decision_rule_version": "analytical_safety_decision_v0.2"
+    },
+    "normalized_failure_count": 0,
+    "safety_gate_passed": true,
+    "regression_gate_passed": true,
+    "suites": [
+      {
+        "benchmark_id": "semantic:electric_mobility:holdout:v0.1",
+        "benchmark_name": "Electric mobility quantity semantic holdout",
+        "domain": "electric_mobility",
+        "split": "holdout",
+        "raw_columns": {
+          "benchmark_name": "semantic:electric_mobility:holdout:v0.1:raw:columns",
+          "case_count": 9,
+          "assertion_count": 30,
+          "correct_count": 9,
+          "incorrect_count": 21,
+          "accuracy": 0.3,
+          "field_accuracy": {
+            "measure_kind": 1.0,
+            "quantity_dimension": 0.0,
+            "quantity_unit": 0.0,
+            "unit_kind": 0.333333,
+            "variant": 0.833333
+          },
+          "assertions": [
+            {
+              "case_id": "target_route_distance",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Target route distance (km)",
+              "field": "variant",
+              "expected": "target",
+              "actual": "target",
+              "correct": true
+            },
+            {
+              "case_id": "target_route_distance",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Target route distance (km)",
+              "field": "quantity_dimension",
+              "expected": "distance",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "target_route_distance",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Target route distance (km)",
+              "field": "quantity_unit",
+              "expected": "kilometre",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "actual_route_distance",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Actual route distance (km)",
+              "field": "variant",
+              "expected": "actual",
+              "actual": "actual",
+              "correct": true
+            },
+            {
+              "case_id": "actual_route_distance",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Actual route distance (km)",
+              "field": "quantity_dimension",
+              "expected": "distance",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "actual_route_distance",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Actual route distance (km)",
+              "field": "quantity_unit",
+              "expected": "kilometre",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "planned_cargo_mass",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Planned cargo mass (tonne)",
+              "field": "variant",
+              "expected": "planned",
+              "actual": "planned",
+              "correct": true
+            },
+            {
+              "case_id": "planned_cargo_mass",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Planned cargo mass (tonne)",
+              "field": "quantity_dimension",
+              "expected": "mass",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "planned_cargo_mass",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Planned cargo mass (tonne)",
+              "field": "quantity_unit",
+              "expected": "tonne",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "actual_cargo_mass",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Actual cargo mass (kg)",
+              "field": "variant",
+              "expected": "actual",
+              "actual": "actual",
+              "correct": true
+            },
+            {
+              "case_id": "actual_cargo_mass",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Actual cargo mass (kg)",
+              "field": "quantity_dimension",
+              "expected": "mass",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "actual_cargo_mass",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Actual cargo mass (kg)",
+              "field": "quantity_unit",
+              "expected": "kilogram",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "planned_energy_consumption",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Planned energy consumption (MWh)",
+              "field": "variant",
+              "expected": "planned",
+              "actual": "mwh",
+              "correct": false
+            },
+            {
+              "case_id": "planned_energy_consumption",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Planned energy consumption (MWh)",
+              "field": "quantity_dimension",
+              "expected": "energy",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "planned_energy_consumption",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Planned energy consumption (MWh)",
+              "field": "quantity_unit",
+              "expected": "megawatt_hour",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "actual_energy_consumption",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Actual energy consumption (kWh)",
+              "field": "variant",
+              "expected": "actual",
+              "actual": "actual",
+              "correct": true
+            },
+            {
+              "case_id": "actual_energy_consumption",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Actual energy consumption (kWh)",
+              "field": "quantity_dimension",
+              "expected": "energy",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "actual_energy_consumption",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Actual energy consumption (kWh)",
+              "field": "quantity_unit",
+              "expected": "kilowatt_hour",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "charging_time",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Charging time (minutes)",
+              "field": "measure_kind",
+              "expected": "duration",
+              "actual": "duration",
+              "correct": true
+            },
+            {
+              "case_id": "charging_time",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Charging time (minutes)",
+              "field": "unit_kind",
+              "expected": "duration",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "charging_time",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Charging time (minutes)",
+              "field": "quantity_dimension",
+              "expected": "duration",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "charging_time",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Charging time (minutes)",
+              "field": "quantity_unit",
+              "expected": "minute",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "charging_cost",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Charging cost",
+              "field": "measure_kind",
+              "expected": "currency",
+              "actual": "currency",
+              "correct": true
+            },
+            {
+              "case_id": "charging_cost",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Charging cost",
+              "field": "unit_kind",
+              "expected": "currency",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "charging_cost",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Charging cost",
+              "field": "quantity_dimension",
+              "expected": "currency",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "charging_cost",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Charging cost",
+              "field": "quantity_unit",
+              "expected": "currency",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "battery_state_of_charge",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Battery state of charge (%)",
+              "field": "measure_kind",
+              "expected": "percentage",
+              "actual": "percentage",
+              "correct": true
+            },
+            {
+              "case_id": "battery_state_of_charge",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Battery state of charge (%)",
+              "field": "unit_kind",
+              "expected": "percent",
+              "actual": "percent",
+              "correct": true
+            },
+            {
+              "case_id": "battery_state_of_charge",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Battery state of charge (%)",
+              "field": "quantity_dimension",
+              "expected": "proportion",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "battery_state_of_charge",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Battery state of charge (%)",
+              "field": "quantity_unit",
+              "expected": "percent",
+              "actual": "unknown",
+              "correct": false
+            }
+          ],
+          "benchmark_rule_version": "semantic_benchmark_v0.2"
+        },
+        "normalized_columns": {
+          "benchmark_name": "semantic:electric_mobility:holdout:v0.1:normalized:columns",
+          "case_count": 9,
+          "assertion_count": 30,
+          "correct_count": 30,
+          "incorrect_count": 0,
+          "accuracy": 1.0,
+          "field_accuracy": {
+            "measure_kind": 1.0,
+            "quantity_dimension": 1.0,
+            "quantity_unit": 1.0,
+            "unit_kind": 1.0,
+            "variant": 1.0
+          },
+          "assertions": [
+            {
+              "case_id": "target_route_distance",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Target route distance (km)",
+              "field": "variant",
+              "expected": "target",
+              "actual": "target",
+              "correct": true
+            },
+            {
+              "case_id": "target_route_distance",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Target route distance (km)",
+              "field": "quantity_dimension",
+              "expected": "distance",
+              "actual": "distance",
+              "correct": true
+            },
+            {
+              "case_id": "target_route_distance",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Target route distance (km)",
+              "field": "quantity_unit",
+              "expected": "kilometre",
+              "actual": "kilometre",
+              "correct": true
+            },
+            {
+              "case_id": "actual_route_distance",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Actual route distance (km)",
+              "field": "variant",
+              "expected": "actual",
+              "actual": "actual",
+              "correct": true
+            },
+            {
+              "case_id": "actual_route_distance",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Actual route distance (km)",
+              "field": "quantity_dimension",
+              "expected": "distance",
+              "actual": "distance",
+              "correct": true
+            },
+            {
+              "case_id": "actual_route_distance",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Actual route distance (km)",
+              "field": "quantity_unit",
+              "expected": "kilometre",
+              "actual": "kilometre",
+              "correct": true
+            },
+            {
+              "case_id": "planned_cargo_mass",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Planned cargo mass (tonne)",
+              "field": "variant",
+              "expected": "planned",
+              "actual": "planned",
+              "correct": true
+            },
+            {
+              "case_id": "planned_cargo_mass",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Planned cargo mass (tonne)",
+              "field": "quantity_dimension",
+              "expected": "mass",
+              "actual": "mass",
+              "correct": true
+            },
+            {
+              "case_id": "planned_cargo_mass",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Planned cargo mass (tonne)",
+              "field": "quantity_unit",
+              "expected": "tonne",
+              "actual": "tonne",
+              "correct": true
+            },
+            {
+              "case_id": "actual_cargo_mass",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Actual cargo mass (kg)",
+              "field": "variant",
+              "expected": "actual",
+              "actual": "actual",
+              "correct": true
+            },
+            {
+              "case_id": "actual_cargo_mass",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Actual cargo mass (kg)",
+              "field": "quantity_dimension",
+              "expected": "mass",
+              "actual": "mass",
+              "correct": true
+            },
+            {
+              "case_id": "actual_cargo_mass",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Actual cargo mass (kg)",
+              "field": "quantity_unit",
+              "expected": "kilogram",
+              "actual": "kilogram",
+              "correct": true
+            },
+            {
+              "case_id": "planned_energy_consumption",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Planned energy consumption (MWh)",
+              "field": "variant",
+              "expected": "planned",
+              "actual": "planned",
+              "correct": true
+            },
+            {
+              "case_id": "planned_energy_consumption",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Planned energy consumption (MWh)",
+              "field": "quantity_dimension",
+              "expected": "energy",
+              "actual": "energy",
+              "correct": true
+            },
+            {
+              "case_id": "planned_energy_consumption",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Planned energy consumption (MWh)",
+              "field": "quantity_unit",
+              "expected": "megawatt_hour",
+              "actual": "megawatt_hour",
+              "correct": true
+            },
+            {
+              "case_id": "actual_energy_consumption",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Actual energy consumption (kWh)",
+              "field": "variant",
+              "expected": "actual",
+              "actual": "actual",
+              "correct": true
+            },
+            {
+              "case_id": "actual_energy_consumption",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Actual energy consumption (kWh)",
+              "field": "quantity_dimension",
+              "expected": "energy",
+              "actual": "energy",
+              "correct": true
+            },
+            {
+              "case_id": "actual_energy_consumption",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Actual energy consumption (kWh)",
+              "field": "quantity_unit",
+              "expected": "kilowatt_hour",
+              "actual": "kilowatt_hour",
+              "correct": true
+            },
+            {
+              "case_id": "charging_time",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Charging time (minutes)",
+              "field": "measure_kind",
+              "expected": "duration",
+              "actual": "duration",
+              "correct": true
+            },
+            {
+              "case_id": "charging_time",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Charging time (minutes)",
+              "field": "unit_kind",
+              "expected": "duration",
+              "actual": "duration",
+              "correct": true
+            },
+            {
+              "case_id": "charging_time",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Charging time (minutes)",
+              "field": "quantity_dimension",
+              "expected": "duration",
+              "actual": "duration",
+              "correct": true
+            },
+            {
+              "case_id": "charging_time",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Charging time (minutes)",
+              "field": "quantity_unit",
+              "expected": "minute",
+              "actual": "minute",
+              "correct": true
+            },
+            {
+              "case_id": "charging_cost",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Charging cost",
+              "field": "measure_kind",
+              "expected": "currency",
+              "actual": "currency",
+              "correct": true
+            },
+            {
+              "case_id": "charging_cost",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Charging cost",
+              "field": "unit_kind",
+              "expected": "currency",
+              "actual": "currency",
+              "correct": true
+            },
+            {
+              "case_id": "charging_cost",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Charging cost",
+              "field": "quantity_dimension",
+              "expected": "currency",
+              "actual": "currency",
+              "correct": true
+            },
+            {
+              "case_id": "charging_cost",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Charging cost",
+              "field": "quantity_unit",
+              "expected": "currency",
+              "actual": "currency",
+              "correct": true
+            },
+            {
+              "case_id": "battery_state_of_charge",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Battery state of charge (%)",
+              "field": "measure_kind",
+              "expected": "percentage",
+              "actual": "percentage",
+              "correct": true
+            },
+            {
+              "case_id": "battery_state_of_charge",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Battery state of charge (%)",
+              "field": "unit_kind",
+              "expected": "percent",
+              "actual": "percent",
+              "correct": true
+            },
+            {
+              "case_id": "battery_state_of_charge",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Battery state of charge (%)",
+              "field": "quantity_dimension",
+              "expected": "proportion",
+              "actual": "proportion",
+              "correct": true
+            },
+            {
+              "case_id": "battery_state_of_charge",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Battery state of charge (%)",
+              "field": "quantity_unit",
+              "expected": "percent",
+              "actual": "percent",
+              "correct": true
+            }
+          ],
+          "benchmark_rule_version": "semantic_benchmark_v0.2"
+        },
+        "raw_pairs": {
+          "benchmark_name": "semantic:electric_mobility:holdout:v0.1:raw:pairs",
+          "case_count": 6,
+          "assertion_count": 21,
+          "correct_count": 17,
+          "incorrect_count": 4,
+          "accuracy": 0.809524,
+          "field_accuracy": {
+            "compatible_units": 0.5,
+            "derived_gap_compatible": 0.833333,
+            "distinct_variants": 1.0,
+            "same_concept_family": 1.0,
+            "same_domain": 1.0
+          },
+          "assertions": [
+            {
+              "case_id": "target_actual_route_distance",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Target route distance (km) vs Actual route distance (km)",
+              "field": "same_concept_family",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "target_actual_route_distance",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Target route distance (km) vs Actual route distance (km)",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "target_actual_route_distance",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Target route distance (km) vs Actual route distance (km)",
+              "field": "distinct_variants",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "target_actual_route_distance",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Target route distance (km) vs Actual route distance (km)",
+              "field": "compatible_units",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "target_actual_route_distance",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Target route distance (km) vs Actual route distance (km)",
+              "field": "derived_gap_compatible",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "planned_actual_cargo_mass",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Planned cargo mass (tonne) vs Actual cargo mass (kg)",
+              "field": "same_concept_family",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "planned_actual_cargo_mass",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Planned cargo mass (tonne) vs Actual cargo mass (kg)",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "planned_actual_cargo_mass",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Planned cargo mass (tonne) vs Actual cargo mass (kg)",
+              "field": "distinct_variants",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "planned_actual_cargo_mass",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Planned cargo mass (tonne) vs Actual cargo mass (kg)",
+              "field": "compatible_units",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "planned_actual_cargo_mass",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Planned cargo mass (tonne) vs Actual cargo mass (kg)",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "planned_actual_energy",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Planned energy consumption (MWh) vs Actual energy consumption (kWh)",
+              "field": "same_concept_family",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "planned_actual_energy",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Planned energy consumption (MWh) vs Actual energy consumption (kWh)",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "planned_actual_energy",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Planned energy consumption (MWh) vs Actual energy consumption (kWh)",
+              "field": "distinct_variants",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "planned_actual_energy",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Planned energy consumption (MWh) vs Actual energy consumption (kWh)",
+              "field": "compatible_units",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "planned_actual_energy",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Planned energy consumption (MWh) vs Actual energy consumption (kWh)",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "distance_energy",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Actual route distance (km) vs Actual energy consumption (kWh)",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "distance_energy",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Actual route distance (km) vs Actual energy consumption (kWh)",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "cargo_cost",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Actual cargo mass (kg) vs Charging cost",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "cargo_cost",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Actual cargo mass (kg) vs Charging cost",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "charging_time_battery_soc",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Charging time (minutes) vs Battery state of charge (%)",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "charging_time_battery_soc",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Charging time (minutes) vs Battery state of charge (%)",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            }
+          ],
+          "benchmark_rule_version": "semantic_benchmark_v0.2"
+        },
+        "normalized_pairs": {
+          "benchmark_name": "semantic:electric_mobility:holdout:v0.1:normalized:pairs",
+          "case_count": 6,
+          "assertion_count": 21,
+          "correct_count": 21,
+          "incorrect_count": 0,
+          "accuracy": 1.0,
+          "field_accuracy": {
+            "compatible_units": 1.0,
+            "derived_gap_compatible": 1.0,
+            "distinct_variants": 1.0,
+            "same_concept_family": 1.0,
+            "same_domain": 1.0
+          },
+          "assertions": [
+            {
+              "case_id": "target_actual_route_distance",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Target route distance (km) vs Actual route distance (km)",
+              "field": "same_concept_family",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "target_actual_route_distance",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Target route distance (km) vs Actual route distance (km)",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "target_actual_route_distance",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Target route distance (km) vs Actual route distance (km)",
+              "field": "distinct_variants",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "target_actual_route_distance",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Target route distance (km) vs Actual route distance (km)",
+              "field": "compatible_units",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "target_actual_route_distance",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Target route distance (km) vs Actual route distance (km)",
+              "field": "derived_gap_compatible",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "planned_actual_cargo_mass",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Planned cargo mass (tonne) vs Actual cargo mass (kg)",
+              "field": "same_concept_family",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "planned_actual_cargo_mass",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Planned cargo mass (tonne) vs Actual cargo mass (kg)",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "planned_actual_cargo_mass",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Planned cargo mass (tonne) vs Actual cargo mass (kg)",
+              "field": "distinct_variants",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "planned_actual_cargo_mass",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Planned cargo mass (tonne) vs Actual cargo mass (kg)",
+              "field": "compatible_units",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "planned_actual_cargo_mass",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Planned cargo mass (tonne) vs Actual cargo mass (kg)",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "planned_actual_energy",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Planned energy consumption (MWh) vs Actual energy consumption (kWh)",
+              "field": "same_concept_family",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "planned_actual_energy",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Planned energy consumption (MWh) vs Actual energy consumption (kWh)",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "planned_actual_energy",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Planned energy consumption (MWh) vs Actual energy consumption (kWh)",
+              "field": "distinct_variants",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "planned_actual_energy",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Planned energy consumption (MWh) vs Actual energy consumption (kWh)",
+              "field": "compatible_units",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "planned_actual_energy",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Planned energy consumption (MWh) vs Actual energy consumption (kWh)",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "distance_energy",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Actual route distance (km) vs Actual energy consumption (kWh)",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "distance_energy",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Actual route distance (km) vs Actual energy consumption (kWh)",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "cargo_cost",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Actual cargo mass (kg) vs Charging cost",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "cargo_cost",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Actual cargo mass (kg) vs Charging cost",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "charging_time_battery_soc",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Charging time (minutes) vs Battery state of charge (%)",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "charging_time_battery_soc",
+              "dataset_id": "electric_mobility:0001",
+              "subject": "Charging time (minutes) vs Battery state of charge (%)",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            }
+          ],
+          "benchmark_rule_version": "semantic_benchmark_v0.2"
+        },
+        "raw_correct_count": 26,
+        "raw_assertion_count": 51,
+        "normalized_correct_count": 51,
+        "normalized_assertion_count": 51,
+        "raw_accuracy": 0.509804,
+        "normalized_accuracy": 1.0,
+        "raw_safety_assertion_count": 12,
+        "raw_safety_failure_count": 4,
+        "normalized_safety_assertion_count": 12,
+        "normalized_safety_failure_count": 0,
+        "raw_safety_failures": [
+          {
+            "case_id": "target_actual_route_distance",
+            "dataset_id": "electric_mobility:0001",
+            "subject": "Target route distance (km) vs Actual route distance (km)",
+            "field": "compatible_units",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "target_actual_route_distance",
+            "dataset_id": "electric_mobility:0001",
+            "subject": "Target route distance (km) vs Actual route distance (km)",
+            "field": "derived_gap_compatible",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "planned_actual_cargo_mass",
+            "dataset_id": "electric_mobility:0001",
+            "subject": "Planned cargo mass (tonne) vs Actual cargo mass (kg)",
+            "field": "compatible_units",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "planned_actual_energy",
+            "dataset_id": "electric_mobility:0001",
+            "subject": "Planned energy consumption (MWh) vs Actual energy consumption (kWh)",
+            "field": "compatible_units",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          }
+        ],
+        "normalized_safety_failures": [],
+        "raw_safety_decisions": {
+          "assertion_count": 12,
+          "true_positive_count": 0,
+          "false_positive_count": 0,
+          "true_negative_count": 8,
+          "false_negative_count": 4,
+          "unclassified_count": 0,
+          "accuracy": 0.666667,
+          "precision": null,
+          "recall": 0.0,
+          "specificity": 1.0,
+          "f1": null,
+          "decision_rule_version": "analytical_safety_decision_v0.2"
+        },
+        "normalized_safety_decisions": {
+          "assertion_count": 12,
+          "true_positive_count": 4,
+          "false_positive_count": 0,
+          "true_negative_count": 8,
+          "false_negative_count": 0,
+          "unclassified_count": 0,
+          "accuracy": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "specificity": 1.0,
+          "f1": 1.0,
+          "decision_rule_version": "analytical_safety_decision_v0.2"
+        },
+        "normalized_failures": []
+      }
+    ],
+    "safety_gate_rule_version": "analytical_safety_gate_v0.2",
+    "runner_rule_version": "semantic_global_benchmark_runner_v0.2"
+  },
+  "notes": [
+    "Fourth frozen out-of-domain semantic evaluation.",
+    "Electric Mobility ground truth was defined before observing S3 predictions.",
+    "No S3 rule was modified using Electric Mobility results before this snapshot."
+  ],
+  "snapshot_rule_version": "semantic_experiment_snapshot_v0.1"
+}

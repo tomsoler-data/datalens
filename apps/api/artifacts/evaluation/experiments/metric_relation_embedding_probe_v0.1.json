@@ -1,0 +1,270 @@
+{
+  "probe_version": "metric_relation_embedding_probe_v0.1",
+  "embedding_model": "embeddinggemma",
+  "ground_truth_version": "metric_relation_taxonomy_development_v0.1",
+  "purpose": "Evaluate embedding similarity as an independent candidate-generation signal, not as a production safety decision.",
+  "input_policy": "raw_column_name_only",
+  "case_count": 21,
+  "unique_column_count": 24,
+  "embedding_dimension": 768,
+  "relation_summaries": {
+    "same_process_different_stage": {
+      "count": 2,
+      "min": 0.5088704076275851,
+      "mean": 0.596065148702605,
+      "median": 0.596065148702605,
+      "max": 0.6832598897776249
+    },
+    "same_metric_different_state": {
+      "count": 7,
+      "min": 0.4113284658879773,
+      "mean": 0.5716465534220724,
+      "median": 0.5089703575987018,
+      "max": 0.7401902667812182
+    },
+    "related_distinct_metric": {
+      "count": 12,
+      "min": 0.26247099603897556,
+      "mean": 0.5034734609843668,
+      "median": 0.49655160071405124,
+      "max": 0.6938624134532665
+    }
+  },
+  "strong_summary": {
+    "count": 9,
+    "min": 0.4113284658879773,
+    "mean": 0.5770729079288575,
+    "median": 0.5089703575987018,
+    "max": 0.7401902667812182
+  },
+  "non_strong_summary": {
+    "count": 12,
+    "min": 0.26247099603897556,
+    "mean": 0.5034734609843668,
+    "median": 0.49655160071405124,
+    "max": 0.6938624134532665
+  },
+  "perfect_score_separation": false,
+  "development_zero_fp_operating_point": {
+    "threshold": 0.6938624134532666,
+    "tp": 2,
+    "fp": 0,
+    "tn": 12,
+    "fn": 7,
+    "precision": 1.0,
+    "recall": 0.2222222222222222,
+    "specificity": 1.0
+  },
+  "records": [
+    {
+      "dataset": "clinical_lab",
+      "case_id": "specimens_received_samples_processed",
+      "left": "Specimens received",
+      "right": "Samples processed",
+      "relation": "same_process_different_stage",
+      "strong": true,
+      "cosine_similarity": 0.6832598897776249,
+      "zero_fp_threshold_prediction": false
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "technicians_scheduled_staff_on_duty",
+      "left": "Technicians scheduled",
+      "right": "Lab staff on duty",
+      "relation": "same_metric_different_state",
+      "strong": true,
+      "cosine_similarity": 0.4991824917221745,
+      "zero_fp_threshold_prediction": false
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "estimated_charge_final_bill",
+      "left": "Estimated test charge",
+      "right": "Final laboratory bill",
+      "relation": "same_metric_different_state",
+      "strong": true,
+      "cosine_similarity": 0.5089703575987018,
+      "zero_fp_threshold_prediction": false
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "target_turnaround_actual_reporting",
+      "left": "Target result turnaround (minutes)",
+      "right": "Actual reporting time (minutes)",
+      "relation": "same_metric_different_state",
+      "strong": true,
+      "cosine_similarity": 0.6558817246270114,
+      "zero_fp_threshold_prediction": false
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "planned_mass_measured_weight",
+      "left": "Planned sample mass (grams)",
+      "right": "Measured specimen weight (kg)",
+      "relation": "same_metric_different_state",
+      "strong": true,
+      "cosine_similarity": 0.7174119283175138,
+      "zero_fp_threshold_prediction": true
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "specimens_staff",
+      "left": "Specimens received",
+      "right": "Technicians scheduled",
+      "relation": "related_distinct_metric",
+      "strong": false,
+      "cosine_similarity": 0.4098141195234682,
+      "zero_fp_threshold_prediction": false
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "samples_analyzers",
+      "left": "Samples processed",
+      "right": "Analyzer units online",
+      "relation": "related_distinct_metric",
+      "strong": false,
+      "cosine_similarity": 0.4013968671868604,
+      "zero_fp_threshold_prediction": false
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "staff_analyzers",
+      "left": "Lab staff on duty",
+      "right": "Analyzer units online",
+      "relation": "related_distinct_metric",
+      "strong": false,
+      "cosine_similarity": 0.4147085601710573,
+      "zero_fp_threshold_prediction": false
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "estimated_charge_reagent_spend",
+      "left": "Estimated test charge",
+      "right": "Reagent spend",
+      "relation": "related_distinct_metric",
+      "strong": false,
+      "cosine_similarity": 0.488281287869239,
+      "zero_fp_threshold_prediction": false
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "final_bill_reagent_spend",
+      "left": "Final laboratory bill",
+      "right": "Reagent spend",
+      "relation": "related_distinct_metric",
+      "strong": false,
+      "cosine_similarity": 0.47682234543374397,
+      "zero_fp_threshold_prediction": false
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "turnaround_analyzer_downtime",
+      "left": "Target result turnaround (minutes)",
+      "right": "Analyzer downtime (minutes)",
+      "relation": "related_distinct_metric",
+      "strong": false,
+      "cosine_similarity": 0.5643544809192155,
+      "zero_fp_threshold_prediction": false
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "reporting_time_analyzer_downtime",
+      "left": "Actual reporting time (minutes)",
+      "right": "Analyzer downtime (minutes)",
+      "relation": "related_distinct_metric",
+      "strong": false,
+      "cosine_similarity": 0.5331067043880648,
+      "zero_fp_threshold_prediction": false
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "quality_rate_sla",
+      "left": "Quality pass rate (%)",
+      "right": "SLA compliance (%)",
+      "relation": "related_distinct_metric",
+      "strong": false,
+      "cosine_similarity": 0.6509134315562516,
+      "zero_fp_threshold_prediction": false
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "sample_mass_reagent_mass",
+      "left": "Planned sample mass (grams)",
+      "right": "Reagent mass used (kg)",
+      "relation": "related_distinct_metric",
+      "strong": false,
+      "cosine_similarity": 0.6411284117133957,
+      "zero_fp_threshold_prediction": false
+    },
+    {
+      "dataset": "clinical_lab",
+      "case_id": "specimen_weight_reagent_mass",
+      "left": "Measured specimen weight (kg)",
+      "right": "Reagent mass used (kg)",
+      "relation": "related_distinct_metric",
+      "strong": false,
+      "cosine_similarity": 0.6938624134532665,
+      "zero_fp_threshold_prediction": false
+    },
+    {
+      "dataset": "customer_support",
+      "case_id": "submitted_cases_resolved_tickets",
+      "left": "Cases submitted",
+      "right": "Tickets resolved",
+      "relation": "same_process_different_stage",
+      "strong": true,
+      "cosine_similarity": 0.5088704076275851,
+      "zero_fp_threshold_prediction": false
+    },
+    {
+      "dataset": "customer_support",
+      "case_id": "rostered_agents_online_staff",
+      "left": "Agents rostered",
+      "right": "Staff online",
+      "relation": "same_metric_different_state",
+      "strong": true,
+      "cosine_similarity": 0.4113284658879773,
+      "zero_fp_threshold_prediction": false
+    },
+    {
+      "dataset": "customer_support",
+      "case_id": "quoted_cost_final_invoice",
+      "left": "Quoted service cost",
+      "right": "Final invoice amount",
+      "relation": "same_metric_different_state",
+      "strong": true,
+      "cosine_similarity": 0.46856063901990974,
+      "zero_fp_threshold_prediction": false
+    },
+    {
+      "dataset": "customer_support",
+      "case_id": "promised_observed_response_time",
+      "left": "Promised response time (minutes)",
+      "right": "Observed first-response delay (minutes)",
+      "relation": "same_metric_different_state",
+      "strong": true,
+      "cosine_similarity": 0.7401902667812182,
+      "zero_fp_threshold_prediction": true
+    },
+    {
+      "dataset": "customer_support",
+      "case_id": "response_delay_sla_compliance",
+      "left": "Observed first-response delay (minutes)",
+      "right": "SLA compliance (%)",
+      "relation": "related_distinct_metric",
+      "strong": false,
+      "cosine_similarity": 0.5048219135588634,
+      "zero_fp_threshold_prediction": false
+    },
+    {
+      "dataset": "customer_support",
+      "case_id": "invoice_online_staff",
+      "left": "Final invoice amount",
+      "right": "Staff online",
+      "relation": "related_distinct_metric",
+      "strong": false,
+      "cosine_similarity": 0.26247099603897556,
+      "zero_fp_threshold_prediction": false
+    }
+  ]
+}

@@ -1,0 +1,695 @@
+{
+  "freeze_version": "clinical_lab_holdout_freeze_v0.1",
+  "created_at": "2026-08-15T23:06:41.107758+02:00",
+  "status": "frozen_before_first_s4_execution",
+  "benchmark_id": "semantic:clinical_lab:holdout:v0.1",
+  "benchmark_version": "clinical_lab_semantic_holdout_v0.1",
+  "split": "holdout",
+  "domain": "clinical_lab_operations",
+  "dataset_id": "clinical_lab:0001",
+  "dataset_filename": "synthetic_clinical_lab_operations.csv",
+  "dataset_rows": 240,
+  "dataset_columns": 16,
+  "column_case_count": 16,
+  "pair_case_count": 15,
+  "s4_quantity_family_case_count": 15,
+  "hashes": {
+    "benchmark_source_sha256": "84ff7b8b90574630f8453e4a0dcdedc0d0a5374538fa254b36dcd0112f675163",
+    "benchmark_suite_sha256": "71cb47eaf7f721f2087eaa2079758178991bdbdff16abb7f5bf92637a3bd55be",
+    "s4_quantity_family_cases_sha256": "1bd96ac86bcc3539ec97ba280460c7088863116834b407c6e242192bb15d0bba",
+    "synthetic_dataset_sha256": "cfca3fd539c8280a9f40a912d6b721e07f98dedc5befe51ed8fb3416c40cace3"
+  },
+  "s4_quantity_family_cases": [
+    {
+      "case_id": "specimens_received_samples_processed",
+      "left_column": "Specimens received",
+      "right_column": "Samples processed",
+      "same_quantity_family": true
+    },
+    {
+      "case_id": "technicians_scheduled_staff_on_duty",
+      "left_column": "Technicians scheduled",
+      "right_column": "Lab staff on duty",
+      "same_quantity_family": true
+    },
+    {
+      "case_id": "estimated_charge_final_bill",
+      "left_column": "Estimated test charge",
+      "right_column": "Final laboratory bill",
+      "same_quantity_family": true
+    },
+    {
+      "case_id": "target_turnaround_actual_reporting",
+      "left_column": "Target result turnaround (minutes)",
+      "right_column": "Actual reporting time (minutes)",
+      "same_quantity_family": true
+    },
+    {
+      "case_id": "planned_mass_measured_weight",
+      "left_column": "Planned sample mass (grams)",
+      "right_column": "Measured specimen weight (kg)",
+      "same_quantity_family": true
+    },
+    {
+      "case_id": "specimens_staff",
+      "left_column": "Specimens received",
+      "right_column": "Technicians scheduled",
+      "same_quantity_family": false
+    },
+    {
+      "case_id": "samples_analyzers",
+      "left_column": "Samples processed",
+      "right_column": "Analyzer units online",
+      "same_quantity_family": false
+    },
+    {
+      "case_id": "staff_analyzers",
+      "left_column": "Lab staff on duty",
+      "right_column": "Analyzer units online",
+      "same_quantity_family": false
+    },
+    {
+      "case_id": "estimated_charge_reagent_spend",
+      "left_column": "Estimated test charge",
+      "right_column": "Reagent spend",
+      "same_quantity_family": false
+    },
+    {
+      "case_id": "final_bill_reagent_spend",
+      "left_column": "Final laboratory bill",
+      "right_column": "Reagent spend",
+      "same_quantity_family": false
+    },
+    {
+      "case_id": "turnaround_analyzer_downtime",
+      "left_column": "Target result turnaround (minutes)",
+      "right_column": "Analyzer downtime (minutes)",
+      "same_quantity_family": false
+    },
+    {
+      "case_id": "reporting_time_analyzer_downtime",
+      "left_column": "Actual reporting time (minutes)",
+      "right_column": "Analyzer downtime (minutes)",
+      "same_quantity_family": false
+    },
+    {
+      "case_id": "quality_rate_sla",
+      "left_column": "Quality pass rate (%)",
+      "right_column": "SLA compliance (%)",
+      "same_quantity_family": false
+    },
+    {
+      "case_id": "sample_mass_reagent_mass",
+      "left_column": "Planned sample mass (grams)",
+      "right_column": "Reagent mass used (kg)",
+      "same_quantity_family": false
+    },
+    {
+      "case_id": "specimen_weight_reagent_mass",
+      "left_column": "Measured specimen weight (kg)",
+      "right_column": "Reagent mass used (kg)",
+      "same_quantity_family": false
+    }
+  ],
+  "benchmark_suite": {
+    "benchmark_id": "semantic:clinical_lab:holdout:v0.1",
+    "name": "Clinical laboratory semantic Holdout #6",
+    "domain": "clinical_lab_operations",
+    "split": "holdout",
+    "description": "Sixth independent semantic holdout, frozen before the first DataLens S4 execution. It tests semantic quantity-family generalization in clinical laboratory operations. The benchmark deliberately contains positive lexical paraphrases and negative pairs that share the same mathematical dimension, so dimensional compatibility alone cannot solve it.",
+    "datasets": [
+      {
+        "dataset_id": "clinical_lab:0001",
+        "filename": "synthetic_clinical_lab_operations.csv"
+      }
+    ],
+    "column_cases": [
+      {
+        "case_id": "specimens_received",
+        "dataset_id": "clinical_lab:0001",
+        "column": "Specimens received",
+        "expectations": [
+          {
+            "field": "variant",
+            "accepted_values": [
+              "received"
+            ]
+          },
+          {
+            "field": "measure_kind",
+            "accepted_values": [
+              "count"
+            ]
+          },
+          {
+            "field": "unit_kind",
+            "accepted_values": [
+              "count"
+            ]
+          }
+        ]
+      },
+      {
+        "case_id": "samples_processed",
+        "dataset_id": "clinical_lab:0001",
+        "column": "Samples processed",
+        "expectations": [
+          {
+            "field": "variant",
+            "accepted_values": [
+              "processed"
+            ]
+          },
+          {
+            "field": "measure_kind",
+            "accepted_values": [
+              "count"
+            ]
+          },
+          {
+            "field": "unit_kind",
+            "accepted_values": [
+              "count"
+            ]
+          }
+        ]
+      },
+      {
+        "case_id": "technicians_scheduled",
+        "dataset_id": "clinical_lab:0001",
+        "column": "Technicians scheduled",
+        "expectations": [
+          {
+            "field": "variant",
+            "accepted_values": [
+              "scheduled"
+            ]
+          },
+          {
+            "field": "measure_kind",
+            "accepted_values": [
+              "count"
+            ]
+          },
+          {
+            "field": "unit_kind",
+            "accepted_values": [
+              "count"
+            ]
+          }
+        ]
+      },
+      {
+        "case_id": "lab_staff_on_duty",
+        "dataset_id": "clinical_lab:0001",
+        "column": "Lab staff on duty",
+        "expectations": [
+          {
+            "field": "variant",
+            "accepted_values": [
+              "on_duty",
+              "duty",
+              "active"
+            ]
+          },
+          {
+            "field": "measure_kind",
+            "accepted_values": [
+              "count"
+            ]
+          },
+          {
+            "field": "unit_kind",
+            "accepted_values": [
+              "count"
+            ]
+          }
+        ]
+      },
+      {
+        "case_id": "estimated_test_charge",
+        "dataset_id": "clinical_lab:0001",
+        "column": "Estimated test charge",
+        "expectations": [
+          {
+            "field": "variant",
+            "accepted_values": [
+              "estimated"
+            ]
+          },
+          {
+            "field": "measure_kind",
+            "accepted_values": [
+              "currency"
+            ]
+          },
+          {
+            "field": "unit_kind",
+            "accepted_values": [
+              "currency"
+            ]
+          }
+        ]
+      },
+      {
+        "case_id": "final_laboratory_bill",
+        "dataset_id": "clinical_lab:0001",
+        "column": "Final laboratory bill",
+        "expectations": [
+          {
+            "field": "variant",
+            "accepted_values": [
+              "final"
+            ]
+          },
+          {
+            "field": "measure_kind",
+            "accepted_values": [
+              "currency"
+            ]
+          },
+          {
+            "field": "unit_kind",
+            "accepted_values": [
+              "currency"
+            ]
+          }
+        ]
+      },
+      {
+        "case_id": "target_result_turnaround",
+        "dataset_id": "clinical_lab:0001",
+        "column": "Target result turnaround (minutes)",
+        "expectations": [
+          {
+            "field": "variant",
+            "accepted_values": [
+              "target"
+            ]
+          },
+          {
+            "field": "measure_kind",
+            "accepted_values": [
+              "duration"
+            ]
+          },
+          {
+            "field": "unit_kind",
+            "accepted_values": [
+              "duration"
+            ]
+          }
+        ]
+      },
+      {
+        "case_id": "actual_reporting_time",
+        "dataset_id": "clinical_lab:0001",
+        "column": "Actual reporting time (minutes)",
+        "expectations": [
+          {
+            "field": "variant",
+            "accepted_values": [
+              "actual"
+            ]
+          },
+          {
+            "field": "measure_kind",
+            "accepted_values": [
+              "duration"
+            ]
+          },
+          {
+            "field": "unit_kind",
+            "accepted_values": [
+              "duration"
+            ]
+          }
+        ]
+      },
+      {
+        "case_id": "analyzer_units_online",
+        "dataset_id": "clinical_lab:0001",
+        "column": "Analyzer units online",
+        "expectations": [
+          {
+            "field": "variant",
+            "accepted_values": [
+              "online"
+            ]
+          },
+          {
+            "field": "measure_kind",
+            "accepted_values": [
+              "count"
+            ]
+          },
+          {
+            "field": "unit_kind",
+            "accepted_values": [
+              "count"
+            ]
+          }
+        ]
+      },
+      {
+        "case_id": "reagent_spend",
+        "dataset_id": "clinical_lab:0001",
+        "column": "Reagent spend",
+        "expectations": [
+          {
+            "field": "measure_kind",
+            "accepted_values": [
+              "currency"
+            ]
+          },
+          {
+            "field": "unit_kind",
+            "accepted_values": [
+              "currency"
+            ]
+          }
+        ]
+      },
+      {
+        "case_id": "quality_pass_rate",
+        "dataset_id": "clinical_lab:0001",
+        "column": "Quality pass rate (%)",
+        "expectations": [
+          {
+            "field": "measure_kind",
+            "accepted_values": [
+              "percentage"
+            ]
+          },
+          {
+            "field": "unit_kind",
+            "accepted_values": [
+              "percent"
+            ]
+          }
+        ]
+      },
+      {
+        "case_id": "sla_compliance",
+        "dataset_id": "clinical_lab:0001",
+        "column": "SLA compliance (%)",
+        "expectations": [
+          {
+            "field": "measure_kind",
+            "accepted_values": [
+              "percentage"
+            ]
+          },
+          {
+            "field": "unit_kind",
+            "accepted_values": [
+              "percent"
+            ]
+          }
+        ]
+      },
+      {
+        "case_id": "planned_sample_mass",
+        "dataset_id": "clinical_lab:0001",
+        "column": "Planned sample mass (grams)",
+        "expectations": [
+          {
+            "field": "variant",
+            "accepted_values": [
+              "planned"
+            ]
+          }
+        ]
+      },
+      {
+        "case_id": "measured_specimen_weight",
+        "dataset_id": "clinical_lab:0001",
+        "column": "Measured specimen weight (kg)",
+        "expectations": [
+          {
+            "field": "variant",
+            "accepted_values": [
+              "measured",
+              "actual"
+            ]
+          }
+        ]
+      },
+      {
+        "case_id": "analyzer_downtime",
+        "dataset_id": "clinical_lab:0001",
+        "column": "Analyzer downtime (minutes)",
+        "expectations": [
+          {
+            "field": "measure_kind",
+            "accepted_values": [
+              "duration"
+            ]
+          },
+          {
+            "field": "unit_kind",
+            "accepted_values": [
+              "duration"
+            ]
+          }
+        ]
+      },
+      {
+        "case_id": "reagent_mass_used",
+        "dataset_id": "clinical_lab:0001",
+        "column": "Reagent mass used (kg)",
+        "expectations": [
+          {
+            "field": "variant",
+            "accepted_values": [
+              "used"
+            ]
+          }
+        ]
+      }
+    ],
+    "pair_cases": [
+      {
+        "case_id": "specimens_received_samples_processed",
+        "left_dataset_id": "clinical_lab:0001",
+        "right_dataset_id": "clinical_lab:0001",
+        "left_column": "Specimens received",
+        "right_column": "Samples processed",
+        "same_concept": null,
+        "same_concept_family": true,
+        "same_domain": true,
+        "distinct_variants": true,
+        "compatible_units": true,
+        "derived_gap_compatible": true
+      },
+      {
+        "case_id": "technicians_scheduled_staff_on_duty",
+        "left_dataset_id": "clinical_lab:0001",
+        "right_dataset_id": "clinical_lab:0001",
+        "left_column": "Technicians scheduled",
+        "right_column": "Lab staff on duty",
+        "same_concept": null,
+        "same_concept_family": true,
+        "same_domain": true,
+        "distinct_variants": true,
+        "compatible_units": true,
+        "derived_gap_compatible": true
+      },
+      {
+        "case_id": "estimated_charge_final_bill",
+        "left_dataset_id": "clinical_lab:0001",
+        "right_dataset_id": "clinical_lab:0001",
+        "left_column": "Estimated test charge",
+        "right_column": "Final laboratory bill",
+        "same_concept": null,
+        "same_concept_family": true,
+        "same_domain": true,
+        "distinct_variants": true,
+        "compatible_units": true,
+        "derived_gap_compatible": true
+      },
+      {
+        "case_id": "target_turnaround_actual_reporting",
+        "left_dataset_id": "clinical_lab:0001",
+        "right_dataset_id": "clinical_lab:0001",
+        "left_column": "Target result turnaround (minutes)",
+        "right_column": "Actual reporting time (minutes)",
+        "same_concept": null,
+        "same_concept_family": true,
+        "same_domain": true,
+        "distinct_variants": true,
+        "compatible_units": true,
+        "derived_gap_compatible": true
+      },
+      {
+        "case_id": "planned_mass_measured_weight",
+        "left_dataset_id": "clinical_lab:0001",
+        "right_dataset_id": "clinical_lab:0001",
+        "left_column": "Planned sample mass (grams)",
+        "right_column": "Measured specimen weight (kg)",
+        "same_concept": null,
+        "same_concept_family": true,
+        "same_domain": true,
+        "distinct_variants": true,
+        "compatible_units": true,
+        "derived_gap_compatible": false
+      },
+      {
+        "case_id": "specimens_staff",
+        "left_dataset_id": "clinical_lab:0001",
+        "right_dataset_id": "clinical_lab:0001",
+        "left_column": "Specimens received",
+        "right_column": "Technicians scheduled",
+        "same_concept": null,
+        "same_concept_family": false,
+        "same_domain": true,
+        "distinct_variants": null,
+        "compatible_units": true,
+        "derived_gap_compatible": false
+      },
+      {
+        "case_id": "samples_analyzers",
+        "left_dataset_id": "clinical_lab:0001",
+        "right_dataset_id": "clinical_lab:0001",
+        "left_column": "Samples processed",
+        "right_column": "Analyzer units online",
+        "same_concept": null,
+        "same_concept_family": false,
+        "same_domain": true,
+        "distinct_variants": null,
+        "compatible_units": true,
+        "derived_gap_compatible": false
+      },
+      {
+        "case_id": "staff_analyzers",
+        "left_dataset_id": "clinical_lab:0001",
+        "right_dataset_id": "clinical_lab:0001",
+        "left_column": "Lab staff on duty",
+        "right_column": "Analyzer units online",
+        "same_concept": null,
+        "same_concept_family": false,
+        "same_domain": true,
+        "distinct_variants": null,
+        "compatible_units": true,
+        "derived_gap_compatible": false
+      },
+      {
+        "case_id": "estimated_charge_reagent_spend",
+        "left_dataset_id": "clinical_lab:0001",
+        "right_dataset_id": "clinical_lab:0001",
+        "left_column": "Estimated test charge",
+        "right_column": "Reagent spend",
+        "same_concept": null,
+        "same_concept_family": false,
+        "same_domain": true,
+        "distinct_variants": null,
+        "compatible_units": true,
+        "derived_gap_compatible": false
+      },
+      {
+        "case_id": "final_bill_reagent_spend",
+        "left_dataset_id": "clinical_lab:0001",
+        "right_dataset_id": "clinical_lab:0001",
+        "left_column": "Final laboratory bill",
+        "right_column": "Reagent spend",
+        "same_concept": null,
+        "same_concept_family": false,
+        "same_domain": true,
+        "distinct_variants": null,
+        "compatible_units": true,
+        "derived_gap_compatible": false
+      },
+      {
+        "case_id": "turnaround_analyzer_downtime",
+        "left_dataset_id": "clinical_lab:0001",
+        "right_dataset_id": "clinical_lab:0001",
+        "left_column": "Target result turnaround (minutes)",
+        "right_column": "Analyzer downtime (minutes)",
+        "same_concept": null,
+        "same_concept_family": false,
+        "same_domain": true,
+        "distinct_variants": null,
+        "compatible_units": true,
+        "derived_gap_compatible": false
+      },
+      {
+        "case_id": "reporting_time_analyzer_downtime",
+        "left_dataset_id": "clinical_lab:0001",
+        "right_dataset_id": "clinical_lab:0001",
+        "left_column": "Actual reporting time (minutes)",
+        "right_column": "Analyzer downtime (minutes)",
+        "same_concept": null,
+        "same_concept_family": false,
+        "same_domain": true,
+        "distinct_variants": null,
+        "compatible_units": true,
+        "derived_gap_compatible": false
+      },
+      {
+        "case_id": "quality_rate_sla",
+        "left_dataset_id": "clinical_lab:0001",
+        "right_dataset_id": "clinical_lab:0001",
+        "left_column": "Quality pass rate (%)",
+        "right_column": "SLA compliance (%)",
+        "same_concept": null,
+        "same_concept_family": false,
+        "same_domain": true,
+        "distinct_variants": null,
+        "compatible_units": true,
+        "derived_gap_compatible": false
+      },
+      {
+        "case_id": "sample_mass_reagent_mass",
+        "left_dataset_id": "clinical_lab:0001",
+        "right_dataset_id": "clinical_lab:0001",
+        "left_column": "Planned sample mass (grams)",
+        "right_column": "Reagent mass used (kg)",
+        "same_concept": null,
+        "same_concept_family": false,
+        "same_domain": true,
+        "distinct_variants": null,
+        "compatible_units": true,
+        "derived_gap_compatible": false
+      },
+      {
+        "case_id": "specimen_weight_reagent_mass",
+        "left_dataset_id": "clinical_lab:0001",
+        "right_dataset_id": "clinical_lab:0001",
+        "left_column": "Measured specimen weight (kg)",
+        "right_column": "Reagent mass used (kg)",
+        "same_concept": null,
+        "same_concept_family": false,
+        "same_domain": true,
+        "distinct_variants": null,
+        "compatible_units": true,
+        "derived_gap_compatible": false
+      }
+    ],
+    "safety_critical_fields": [
+      "compatible_units",
+      "derived_gap_compatible"
+    ],
+    "tags": [
+      "clinical_lab",
+      "holdout",
+      "s4",
+      "independent",
+      "quantity_family",
+      "same_dimension_different_quantity",
+      "lexical_generalization",
+      "semantic_generalization",
+      "count",
+      "currency",
+      "duration",
+      "percentage",
+      "mass",
+      "semantic_safety"
+    ],
+    "benchmark_version": "clinical_lab_semantic_holdout_v0.1"
+  },
+  "notes": [
+    "Clinical Lab Holdout #6 was frozen before its first DataLens Semantic System S4 execution.",
+    "The holdout must not be modified in response to the first S4 result.",
+    "If the holdout is inspected and subsequently used to modify S4, it becomes development data and a new independent holdout must be created."
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "baseline_id": "tool_use_language_robustness_v0.3",
+  "status": "frozen",
+  "run_id": "20260817T112438_383962",
+  "scope": {
+    "domains": [
+      "hr",
+      "sales"
+    ],
+    "languages": [
+      "fr",
+      "en"
+    ],
+    "case_count": 24,
+    "repeat_count": 3,
+    "run_count": 72,
+    "executable_case_count": 20,
+    "guardrail_case_count": 4,
+    "native_families": [
+      "quantitative_association",
+      "categorical_association",
+      "group_comparison",
+      "distribution",
+      "time_series"
+    ],
+    "focus": [
+      "natural-language paraphrases",
+      "bilingual robustness",
+      "explicit-column fidelity",
+      "guardrail abstention",
+      "native tool routing"
+    ]
+  },
+  "versions": {
+    "planner_rule_version": "ai_analytical_planner_v0.13",
+    "contract_version": "analytical_contract_v0.2",
+    "tool_orchestrator_rule_version": "ai_tool_orchestrator_v0.2",
+    "native_tool_rule_version": "native_tool_calling_v0.6",
+    "pipeline_rule_version": "ai_native_pipeline_v0.2",
+    "eval_runner_version": "tool_use_eval_runner_v0.7"
+  },
+  "metrics": {
+    "overall_pass_rate": 1.0,
+    "planner_family_accuracy": 1.0,
+    "planner_binding_accuracy": 1.0,
+    "planner_first_pass_rate": 0.8333333333,
+    "planner_first_pass_rate_executable": 1.0,
+    "planner_retry_rate": 0.1666666667,
+    "planner_retry_recovery_rate": 1.0,
+    "planner_execution_retry_rate": 0.0,
+    "planner_guardrail_retry_rate": 1.0,
+    "planner_unresolved_retry_count": 0,
+    "planner_normalization_rate": 0.625,
+    "native_tool_selection_accuracy": 1.0,
+    "native_argument_accuracy": 1.0,
+    "native_first_pass_rate": 1.0,
+    "native_retry_rate": 0.0,
+    "execution_success_rate": 1.0,
+    "chart_type_accuracy": 1.0,
+    "guardrail_accuracy": 1.0,
+    "latency_seconds_median": 4.03
+  },
+  "interpretation": {
+    "executable_path": "All 20 executable natural-language cases across French and English were planned on the first pass, routed to the correct native tool with correct arguments, and executed successfully across three repeats.",
+    "guardrail_path": "All four intentionally invalid explicit-column cases used controlled planner retries and ended in safe abstention without native tool execution.",
+    "scope_warning": "This is a controlled synthetic benchmark across two domains and two languages. It is evidence of robustness on this suite, not a general reliability guarantee."
+  }
+}

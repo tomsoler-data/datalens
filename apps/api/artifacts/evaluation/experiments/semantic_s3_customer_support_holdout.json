@@ -1,0 +1,1530 @@
+{
+  "experiment_id": "semantic-s3-customer-support-holdout",
+  "created_at": "2026-08-15T22:05:38.308224+02:00",
+  "phase": "pre_adaptation_holdout",
+  "split": "holdout",
+  "benchmark_ids": [
+    "semantic:customer_support:holdout:v0.1"
+  ],
+  "benchmark_versions": {
+    "semantic:customer_support:holdout:v0.1": "customer_support_semantic_holdout_v0.1"
+  },
+  "system": {
+    "system_label": "DataLens Semantic System S3",
+    "model_name": "gemma3:4b",
+    "component_versions": {
+      "semantic_profiler": "semantic_data_profiler_v0.2",
+      "semantic_normalizer": "semantic_normalizer_v0.4",
+      "quantity_semantics": "quantity_semantics_v0.1",
+      "semantic_comparator": "semantic_profile_comparator_v0.3",
+      "semantic_preparation": "semantic_preparation_pipeline_v0.1",
+      "semantic_advisor": "semantic_discovery_advisor_v0.1",
+      "ranking_overlay": "semantic_ranking_overlay_v0.1",
+      "benchmark_registry": "semantic_benchmark_registry_v0.2",
+      "benchmark_runner": "semantic_global_benchmark_runner_v0.2",
+      "safety_gate": "analytical_safety_gate_v0.2",
+      "capability_decomposition": "evaluation_capability_decomposition_v0.1"
+    },
+    "notes": [
+      "S3 is frozen before Customer Support Holdout #5.",
+      "The holdout focuses on lexical and conceptual generalization.",
+      "Every benchmark assertion targets a capability shared by raw Gemma and DataLens."
+    ]
+  },
+  "result": {
+    "split": "holdout",
+    "suite_count": 1,
+    "domain_count": 1,
+    "domains": [
+      "customer_support"
+    ],
+    "raw_correct_count": 24,
+    "raw_assertion_count": 54,
+    "normalized_correct_count": 29,
+    "normalized_assertion_count": 54,
+    "raw_micro_accuracy": 0.444444,
+    "normalized_micro_accuracy": 0.537037,
+    "micro_accuracy_delta": 0.092593,
+    "raw_macro_accuracy": 0.444444,
+    "normalized_macro_accuracy": 0.537037,
+    "macro_accuracy_delta": 0.092593,
+    "raw_safety_assertion_count": 12,
+    "raw_safety_failure_count": 8,
+    "normalized_safety_assertion_count": 12,
+    "normalized_safety_failure_count": 5,
+    "raw_safety_decisions": {
+      "assertion_count": 12,
+      "true_positive_count": 0,
+      "false_positive_count": 0,
+      "true_negative_count": 4,
+      "false_negative_count": 8,
+      "unclassified_count": 0,
+      "accuracy": 0.333333,
+      "precision": null,
+      "recall": 0.0,
+      "specificity": 1.0,
+      "f1": null,
+      "decision_rule_version": "analytical_safety_decision_v0.2"
+    },
+    "normalized_safety_decisions": {
+      "assertion_count": 12,
+      "true_positive_count": 3,
+      "false_positive_count": 0,
+      "true_negative_count": 4,
+      "false_negative_count": 5,
+      "unclassified_count": 0,
+      "accuracy": 0.583333,
+      "precision": 1.0,
+      "recall": 0.375,
+      "specificity": 1.0,
+      "f1": 0.545455,
+      "decision_rule_version": "analytical_safety_decision_v0.2"
+    },
+    "normalized_failure_count": 25,
+    "safety_gate_passed": true,
+    "regression_gate_passed": false,
+    "suites": [
+      {
+        "benchmark_id": "semantic:customer_support:holdout:v0.1",
+        "benchmark_name": "Customer support conceptual semantic holdout",
+        "domain": "customer_support",
+        "split": "holdout",
+        "raw_columns": {
+          "benchmark_name": "semantic:customer_support:holdout:v0.1:raw:columns",
+          "case_count": 9,
+          "assertion_count": 26,
+          "correct_count": 10,
+          "incorrect_count": 16,
+          "accuracy": 0.384615,
+          "field_accuracy": {
+            "measure_kind": 0.666667,
+            "unit_kind": 0.111111,
+            "variant": 0.375
+          },
+          "assertions": [
+            {
+              "case_id": "cases_submitted",
+              "dataset_id": "customer_support:0001",
+              "subject": "Cases submitted",
+              "field": "variant",
+              "expected": "submitted",
+              "actual": "cases_submitted",
+              "correct": false
+            },
+            {
+              "case_id": "cases_submitted",
+              "dataset_id": "customer_support:0001",
+              "subject": "Cases submitted",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "cases_submitted",
+              "dataset_id": "customer_support:0001",
+              "subject": "Cases submitted",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "tickets_resolved",
+              "dataset_id": "customer_support:0001",
+              "subject": "Tickets resolved",
+              "field": "variant",
+              "expected": "resolved",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "tickets_resolved",
+              "dataset_id": "customer_support:0001",
+              "subject": "Tickets resolved",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "tickets_resolved",
+              "dataset_id": "customer_support:0001",
+              "subject": "Tickets resolved",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "agents_rostered",
+              "dataset_id": "customer_support:0001",
+              "subject": "Agents rostered",
+              "field": "variant",
+              "expected": "rostered",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "agents_rostered",
+              "dataset_id": "customer_support:0001",
+              "subject": "Agents rostered",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "agents_rostered",
+              "dataset_id": "customer_support:0001",
+              "subject": "Agents rostered",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "staff_online",
+              "dataset_id": "customer_support:0001",
+              "subject": "Staff online",
+              "field": "variant",
+              "expected": "online",
+              "actual": "online",
+              "correct": true
+            },
+            {
+              "case_id": "staff_online",
+              "dataset_id": "customer_support:0001",
+              "subject": "Staff online",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "duration",
+              "correct": false
+            },
+            {
+              "case_id": "staff_online",
+              "dataset_id": "customer_support:0001",
+              "subject": "Staff online",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "quoted_service_cost",
+              "dataset_id": "customer_support:0001",
+              "subject": "Quoted service cost",
+              "field": "variant",
+              "expected": "quoted",
+              "actual": "quoted",
+              "correct": true
+            },
+            {
+              "case_id": "quoted_service_cost",
+              "dataset_id": "customer_support:0001",
+              "subject": "Quoted service cost",
+              "field": "measure_kind",
+              "expected": "currency",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "quoted_service_cost",
+              "dataset_id": "customer_support:0001",
+              "subject": "Quoted service cost",
+              "field": "unit_kind",
+              "expected": "currency",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "final_invoice_amount",
+              "dataset_id": "customer_support:0001",
+              "subject": "Final invoice amount",
+              "field": "variant",
+              "expected": "final",
+              "actual": "target",
+              "correct": false
+            },
+            {
+              "case_id": "final_invoice_amount",
+              "dataset_id": "customer_support:0001",
+              "subject": "Final invoice amount",
+              "field": "measure_kind",
+              "expected": "currency",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "final_invoice_amount",
+              "dataset_id": "customer_support:0001",
+              "subject": "Final invoice amount",
+              "field": "unit_kind",
+              "expected": "currency",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "promised_response_time",
+              "dataset_id": "customer_support:0001",
+              "subject": "Promised response time (minutes)",
+              "field": "variant",
+              "expected": "promised",
+              "actual": "target",
+              "correct": false
+            },
+            {
+              "case_id": "promised_response_time",
+              "dataset_id": "customer_support:0001",
+              "subject": "Promised response time (minutes)",
+              "field": "measure_kind",
+              "expected": "duration",
+              "actual": "duration",
+              "correct": true
+            },
+            {
+              "case_id": "promised_response_time",
+              "dataset_id": "customer_support:0001",
+              "subject": "Promised response time (minutes)",
+              "field": "unit_kind",
+              "expected": "duration",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "observed_response_delay",
+              "dataset_id": "customer_support:0001",
+              "subject": "Observed first-response delay (minutes)",
+              "field": "variant",
+              "expected": "actual",
+              "actual": "actual",
+              "correct": true
+            },
+            {
+              "case_id": "observed_response_delay",
+              "dataset_id": "customer_support:0001",
+              "subject": "Observed first-response delay (minutes)",
+              "field": "measure_kind",
+              "expected": "duration",
+              "actual": "duration",
+              "correct": true
+            },
+            {
+              "case_id": "observed_response_delay",
+              "dataset_id": "customer_support:0001",
+              "subject": "Observed first-response delay (minutes)",
+              "field": "unit_kind",
+              "expected": "duration",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "sla_compliance",
+              "dataset_id": "customer_support:0001",
+              "subject": "SLA compliance (%)",
+              "field": "measure_kind",
+              "expected": "percentage",
+              "actual": "percentage",
+              "correct": true
+            },
+            {
+              "case_id": "sla_compliance",
+              "dataset_id": "customer_support:0001",
+              "subject": "SLA compliance (%)",
+              "field": "unit_kind",
+              "expected": "percent",
+              "actual": "percent",
+              "correct": true
+            }
+          ],
+          "benchmark_rule_version": "semantic_benchmark_v0.2"
+        },
+        "normalized_columns": {
+          "benchmark_name": "semantic:customer_support:holdout:v0.1:normalized:columns",
+          "case_count": 9,
+          "assertion_count": 26,
+          "correct_count": 14,
+          "incorrect_count": 12,
+          "accuracy": 0.538462,
+          "field_accuracy": {
+            "measure_kind": 0.777778,
+            "unit_kind": 0.444444,
+            "variant": 0.375
+          },
+          "assertions": [
+            {
+              "case_id": "cases_submitted",
+              "dataset_id": "customer_support:0001",
+              "subject": "Cases submitted",
+              "field": "variant",
+              "expected": "submitted",
+              "actual": "cases_submitted",
+              "correct": false
+            },
+            {
+              "case_id": "cases_submitted",
+              "dataset_id": "customer_support:0001",
+              "subject": "Cases submitted",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "cases_submitted",
+              "dataset_id": "customer_support:0001",
+              "subject": "Cases submitted",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "tickets_resolved",
+              "dataset_id": "customer_support:0001",
+              "subject": "Tickets resolved",
+              "field": "variant",
+              "expected": "resolved",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "tickets_resolved",
+              "dataset_id": "customer_support:0001",
+              "subject": "Tickets resolved",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "tickets_resolved",
+              "dataset_id": "customer_support:0001",
+              "subject": "Tickets resolved",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "agents_rostered",
+              "dataset_id": "customer_support:0001",
+              "subject": "Agents rostered",
+              "field": "variant",
+              "expected": "rostered",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "agents_rostered",
+              "dataset_id": "customer_support:0001",
+              "subject": "Agents rostered",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "agents_rostered",
+              "dataset_id": "customer_support:0001",
+              "subject": "Agents rostered",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "staff_online",
+              "dataset_id": "customer_support:0001",
+              "subject": "Staff online",
+              "field": "variant",
+              "expected": "online",
+              "actual": "online",
+              "correct": true
+            },
+            {
+              "case_id": "staff_online",
+              "dataset_id": "customer_support:0001",
+              "subject": "Staff online",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "duration",
+              "correct": false
+            },
+            {
+              "case_id": "staff_online",
+              "dataset_id": "customer_support:0001",
+              "subject": "Staff online",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "quoted_service_cost",
+              "dataset_id": "customer_support:0001",
+              "subject": "Quoted service cost",
+              "field": "variant",
+              "expected": "quoted",
+              "actual": "quoted",
+              "correct": true
+            },
+            {
+              "case_id": "quoted_service_cost",
+              "dataset_id": "customer_support:0001",
+              "subject": "Quoted service cost",
+              "field": "measure_kind",
+              "expected": "currency",
+              "actual": "currency",
+              "correct": true
+            },
+            {
+              "case_id": "quoted_service_cost",
+              "dataset_id": "customer_support:0001",
+              "subject": "Quoted service cost",
+              "field": "unit_kind",
+              "expected": "currency",
+              "actual": "currency",
+              "correct": true
+            },
+            {
+              "case_id": "final_invoice_amount",
+              "dataset_id": "customer_support:0001",
+              "subject": "Final invoice amount",
+              "field": "variant",
+              "expected": "final",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "final_invoice_amount",
+              "dataset_id": "customer_support:0001",
+              "subject": "Final invoice amount",
+              "field": "measure_kind",
+              "expected": "currency",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "final_invoice_amount",
+              "dataset_id": "customer_support:0001",
+              "subject": "Final invoice amount",
+              "field": "unit_kind",
+              "expected": "currency",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "promised_response_time",
+              "dataset_id": "customer_support:0001",
+              "subject": "Promised response time (minutes)",
+              "field": "variant",
+              "expected": "promised",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "promised_response_time",
+              "dataset_id": "customer_support:0001",
+              "subject": "Promised response time (minutes)",
+              "field": "measure_kind",
+              "expected": "duration",
+              "actual": "duration",
+              "correct": true
+            },
+            {
+              "case_id": "promised_response_time",
+              "dataset_id": "customer_support:0001",
+              "subject": "Promised response time (minutes)",
+              "field": "unit_kind",
+              "expected": "duration",
+              "actual": "duration",
+              "correct": true
+            },
+            {
+              "case_id": "observed_response_delay",
+              "dataset_id": "customer_support:0001",
+              "subject": "Observed first-response delay (minutes)",
+              "field": "variant",
+              "expected": "actual",
+              "actual": "actual",
+              "correct": true
+            },
+            {
+              "case_id": "observed_response_delay",
+              "dataset_id": "customer_support:0001",
+              "subject": "Observed first-response delay (minutes)",
+              "field": "measure_kind",
+              "expected": "duration",
+              "actual": "duration",
+              "correct": true
+            },
+            {
+              "case_id": "observed_response_delay",
+              "dataset_id": "customer_support:0001",
+              "subject": "Observed first-response delay (minutes)",
+              "field": "unit_kind",
+              "expected": "duration",
+              "actual": "duration",
+              "correct": true
+            },
+            {
+              "case_id": "sla_compliance",
+              "dataset_id": "customer_support:0001",
+              "subject": "SLA compliance (%)",
+              "field": "measure_kind",
+              "expected": "percentage",
+              "actual": "percentage",
+              "correct": true
+            },
+            {
+              "case_id": "sla_compliance",
+              "dataset_id": "customer_support:0001",
+              "subject": "SLA compliance (%)",
+              "field": "unit_kind",
+              "expected": "percent",
+              "actual": "percent",
+              "correct": true
+            }
+          ],
+          "benchmark_rule_version": "semantic_benchmark_v0.2"
+        },
+        "raw_pairs": {
+          "benchmark_name": "semantic:customer_support:holdout:v0.1:raw:pairs",
+          "case_count": 6,
+          "assertion_count": 28,
+          "correct_count": 14,
+          "incorrect_count": 14,
+          "accuracy": 0.5,
+          "field_accuracy": {
+            "compatible_units": 0.333333,
+            "derived_gap_compatible": 0.333333,
+            "distinct_variants": 0.5,
+            "same_concept_family": 0.833333,
+            "same_domain": 0.5
+          },
+          "assertions": [
+            {
+              "case_id": "submitted_cases_resolved_tickets",
+              "dataset_id": "customer_support:0001",
+              "subject": "Cases submitted vs Tickets resolved",
+              "field": "same_concept_family",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "submitted_cases_resolved_tickets",
+              "dataset_id": "customer_support:0001",
+              "subject": "Cases submitted vs Tickets resolved",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "submitted_cases_resolved_tickets",
+              "dataset_id": "customer_support:0001",
+              "subject": "Cases submitted vs Tickets resolved",
+              "field": "distinct_variants",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "submitted_cases_resolved_tickets",
+              "dataset_id": "customer_support:0001",
+              "subject": "Cases submitted vs Tickets resolved",
+              "field": "compatible_units",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "submitted_cases_resolved_tickets",
+              "dataset_id": "customer_support:0001",
+              "subject": "Cases submitted vs Tickets resolved",
+              "field": "derived_gap_compatible",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "rostered_agents_online_staff",
+              "dataset_id": "customer_support:0001",
+              "subject": "Agents rostered vs Staff online",
+              "field": "same_concept_family",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "rostered_agents_online_staff",
+              "dataset_id": "customer_support:0001",
+              "subject": "Agents rostered vs Staff online",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "rostered_agents_online_staff",
+              "dataset_id": "customer_support:0001",
+              "subject": "Agents rostered vs Staff online",
+              "field": "distinct_variants",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "rostered_agents_online_staff",
+              "dataset_id": "customer_support:0001",
+              "subject": "Agents rostered vs Staff online",
+              "field": "compatible_units",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "rostered_agents_online_staff",
+              "dataset_id": "customer_support:0001",
+              "subject": "Agents rostered vs Staff online",
+              "field": "derived_gap_compatible",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "quoted_cost_final_invoice",
+              "dataset_id": "customer_support:0001",
+              "subject": "Quoted service cost vs Final invoice amount",
+              "field": "same_concept_family",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "quoted_cost_final_invoice",
+              "dataset_id": "customer_support:0001",
+              "subject": "Quoted service cost vs Final invoice amount",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "quoted_cost_final_invoice",
+              "dataset_id": "customer_support:0001",
+              "subject": "Quoted service cost vs Final invoice amount",
+              "field": "distinct_variants",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "quoted_cost_final_invoice",
+              "dataset_id": "customer_support:0001",
+              "subject": "Quoted service cost vs Final invoice amount",
+              "field": "compatible_units",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "quoted_cost_final_invoice",
+              "dataset_id": "customer_support:0001",
+              "subject": "Quoted service cost vs Final invoice amount",
+              "field": "derived_gap_compatible",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "promised_observed_response_time",
+              "dataset_id": "customer_support:0001",
+              "subject": "Promised response time (minutes) vs Observed first-response delay (minutes)",
+              "field": "same_concept_family",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "promised_observed_response_time",
+              "dataset_id": "customer_support:0001",
+              "subject": "Promised response time (minutes) vs Observed first-response delay (minutes)",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "promised_observed_response_time",
+              "dataset_id": "customer_support:0001",
+              "subject": "Promised response time (minutes) vs Observed first-response delay (minutes)",
+              "field": "distinct_variants",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "promised_observed_response_time",
+              "dataset_id": "customer_support:0001",
+              "subject": "Promised response time (minutes) vs Observed first-response delay (minutes)",
+              "field": "compatible_units",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "promised_observed_response_time",
+              "dataset_id": "customer_support:0001",
+              "subject": "Promised response time (minutes) vs Observed first-response delay (minutes)",
+              "field": "derived_gap_compatible",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "response_delay_sla_compliance",
+              "dataset_id": "customer_support:0001",
+              "subject": "Observed first-response delay (minutes) vs SLA compliance (%)",
+              "field": "same_concept_family",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "response_delay_sla_compliance",
+              "dataset_id": "customer_support:0001",
+              "subject": "Observed first-response delay (minutes) vs SLA compliance (%)",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "response_delay_sla_compliance",
+              "dataset_id": "customer_support:0001",
+              "subject": "Observed first-response delay (minutes) vs SLA compliance (%)",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "response_delay_sla_compliance",
+              "dataset_id": "customer_support:0001",
+              "subject": "Observed first-response delay (minutes) vs SLA compliance (%)",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "invoice_online_staff",
+              "dataset_id": "customer_support:0001",
+              "subject": "Final invoice amount vs Staff online",
+              "field": "same_concept_family",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "invoice_online_staff",
+              "dataset_id": "customer_support:0001",
+              "subject": "Final invoice amount vs Staff online",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "invoice_online_staff",
+              "dataset_id": "customer_support:0001",
+              "subject": "Final invoice amount vs Staff online",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "invoice_online_staff",
+              "dataset_id": "customer_support:0001",
+              "subject": "Final invoice amount vs Staff online",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            }
+          ],
+          "benchmark_rule_version": "semantic_benchmark_v0.2"
+        },
+        "normalized_pairs": {
+          "benchmark_name": "semantic:customer_support:holdout:v0.1:normalized:pairs",
+          "case_count": 6,
+          "assertion_count": 28,
+          "correct_count": 15,
+          "incorrect_count": 13,
+          "accuracy": 0.535714,
+          "field_accuracy": {
+            "compatible_units": 0.666667,
+            "derived_gap_compatible": 0.5,
+            "distinct_variants": 0.0,
+            "same_concept_family": 0.833333,
+            "same_domain": 0.5
+          },
+          "assertions": [
+            {
+              "case_id": "submitted_cases_resolved_tickets",
+              "dataset_id": "customer_support:0001",
+              "subject": "Cases submitted vs Tickets resolved",
+              "field": "same_concept_family",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "submitted_cases_resolved_tickets",
+              "dataset_id": "customer_support:0001",
+              "subject": "Cases submitted vs Tickets resolved",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "submitted_cases_resolved_tickets",
+              "dataset_id": "customer_support:0001",
+              "subject": "Cases submitted vs Tickets resolved",
+              "field": "distinct_variants",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "submitted_cases_resolved_tickets",
+              "dataset_id": "customer_support:0001",
+              "subject": "Cases submitted vs Tickets resolved",
+              "field": "compatible_units",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "submitted_cases_resolved_tickets",
+              "dataset_id": "customer_support:0001",
+              "subject": "Cases submitted vs Tickets resolved",
+              "field": "derived_gap_compatible",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "rostered_agents_online_staff",
+              "dataset_id": "customer_support:0001",
+              "subject": "Agents rostered vs Staff online",
+              "field": "same_concept_family",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "rostered_agents_online_staff",
+              "dataset_id": "customer_support:0001",
+              "subject": "Agents rostered vs Staff online",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "rostered_agents_online_staff",
+              "dataset_id": "customer_support:0001",
+              "subject": "Agents rostered vs Staff online",
+              "field": "distinct_variants",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "rostered_agents_online_staff",
+              "dataset_id": "customer_support:0001",
+              "subject": "Agents rostered vs Staff online",
+              "field": "compatible_units",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "rostered_agents_online_staff",
+              "dataset_id": "customer_support:0001",
+              "subject": "Agents rostered vs Staff online",
+              "field": "derived_gap_compatible",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "quoted_cost_final_invoice",
+              "dataset_id": "customer_support:0001",
+              "subject": "Quoted service cost vs Final invoice amount",
+              "field": "same_concept_family",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "quoted_cost_final_invoice",
+              "dataset_id": "customer_support:0001",
+              "subject": "Quoted service cost vs Final invoice amount",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "quoted_cost_final_invoice",
+              "dataset_id": "customer_support:0001",
+              "subject": "Quoted service cost vs Final invoice amount",
+              "field": "distinct_variants",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "quoted_cost_final_invoice",
+              "dataset_id": "customer_support:0001",
+              "subject": "Quoted service cost vs Final invoice amount",
+              "field": "compatible_units",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "quoted_cost_final_invoice",
+              "dataset_id": "customer_support:0001",
+              "subject": "Quoted service cost vs Final invoice amount",
+              "field": "derived_gap_compatible",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "promised_observed_response_time",
+              "dataset_id": "customer_support:0001",
+              "subject": "Promised response time (minutes) vs Observed first-response delay (minutes)",
+              "field": "same_concept_family",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "promised_observed_response_time",
+              "dataset_id": "customer_support:0001",
+              "subject": "Promised response time (minutes) vs Observed first-response delay (minutes)",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "promised_observed_response_time",
+              "dataset_id": "customer_support:0001",
+              "subject": "Promised response time (minutes) vs Observed first-response delay (minutes)",
+              "field": "distinct_variants",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "promised_observed_response_time",
+              "dataset_id": "customer_support:0001",
+              "subject": "Promised response time (minutes) vs Observed first-response delay (minutes)",
+              "field": "compatible_units",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "promised_observed_response_time",
+              "dataset_id": "customer_support:0001",
+              "subject": "Promised response time (minutes) vs Observed first-response delay (minutes)",
+              "field": "derived_gap_compatible",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "response_delay_sla_compliance",
+              "dataset_id": "customer_support:0001",
+              "subject": "Observed first-response delay (minutes) vs SLA compliance (%)",
+              "field": "same_concept_family",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "response_delay_sla_compliance",
+              "dataset_id": "customer_support:0001",
+              "subject": "Observed first-response delay (minutes) vs SLA compliance (%)",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "response_delay_sla_compliance",
+              "dataset_id": "customer_support:0001",
+              "subject": "Observed first-response delay (minutes) vs SLA compliance (%)",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "response_delay_sla_compliance",
+              "dataset_id": "customer_support:0001",
+              "subject": "Observed first-response delay (minutes) vs SLA compliance (%)",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "invoice_online_staff",
+              "dataset_id": "customer_support:0001",
+              "subject": "Final invoice amount vs Staff online",
+              "field": "same_concept_family",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "invoice_online_staff",
+              "dataset_id": "customer_support:0001",
+              "subject": "Final invoice amount vs Staff online",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "invoice_online_staff",
+              "dataset_id": "customer_support:0001",
+              "subject": "Final invoice amount vs Staff online",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "invoice_online_staff",
+              "dataset_id": "customer_support:0001",
+              "subject": "Final invoice amount vs Staff online",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            }
+          ],
+          "benchmark_rule_version": "semantic_benchmark_v0.2"
+        },
+        "raw_correct_count": 24,
+        "raw_assertion_count": 54,
+        "normalized_correct_count": 29,
+        "normalized_assertion_count": 54,
+        "raw_accuracy": 0.444444,
+        "normalized_accuracy": 0.537037,
+        "raw_safety_assertion_count": 12,
+        "raw_safety_failure_count": 8,
+        "normalized_safety_assertion_count": 12,
+        "normalized_safety_failure_count": 5,
+        "raw_safety_failures": [
+          {
+            "case_id": "submitted_cases_resolved_tickets",
+            "dataset_id": "customer_support:0001",
+            "subject": "Cases submitted vs Tickets resolved",
+            "field": "compatible_units",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "submitted_cases_resolved_tickets",
+            "dataset_id": "customer_support:0001",
+            "subject": "Cases submitted vs Tickets resolved",
+            "field": "derived_gap_compatible",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "rostered_agents_online_staff",
+            "dataset_id": "customer_support:0001",
+            "subject": "Agents rostered vs Staff online",
+            "field": "compatible_units",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "rostered_agents_online_staff",
+            "dataset_id": "customer_support:0001",
+            "subject": "Agents rostered vs Staff online",
+            "field": "derived_gap_compatible",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "quoted_cost_final_invoice",
+            "dataset_id": "customer_support:0001",
+            "subject": "Quoted service cost vs Final invoice amount",
+            "field": "compatible_units",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "quoted_cost_final_invoice",
+            "dataset_id": "customer_support:0001",
+            "subject": "Quoted service cost vs Final invoice amount",
+            "field": "derived_gap_compatible",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "promised_observed_response_time",
+            "dataset_id": "customer_support:0001",
+            "subject": "Promised response time (minutes) vs Observed first-response delay (minutes)",
+            "field": "compatible_units",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "promised_observed_response_time",
+            "dataset_id": "customer_support:0001",
+            "subject": "Promised response time (minutes) vs Observed first-response delay (minutes)",
+            "field": "derived_gap_compatible",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          }
+        ],
+        "normalized_safety_failures": [
+          {
+            "case_id": "rostered_agents_online_staff",
+            "dataset_id": "customer_support:0001",
+            "subject": "Agents rostered vs Staff online",
+            "field": "compatible_units",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "rostered_agents_online_staff",
+            "dataset_id": "customer_support:0001",
+            "subject": "Agents rostered vs Staff online",
+            "field": "derived_gap_compatible",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "quoted_cost_final_invoice",
+            "dataset_id": "customer_support:0001",
+            "subject": "Quoted service cost vs Final invoice amount",
+            "field": "compatible_units",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "quoted_cost_final_invoice",
+            "dataset_id": "customer_support:0001",
+            "subject": "Quoted service cost vs Final invoice amount",
+            "field": "derived_gap_compatible",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "promised_observed_response_time",
+            "dataset_id": "customer_support:0001",
+            "subject": "Promised response time (minutes) vs Observed first-response delay (minutes)",
+            "field": "derived_gap_compatible",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          }
+        ],
+        "raw_safety_decisions": {
+          "assertion_count": 12,
+          "true_positive_count": 0,
+          "false_positive_count": 0,
+          "true_negative_count": 4,
+          "false_negative_count": 8,
+          "unclassified_count": 0,
+          "accuracy": 0.333333,
+          "precision": null,
+          "recall": 0.0,
+          "specificity": 1.0,
+          "f1": null,
+          "decision_rule_version": "analytical_safety_decision_v0.2"
+        },
+        "normalized_safety_decisions": {
+          "assertion_count": 12,
+          "true_positive_count": 3,
+          "false_positive_count": 0,
+          "true_negative_count": 4,
+          "false_negative_count": 5,
+          "unclassified_count": 0,
+          "accuracy": 0.583333,
+          "precision": 1.0,
+          "recall": 0.375,
+          "specificity": 1.0,
+          "f1": 0.545455,
+          "decision_rule_version": "analytical_safety_decision_v0.2"
+        },
+        "normalized_failures": [
+          {
+            "case_id": "cases_submitted",
+            "dataset_id": "customer_support:0001",
+            "subject": "Cases submitted",
+            "field": "variant",
+            "expected": "submitted",
+            "actual": "cases_submitted",
+            "correct": false
+          },
+          {
+            "case_id": "cases_submitted",
+            "dataset_id": "customer_support:0001",
+            "subject": "Cases submitted",
+            "field": "unit_kind",
+            "expected": "count",
+            "actual": "unknown",
+            "correct": false
+          },
+          {
+            "case_id": "tickets_resolved",
+            "dataset_id": "customer_support:0001",
+            "subject": "Tickets resolved",
+            "field": "variant",
+            "expected": "resolved",
+            "actual": "unknown",
+            "correct": false
+          },
+          {
+            "case_id": "tickets_resolved",
+            "dataset_id": "customer_support:0001",
+            "subject": "Tickets resolved",
+            "field": "unit_kind",
+            "expected": "count",
+            "actual": "unknown",
+            "correct": false
+          },
+          {
+            "case_id": "agents_rostered",
+            "dataset_id": "customer_support:0001",
+            "subject": "Agents rostered",
+            "field": "variant",
+            "expected": "rostered",
+            "actual": "unknown",
+            "correct": false
+          },
+          {
+            "case_id": "agents_rostered",
+            "dataset_id": "customer_support:0001",
+            "subject": "Agents rostered",
+            "field": "unit_kind",
+            "expected": "count",
+            "actual": "unknown",
+            "correct": false
+          },
+          {
+            "case_id": "staff_online",
+            "dataset_id": "customer_support:0001",
+            "subject": "Staff online",
+            "field": "measure_kind",
+            "expected": "count",
+            "actual": "duration",
+            "correct": false
+          },
+          {
+            "case_id": "staff_online",
+            "dataset_id": "customer_support:0001",
+            "subject": "Staff online",
+            "field": "unit_kind",
+            "expected": "count",
+            "actual": "unknown",
+            "correct": false
+          },
+          {
+            "case_id": "final_invoice_amount",
+            "dataset_id": "customer_support:0001",
+            "subject": "Final invoice amount",
+            "field": "variant",
+            "expected": "final",
+            "actual": "unknown",
+            "correct": false
+          },
+          {
+            "case_id": "final_invoice_amount",
+            "dataset_id": "customer_support:0001",
+            "subject": "Final invoice amount",
+            "field": "measure_kind",
+            "expected": "currency",
+            "actual": "unknown",
+            "correct": false
+          },
+          {
+            "case_id": "final_invoice_amount",
+            "dataset_id": "customer_support:0001",
+            "subject": "Final invoice amount",
+            "field": "unit_kind",
+            "expected": "currency",
+            "actual": "unknown",
+            "correct": false
+          },
+          {
+            "case_id": "promised_response_time",
+            "dataset_id": "customer_support:0001",
+            "subject": "Promised response time (minutes)",
+            "field": "variant",
+            "expected": "promised",
+            "actual": "unknown",
+            "correct": false
+          },
+          {
+            "case_id": "submitted_cases_resolved_tickets",
+            "dataset_id": "customer_support:0001",
+            "subject": "Cases submitted vs Tickets resolved",
+            "field": "same_domain",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "submitted_cases_resolved_tickets",
+            "dataset_id": "customer_support:0001",
+            "subject": "Cases submitted vs Tickets resolved",
+            "field": "distinct_variants",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "rostered_agents_online_staff",
+            "dataset_id": "customer_support:0001",
+            "subject": "Agents rostered vs Staff online",
+            "field": "distinct_variants",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "rostered_agents_online_staff",
+            "dataset_id": "customer_support:0001",
+            "subject": "Agents rostered vs Staff online",
+            "field": "compatible_units",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "rostered_agents_online_staff",
+            "dataset_id": "customer_support:0001",
+            "subject": "Agents rostered vs Staff online",
+            "field": "derived_gap_compatible",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "quoted_cost_final_invoice",
+            "dataset_id": "customer_support:0001",
+            "subject": "Quoted service cost vs Final invoice amount",
+            "field": "same_concept_family",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "quoted_cost_final_invoice",
+            "dataset_id": "customer_support:0001",
+            "subject": "Quoted service cost vs Final invoice amount",
+            "field": "same_domain",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "quoted_cost_final_invoice",
+            "dataset_id": "customer_support:0001",
+            "subject": "Quoted service cost vs Final invoice amount",
+            "field": "distinct_variants",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "quoted_cost_final_invoice",
+            "dataset_id": "customer_support:0001",
+            "subject": "Quoted service cost vs Final invoice amount",
+            "field": "compatible_units",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "quoted_cost_final_invoice",
+            "dataset_id": "customer_support:0001",
+            "subject": "Quoted service cost vs Final invoice amount",
+            "field": "derived_gap_compatible",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "promised_observed_response_time",
+            "dataset_id": "customer_support:0001",
+            "subject": "Promised response time (minutes) vs Observed first-response delay (minutes)",
+            "field": "distinct_variants",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "promised_observed_response_time",
+            "dataset_id": "customer_support:0001",
+            "subject": "Promised response time (minutes) vs Observed first-response delay (minutes)",
+            "field": "derived_gap_compatible",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "invoice_online_staff",
+            "dataset_id": "customer_support:0001",
+            "subject": "Final invoice amount vs Staff online",
+            "field": "same_domain",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          }
+        ]
+      }
+    ],
+    "safety_gate_rule_version": "analytical_safety_gate_v0.2",
+    "runner_rule_version": "semantic_global_benchmark_runner_v0.2"
+  },
+  "notes": [
+    "Fifth frozen out-of-domain semantic evaluation.",
+    "Customer Support ground truth was defined before observing S3 predictions.",
+    "No S3 semantic rule was modified using Customer Support results before this snapshot.",
+    "All assertions evaluate shared capabilities rather than DataLens-only extension fields."
+  ],
+  "snapshot_rule_version": "semantic_experiment_snapshot_v0.1"
+}

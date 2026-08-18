@@ -1,0 +1,552 @@
+[
+  {
+    "case_id": "hr_quantitative_natural_fr",
+    "description": "Formulation naturelle FR — association quantitative.",
+    "objective": "Est-ce que salary augmente quand training_hours augmente ?",
+    "fixture": "fixtures/tool_use_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "quantitative_association",
+      "acceptable_bindings": [
+        {
+          "x": "salary",
+          "y": "training_hours"
+        },
+        {
+          "x": "training_hours",
+          "y": "salary"
+        }
+      ],
+      "tool": "run_quantitative_association",
+      "should_execute": true,
+      "chart_type": "scatter"
+    }
+  },
+  {
+    "case_id": "hr_quantitative_natural_en",
+    "description": "Natural English — quantitative association.",
+    "objective": "Is salary related to training_hours?",
+    "fixture": "fixtures/tool_use_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "quantitative_association",
+      "acceptable_bindings": [
+        {
+          "x": "salary",
+          "y": "training_hours"
+        },
+        {
+          "x": "training_hours",
+          "y": "salary"
+        }
+      ],
+      "tool": "run_quantitative_association",
+      "should_execute": true,
+      "chart_type": "scatter"
+    }
+  },
+  {
+    "case_id": "hr_categorical_natural_fr",
+    "description": "Formulation naturelle FR — association catégorielle.",
+    "objective": "Le fait de faire overtime semble-t-il lié à left_company ?",
+    "fixture": "fixtures/tool_use_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "categorical_association",
+      "acceptable_bindings": [
+        {
+          "x": "overtime",
+          "y": "left_company"
+        },
+        {
+          "x": "left_company",
+          "y": "overtime"
+        }
+      ],
+      "tool": "run_categorical_association",
+      "should_execute": true,
+      "chart_type": "heatmap"
+    }
+  },
+  {
+    "case_id": "hr_categorical_natural_en",
+    "description": "Natural English — categorical association.",
+    "objective": "Are overtime and left_company associated?",
+    "fixture": "fixtures/tool_use_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "categorical_association",
+      "acceptable_bindings": [
+        {
+          "x": "overtime",
+          "y": "left_company"
+        },
+        {
+          "x": "left_company",
+          "y": "overtime"
+        }
+      ],
+      "tool": "run_categorical_association",
+      "should_execute": true,
+      "chart_type": "heatmap"
+    }
+  },
+  {
+    "case_id": "hr_group_natural_fr",
+    "description": "Formulation naturelle FR — comparaison par groupe.",
+    "objective": "Je voudrais comparer les niveaux de salary entre les différents department.",
+    "fixture": "fixtures/tool_use_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "group_comparison",
+      "acceptable_bindings": [
+        {
+          "group": "department",
+          "value": "salary"
+        }
+      ],
+      "tool": "run_group_comparison",
+      "should_execute": true,
+      "chart_type": "boxplot"
+    }
+  },
+  {
+    "case_id": "hr_group_natural_en",
+    "description": "Natural English — group comparison.",
+    "objective": "Compare salary across department.",
+    "fixture": "fixtures/tool_use_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "group_comparison",
+      "acceptable_bindings": [
+        {
+          "group": "department",
+          "value": "salary"
+        }
+      ],
+      "tool": "run_group_comparison",
+      "should_execute": true,
+      "chart_type": "boxplot"
+    }
+  },
+  {
+    "case_id": "hr_distribution_natural_fr",
+    "description": "Formulation naturelle FR — distribution.",
+    "objective": "À quoi ressemble la répartition de salary ?",
+    "fixture": "fixtures/tool_use_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "distribution",
+      "acceptable_bindings": [
+        {
+          "value": "salary"
+        }
+      ],
+      "tool": "run_distribution",
+      "should_execute": true,
+      "chart_type": "histogram"
+    }
+  },
+  {
+    "case_id": "hr_distribution_natural_en",
+    "description": "Natural English — distribution.",
+    "objective": "Show me the distribution of salary.",
+    "fixture": "fixtures/tool_use_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "distribution",
+      "acceptable_bindings": [
+        {
+          "value": "salary"
+        }
+      ],
+      "tool": "run_distribution",
+      "should_execute": true,
+      "chart_type": "histogram"
+    }
+  },
+  {
+    "case_id": "hr_time_natural_fr",
+    "description": "Formulation naturelle FR — série temporelle.",
+    "objective": "Comment évolue la médiane de salary au fil de snapshot_date ?",
+    "fixture": "fixtures/tool_use_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "time_series",
+      "acceptable_bindings": [
+        {
+          "time": "snapshot_date",
+          "value": "salary"
+        }
+      ],
+      "tool": "run_time_series",
+      "should_execute": true,
+      "chart_type": "line_band",
+      "aggregation_function": "median"
+    }
+  },
+  {
+    "case_id": "hr_time_natural_en",
+    "description": "Natural English — time series.",
+    "objective": "Track median salary over snapshot_date.",
+    "fixture": "fixtures/tool_use_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "time_series",
+      "acceptable_bindings": [
+        {
+          "time": "snapshot_date",
+          "value": "salary"
+        }
+      ],
+      "tool": "run_time_series",
+      "should_execute": true,
+      "chart_type": "line_band",
+      "aggregation_function": "median"
+    }
+  },
+  {
+    "case_id": "hr_guardrail_missing_bonus_fr",
+    "description": "FR — cible analytique absente, aucune substitution.",
+    "objective": "Montre-moi la distribution de bonus.",
+    "fixture": "fixtures/tool_use_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "blocked",
+        "rejected"
+      ],
+      "family": "distribution",
+      "acceptable_families": [
+        "distribution",
+        "unresolved"
+      ],
+      "acceptable_bindings": [],
+      "tool": null,
+      "should_execute": false,
+      "forbidden_columns": [
+        "salary",
+        "training_hours"
+      ],
+      "must_have_fidelity_guard": true
+    }
+  },
+  {
+    "case_id": "hr_guardrail_missing_fiscal_year_en",
+    "description": "EN — temporal column absent, no silent substitution.",
+    "objective": "Track median salary by fiscal_year.",
+    "fixture": "fixtures/tool_use_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "blocked",
+        "rejected"
+      ],
+      "family": "time_series",
+      "acceptable_families": [
+        "time_series",
+        "unresolved"
+      ],
+      "acceptable_bindings": [],
+      "tool": null,
+      "should_execute": false,
+      "forbidden_columns": [
+        "snapshot_date"
+      ],
+      "must_have_fidelity_guard": true
+    }
+  },
+  {
+    "case_id": "sales_quantitative_natural_fr",
+    "description": "Formulation naturelle FR — association quantitative Sales.",
+    "objective": "Quand marketing_spend augmente, est-ce que revenue augmente aussi ?",
+    "fixture": "fixtures/tool_use_sales_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "quantitative_association",
+      "acceptable_bindings": [
+        {
+          "x": "marketing_spend",
+          "y": "revenue"
+        },
+        {
+          "x": "revenue",
+          "y": "marketing_spend"
+        }
+      ],
+      "tool": "run_quantitative_association",
+      "should_execute": true,
+      "chart_type": "scatter"
+    }
+  },
+  {
+    "case_id": "sales_quantitative_natural_en",
+    "description": "Natural English — quantitative association Sales.",
+    "objective": "Is revenue related to marketing_spend?",
+    "fixture": "fixtures/tool_use_sales_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "quantitative_association",
+      "acceptable_bindings": [
+        {
+          "x": "revenue",
+          "y": "marketing_spend"
+        },
+        {
+          "x": "marketing_spend",
+          "y": "revenue"
+        }
+      ],
+      "tool": "run_quantitative_association",
+      "should_execute": true,
+      "chart_type": "scatter"
+    }
+  },
+  {
+    "case_id": "sales_categorical_natural_fr",
+    "description": "Formulation naturelle FR — association catégorielle Sales.",
+    "objective": "Est-ce que returned dépend du channel ?",
+    "fixture": "fixtures/tool_use_sales_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "categorical_association",
+      "acceptable_bindings": [
+        {
+          "x": "returned",
+          "y": "channel"
+        },
+        {
+          "x": "channel",
+          "y": "returned"
+        }
+      ],
+      "tool": "run_categorical_association",
+      "should_execute": true,
+      "chart_type": "heatmap"
+    }
+  },
+  {
+    "case_id": "sales_categorical_natural_en",
+    "description": "Natural English — categorical association Sales.",
+    "objective": "Does returned depend on channel?",
+    "fixture": "fixtures/tool_use_sales_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "categorical_association",
+      "acceptable_bindings": [
+        {
+          "x": "returned",
+          "y": "channel"
+        },
+        {
+          "x": "channel",
+          "y": "returned"
+        }
+      ],
+      "tool": "run_categorical_association",
+      "should_execute": true,
+      "chart_type": "heatmap"
+    }
+  },
+  {
+    "case_id": "sales_group_natural_fr",
+    "description": "Formulation naturelle FR — comparaison par groupe Sales.",
+    "objective": "Comment revenue se compare-t-il d'une region à l'autre ?",
+    "fixture": "fixtures/tool_use_sales_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "group_comparison",
+      "acceptable_bindings": [
+        {
+          "group": "region",
+          "value": "revenue"
+        }
+      ],
+      "tool": "run_group_comparison",
+      "should_execute": true,
+      "chart_type": "boxplot"
+    }
+  },
+  {
+    "case_id": "sales_group_natural_en",
+    "description": "Natural English — group comparison Sales.",
+    "objective": "Compare revenue across region.",
+    "fixture": "fixtures/tool_use_sales_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "group_comparison",
+      "acceptable_bindings": [
+        {
+          "group": "region",
+          "value": "revenue"
+        }
+      ],
+      "tool": "run_group_comparison",
+      "should_execute": true,
+      "chart_type": "boxplot"
+    }
+  },
+  {
+    "case_id": "sales_distribution_natural_fr",
+    "description": "Formulation naturelle FR — distribution Sales.",
+    "objective": "Je veux voir comment revenue est réparti.",
+    "fixture": "fixtures/tool_use_sales_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "distribution",
+      "acceptable_bindings": [
+        {
+          "value": "revenue"
+        }
+      ],
+      "tool": "run_distribution",
+      "should_execute": true,
+      "chart_type": "histogram"
+    }
+  },
+  {
+    "case_id": "sales_distribution_natural_en",
+    "description": "Natural English — distribution Sales.",
+    "objective": "What does the revenue distribution look like?",
+    "fixture": "fixtures/tool_use_sales_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "distribution",
+      "acceptable_bindings": [
+        {
+          "value": "revenue"
+        }
+      ],
+      "tool": "run_distribution",
+      "should_execute": true,
+      "chart_type": "histogram"
+    }
+  },
+  {
+    "case_id": "sales_time_natural_fr",
+    "description": "Formulation naturelle FR — série temporelle Sales.",
+    "objective": "Quelle est l'évolution de la médiane de revenue au fil de order_date ?",
+    "fixture": "fixtures/tool_use_sales_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "time_series",
+      "acceptable_bindings": [
+        {
+          "time": "order_date",
+          "value": "revenue"
+        }
+      ],
+      "tool": "run_time_series",
+      "should_execute": true,
+      "chart_type": "line_band",
+      "aggregation_function": "median"
+    }
+  },
+  {
+    "case_id": "sales_time_natural_en",
+    "description": "Natural English — time series Sales.",
+    "objective": "Track median revenue over order_date.",
+    "fixture": "fixtures/tool_use_sales_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "time_series",
+      "acceptable_bindings": [
+        {
+          "time": "order_date",
+          "value": "revenue"
+        }
+      ],
+      "tool": "run_time_series",
+      "should_execute": true,
+      "chart_type": "line_band",
+      "aggregation_function": "median"
+    }
+  },
+  {
+    "case_id": "sales_guardrail_missing_margin_en",
+    "description": "EN — missing analytical target must not become revenue.",
+    "objective": "Show me the distribution of margin.",
+    "fixture": "fixtures/tool_use_sales_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "blocked",
+        "rejected"
+      ],
+      "family": "distribution",
+      "acceptable_families": [
+        "distribution",
+        "unresolved"
+      ],
+      "acceptable_bindings": [],
+      "tool": null,
+      "should_execute": false,
+      "forbidden_columns": [
+        "revenue",
+        "marketing_spend"
+      ],
+      "must_have_fidelity_guard": true
+    }
+  },
+  {
+    "case_id": "sales_guardrail_missing_fiscal_period_fr",
+    "description": "FR — période absente, aucune substitution par order_date.",
+    "objective": "Suis la médiane de revenue selon fiscal_period.",
+    "fixture": "fixtures/tool_use_sales_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "blocked",
+        "rejected"
+      ],
+      "family": "time_series",
+      "acceptable_families": [
+        "time_series",
+        "unresolved"
+      ],
+      "acceptable_bindings": [],
+      "tool": null,
+      "should_execute": false,
+      "forbidden_columns": [
+        "order_date"
+      ],
+      "must_have_fidelity_guard": true
+    }
+  }
+]

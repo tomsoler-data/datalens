@@ -1,0 +1,691 @@
+{
+  "experiment_id": "semantic-s0-manufacturing-holdout",
+  "created_at": "2026-08-15T21:13:37.072583+02:00",
+  "phase": "pre_adaptation_holdout",
+  "split": "holdout",
+  "benchmark_ids": [
+    "semantic:manufacturing:holdout:v0.1"
+  ],
+  "benchmark_versions": {
+    "semantic:manufacturing:holdout:v0.1": "manufacturing_semantic_holdout_v0.1"
+  },
+  "system": {
+    "system_label": "DataLens Semantic System S0",
+    "model_name": "gemma3:4b",
+    "component_versions": {
+      "semantic_profiler": "semantic_data_profiler_v0.2",
+      "semantic_normalizer": "semantic_normalizer_v0.1",
+      "semantic_comparator": "comparator_v0.2",
+      "semantic_preparation": "semantic_preparation_pipeline_v0.1",
+      "semantic_advisor": "semantic_discovery_advisor_v0.1",
+      "ranking_overlay": "semantic_ranking_overlay_v0.1",
+      "benchmark_registry": "semantic_benchmark_registry_v0.2",
+      "benchmark_runner": "semantic_global_benchmark_runner_v0.1"
+    },
+    "notes": [
+      "S0 is the frozen semantic baseline before adapting rules to Manufacturing Holdout #1."
+    ]
+  },
+  "result": {
+    "split": "holdout",
+    "suite_count": 1,
+    "domain_count": 1,
+    "domains": [
+      "manufacturing"
+    ],
+    "raw_correct_count": 17,
+    "raw_assertion_count": 28,
+    "normalized_correct_count": 26,
+    "normalized_assertion_count": 28,
+    "raw_micro_accuracy": 0.607143,
+    "normalized_micro_accuracy": 0.928571,
+    "micro_accuracy_delta": 0.321429,
+    "raw_macro_accuracy": 0.607143,
+    "normalized_macro_accuracy": 0.928571,
+    "macro_accuracy_delta": 0.321428,
+    "raw_safety_assertion_count": 10,
+    "raw_safety_failure_count": 2,
+    "normalized_safety_assertion_count": 10,
+    "normalized_safety_failure_count": 0,
+    "normalized_failure_count": 2,
+    "safety_gate_passed": true,
+    "regression_gate_passed": false,
+    "suites": [
+      {
+        "benchmark_id": "semantic:manufacturing:holdout:v0.1",
+        "benchmark_name": "Manufacturing semantic holdout",
+        "domain": "manufacturing",
+        "split": "holdout",
+        "raw_columns": {
+          "benchmark_name": "semantic:manufacturing:holdout:v0.1:raw:columns",
+          "case_count": 6,
+          "assertion_count": 15,
+          "correct_count": 6,
+          "incorrect_count": 9,
+          "accuracy": 0.4,
+          "field_accuracy": {
+            "measure_kind": 0.5,
+            "unit_kind": 0.166667,
+            "variant": 0.666667
+          },
+          "assertions": [
+            {
+              "case_id": "planned_production",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Planned production units",
+              "field": "variant",
+              "expected": "planned",
+              "actual": "planned",
+              "correct": true
+            },
+            {
+              "case_id": "planned_production",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Planned production units",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "planned_production",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Planned production units",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "actual_production",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Actual production units",
+              "field": "variant",
+              "expected": "actual",
+              "actual": "actual",
+              "correct": true
+            },
+            {
+              "case_id": "actual_production",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Actual production units",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "actual_production",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Actual production units",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "rejected_units",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Rejected units",
+              "field": "variant",
+              "expected": "rejected",
+              "actual": "actual",
+              "correct": false
+            },
+            {
+              "case_id": "rejected_units",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Rejected units",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "rejected_units",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Rejected units",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "defect_rate",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Defect rate (%)",
+              "field": "measure_kind",
+              "expected": "percentage",
+              "actual": "percentage",
+              "correct": true
+            },
+            {
+              "case_id": "defect_rate",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Defect rate (%)",
+              "field": "unit_kind",
+              "expected": "percent",
+              "actual": "percent",
+              "correct": true
+            },
+            {
+              "case_id": "downtime",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Downtime (minutes)",
+              "field": "measure_kind",
+              "expected": "duration",
+              "actual": "duration",
+              "correct": true
+            },
+            {
+              "case_id": "downtime",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Downtime (minutes)",
+              "field": "unit_kind",
+              "expected": "duration",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "maintenance_cost",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Maintenance cost",
+              "field": "measure_kind",
+              "expected": "currency",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "maintenance_cost",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Maintenance cost",
+              "field": "unit_kind",
+              "expected": "currency",
+              "actual": "unknown",
+              "correct": false
+            }
+          ],
+          "benchmark_rule_version": "semantic_benchmark_v0.2"
+        },
+        "normalized_columns": {
+          "benchmark_name": "semantic:manufacturing:holdout:v0.1:normalized:columns",
+          "case_count": 6,
+          "assertion_count": 15,
+          "correct_count": 13,
+          "incorrect_count": 2,
+          "accuracy": 0.866667,
+          "field_accuracy": {
+            "measure_kind": 1.0,
+            "unit_kind": 0.833333,
+            "variant": 0.666667
+          },
+          "assertions": [
+            {
+              "case_id": "planned_production",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Planned production units",
+              "field": "variant",
+              "expected": "planned",
+              "actual": "planned",
+              "correct": true
+            },
+            {
+              "case_id": "planned_production",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Planned production units",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "planned_production",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Planned production units",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "actual_production",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Actual production units",
+              "field": "variant",
+              "expected": "actual",
+              "actual": "actual",
+              "correct": true
+            },
+            {
+              "case_id": "actual_production",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Actual production units",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "actual_production",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Actual production units",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "rejected_units",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Rejected units",
+              "field": "variant",
+              "expected": "rejected",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "rejected_units",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Rejected units",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "rejected_units",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Rejected units",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "defect_rate",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Defect rate (%)",
+              "field": "measure_kind",
+              "expected": "percentage",
+              "actual": "percentage",
+              "correct": true
+            },
+            {
+              "case_id": "defect_rate",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Defect rate (%)",
+              "field": "unit_kind",
+              "expected": "percent",
+              "actual": "percent",
+              "correct": true
+            },
+            {
+              "case_id": "downtime",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Downtime (minutes)",
+              "field": "measure_kind",
+              "expected": "duration",
+              "actual": "duration",
+              "correct": true
+            },
+            {
+              "case_id": "downtime",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Downtime (minutes)",
+              "field": "unit_kind",
+              "expected": "duration",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "maintenance_cost",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Maintenance cost",
+              "field": "measure_kind",
+              "expected": "currency",
+              "actual": "currency",
+              "correct": true
+            },
+            {
+              "case_id": "maintenance_cost",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Maintenance cost",
+              "field": "unit_kind",
+              "expected": "currency",
+              "actual": "currency",
+              "correct": true
+            }
+          ],
+          "benchmark_rule_version": "semantic_benchmark_v0.2"
+        },
+        "raw_pairs": {
+          "benchmark_name": "semantic:manufacturing:holdout:v0.1:raw:pairs",
+          "case_count": 5,
+          "assertion_count": 13,
+          "correct_count": 11,
+          "incorrect_count": 2,
+          "accuracy": 0.846154,
+          "field_accuracy": {
+            "compatible_units": 0.8,
+            "derived_gap_compatible": 0.8,
+            "distinct_variants": 1.0,
+            "same_concept_family": 1.0,
+            "same_domain": 1.0
+          },
+          "assertions": [
+            {
+              "case_id": "planned_actual_production",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Planned production units vs Actual production units",
+              "field": "same_concept_family",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "planned_actual_production",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Planned production units vs Actual production units",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "planned_actual_production",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Planned production units vs Actual production units",
+              "field": "distinct_variants",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "planned_actual_production",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Planned production units vs Actual production units",
+              "field": "compatible_units",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "planned_actual_production",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Planned production units vs Actual production units",
+              "field": "derived_gap_compatible",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "defect_rate_rejected_units",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Defect rate (%) vs Rejected units",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "defect_rate_rejected_units",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Defect rate (%) vs Rejected units",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "downtime_maintenance_cost",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Downtime (minutes) vs Maintenance cost",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "downtime_maintenance_cost",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Downtime (minutes) vs Maintenance cost",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "maintenance_energy",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Maintenance cost vs Energy consumption (kWh)",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "maintenance_energy",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Maintenance cost vs Energy consumption (kWh)",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "production_defect_rate",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Actual production units vs Defect rate (%)",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "production_defect_rate",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Actual production units vs Defect rate (%)",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            }
+          ],
+          "benchmark_rule_version": "semantic_benchmark_v0.2"
+        },
+        "normalized_pairs": {
+          "benchmark_name": "semantic:manufacturing:holdout:v0.1:normalized:pairs",
+          "case_count": 5,
+          "assertion_count": 13,
+          "correct_count": 13,
+          "incorrect_count": 0,
+          "accuracy": 1.0,
+          "field_accuracy": {
+            "compatible_units": 1.0,
+            "derived_gap_compatible": 1.0,
+            "distinct_variants": 1.0,
+            "same_concept_family": 1.0,
+            "same_domain": 1.0
+          },
+          "assertions": [
+            {
+              "case_id": "planned_actual_production",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Planned production units vs Actual production units",
+              "field": "same_concept_family",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "planned_actual_production",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Planned production units vs Actual production units",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "planned_actual_production",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Planned production units vs Actual production units",
+              "field": "distinct_variants",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "planned_actual_production",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Planned production units vs Actual production units",
+              "field": "compatible_units",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "planned_actual_production",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Planned production units vs Actual production units",
+              "field": "derived_gap_compatible",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "defect_rate_rejected_units",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Defect rate (%) vs Rejected units",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "defect_rate_rejected_units",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Defect rate (%) vs Rejected units",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "downtime_maintenance_cost",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Downtime (minutes) vs Maintenance cost",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "downtime_maintenance_cost",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Downtime (minutes) vs Maintenance cost",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "maintenance_energy",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Maintenance cost vs Energy consumption (kWh)",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "maintenance_energy",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Maintenance cost vs Energy consumption (kWh)",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "production_defect_rate",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Actual production units vs Defect rate (%)",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "production_defect_rate",
+              "dataset_id": "manufacturing:0001",
+              "subject": "Actual production units vs Defect rate (%)",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            }
+          ],
+          "benchmark_rule_version": "semantic_benchmark_v0.2"
+        },
+        "raw_correct_count": 17,
+        "raw_assertion_count": 28,
+        "normalized_correct_count": 26,
+        "normalized_assertion_count": 28,
+        "raw_accuracy": 0.607143,
+        "normalized_accuracy": 0.928571,
+        "raw_safety_assertion_count": 10,
+        "raw_safety_failure_count": 2,
+        "normalized_safety_assertion_count": 10,
+        "normalized_safety_failure_count": 0,
+        "raw_safety_failures": [
+          {
+            "case_id": "planned_actual_production",
+            "dataset_id": "manufacturing:0001",
+            "subject": "Planned production units vs Actual production units",
+            "field": "compatible_units",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "planned_actual_production",
+            "dataset_id": "manufacturing:0001",
+            "subject": "Planned production units vs Actual production units",
+            "field": "derived_gap_compatible",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          }
+        ],
+        "normalized_safety_failures": [],
+        "normalized_failures": [
+          {
+            "case_id": "rejected_units",
+            "dataset_id": "manufacturing:0001",
+            "subject": "Rejected units",
+            "field": "variant",
+            "expected": "rejected",
+            "actual": "unknown",
+            "correct": false
+          },
+          {
+            "case_id": "downtime",
+            "dataset_id": "manufacturing:0001",
+            "subject": "Downtime (minutes)",
+            "field": "unit_kind",
+            "expected": "duration",
+            "actual": "unknown",
+            "correct": false
+          }
+        ]
+      }
+    ],
+    "runner_rule_version": "semantic_global_benchmark_runner_v0.1"
+  },
+  "notes": [
+    "First frozen out-of-domain evaluation.",
+    "Manufacturing results were observed before any adaptation to rejected-unit variants or duration units expressed in minutes."
+  ],
+  "snapshot_rule_version": "semantic_experiment_snapshot_v0.1"
+}

@@ -1,0 +1,187 @@
+﻿{
+  "taxonomy_version": "metric_relation_taxonomy_development_v0.1",
+
+  "status": "development_only",
+
+  "purpose": "Replace the overloaded binary same_quantity_family target with analytically meaningful relation types.",
+
+  "relation_types": {
+    "same_metric_different_state": {
+      "description": "The same business metric is represented under different lifecycle states, plans, targets, estimates, observations or realized values."
+    },
+
+    "same_process_different_stage": {
+      "description": "The metrics describe different stages of the same tracked operational flow or business object."
+    },
+
+    "related_distinct_metric": {
+      "description": "The metrics are meaningfully related but measure genuinely different phenomena or resources."
+    },
+
+    "unrelated": {
+      "description": "No sufficiently strong semantic relationship is established."
+    },
+
+    "uncertain": {
+      "description": "Available evidence is insufficient for a safe semantic classification."
+    }
+  },
+
+  "clinical_lab": [
+    {
+      "case_id": "specimens_received_samples_processed",
+      "left": "Specimens received",
+      "right": "Samples processed",
+      "relation": "same_process_different_stage"
+    },
+
+    {
+      "case_id": "technicians_scheduled_staff_on_duty",
+      "left": "Technicians scheduled",
+      "right": "Lab staff on duty",
+      "relation": "same_metric_different_state"
+    },
+
+    {
+      "case_id": "estimated_charge_final_bill",
+      "left": "Estimated test charge",
+      "right": "Final laboratory bill",
+      "relation": "same_metric_different_state"
+    },
+
+    {
+      "case_id": "target_turnaround_actual_reporting",
+      "left": "Target result turnaround (minutes)",
+      "right": "Actual reporting time (minutes)",
+      "relation": "same_metric_different_state"
+    },
+
+    {
+      "case_id": "planned_mass_measured_weight",
+      "left": "Planned sample mass (grams)",
+      "right": "Measured specimen weight (kg)",
+      "relation": "same_metric_different_state"
+    },
+
+    {
+      "case_id": "specimens_staff",
+      "left": "Specimens received",
+      "right": "Technicians scheduled",
+      "relation": "related_distinct_metric"
+    },
+
+    {
+      "case_id": "samples_analyzers",
+      "left": "Samples processed",
+      "right": "Analyzer units online",
+      "relation": "related_distinct_metric"
+    },
+
+    {
+      "case_id": "staff_analyzers",
+      "left": "Lab staff on duty",
+      "right": "Analyzer units online",
+      "relation": "related_distinct_metric"
+    },
+
+    {
+      "case_id": "estimated_charge_reagent_spend",
+      "left": "Estimated test charge",
+      "right": "Reagent spend",
+      "relation": "related_distinct_metric"
+    },
+
+    {
+      "case_id": "final_bill_reagent_spend",
+      "left": "Final laboratory bill",
+      "right": "Reagent spend",
+      "relation": "related_distinct_metric"
+    },
+
+    {
+      "case_id": "turnaround_analyzer_downtime",
+      "left": "Target result turnaround (minutes)",
+      "right": "Analyzer downtime (minutes)",
+      "relation": "related_distinct_metric"
+    },
+
+    {
+      "case_id": "reporting_time_analyzer_downtime",
+      "left": "Actual reporting time (minutes)",
+      "right": "Analyzer downtime (minutes)",
+      "relation": "related_distinct_metric"
+    },
+
+    {
+      "case_id": "quality_rate_sla",
+      "left": "Quality pass rate (%)",
+      "right": "SLA compliance (%)",
+      "relation": "related_distinct_metric"
+    },
+
+    {
+      "case_id": "sample_mass_reagent_mass",
+      "left": "Planned sample mass (grams)",
+      "right": "Reagent mass used (kg)",
+      "relation": "related_distinct_metric"
+    },
+
+    {
+      "case_id": "specimen_weight_reagent_mass",
+      "left": "Measured specimen weight (kg)",
+      "right": "Reagent mass used (kg)",
+      "relation": "related_distinct_metric"
+    }
+  ],
+
+  "customer_support": [
+    {
+      "case_id": "submitted_cases_resolved_tickets",
+      "left": "Cases submitted",
+      "right": "Tickets resolved",
+      "relation": "same_process_different_stage"
+    },
+
+    {
+      "case_id": "rostered_agents_online_staff",
+      "left": "Agents rostered",
+      "right": "Staff online",
+      "relation": "same_metric_different_state"
+    },
+
+    {
+      "case_id": "quoted_cost_final_invoice",
+      "left": "Quoted service cost",
+      "right": "Final invoice amount",
+      "relation": "same_metric_different_state"
+    },
+
+    {
+      "case_id": "promised_observed_response_time",
+      "left": "Promised response time (minutes)",
+      "right": "Observed first-response delay (minutes)",
+      "relation": "same_metric_different_state"
+    },
+
+    {
+      "case_id": "response_delay_sla_compliance",
+      "left": "Observed first-response delay (minutes)",
+      "right": "SLA compliance (%)",
+      "relation": "related_distinct_metric"
+    },
+
+    {
+      "case_id": "invoice_online_staff",
+      "left": "Final invoice amount",
+      "right": "Staff online",
+      "relation": "related_distinct_metric"
+    }
+  ],
+
+  "notes": [
+    "This artifact is development data and must not be treated as an independent holdout.",
+    "Historical Customer Support and Clinical Lab benchmark artifacts remain unchanged.",
+    "The taxonomy separates same-metric state changes from distinct stages of the same process.",
+    "Production analytical permissions must be narrower than semantic relatedness."
+  ]
+}

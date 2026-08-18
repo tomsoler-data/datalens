@@ -1,0 +1,945 @@
+{
+  "experiment_id": "semantic-s1-logistics-holdout",
+  "created_at": "2026-08-15T21:23:55.428374+02:00",
+  "phase": "pre_adaptation_holdout",
+  "split": "holdout",
+  "benchmark_ids": [
+    "semantic:logistics:holdout:v0.1"
+  ],
+  "benchmark_versions": {
+    "semantic:logistics:holdout:v0.1": "logistics_semantic_holdout_v0.1"
+  },
+  "system": {
+    "system_label": "DataLens Semantic System S1",
+    "model_name": "gemma3:4b",
+    "component_versions": {
+      "semantic_profiler": "semantic_data_profiler_v0.2",
+      "semantic_normalizer": "semantic_normalizer_v0.2",
+      "semantic_comparator": "comparator_v0.2",
+      "semantic_preparation": "semantic_preparation_pipeline_v0.1",
+      "semantic_advisor": "semantic_discovery_advisor_v0.1",
+      "ranking_overlay": "semantic_ranking_overlay_v0.1",
+      "benchmark_registry": "semantic_benchmark_registry_v0.2",
+      "benchmark_runner": "semantic_global_benchmark_runner_v0.1"
+    },
+    "notes": [
+      "S1 is frozen before the first Logistics Holdout #2 execution."
+    ]
+  },
+  "result": {
+    "split": "holdout",
+    "suite_count": 1,
+    "domain_count": 1,
+    "domains": [
+      "logistics"
+    ],
+    "raw_correct_count": 17,
+    "raw_assertion_count": 33,
+    "normalized_correct_count": 19,
+    "normalized_assertion_count": 33,
+    "raw_micro_accuracy": 0.515152,
+    "normalized_micro_accuracy": 0.575758,
+    "micro_accuracy_delta": 0.060606,
+    "raw_macro_accuracy": 0.515152,
+    "normalized_macro_accuracy": 0.575758,
+    "macro_accuracy_delta": 0.060606,
+    "raw_safety_assertion_count": 12,
+    "raw_safety_failure_count": 4,
+    "normalized_safety_assertion_count": 12,
+    "normalized_safety_failure_count": 4,
+    "normalized_failure_count": 14,
+    "safety_gate_passed": false,
+    "regression_gate_passed": false,
+    "suites": [
+      {
+        "benchmark_id": "semantic:logistics:holdout:v0.1",
+        "benchmark_name": "Logistics semantic holdout",
+        "domain": "logistics",
+        "split": "holdout",
+        "raw_columns": {
+          "benchmark_name": "semantic:logistics:holdout:v0.1:raw:columns",
+          "case_count": 6,
+          "assertion_count": 15,
+          "correct_count": 6,
+          "incorrect_count": 9,
+          "accuracy": 0.4,
+          "field_accuracy": {
+            "measure_kind": 0.666667,
+            "unit_kind": 0.166667,
+            "variant": 0.333333
+          },
+          "assertions": [
+            {
+              "case_id": "expected_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Expected deliveries",
+              "field": "variant",
+              "expected": "expected",
+              "actual": "expected",
+              "correct": true
+            },
+            {
+              "case_id": "expected_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Expected deliveries",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "expected_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Expected deliveries",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "completed_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Completed deliveries",
+              "field": "variant",
+              "expected": "completed",
+              "actual": "actual",
+              "correct": false
+            },
+            {
+              "case_id": "completed_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Completed deliveries",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "completed_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Completed deliveries",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "late_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Late deliveries",
+              "field": "variant",
+              "expected": "late",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "late_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Late deliveries",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "late_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Late deliveries",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "transit_time",
+              "dataset_id": "logistics:0001",
+              "subject": "Transit time (hours)",
+              "field": "measure_kind",
+              "expected": "duration",
+              "actual": "duration",
+              "correct": true
+            },
+            {
+              "case_id": "transit_time",
+              "dataset_id": "logistics:0001",
+              "subject": "Transit time (hours)",
+              "field": "unit_kind",
+              "expected": "duration",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "freight_cost",
+              "dataset_id": "logistics:0001",
+              "subject": "Freight cost",
+              "field": "measure_kind",
+              "expected": "currency",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "freight_cost",
+              "dataset_id": "logistics:0001",
+              "subject": "Freight cost",
+              "field": "unit_kind",
+              "expected": "currency",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "on_time_delivery_rate",
+              "dataset_id": "logistics:0001",
+              "subject": "On-time delivery rate (%)",
+              "field": "measure_kind",
+              "expected": "percentage",
+              "actual": "percentage",
+              "correct": true
+            },
+            {
+              "case_id": "on_time_delivery_rate",
+              "dataset_id": "logistics:0001",
+              "subject": "On-time delivery rate (%)",
+              "field": "unit_kind",
+              "expected": "percent",
+              "actual": "percent",
+              "correct": true
+            }
+          ],
+          "benchmark_rule_version": "semantic_benchmark_v0.2"
+        },
+        "normalized_columns": {
+          "benchmark_name": "semantic:logistics:holdout:v0.1:normalized:columns",
+          "case_count": 6,
+          "assertion_count": 15,
+          "correct_count": 9,
+          "incorrect_count": 6,
+          "accuracy": 0.6,
+          "field_accuracy": {
+            "measure_kind": 0.833333,
+            "unit_kind": 0.5,
+            "variant": 0.333333
+          },
+          "assertions": [
+            {
+              "case_id": "expected_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Expected deliveries",
+              "field": "variant",
+              "expected": "expected",
+              "actual": "expected",
+              "correct": true
+            },
+            {
+              "case_id": "expected_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Expected deliveries",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "expected_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Expected deliveries",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "completed_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Completed deliveries",
+              "field": "variant",
+              "expected": "completed",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "completed_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Completed deliveries",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "completed_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Completed deliveries",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "late_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Late deliveries",
+              "field": "variant",
+              "expected": "late",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "late_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Late deliveries",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "late_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Late deliveries",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "transit_time",
+              "dataset_id": "logistics:0001",
+              "subject": "Transit time (hours)",
+              "field": "measure_kind",
+              "expected": "duration",
+              "actual": "duration",
+              "correct": true
+            },
+            {
+              "case_id": "transit_time",
+              "dataset_id": "logistics:0001",
+              "subject": "Transit time (hours)",
+              "field": "unit_kind",
+              "expected": "duration",
+              "actual": "duration",
+              "correct": true
+            },
+            {
+              "case_id": "freight_cost",
+              "dataset_id": "logistics:0001",
+              "subject": "Freight cost",
+              "field": "measure_kind",
+              "expected": "currency",
+              "actual": "currency",
+              "correct": true
+            },
+            {
+              "case_id": "freight_cost",
+              "dataset_id": "logistics:0001",
+              "subject": "Freight cost",
+              "field": "unit_kind",
+              "expected": "currency",
+              "actual": "currency",
+              "correct": true
+            },
+            {
+              "case_id": "on_time_delivery_rate",
+              "dataset_id": "logistics:0001",
+              "subject": "On-time delivery rate (%)",
+              "field": "measure_kind",
+              "expected": "percentage",
+              "actual": "percentage",
+              "correct": true
+            },
+            {
+              "case_id": "on_time_delivery_rate",
+              "dataset_id": "logistics:0001",
+              "subject": "On-time delivery rate (%)",
+              "field": "unit_kind",
+              "expected": "percent",
+              "actual": "percent",
+              "correct": true
+            }
+          ],
+          "benchmark_rule_version": "semantic_benchmark_v0.2"
+        },
+        "raw_pairs": {
+          "benchmark_name": "semantic:logistics:holdout:v0.1:raw:pairs",
+          "case_count": 6,
+          "assertion_count": 18,
+          "correct_count": 11,
+          "incorrect_count": 7,
+          "accuracy": 0.611111,
+          "field_accuracy": {
+            "compatible_units": 0.666667,
+            "derived_gap_compatible": 0.666667,
+            "distinct_variants": 0.5,
+            "same_concept_family": 0.0,
+            "same_domain": 1.0
+          },
+          "assertions": [
+            {
+              "case_id": "expected_completed_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Expected deliveries vs Completed deliveries",
+              "field": "same_concept_family",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "expected_completed_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Expected deliveries vs Completed deliveries",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "expected_completed_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Expected deliveries vs Completed deliveries",
+              "field": "distinct_variants",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "expected_completed_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Expected deliveries vs Completed deliveries",
+              "field": "compatible_units",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "expected_completed_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Expected deliveries vs Completed deliveries",
+              "field": "derived_gap_compatible",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "completed_late_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Completed deliveries vs Late deliveries",
+              "field": "same_concept_family",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "completed_late_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Completed deliveries vs Late deliveries",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "completed_late_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Completed deliveries vs Late deliveries",
+              "field": "distinct_variants",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "completed_late_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Completed deliveries vs Late deliveries",
+              "field": "compatible_units",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "completed_late_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Completed deliveries vs Late deliveries",
+              "field": "derived_gap_compatible",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "transit_freight",
+              "dataset_id": "logistics:0001",
+              "subject": "Transit time (hours) vs Freight cost",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "transit_freight",
+              "dataset_id": "logistics:0001",
+              "subject": "Transit time (hours) vs Freight cost",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "freight_weight",
+              "dataset_id": "logistics:0001",
+              "subject": "Freight cost vs Package weight (kg)",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "freight_weight",
+              "dataset_id": "logistics:0001",
+              "subject": "Freight cost vs Package weight (kg)",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "distance_transit",
+              "dataset_id": "logistics:0001",
+              "subject": "Distance travelled (km) vs Transit time (hours)",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "distance_transit",
+              "dataset_id": "logistics:0001",
+              "subject": "Distance travelled (km) vs Transit time (hours)",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "rate_late_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "On-time delivery rate (%) vs Late deliveries",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "rate_late_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "On-time delivery rate (%) vs Late deliveries",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            }
+          ],
+          "benchmark_rule_version": "semantic_benchmark_v0.2"
+        },
+        "normalized_pairs": {
+          "benchmark_name": "semantic:logistics:holdout:v0.1:normalized:pairs",
+          "case_count": 6,
+          "assertion_count": 18,
+          "correct_count": 10,
+          "incorrect_count": 8,
+          "accuracy": 0.555556,
+          "field_accuracy": {
+            "compatible_units": 0.666667,
+            "derived_gap_compatible": 0.666667,
+            "distinct_variants": 0.0,
+            "same_concept_family": 0.0,
+            "same_domain": 1.0
+          },
+          "assertions": [
+            {
+              "case_id": "expected_completed_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Expected deliveries vs Completed deliveries",
+              "field": "same_concept_family",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "expected_completed_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Expected deliveries vs Completed deliveries",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "expected_completed_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Expected deliveries vs Completed deliveries",
+              "field": "distinct_variants",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "expected_completed_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Expected deliveries vs Completed deliveries",
+              "field": "compatible_units",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "expected_completed_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Expected deliveries vs Completed deliveries",
+              "field": "derived_gap_compatible",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "completed_late_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Completed deliveries vs Late deliveries",
+              "field": "same_concept_family",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "completed_late_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Completed deliveries vs Late deliveries",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "completed_late_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Completed deliveries vs Late deliveries",
+              "field": "distinct_variants",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "completed_late_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Completed deliveries vs Late deliveries",
+              "field": "compatible_units",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "completed_late_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "Completed deliveries vs Late deliveries",
+              "field": "derived_gap_compatible",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "transit_freight",
+              "dataset_id": "logistics:0001",
+              "subject": "Transit time (hours) vs Freight cost",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "transit_freight",
+              "dataset_id": "logistics:0001",
+              "subject": "Transit time (hours) vs Freight cost",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "freight_weight",
+              "dataset_id": "logistics:0001",
+              "subject": "Freight cost vs Package weight (kg)",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "freight_weight",
+              "dataset_id": "logistics:0001",
+              "subject": "Freight cost vs Package weight (kg)",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "distance_transit",
+              "dataset_id": "logistics:0001",
+              "subject": "Distance travelled (km) vs Transit time (hours)",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "distance_transit",
+              "dataset_id": "logistics:0001",
+              "subject": "Distance travelled (km) vs Transit time (hours)",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "rate_late_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "On-time delivery rate (%) vs Late deliveries",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "rate_late_deliveries",
+              "dataset_id": "logistics:0001",
+              "subject": "On-time delivery rate (%) vs Late deliveries",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            }
+          ],
+          "benchmark_rule_version": "semantic_benchmark_v0.2"
+        },
+        "raw_correct_count": 17,
+        "raw_assertion_count": 33,
+        "normalized_correct_count": 19,
+        "normalized_assertion_count": 33,
+        "raw_accuracy": 0.515152,
+        "normalized_accuracy": 0.575758,
+        "raw_safety_assertion_count": 12,
+        "raw_safety_failure_count": 4,
+        "normalized_safety_assertion_count": 12,
+        "normalized_safety_failure_count": 4,
+        "raw_safety_failures": [
+          {
+            "case_id": "expected_completed_deliveries",
+            "dataset_id": "logistics:0001",
+            "subject": "Expected deliveries vs Completed deliveries",
+            "field": "compatible_units",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "expected_completed_deliveries",
+            "dataset_id": "logistics:0001",
+            "subject": "Expected deliveries vs Completed deliveries",
+            "field": "derived_gap_compatible",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "completed_late_deliveries",
+            "dataset_id": "logistics:0001",
+            "subject": "Completed deliveries vs Late deliveries",
+            "field": "compatible_units",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "completed_late_deliveries",
+            "dataset_id": "logistics:0001",
+            "subject": "Completed deliveries vs Late deliveries",
+            "field": "derived_gap_compatible",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          }
+        ],
+        "normalized_safety_failures": [
+          {
+            "case_id": "expected_completed_deliveries",
+            "dataset_id": "logistics:0001",
+            "subject": "Expected deliveries vs Completed deliveries",
+            "field": "compatible_units",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "expected_completed_deliveries",
+            "dataset_id": "logistics:0001",
+            "subject": "Expected deliveries vs Completed deliveries",
+            "field": "derived_gap_compatible",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "completed_late_deliveries",
+            "dataset_id": "logistics:0001",
+            "subject": "Completed deliveries vs Late deliveries",
+            "field": "compatible_units",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "completed_late_deliveries",
+            "dataset_id": "logistics:0001",
+            "subject": "Completed deliveries vs Late deliveries",
+            "field": "derived_gap_compatible",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          }
+        ],
+        "normalized_failures": [
+          {
+            "case_id": "expected_deliveries",
+            "dataset_id": "logistics:0001",
+            "subject": "Expected deliveries",
+            "field": "measure_kind",
+            "expected": "count",
+            "actual": "unknown",
+            "correct": false
+          },
+          {
+            "case_id": "expected_deliveries",
+            "dataset_id": "logistics:0001",
+            "subject": "Expected deliveries",
+            "field": "unit_kind",
+            "expected": "count",
+            "actual": "unknown",
+            "correct": false
+          },
+          {
+            "case_id": "completed_deliveries",
+            "dataset_id": "logistics:0001",
+            "subject": "Completed deliveries",
+            "field": "variant",
+            "expected": "completed",
+            "actual": "unknown",
+            "correct": false
+          },
+          {
+            "case_id": "completed_deliveries",
+            "dataset_id": "logistics:0001",
+            "subject": "Completed deliveries",
+            "field": "unit_kind",
+            "expected": "count",
+            "actual": "unknown",
+            "correct": false
+          },
+          {
+            "case_id": "late_deliveries",
+            "dataset_id": "logistics:0001",
+            "subject": "Late deliveries",
+            "field": "variant",
+            "expected": "late",
+            "actual": "unknown",
+            "correct": false
+          },
+          {
+            "case_id": "late_deliveries",
+            "dataset_id": "logistics:0001",
+            "subject": "Late deliveries",
+            "field": "unit_kind",
+            "expected": "count",
+            "actual": "unknown",
+            "correct": false
+          },
+          {
+            "case_id": "expected_completed_deliveries",
+            "dataset_id": "logistics:0001",
+            "subject": "Expected deliveries vs Completed deliveries",
+            "field": "same_concept_family",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "expected_completed_deliveries",
+            "dataset_id": "logistics:0001",
+            "subject": "Expected deliveries vs Completed deliveries",
+            "field": "distinct_variants",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "expected_completed_deliveries",
+            "dataset_id": "logistics:0001",
+            "subject": "Expected deliveries vs Completed deliveries",
+            "field": "compatible_units",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "expected_completed_deliveries",
+            "dataset_id": "logistics:0001",
+            "subject": "Expected deliveries vs Completed deliveries",
+            "field": "derived_gap_compatible",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "completed_late_deliveries",
+            "dataset_id": "logistics:0001",
+            "subject": "Completed deliveries vs Late deliveries",
+            "field": "same_concept_family",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "completed_late_deliveries",
+            "dataset_id": "logistics:0001",
+            "subject": "Completed deliveries vs Late deliveries",
+            "field": "distinct_variants",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "completed_late_deliveries",
+            "dataset_id": "logistics:0001",
+            "subject": "Completed deliveries vs Late deliveries",
+            "field": "compatible_units",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "completed_late_deliveries",
+            "dataset_id": "logistics:0001",
+            "subject": "Completed deliveries vs Late deliveries",
+            "field": "derived_gap_compatible",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          }
+        ]
+      }
+    ],
+    "runner_rule_version": "semantic_global_benchmark_runner_v0.1"
+  },
+  "notes": [
+    "Second frozen out-of-domain evaluation.",
+    "Logistics ground truth was defined before observing S1 predictions.",
+    "No S1 semantic rule was modified using Logistics results before this snapshot."
+  ],
+  "snapshot_rule_version": "semantic_experiment_snapshot_v0.1"
+}

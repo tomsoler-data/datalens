@@ -1,0 +1,10 @@
+{
+  "benchmark_rule_version": "model_performance_benchmark_v0.1",
+  "planner_model": "phi3:mini",
+  "tool_model": "qwen2.5:1.5b-instruct",
+  "dataset": "C:\\Users\\tomas\\datalens\\apps\\api\\benchmarks\\model_performance\\datalens_hr_benchmark.csv",
+  "cases": "C:\\Users\\tomas\\datalens\\apps\\api\\benchmarks\\model_performance\\cases_model_performance_v0_1.json",
+  "repeats": 3,
+  "warmup": 1,
+  "observability_recording": false
+}

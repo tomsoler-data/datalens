@@ -1,0 +1,863 @@
+{
+  "historical_first_run": true,
+  "model_inference_repeated": false,
+  "metadata": {
+    "runner_version": "analytical_planner_frozen_runner_v1.0",
+    "benchmark_version": "analytical_planner_frozen_benchmark_v1.0",
+    "benchmark_sha256": "2c23fd35ae514fb8a0633fbaba1e233e9979eae2b093fa9ee5e5488b08f00c1a",
+    "model": "qwen3:4b-instruct",
+    "prompt_version": "analytical_planner_prompt_v0.9_baseline",
+    "contract_version": "analytical_planner_contract_v0.9",
+    "validator_version": "analytical_planner_validator_v0.9.1",
+    "scorer_version": "analytical_planner_scorer_v0.9.1",
+    "temperature": 0,
+    "thinking": false,
+    "split": "test",
+    "frozen": true,
+    "historical_first_run": true
+  },
+  "benchmark": {
+    "path": "C:\\Users\\tomas\\datalens\\apps\\api\\evals\\analytical_planner_frozen_v1_0.jsonl",
+    "sha256": "2c23fd35ae514fb8a0633fbaba1e233e9979eae2b093fa9ee5e5488b08f00c1a",
+    "split": "test",
+    "frozen": true
+  },
+  "summary": {
+    "case_count": 12,
+    "average_overall": 0.9416666666666668,
+    "exact_plan_count": 9,
+    "exact_plan_accuracy": 0.75,
+    "valid_plan_count": 9,
+    "validator_acceptance_rate": 0.75,
+    "generation_error_count": 0,
+    "validator_issue_codes": [
+      "unknown_analytical_reference",
+      "unknown_analytical_reference",
+      "unknown_analytical_reference",
+      "unknown_analytical_reference",
+      "entity_target_grain_mismatch"
+    ],
+    "extra_step_count": 0,
+    "average_inference_ms": 2553.717833333318,
+    "requirement_coverage_f1": 1.0,
+    "intent_accuracy": 1.0,
+    "family_accuracy": 1.0,
+    "target_grain_accuracy": 0.9166666666666666,
+    "tool_sequence_score": 1.0,
+    "tool_argument_score": 0.9166666666666666,
+    "validator_acceptance": 0.75,
+    "parsimony_score": 1.0
+  },
+  "results": [
+    {
+      "case_id": "planner_frozen_v1_0_001",
+      "domain": "hospital_operations",
+      "status": "ready",
+      "candidate": {
+        "plans": [
+          {
+            "requirement_id": "total_admissions",
+            "intent": "aggregate_metric",
+            "family": "aggregation",
+            "target_grain": "global",
+            "steps": [
+              {
+                "step_id": "aggregate_admission_count",
+                "action": {
+                  "name": "aggregate",
+                  "metrics": [
+                    "sum"
+                  ],
+                  "group_by": null
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "validation": {
+        "valid": false,
+        "validated_requirement_ids": [],
+        "issues": [
+          {
+            "code": "unknown_analytical_reference",
+            "requirement_id": "total_admissions",
+            "step_id": "aggregate_admission_count",
+            "message": "Unknown analytical reference: sum"
+          }
+        ]
+      },
+      "score": {
+        "scorer_version": "analytical_planner_scorer_v0.9.1",
+        "overall": 0.775,
+        "metrics": {
+          "requirement_coverage_f1": 1.0,
+          "intent_accuracy": 1.0,
+          "family_accuracy": 1.0,
+          "target_grain_accuracy": 1.0,
+          "tool_sequence_score": 1.0,
+          "tool_argument_score": 0.5,
+          "validator_acceptance": 0.0,
+          "parsimony_score": 1.0
+        },
+        "diagnostics": {
+          "missing_requirement_ids": [],
+          "extra_requirement_ids": [],
+          "invalid_requirement_ids": [
+            "total_admissions"
+          ],
+          "validator_issue_codes": [
+            "unknown_analytical_reference"
+          ],
+          "exact_requirement_ids": [],
+          "extra_step_count": 0
+        }
+      },
+      "exact": false,
+      "inference_ms": 5492.476399999759,
+      "raw_content": "{\n  \"plans\": [\n    {\n      \"requirement_id\": \"total_admissions\",\n      \"intent\": \"aggregate_metric\",\n      \"family\": \"aggregation\",\n      \"target_grain\": \"global\",\n      \"steps\": [\n        {\n          \"step_id\": \"aggregate_admission_count\",\n          \"action\": {\n            \"name\": \"aggregate\",\n            \"metrics\": [\n              \"sum\"\n            ],\n            \"group_by\": null\n          }\n        }\n      ]\n    }\n  ]\n}",
+      "error": null
+    },
+    {
+      "case_id": "planner_frozen_v1_0_002",
+      "domain": "insurance_claims",
+      "status": "ready",
+      "candidate": {
+        "plans": [
+          {
+            "requirement_id": "claim_amount_by_type",
+            "intent": "compare_groups",
+            "family": "group_comparison",
+            "target_grain": "claim",
+            "steps": [
+              {
+                "step_id": "step_1",
+                "action": {
+                  "name": "compare_groups",
+                  "target": "claims.claim_amount",
+                  "group_by": "claims.claim_type"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "validation": {
+        "valid": true,
+        "validated_requirement_ids": [
+          "claim_amount_by_type"
+        ],
+        "issues": []
+      },
+      "score": {
+        "scorer_version": "analytical_planner_scorer_v0.9.1",
+        "overall": 1.0,
+        "metrics": {
+          "requirement_coverage_f1": 1.0,
+          "intent_accuracy": 1.0,
+          "family_accuracy": 1.0,
+          "target_grain_accuracy": 1.0,
+          "tool_sequence_score": 1.0,
+          "tool_argument_score": 1.0,
+          "validator_acceptance": 1.0,
+          "parsimony_score": 1.0
+        },
+        "diagnostics": {
+          "missing_requirement_ids": [],
+          "extra_requirement_ids": [],
+          "invalid_requirement_ids": [],
+          "validator_issue_codes": [],
+          "exact_requirement_ids": [
+            "claim_amount_by_type"
+          ],
+          "extra_step_count": 0
+        }
+      },
+      "exact": true,
+      "inference_ms": 1907.700200000363,
+      "raw_content": "{\n  \"plans\": [\n    {\n      \"requirement_id\": \"claim_amount_by_type\",\n      \"intent\": \"compare_groups\",\n      \"family\": \"group_comparison\",\n      \"target_grain\": \"claim\",\n      \"steps\": [\n        {\n          \"step_id\": \"step_1\",\n          \"action\": {\n            \"name\": \"compare_groups\",\n            \"target\": \"claims.claim_amount\",\n            \"group_by\": \"claims.claim_type\"\n          }\n        }\n      ]\n    }\n  ]\n}",
+      "error": null
+    },
+    {
+      "case_id": "planner_frozen_v1_0_003",
+      "domain": "industrial_sensors",
+      "status": "ready",
+      "candidate": {
+        "plans": [
+          {
+            "requirement_id": "vibration_distribution",
+            "intent": "distribution_analysis",
+            "family": "distribution",
+            "target_grain": "reading",
+            "steps": [
+              {
+                "step_id": "analyze_vibration_distribution",
+                "action": {
+                  "name": "analyze_distribution",
+                  "target": "sensor_readings.vibration_mm_s"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "validation": {
+        "valid": true,
+        "validated_requirement_ids": [
+          "vibration_distribution"
+        ],
+        "issues": []
+      },
+      "score": {
+        "scorer_version": "analytical_planner_scorer_v0.9.1",
+        "overall": 1.0,
+        "metrics": {
+          "requirement_coverage_f1": 1.0,
+          "intent_accuracy": 1.0,
+          "family_accuracy": 1.0,
+          "target_grain_accuracy": 1.0,
+          "tool_sequence_score": 1.0,
+          "tool_argument_score": 1.0,
+          "validator_acceptance": 1.0,
+          "parsimony_score": 1.0
+        },
+        "diagnostics": {
+          "missing_requirement_ids": [],
+          "extra_requirement_ids": [],
+          "invalid_requirement_ids": [],
+          "validator_issue_codes": [],
+          "exact_requirement_ids": [
+            "vibration_distribution"
+          ],
+          "extra_step_count": 0
+        }
+      },
+      "exact": true,
+      "inference_ms": 1791.365400000359,
+      "raw_content": "{\n  \"plans\": [\n    {\n      \"requirement_id\": \"vibration_distribution\",\n      \"intent\": \"distribution_analysis\",\n      \"family\": \"distribution\",\n      \"target_grain\": \"reading\",\n      \"steps\": [\n        {\n          \"step_id\": \"analyze_vibration_distribution\",\n          \"action\": {\n            \"name\": \"analyze_distribution\",\n            \"target\": \"sensor_readings.vibration_mm_s\"\n          }\n        }\n      ]\n    }\n  ]\n}",
+      "error": null
+    },
+    {
+      "case_id": "planner_frozen_v1_0_004",
+      "domain": "public_transport",
+      "status": "ready",
+      "candidate": {
+        "plans": [
+          {
+            "requirement_id": "daily_ridership_trend",
+            "intent": "time_series_analysis",
+            "family": "time_series",
+            "target_grain": "day",
+            "steps": [
+              {
+                "step_id": "1",
+                "action": {
+                  "name": "analyze_time_series",
+                  "date": "ridership.service_date",
+                  "target": "ridership.passenger_count"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "validation": {
+        "valid": true,
+        "validated_requirement_ids": [
+          "daily_ridership_trend"
+        ],
+        "issues": []
+      },
+      "score": {
+        "scorer_version": "analytical_planner_scorer_v0.9.1",
+        "overall": 1.0,
+        "metrics": {
+          "requirement_coverage_f1": 1.0,
+          "intent_accuracy": 1.0,
+          "family_accuracy": 1.0,
+          "target_grain_accuracy": 1.0,
+          "tool_sequence_score": 1.0,
+          "tool_argument_score": 1.0,
+          "validator_acceptance": 1.0,
+          "parsimony_score": 1.0
+        },
+        "diagnostics": {
+          "missing_requirement_ids": [],
+          "extra_requirement_ids": [],
+          "invalid_requirement_ids": [],
+          "validator_issue_codes": [],
+          "exact_requirement_ids": [
+            "daily_ridership_trend"
+          ],
+          "extra_step_count": 0
+        }
+      },
+      "exact": true,
+      "inference_ms": 1966.821600000003,
+      "raw_content": "{\n  \"plans\": [\n    {\n      \"requirement_id\": \"daily_ridership_trend\",\n      \"intent\": \"time_series_analysis\",\n      \"family\": \"time_series\",\n      \"target_grain\": \"day\",\n      \"steps\": [\n        {\n          \"step_id\": \"1\",\n          \"action\": {\n            \"name\": \"analyze_time_series\",\n            \"date\": \"ridership.service_date\",\n            \"target\": \"ridership.passenger_count\"\n          }\n        }\n      ]\n    }\n  ]\n}",
+      "error": null
+    },
+    {
+      "case_id": "planner_frozen_v1_0_005",
+      "domain": "telecom_network",
+      "status": "ready",
+      "candidate": {
+        "plans": [
+          {
+            "requirement_id": "latency_outliers",
+            "intent": "distribution_analysis",
+            "family": "distribution",
+            "target_grain": "measurement",
+            "steps": [
+              {
+                "step_id": "detect_latency_outliers",
+                "action": {
+                  "name": "detect_outliers",
+                  "target": "network_measurements.packet_latency_ms"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "validation": {
+        "valid": true,
+        "validated_requirement_ids": [
+          "latency_outliers"
+        ],
+        "issues": []
+      },
+      "score": {
+        "scorer_version": "analytical_planner_scorer_v0.9.1",
+        "overall": 1.0,
+        "metrics": {
+          "requirement_coverage_f1": 1.0,
+          "intent_accuracy": 1.0,
+          "family_accuracy": 1.0,
+          "target_grain_accuracy": 1.0,
+          "tool_sequence_score": 1.0,
+          "tool_argument_score": 1.0,
+          "validator_acceptance": 1.0,
+          "parsimony_score": 1.0
+        },
+        "diagnostics": {
+          "missing_requirement_ids": [],
+          "extra_requirement_ids": [],
+          "invalid_requirement_ids": [],
+          "validator_issue_codes": [],
+          "exact_requirement_ids": [
+            "latency_outliers"
+          ],
+          "extra_step_count": 0
+        }
+      },
+      "exact": true,
+      "inference_ms": 1814.4505999998728,
+      "raw_content": "{\n  \"plans\": [\n    {\n      \"requirement_id\": \"latency_outliers\",\n      \"intent\": \"distribution_analysis\",\n      \"family\": \"distribution\",\n      \"target_grain\": \"measurement\",\n      \"steps\": [\n        {\n          \"step_id\": \"detect_latency_outliers\",\n          \"action\": {\n            \"name\": \"detect_outliers\",\n            \"target\": \"network_measurements.packet_latency_ms\"\n          }\n        }\n      ]\n    }\n  ]\n}",
+      "error": null
+    },
+    {
+      "case_id": "planner_frozen_v1_0_006",
+      "domain": "hospitality",
+      "status": "ready",
+      "candidate": {
+        "plans": [
+          {
+            "requirement_id": "occupancy_rate_association",
+            "intent": "measure_relationship",
+            "family": "association",
+            "target_grain": "hotel_day",
+            "steps": [
+              {
+                "step_id": "measure_association",
+                "action": {
+                  "name": "measure_association",
+                  "target": "hotel_daily.occupancy_rate",
+                  "value": "hotel_daily.average_room_rate"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "validation": {
+        "valid": true,
+        "validated_requirement_ids": [
+          "occupancy_rate_association"
+        ],
+        "issues": []
+      },
+      "score": {
+        "scorer_version": "analytical_planner_scorer_v0.9.1",
+        "overall": 1.0,
+        "metrics": {
+          "requirement_coverage_f1": 1.0,
+          "intent_accuracy": 1.0,
+          "family_accuracy": 1.0,
+          "target_grain_accuracy": 1.0,
+          "tool_sequence_score": 1.0,
+          "tool_argument_score": 1.0,
+          "validator_acceptance": 1.0,
+          "parsimony_score": 1.0
+        },
+        "diagnostics": {
+          "missing_requirement_ids": [],
+          "extra_requirement_ids": [],
+          "invalid_requirement_ids": [],
+          "validator_issue_codes": [],
+          "exact_requirement_ids": [
+            "occupancy_rate_association"
+          ],
+          "extra_step_count": 0
+        }
+      },
+      "exact": true,
+      "inference_ms": 1946.607199999562,
+      "raw_content": "{\n  \"plans\": [\n    {\n      \"requirement_id\": \"occupancy_rate_association\",\n      \"intent\": \"measure_relationship\",\n      \"family\": \"association\",\n      \"target_grain\": \"hotel_day\",\n      \"steps\": [\n        {\n          \"step_id\": \"measure_association\",\n          \"action\": {\n            \"name\": \"measure_association\",\n            \"target\": \"hotel_daily.occupancy_rate\",\n            \"value\": \"hotel_daily.average_room_rate\"\n          }\n        }\n      ]\n    }\n  ]\n}",
+      "error": null
+    },
+    {
+      "case_id": "planner_frozen_v1_0_007",
+      "domain": "education_platform",
+      "status": "ready",
+      "candidate": {
+        "plans": [
+          {
+            "requirement_id": "unusual_students",
+            "intent": "entity_anomaly_analysis",
+            "family": "entity_outlier",
+            "target_grain": "student",
+            "steps": [
+              {
+                "step_id": "build_entity_view",
+                "action": {
+                  "name": "build_entity_view",
+                  "entity": "learning_activity.student_id"
+                }
+              },
+              {
+                "step_id": "detect_entity_outliers",
+                "action": {
+                  "name": "detect_entity_outliers",
+                  "entity": "learning_activity.student_id",
+                  "metrics": [
+                    "learning_activity.study_minutes",
+                    "learning_activity.quiz_attempts"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "validation": {
+        "valid": true,
+        "validated_requirement_ids": [
+          "unusual_students"
+        ],
+        "issues": []
+      },
+      "score": {
+        "scorer_version": "analytical_planner_scorer_v0.9.1",
+        "overall": 1.0,
+        "metrics": {
+          "requirement_coverage_f1": 1.0,
+          "intent_accuracy": 1.0,
+          "family_accuracy": 1.0,
+          "target_grain_accuracy": 1.0,
+          "tool_sequence_score": 1.0,
+          "tool_argument_score": 1.0,
+          "validator_acceptance": 1.0,
+          "parsimony_score": 1.0
+        },
+        "diagnostics": {
+          "missing_requirement_ids": [],
+          "extra_requirement_ids": [],
+          "invalid_requirement_ids": [],
+          "validator_issue_codes": [],
+          "exact_requirement_ids": [
+            "unusual_students"
+          ],
+          "extra_step_count": 0
+        }
+      },
+      "exact": true,
+      "inference_ms": 2673.5493999995015,
+      "raw_content": "{\n  \"plans\": [\n    {\n      \"requirement_id\": \"unusual_students\",\n      \"intent\": \"entity_anomaly_analysis\",\n      \"family\": \"entity_outlier\",\n      \"target_grain\": \"student\",\n      \"steps\": [\n        {\n          \"step_id\": \"build_entity_view\",\n          \"action\": {\n            \"name\": \"build_entity_view\",\n            \"entity\": \"learning_activity.student_id\"\n          }\n        },\n        {\n          \"step_id\": \"detect_entity_outliers\",\n          \"action\": {\n            \"name\": \"detect_entity_outliers\",\n            \"entity\": \"learning_activity.student_id\",\n            \"metrics\": [\n              \"learning_activity.study_minutes\",\n              \"learning_activity.quiz_attempts\"\n            ]\n          }\n        }\n      ]\n    }\n  ]\n}",
+      "error": null
+    },
+    {
+      "case_id": "planner_frozen_v1_0_008",
+      "domain": "advertising",
+      "status": "ready",
+      "candidate": {
+        "plans": [
+          {
+            "requirement_id": "click_rate_by_channel",
+            "intent": "compare_groups",
+            "family": "group_comparison",
+            "target_grain": "campaign_day",
+            "steps": [
+              {
+                "step_id": "derive_click_rate",
+                "action": {
+                  "name": "derive_metric",
+                  "inputs": [
+                    "ad_performance.clicks",
+                    "ad_performance.impressions"
+                  ],
+                  "output": "click_rate",
+                  "formula": "clicks / impressions"
+                }
+              },
+              {
+                "step_id": "compare_click_rate_by_channel",
+                "action": {
+                  "name": "compare_groups",
+                  "target": "click_rate",
+                  "group_by": "channel"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "validation": {
+        "valid": false,
+        "validated_requirement_ids": [],
+        "issues": [
+          {
+            "code": "unknown_analytical_reference",
+            "requirement_id": "click_rate_by_channel",
+            "step_id": "compare_click_rate_by_channel",
+            "message": "Unknown analytical reference: channel"
+          }
+        ]
+      },
+      "score": {
+        "scorer_version": "analytical_planner_scorer_v0.9.1",
+        "overall": 0.8125,
+        "metrics": {
+          "requirement_coverage_f1": 1.0,
+          "intent_accuracy": 1.0,
+          "family_accuracy": 1.0,
+          "target_grain_accuracy": 1.0,
+          "tool_sequence_score": 1.0,
+          "tool_argument_score": 0.75,
+          "validator_acceptance": 0.0,
+          "parsimony_score": 1.0
+        },
+        "diagnostics": {
+          "missing_requirement_ids": [],
+          "extra_requirement_ids": [],
+          "invalid_requirement_ids": [
+            "click_rate_by_channel"
+          ],
+          "validator_issue_codes": [
+            "unknown_analytical_reference"
+          ],
+          "exact_requirement_ids": [],
+          "extra_step_count": 0
+        }
+      },
+      "exact": false,
+      "inference_ms": 2790.5870000004143,
+      "raw_content": "{\n  \"plans\": [\n    {\n      \"requirement_id\": \"click_rate_by_channel\",\n      \"intent\": \"compare_groups\",\n      \"family\": \"group_comparison\",\n      \"target_grain\": \"campaign_day\",\n      \"steps\": [\n        {\n          \"step_id\": \"derive_click_rate\",\n          \"action\": {\n            \"name\": \"derive_metric\",\n            \"inputs\": [\n              \"ad_performance.clicks\",\n              \"ad_performance.impressions\"\n            ],\n            \"output\": \"click_rate\",\n            \"formula\": \"clicks / impressions\"\n          }\n        },\n        {\n          \"step_id\": \"compare_click_rate_by_channel\",\n          \"action\": {\n            \"name\": \"compare_groups\",\n            \"target\": \"click_rate\",\n            \"group_by\": \"channel\"\n          }\n        }\n      ]\n    }\n  ]\n}",
+      "error": null
+    },
+    {
+      "case_id": "planner_frozen_v1_0_009",
+      "domain": "freight_logistics",
+      "status": "ready",
+      "candidate": {
+        "plans": [
+          {
+            "requirement_id": "delay_handling_association",
+            "intent": "measure_relationship",
+            "family": "association",
+            "target_grain": "shipment",
+            "steps": [
+              {
+                "step_id": "step_1",
+                "action": {
+                  "name": "measure_association",
+                  "target": "shipments.delivery_delay_hours",
+                  "value": "handling.handling_cost"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "validation": {
+        "valid": true,
+        "validated_requirement_ids": [
+          "delay_handling_association"
+        ],
+        "issues": []
+      },
+      "score": {
+        "scorer_version": "analytical_planner_scorer_v0.9.1",
+        "overall": 1.0,
+        "metrics": {
+          "requirement_coverage_f1": 1.0,
+          "intent_accuracy": 1.0,
+          "family_accuracy": 1.0,
+          "target_grain_accuracy": 1.0,
+          "tool_sequence_score": 1.0,
+          "tool_argument_score": 1.0,
+          "validator_acceptance": 1.0,
+          "parsimony_score": 1.0
+        },
+        "diagnostics": {
+          "missing_requirement_ids": [],
+          "extra_requirement_ids": [],
+          "invalid_requirement_ids": [],
+          "validator_issue_codes": [],
+          "exact_requirement_ids": [
+            "delay_handling_association"
+          ],
+          "extra_step_count": 0
+        }
+      },
+      "exact": true,
+      "inference_ms": 1998.8628000000972,
+      "raw_content": "{\n  \"plans\": [\n    {\n      \"requirement_id\": \"delay_handling_association\",\n      \"intent\": \"measure_relationship\",\n      \"family\": \"association\",\n      \"target_grain\": \"shipment\",\n      \"steps\": [\n        {\n          \"step_id\": \"step_1\",\n          \"action\": {\n            \"name\": \"measure_association\",\n            \"target\": \"shipments.delivery_delay_hours\",\n            \"value\": \"handling.handling_cost\"\n          }\n        }\n      ]\n    }\n  ]\n}",
+      "error": null
+    },
+    {
+      "case_id": "planner_frozen_v1_0_010",
+      "domain": "healthcare_finance",
+      "status": "ready",
+      "candidate": {
+        "plans": [
+          {
+            "requirement_id": "consultation_cost_association",
+            "intent": "measure_relationship",
+            "family": "association",
+            "target_grain": "patient_month",
+            "steps": [
+              {
+                "step_id": "join_consultations_care_costs",
+                "action": {
+                  "name": "measure_association",
+                  "target": "consultations.consultation_minutes",
+                  "value": "care_costs.care_cost"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "validation": {
+        "valid": true,
+        "validated_requirement_ids": [
+          "consultation_cost_association"
+        ],
+        "issues": []
+      },
+      "score": {
+        "scorer_version": "analytical_planner_scorer_v0.9.1",
+        "overall": 1.0,
+        "metrics": {
+          "requirement_coverage_f1": 1.0,
+          "intent_accuracy": 1.0,
+          "family_accuracy": 1.0,
+          "target_grain_accuracy": 1.0,
+          "tool_sequence_score": 1.0,
+          "tool_argument_score": 1.0,
+          "validator_acceptance": 1.0,
+          "parsimony_score": 1.0
+        },
+        "diagnostics": {
+          "missing_requirement_ids": [],
+          "extra_requirement_ids": [],
+          "invalid_requirement_ids": [],
+          "validator_issue_codes": [],
+          "exact_requirement_ids": [
+            "consultation_cost_association"
+          ],
+          "extra_step_count": 0
+        }
+      },
+      "exact": true,
+      "inference_ms": 2172.338899999886,
+      "raw_content": "{\n  \"plans\": [\n    {\n      \"requirement_id\": \"consultation_cost_association\",\n      \"intent\": \"measure_relationship\",\n      \"family\": \"association\",\n      \"target_grain\": \"patient_month\",\n      \"steps\": [\n        {\n          \"step_id\": \"join_consultations_care_costs\",\n          \"action\": {\n            \"name\": \"measure_association\",\n            \"target\": \"consultations.consultation_minutes\",\n            \"value\": \"care_costs.care_cost\"\n          }\n        }\n      ]\n    }\n  ]\n}",
+      "error": null
+    },
+    {
+      "case_id": "planner_frozen_v1_0_011",
+      "domain": "retail_operations",
+      "status": "ready",
+      "candidate": {
+        "plans": [
+          {
+            "requirement_id": "store_revenue_total",
+            "intent": "aggregate_metric",
+            "family": "aggregation",
+            "target_grain": "global",
+            "steps": [
+              {
+                "step_id": "aggregate_revenue",
+                "action": {
+                  "name": "aggregate",
+                  "metrics": [
+                    "store_sales.revenue"
+                  ],
+                  "group_by": null
+                }
+              }
+            ]
+          },
+          {
+            "requirement_id": "returns_total",
+            "intent": "aggregate_metric",
+            "family": "aggregation",
+            "target_grain": "global",
+            "steps": [
+              {
+                "step_id": "aggregate_returns",
+                "action": {
+                  "name": "aggregate",
+                  "metrics": [
+                    "product_returns.return_count"
+                  ],
+                  "group_by": null
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "validation": {
+        "valid": true,
+        "validated_requirement_ids": [
+          "store_revenue_total",
+          "returns_total"
+        ],
+        "issues": []
+      },
+      "score": {
+        "scorer_version": "analytical_planner_scorer_v0.9.1",
+        "overall": 1.0,
+        "metrics": {
+          "requirement_coverage_f1": 1.0,
+          "intent_accuracy": 1.0,
+          "family_accuracy": 1.0,
+          "target_grain_accuracy": 1.0,
+          "tool_sequence_score": 1.0,
+          "tool_argument_score": 1.0,
+          "validator_acceptance": 1.0,
+          "parsimony_score": 1.0
+        },
+        "diagnostics": {
+          "missing_requirement_ids": [],
+          "extra_requirement_ids": [],
+          "invalid_requirement_ids": [],
+          "validator_issue_codes": [],
+          "exact_requirement_ids": [
+            "returns_total",
+            "store_revenue_total"
+          ],
+          "extra_step_count": 0
+        }
+      },
+      "exact": true,
+      "inference_ms": 3351.033599999937,
+      "raw_content": "{\n  \"plans\": [\n    {\n      \"requirement_id\": \"store_revenue_total\",\n      \"intent\": \"aggregate_metric\",\n      \"family\": \"aggregation\",\n      \"target_grain\": \"global\",\n      \"steps\": [\n        {\n          \"step_id\": \"aggregate_revenue\",\n          \"action\": {\n            \"name\": \"aggregate\",\n            \"metrics\": [\n              \"store_sales.revenue\"\n            ],\n            \"group_by\": null\n          }\n        }\n      ]\n    },\n    {\n      \"requirement_id\": \"returns_total\",\n      \"intent\": \"aggregate_metric\",\n      \"family\": \"aggregation\",\n      \"target_grain\": \"global\",\n      \"steps\": [\n        {\n          \"step_id\": \"aggregate_returns\",\n          \"action\": {\n            \"name\": \"aggregate\",\n            \"metrics\": [\n              \"product_returns.return_count\"\n            ],\n            \"group_by\": null\n          }\n        }\n      ]\n    }\n  ]\n}",
+      "error": null
+    },
+    {
+      "case_id": "planner_frozen_v1_0_012",
+      "domain": "factory_maintenance",
+      "status": "ready",
+      "candidate": {
+        "plans": [
+          {
+            "requirement_id": "unusual_machines",
+            "intent": "entity_anomaly_analysis",
+            "family": "entity_outlier",
+            "target_grain": "machine_shift",
+            "steps": [
+              {
+                "step_id": "build_entity_view",
+                "action": {
+                  "name": "build_entity_view",
+                  "entity": "machine_activity.machine_id"
+                }
+              },
+              {
+                "step_id": "detect_entity_outliers",
+                "action": {
+                  "name": "detect_entity_outliers",
+                  "entity": "machine_activity.machine_id",
+                  "metrics": [
+                    "defect_count",
+                    "downtime_minutes"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "validation": {
+        "valid": false,
+        "validated_requirement_ids": [],
+        "issues": [
+          {
+            "code": "unknown_analytical_reference",
+            "requirement_id": "unusual_machines",
+            "step_id": "detect_entity_outliers",
+            "message": "Unknown analytical reference: defect_count"
+          },
+          {
+            "code": "unknown_analytical_reference",
+            "requirement_id": "unusual_machines",
+            "step_id": "detect_entity_outliers",
+            "message": "Unknown analytical reference: downtime_minutes"
+          },
+          {
+            "code": "entity_target_grain_mismatch",
+            "requirement_id": "unusual_machines",
+            "step_id": null,
+            "message": "Entity-level analytical plan declares a target_grain inconsistent with the entity view it builds. target_grain=machine_shift, allowed=['machine', 'machine_id']."
+          }
+        ]
+      },
+      "score": {
+        "scorer_version": "analytical_planner_scorer_v0.9.1",
+        "overall": 0.7125,
+        "metrics": {
+          "requirement_coverage_f1": 1.0,
+          "intent_accuracy": 1.0,
+          "family_accuracy": 1.0,
+          "target_grain_accuracy": 0.0,
+          "tool_sequence_score": 1.0,
+          "tool_argument_score": 0.75,
+          "validator_acceptance": 0.0,
+          "parsimony_score": 1.0
+        },
+        "diagnostics": {
+          "missing_requirement_ids": [],
+          "extra_requirement_ids": [],
+          "invalid_requirement_ids": [
+            "unusual_machines"
+          ],
+          "validator_issue_codes": [
+            "unknown_analytical_reference",
+            "unknown_analytical_reference",
+            "entity_target_grain_mismatch"
+          ],
+          "exact_requirement_ids": [],
+          "extra_step_count": 0
+        }
+      },
+      "exact": false,
+      "inference_ms": 2738.8209000000643,
+      "raw_content": "{\n  \"plans\": [\n    {\n      \"requirement_id\": \"unusual_machines\",\n      \"intent\": \"entity_anomaly_analysis\",\n      \"family\": \"entity_outlier\",\n      \"target_grain\": \"machine_shift\",\n      \"steps\": [\n        {\n          \"step_id\": \"build_entity_view\",\n          \"action\": {\n            \"name\": \"build_entity_view\",\n            \"entity\": \"machine_activity.machine_id\"\n          }\n        },\n        {\n          \"step_id\": \"detect_entity_outliers\",\n          \"action\": {\n            \"name\": \"detect_entity_outliers\",\n            \"entity\": \"machine_activity.machine_id\",\n            \"metrics\": [\n              \"defect_count\",\n              \"downtime_minutes\"\n            ]\n          }\n        }\n      ]\n    }\n  ]\n}",
+      "error": null
+    }
+  ],
+  "checkpoint_path": "C:\\Users\\tomas\\datalens\\apps\\api\\evals\\results\\analytical_planner_frozen_v1_0\\qwen3_4b_instruct_frozen_planner_v1_0_checkpoint.json"
+}

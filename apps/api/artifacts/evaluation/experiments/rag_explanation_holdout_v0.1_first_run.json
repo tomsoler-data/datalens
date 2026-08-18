@@ -1,0 +1,267 @@
+{
+  "holdout_version": "rag_explanation_holdout_v0.1",
+  "explanation_rule_version": "rag_explanation_v0.2",
+  "model": "gemma3:4b",
+  "freeze_sha256": "8d5063be8314d04e8edf7dacfc187749048f7aa8a48e722487aa659542f0b927",
+  "cases_sha256": "040ae78555bd5a151fb96336c572e31daa899223b353db0cf64845cba6889060",
+  "system_prompt_sha256": "6c03e5fddb793dcac3d74578aca6e312bc6b6d6145ac35cff176292a39ed2b05",
+  "metrics": {
+    "positive_case_count": 8,
+    "successful_positive_cases": 8,
+    "generation_success_rate": 1.0,
+    "abstention_case_count": 2,
+    "successful_abstentions": 2,
+    "deterministic_abstention_rate": 1.0,
+    "validation_errors": 0,
+    "invalid_citations": 0,
+    "invalid_evidence_quotes": 0,
+    "numeric_violations": 0
+  },
+  "gates": {
+    "minimum_generation_success_rate": 0.8,
+    "minimum_deterministic_abstention_rate": 1.0,
+    "maximum_invalid_citations": 0,
+    "maximum_invalid_evidence_quotes": 0,
+    "maximum_numeric_violations": 0,
+    "generation_success_pass": true,
+    "abstention_pass": true,
+    "citation_pass": true,
+    "evidence_pass": true,
+    "numeric_pass": true,
+    "holdout_pass": true
+  },
+  "cases": [
+    {
+      "case_id": "inventory_reorder",
+      "expected_abstention": false,
+      "status": "ready",
+      "success": true,
+      "explanation": "Le point de commande est lié au déclenchement des réapprovisionnements. Le point de commande vise à éviter les ruptures de stock.",
+      "claims": [
+        {
+          "statement": "Le point de commande est lié au déclenchement des réapprovisionnements.",
+          "evidence_quote": "Le point de commande correspond au niveau de stock à partir duquel un réapprovisionnement doit être déclenché afin de limiter le risque de rupture pendant le délai d'approvisionnement.",
+          "citation": {
+            "chunk_id": "holdout:inventory_reorder:chunk:0001",
+            "filename": "inventory_policy.txt",
+            "source_locator": "document",
+            "page_number": null
+          },
+          "citation_valid": true,
+          "evidence_valid": true
+        },
+        {
+          "statement": "Le point de commande vise à éviter les ruptures de stock.",
+          "evidence_quote": "Le point de commande correspond au niveau de stock à partir duquel un réapprovisionnement doit être déclenché afin de limiter le risque de rupture pendant le délai d'approvisionnement.",
+          "citation": {
+            "chunk_id": "holdout:inventory_reorder:chunk:0001",
+            "filename": "inventory_policy.txt",
+            "source_locator": "document",
+            "page_number": null
+          },
+          "citation_valid": true,
+          "evidence_valid": true
+        }
+      ]
+    },
+    {
+      "case_id": "cashflow_liquidity",
+      "expected_abstention": false,
+      "status": "ready",
+      "success": true,
+      "explanation": "La liquidité est la capacité d'une organisation à couvrir ses obligations à court terme.",
+      "claims": [
+        {
+          "statement": "La liquidité est la capacité d'une organisation à couvrir ses obligations à court terme.",
+          "evidence_quote": "La liquidité décrit la capacité d'une organisation à disposer de ressources immédiatement mobilisables pour couvrir ses obligations à court terme.",
+          "citation": {
+            "chunk_id": "holdout:cashflow_liquidity:chunk:0001",
+            "filename": "liquidity.txt",
+            "source_locator": "document",
+            "page_number": null
+          },
+          "citation_valid": true,
+          "evidence_valid": true
+        }
+      ]
+    },
+    {
+      "case_id": "cohort_retention",
+      "expected_abstention": false,
+      "status": "ready",
+      "success": true,
+      "explanation": "L'analyse par cohorte examine la rétention des utilisateurs en fonction de leur période d'inscription.",
+      "claims": [
+        {
+          "statement": "L'analyse par cohorte examine la rétention des utilisateurs en fonction de leur période d'inscription.",
+          "evidence_quote": "L'analyse par cohorte regroupe les utilisateurs selon une période commune d'inscription ou d'acquisition, puis suit leur comportement au cours des périodes suivantes.",
+          "citation": {
+            "chunk_id": "holdout:cohort_retention:chunk:0001",
+            "filename": "cohort_analysis.txt",
+            "source_locator": "document",
+            "page_number": null
+          },
+          "citation_valid": true,
+          "evidence_valid": true
+        }
+      ]
+    },
+    {
+      "case_id": "model_leakage",
+      "expected_abstention": false,
+      "status": "ready",
+      "success": true,
+      "explanation": "L'utilisation de données non disponibles au moment de la prédiction peut conduire à des performances artificiellement élevées. Les performances mesurées avant déploiement peuvent être trompeuses.",
+      "claims": [
+        {
+          "statement": "L'utilisation de données non disponibles au moment de la prédiction peut conduire à des performances artificiellement élevées.",
+          "evidence_quote": "Une fuite de données peut produire des performances artificiellement optimistes lorsqu'une information indisponible au moment réel de la prédiction est utilisée pendant l'entraînement ou la validation.",
+          "citation": {
+            "chunk_id": "holdout:model_leakage:chunk:0001",
+            "filename": "model_validation.txt",
+            "source_locator": "document",
+            "page_number": null
+          },
+          "citation_valid": true,
+          "evidence_valid": true
+        },
+        {
+          "statement": "Les performances mesurées avant déploiement peuvent être trompeuses.",
+          "evidence_quote": "Une fuite de données peut produire des performances artificiellement optimistes lorsqu'une information indisponible au moment réel de la prédiction est utilisée pendant l'entraînement ou la validation.",
+          "citation": {
+            "chunk_id": "holdout:model_leakage:chunk:0001",
+            "filename": "model_validation.txt",
+            "source_locator": "document",
+            "page_number": null
+          },
+          "citation_valid": true,
+          "evidence_valid": true
+        }
+      ]
+    },
+    {
+      "case_id": "seasonal_activity",
+      "expected_abstention": false,
+      "status": "ready",
+      "success": true,
+      "explanation": "L'activité présente des motifs répétitifs à intervalles réguliers. La saisonnalité est distincte d'une tendance de long terme.",
+      "claims": [
+        {
+          "statement": "L'activité présente des motifs répétitifs à intervalles réguliers.",
+          "evidence_quote": "La saisonnalité correspond à des motifs qui se répètent à des intervalles réguliers dans une série temporelle.",
+          "citation": {
+            "chunk_id": "holdout:seasonal_activity:chunk:0001",
+            "filename": "seasonality.txt",
+            "source_locator": "document",
+            "page_number": null
+          },
+          "citation_valid": true,
+          "evidence_valid": true
+        },
+        {
+          "statement": "La saisonnalité est distincte d'une tendance de long terme.",
+          "evidence_quote": "Elle doit être distinguée d'une tendance de long terme.",
+          "citation": {
+            "chunk_id": "holdout:seasonal_activity:chunk:0001",
+            "filename": "seasonality.txt",
+            "source_locator": "document",
+            "page_number": null
+          },
+          "citation_valid": true,
+          "evidence_valid": true
+        }
+      ]
+    },
+    {
+      "case_id": "duplicate_entities",
+      "expected_abstention": false,
+      "status": "ready",
+      "success": true,
+      "explanation": "Des variations de nom, d'adresse ou d'identifiant peuvent indiquer la même entité.",
+      "claims": [
+        {
+          "statement": "Des variations de nom, d'adresse ou d'identifiant peuvent indiquer la même entité.",
+          "evidence_quote": "La résolution d'entités cherche à déterminer si plusieurs enregistrements présentant des variations de nom, d'adresse ou d'identifiant représentent en réalité la même entité.",
+          "citation": {
+            "chunk_id": "holdout:duplicate_entities:chunk:0001",
+            "filename": "entity_resolution.txt",
+            "source_locator": "document",
+            "page_number": null
+          },
+          "citation_valid": true,
+          "evidence_valid": true
+        }
+      ]
+    },
+    {
+      "case_id": "customer_waiting_time",
+      "expected_abstention": false,
+      "status": "ready",
+      "success": true,
+      "explanation": "Une augmentation du temps d'attente se produit lorsque la demande dépasse la capacité de traitement. Le temps d'attente est influencé par le nombre de ressources disponibles.",
+      "claims": [
+        {
+          "statement": "Une augmentation du temps d'attente se produit lorsque la demande dépasse la capacité de traitement.",
+          "evidence_quote": "Une file d'attente augmente lorsque les demandes arrivent plus rapidement qu'elles ne peuvent être traitées.",
+          "citation": {
+            "chunk_id": "holdout:customer_waiting_time:chunk:0001",
+            "filename": "queue_demand.txt",
+            "source_locator": "document",
+            "page_number": null
+          },
+          "citation_valid": true,
+          "evidence_valid": true
+        },
+        {
+          "statement": "Le temps d'attente est influencé par le nombre de ressources disponibles.",
+          "evidence_quote": "La capacité opérationnelle dépend notamment du nombre de ressources disponibles pour traiter les demandes entrantes.",
+          "citation": {
+            "chunk_id": "holdout:customer_waiting_time:chunk:0002",
+            "filename": "queue_capacity.txt",
+            "source_locator": "document",
+            "page_number": null
+          },
+          "citation_valid": true,
+          "evidence_valid": true
+        }
+      ]
+    },
+    {
+      "case_id": "permission_scope",
+      "expected_abstention": false,
+      "status": "ready",
+      "success": true,
+      "explanation": "Les autorisations doivent être limitées aux seules autorisations nécessaires.",
+      "claims": [
+        {
+          "statement": "Les autorisations doivent être limitées aux seules autorisations nécessaires.",
+          "evidence_quote": "Le principe du moindre privilège consiste à limiter les permissions aux seules autorisations nécessaires à l'exécution des fonctions prévues.",
+          "citation": {
+            "chunk_id": "holdout:permission_scope:chunk:0001",
+            "filename": "least_privilege.txt",
+            "source_locator": "document",
+            "page_number": null
+          },
+          "citation_valid": true,
+          "evidence_valid": true
+        }
+      ]
+    },
+    {
+      "case_id": "abstain_without_document",
+      "expected_abstention": true,
+      "status": "abstained",
+      "correct": true,
+      "claim_count": 0,
+      "abstention_reason": "Aucune source documentaire validée n'est disponible pour cette analyse."
+    },
+    {
+      "case_id": "abstain_without_policy_source",
+      "expected_abstention": true,
+      "status": "abstained",
+      "correct": true,
+      "claim_count": 0,
+      "abstention_reason": "Aucune source documentaire validée n'est disponible pour cette analyse."
+    }
+  ]
+}

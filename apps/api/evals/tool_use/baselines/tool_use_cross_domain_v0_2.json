@@ -1,0 +1,57 @@
+{
+  "baseline_id": "tool_use_cross_domain_v0.2",
+  "status": "frozen",
+  "run_id": "20260817T105435_634824",
+  "scope": {
+    "domains": [
+      "hr",
+      "sales"
+    ],
+    "case_count": 12,
+    "repeat_count": 3,
+    "run_count": 36,
+    "executable_case_count": 10,
+    "guardrail_case_count": 2,
+    "native_families": [
+      "quantitative_association",
+      "categorical_association",
+      "group_comparison",
+      "distribution",
+      "time_series"
+    ]
+  },
+  "versions": {
+    "planner_rule_version": "ai_analytical_planner_v0.12",
+    "contract_version": "analytical_contract_v0.2",
+    "tool_orchestrator_rule_version": "ai_tool_orchestrator_v0.2",
+    "native_tool_rule_version": "native_tool_calling_v0.6",
+    "pipeline_rule_version": "ai_native_pipeline_v0.2",
+    "eval_runner_version": "tool_use_eval_runner_v0.6"
+  },
+  "metrics": {
+    "overall_pass_rate": 1.0,
+    "planner_family_accuracy": 1.0,
+    "planner_binding_accuracy": 1.0,
+    "planner_first_pass_rate": 0.8333333333,
+    "planner_first_pass_rate_executable": 1.0,
+    "planner_retry_rate": 0.1666666667,
+    "planner_retry_recovery_rate": 1.0,
+    "planner_execution_retry_rate": 0.0,
+    "planner_guardrail_retry_rate": 1.0,
+    "planner_unresolved_retry_count": 0,
+    "planner_normalization_rate": 0.5,
+    "native_tool_selection_accuracy": 1.0,
+    "native_argument_accuracy": 1.0,
+    "native_first_pass_rate": 1.0,
+    "native_retry_rate": 0.0,
+    "execution_success_rate": 1.0,
+    "chart_type_accuracy": 1.0,
+    "guardrail_accuracy": 1.0,
+    "latency_seconds_median": 4.17
+  },
+  "interpretation": {
+    "executable_path": "All 10 executable cross-domain cases were planned on the first pass, routed to the correct native tool with correct arguments, and executed successfully.",
+    "guardrail_path": "Both intentionally invalid explicit-column cases required a controlled planner retry and ended in safe abstention with no native tool execution.",
+    "scope_warning": "This is a controlled synthetic benchmark across two domains. It must not be presented as a general reliability guarantee."
+  }
+}

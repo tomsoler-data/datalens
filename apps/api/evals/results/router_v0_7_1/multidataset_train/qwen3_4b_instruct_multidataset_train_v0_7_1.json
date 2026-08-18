@@ -1,0 +1,264 @@
+{
+  "runner_version": "decision_router_runner_v0.7.1",
+  "prompt_version": "decision_router_prompt_v0.7.1_feasibility_first",
+  "contract_version": "decision_router_contract_v0.7",
+  "scorer_version": "decision_router_scorer_v0.7",
+  "model": "qwen3:4b-instruct",
+  "case_count": 6,
+  "generation_success_count": 6,
+  "generation_error_count": 0,
+  "average_overall": 0.7000000000000001,
+  "decision_accuracy": 0.8333333333333334,
+  "reason_accuracy": 0.5,
+  "route_quality": 0.5,
+  "clarification_quality": 0.0,
+  "accuracy_by_expected": {
+    "analyze": 1.0,
+    "needs_clarification": 0.0,
+    "cannot_answer": 0.6666666666666666
+  },
+  "confusion_matrix": {
+    "analyze": {
+      "analyze": 3,
+      "needs_clarification": 0,
+      "cannot_answer": 0,
+      "generation_error": 0
+    },
+    "needs_clarification": {
+      "analyze": 0,
+      "needs_clarification": 0,
+      "cannot_answer": 0,
+      "generation_error": 0
+    },
+    "cannot_answer": {
+      "analyze": 0,
+      "needs_clarification": 1,
+      "cannot_answer": 2,
+      "generation_error": 0
+    }
+  },
+  "diagnostics": {
+    "unsafe_execution_count": 0,
+    "false_abstention_count": 0,
+    "wrong_abstention_type_count": 1
+  },
+  "average_inference_ms": 1281.2834999980016,
+  "results": [
+    {
+      "case_id": "router_md_v0_7_2_train_001",
+      "split": "train",
+      "domain": "warehouse_operations",
+      "user_request": "Le nombre quotidien de ruptures de stock est-il associé au chiffre d'affaires quotidien ?",
+      "expected_decision": "cannot_answer",
+      "expected_reason": "unsupported_analysis",
+      "status": "ready",
+      "inference_ms": 3166.150499993819,
+      "candidate": {
+        "decision": "cannot_answer",
+        "decision_reason": "missing_column",
+        "clarification_question": null
+      },
+      "score": {
+        "scorer_version": "decision_router_scorer_v0.7",
+        "case_id": "router_md_v0_7_2_train_001",
+        "expected_decision": "cannot_answer",
+        "actual_decision": "cannot_answer",
+        "metrics": {
+          "decision": 1.0,
+          "decision_reason": 0.0,
+          "clarification": null,
+          "route_quality": 0.0
+        },
+        "diagnostics": {
+          "unsafe_execution": false,
+          "false_abstention": false,
+          "wrong_abstention_type": false
+        },
+        "overall": 0.6
+      },
+      "overall": 0.6,
+      "raw_content": "{\n  \"decision\": \"cannot_answer\",\n  \"decision_reason\": \"missing_column\"\n\n  ,\n  \"clarification_question\": null\n}",
+      "error": null
+    },
+    {
+      "case_id": "router_md_v0_7_2_train_002",
+      "split": "train",
+      "domain": "hotel_marketing",
+      "user_request": "Les dépenses publicitaires mensuelles sont-elles associées au taux d'occupation mensuel des hôtels ?",
+      "expected_decision": "cannot_answer",
+      "expected_reason": "unsupported_analysis",
+      "status": "ready",
+      "inference_ms": 1776.1085999954958,
+      "candidate": {
+        "decision": "needs_clarification",
+        "decision_reason": "ambiguous_request",
+        "clarification_question": "Quelle est la relation que vous souhaitez étudier entre les dépenses publicitaires et le taux d'occupation ? Par exemple, souhaitez-vous comparer les mois avec des dépenses élevées à ceux avec un taux d'occupation élevé, ou analyser la corrélation entre les deux variables sur une période donnée ?"
+      },
+      "score": {
+        "scorer_version": "decision_router_scorer_v0.7",
+        "case_id": "router_md_v0_7_2_train_002",
+        "expected_decision": "cannot_answer",
+        "actual_decision": "needs_clarification",
+        "metrics": {
+          "decision": 0.0,
+          "decision_reason": 0.0,
+          "clarification": null,
+          "route_quality": 0.0
+        },
+        "diagnostics": {
+          "unsafe_execution": false,
+          "false_abstention": false,
+          "wrong_abstention_type": true
+        },
+        "overall": 0.0
+      },
+      "overall": 0.0,
+      "raw_content": "{\n  \"decision\": \"needs_clarification\",\n  \"decision_reason\": \"ambiguous_request\"\n\n  ,\n  \"clarification_question\": \"Quelle est la relation que vous souhaitez étudier entre les dépenses publicitaires et le taux d'occupation ? Par exemple, souhaitez-vous comparer les mois avec des dépenses élevées à ceux avec un taux d'occupation élevé, ou analyser la corrélation entre les deux variables sur une période donnée ?\"\n}",
+      "error": null
+    },
+    {
+      "case_id": "router_md_v0_7_2_train_003",
+      "split": "train",
+      "domain": "online_retail",
+      "user_request": "Quel est le chiffre d'affaires total ?",
+      "expected_decision": "analyze",
+      "expected_reason": null,
+      "status": "ready",
+      "inference_ms": 623.2929000107106,
+      "candidate": {
+        "decision": "analyze",
+        "decision_reason": null,
+        "clarification_question": null
+      },
+      "score": {
+        "scorer_version": "decision_router_scorer_v0.7",
+        "case_id": "router_md_v0_7_2_train_003",
+        "expected_decision": "analyze",
+        "actual_decision": "analyze",
+        "metrics": {
+          "decision": 1.0,
+          "decision_reason": 1.0,
+          "clarification": null,
+          "route_quality": 1.0
+        },
+        "diagnostics": {
+          "unsafe_execution": false,
+          "false_abstention": false,
+          "wrong_abstention_type": false
+        },
+        "overall": 1.0
+      },
+      "overall": 1.0,
+      "raw_content": "{\n  \"decision\": \"analyze\",\n  \"decision_reason\": null,\n  \"clarification_question\": null\n}",
+      "error": null
+    },
+    {
+      "case_id": "router_md_v0_7_2_train_004",
+      "split": "train",
+      "domain": "customer_commerce",
+      "user_request": "Le nombre de tickets support par client est-il associé à son chiffre d'affaires ?",
+      "expected_decision": "analyze",
+      "expected_reason": null,
+      "status": "ready",
+      "inference_ms": 646.5395999985049,
+      "candidate": {
+        "decision": "analyze",
+        "decision_reason": null,
+        "clarification_question": null
+      },
+      "score": {
+        "scorer_version": "decision_router_scorer_v0.7",
+        "case_id": "router_md_v0_7_2_train_004",
+        "expected_decision": "analyze",
+        "actual_decision": "analyze",
+        "metrics": {
+          "decision": 1.0,
+          "decision_reason": 1.0,
+          "clarification": null,
+          "route_quality": 1.0
+        },
+        "diagnostics": {
+          "unsafe_execution": false,
+          "false_abstention": false,
+          "wrong_abstention_type": false
+        },
+        "overall": 1.0
+      },
+      "overall": 1.0,
+      "raw_content": "{\n  \"decision\": \"analyze\",\n  \"decision_reason\": null,\n  \"clarification_question\": null\n}",
+      "error": null
+    },
+    {
+      "case_id": "router_md_v0_7_2_train_005",
+      "split": "train",
+      "domain": "manufacturing_hr",
+      "user_request": "Le taux d'absence des employés est-il associé au nombre de défauts produits ?",
+      "expected_decision": "cannot_answer",
+      "expected_reason": "unsupported_analysis",
+      "status": "ready",
+      "inference_ms": 847.6462999969954,
+      "candidate": {
+        "decision": "cannot_answer",
+        "decision_reason": "missing_dataset",
+        "clarification_question": null
+      },
+      "score": {
+        "scorer_version": "decision_router_scorer_v0.7",
+        "case_id": "router_md_v0_7_2_train_005",
+        "expected_decision": "cannot_answer",
+        "actual_decision": "cannot_answer",
+        "metrics": {
+          "decision": 1.0,
+          "decision_reason": 0.0,
+          "clarification": null,
+          "route_quality": 0.0
+        },
+        "diagnostics": {
+          "unsafe_execution": false,
+          "false_abstention": false,
+          "wrong_abstention_type": false
+        },
+        "overall": 0.6
+      },
+      "overall": 0.6,
+      "raw_content": "{\n  \"decision\": \"cannot_answer\",\n  \"decision_reason\": \"missing_dataset\"\n\n  ,\n  \"clarification_question\": null\n}",
+      "error": null
+    },
+    {
+      "case_id": "router_md_v0_7_2_train_006",
+      "split": "train",
+      "domain": "regional_operations",
+      "user_request": "Donne le total des ventes et, séparément, le nombre total de tickets support.",
+      "expected_decision": "analyze",
+      "expected_reason": null,
+      "status": "ready",
+      "inference_ms": 627.9630999924848,
+      "candidate": {
+        "decision": "analyze",
+        "decision_reason": null,
+        "clarification_question": null
+      },
+      "score": {
+        "scorer_version": "decision_router_scorer_v0.7",
+        "case_id": "router_md_v0_7_2_train_006",
+        "expected_decision": "analyze",
+        "actual_decision": "analyze",
+        "metrics": {
+          "decision": 1.0,
+          "decision_reason": 1.0,
+          "clarification": null,
+          "route_quality": 1.0
+        },
+        "diagnostics": {
+          "unsafe_execution": false,
+          "false_abstention": false,
+          "wrong_abstention_type": false
+        },
+        "overall": 1.0
+      },
+      "overall": 1.0,
+      "raw_content": "{\n  \"decision\": \"analyze\",\n  \"decision_reason\": null,\n  \"clarification_question\": null\n}",
+      "error": null
+    }
+  ]
+}

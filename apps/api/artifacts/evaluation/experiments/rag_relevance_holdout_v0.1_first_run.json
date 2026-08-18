@@ -1,0 +1,137 @@
+{
+  "holdout_version": "rag_relevance_holdout_v0.1",
+  "relevance_rule_version": "rag_relevance_v0.1",
+  "model": "gemma3:4b",
+  "freeze_sha256": "7d2f96319d177d4b933342db01eb62923980d1aa20c5218dbb5a49fb04baa178",
+  "cases_sha256": "e4b31c07e65112e7824a8e2991f4b4546afbf73110e4f8b6955ef2ad4389247b",
+  "system_prompt_sha256": "e856433f2eabc2209142938a8d4b272150e5c8b12ea3639c60b15893de98b1dc",
+  "case_count": 12,
+  "metrics": {
+    "true_positive": 5,
+    "false_negative": 1,
+    "true_negative": 6,
+    "false_positive": 0,
+    "positive_recall": 0.8333333333333334,
+    "specificity": 1.0,
+    "false_positive_rate": 0.0,
+    "accuracy": 0.9166666666666666,
+    "dangerous_false_positives": 0
+  },
+  "gates": {
+    "minimum_positive_recall": 0.8,
+    "maximum_dangerous_false_positives": 0,
+    "positive_recall_pass": true,
+    "false_positive_pass": true,
+    "holdout_pass": true
+  },
+  "cases": [
+    {
+      "case_id": "positive_inventory_stockout",
+      "expected": "relevant",
+      "predicted": "relevant",
+      "correct": true,
+      "reason": "The passage directly explains the cause and potential implications of frequent stockouts, aligning with the finding that some products experience them.",
+      "finding": "Certains produits connaissent des ruptures de stock fréquentes.",
+      "passage": "Une rupture de stock apparaît lorsque la demande d'un produit ne peut plus être satisfaite par le stock disponible. Sa fréquence peut signaler un niveau de stock insuffisant ou un réapprovisionnement trop lent."
+    },
+    {
+      "case_id": "positive_delivery_delay",
+      "expected": "relevant",
+      "predicted": "relevant",
+      "correct": true,
+      "reason": "The passage explicitly mentions a 'bottleneck' that could cause a delay between order preparation and shipment, directly addressing the finding.",
+      "finding": "Le délai entre la préparation d'une commande et son expédition est particulièrement élevé.",
+      "passage": "Le délai logistique peut être décomposé entre préparation, emballage et expédition. Une attente importante avant la remise au transporteur peut révéler un goulot d'étranglement."
+    },
+    {
+      "case_id": "positive_data_leakage",
+      "expected": "relevant",
+      "predicted": "relevant",
+      "correct": true,
+      "reason": "The passage directly explains a mechanism (data leakage) that could cause artificially high performance during training and a subsequent drop in production, aligning with the finding's description of performance differences between validation and production.",
+      "finding": "Les performances du modèle sont très élevées en validation mais chutent fortement en production.",
+      "passage": "Une fuite de données peut produire des performances artificiellement élevées lorsqu'une variable utilisée pendant l'entraînement contient une information indisponible au moment réel de la prédiction."
+    },
+    {
+      "case_id": "positive_customer_cohort",
+      "expected": "relevant",
+      "predicted": "not_relevant",
+      "correct": false,
+      "reason": "The passage describes cohort analysis, which is a method for tracking user behavior, but doesn't directly address the comparison of January and February user retention.",
+      "finding": "La rétention des utilisateurs inscrits en janvier est comparée à celle des utilisateurs inscrits en février.",
+      "passage": "Une analyse par cohorte regroupe les utilisateurs selon une période commune d'inscription ou d'acquisition puis suit leur activité au cours des périodes suivantes."
+    },
+    {
+      "case_id": "positive_sensor_drift",
+      "expected": "relevant",
+      "predicted": "relevant",
+      "correct": true,
+      "reason": "The passage directly describes sensor drift, which is a cause of increasing discrepancies between sensor measurements and references, aligning with the finding.",
+      "finding": "L'écart entre les mesures du capteur et la référence augmente progressivement au fil du temps.",
+      "passage": "La dérive d'un capteur correspond à une perte progressive d'étalonnage. Elle peut être observée lorsque l'erreur par rapport à une référence stable augmente avec le temps."
+    },
+    {
+      "case_id": "positive_least_privilege",
+      "expected": "relevant",
+      "predicted": "relevant",
+      "correct": true,
+      "reason": "The passage directly explains the principle of least privilege, which is the concept behind the finding that accounts have unnecessary permissions.",
+      "finding": "Plusieurs comptes disposent de permissions qui ne sont pas nécessaires à leurs fonctions.",
+      "passage": "Le principe du moindre privilège consiste à attribuer uniquement les autorisations nécessaires à l'exécution d'une tâche et à retirer les droits inutiles."
+    },
+    {
+      "case_id": "negative_stockout_revenue",
+      "expected": "not_relevant",
+      "predicted": "not_relevant",
+      "correct": true,
+      "reason": "The passage discusses revenue figures and analysis methods, which are unrelated to the finding about frequent stockouts.",
+      "finding": "Certains produits connaissent des ruptures de stock fréquentes.",
+      "passage": "Le chiffre d'affaires correspond au montant total des ventes réalisées sur une période donnée. Il peut être analysé par produit, catégorie ou région."
+    },
+    {
+      "case_id": "negative_delivery_customer_satisfaction",
+      "expected": "not_relevant",
+      "predicted": "not_relevant",
+      "correct": true,
+      "reason": "The passage discusses customer satisfaction metrics, which are not directly related to the delay between order preparation and shipment.",
+      "finding": "Le délai entre la préparation d'une commande et son expédition est particulièrement élevé.",
+      "passage": "La satisfaction client peut être mesurée par enquête après achat. Un score faible peut signaler une expérience globale insatisfaisante."
+    },
+    {
+      "case_id": "negative_model_performance_confidence",
+      "expected": "not_relevant",
+      "predicted": "not_relevant",
+      "correct": true,
+      "reason": "The passage discusses confidence intervals, which are related to statistical uncertainty, but does not directly address the discrepancy between validation and production performance.",
+      "finding": "Les performances du modèle sont très élevées en validation mais chutent fortement en production.",
+      "passage": "Un intervalle de confiance fournit une représentation de l'incertitude autour d'une estimation statistique."
+    },
+    {
+      "case_id": "negative_cohort_seasonality",
+      "expected": "not_relevant",
+      "predicted": "not_relevant",
+      "correct": true,
+      "reason": "The passage discusses seasonal patterns, which is not directly related to comparing user retention by signup month.",
+      "finding": "La rétention des utilisateurs inscrits en janvier est comparée à celle des utilisateurs inscrits en février.",
+      "passage": "Une série saisonnière présente des motifs qui reviennent régulièrement selon les semaines, les mois ou les saisons."
+    },
+    {
+      "case_id": "negative_sensor_missing_values",
+      "expected": "not_relevant",
+      "predicted": "not_relevant",
+      "correct": true,
+      "reason": "The passage discusses missing data values, which is unrelated to the increasing discrepancy between sensor measurements and the reference over time.",
+      "finding": "L'écart entre les mesures du capteur et la référence augmente progressivement au fil du temps.",
+      "passage": "Les valeurs manquantes correspondent à des observations pour lesquelles une ou plusieurs variables n'ont pas de valeur enregistrée."
+    },
+    {
+      "case_id": "negative_permissions_authentication",
+      "expected": "not_relevant",
+      "predicted": "not_relevant",
+      "correct": true,
+      "reason": "The passage discusses multi-factor authentication, which is a security measure, but doesn't directly address the issue of unnecessary permissions on accounts.",
+      "finding": "Plusieurs comptes disposent de permissions qui ne sont pas nécessaires à leurs fonctions.",
+      "passage": "L'authentification multifacteur demande plusieurs preuves d'identité avant d'autoriser la connexion à un compte."
+    }
+  ]
+}

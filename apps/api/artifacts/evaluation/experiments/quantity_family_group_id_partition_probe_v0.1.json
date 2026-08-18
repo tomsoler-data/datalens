@@ -1,0 +1,1351 @@
+{
+  "probe_version": "quantity_family_group_id_partition_probe_v0.1",
+  "model": "gemma3:4b",
+  "representation": "one_group_id_assignment_per_column",
+  "runs_per_dataset": 3,
+  "expected_run_count": 6,
+  "successful_run_count": 6,
+  "failed_run_count": 0,
+  "operational_success": true,
+  "partition_stability": {
+    "clinical_lab": false,
+    "customer_support": false
+  },
+  "global_metrics": {
+    "evaluated_assertions": 63,
+    "tp": 11,
+    "fp": 1,
+    "tn": 35,
+    "fn": 16,
+    "accuracy": 0.7301587301587301,
+    "precision": 0.9166666666666666,
+    "recall": 0.4074074074074074,
+    "specificity": 0.9722222222222222
+  },
+  "runs": [
+    {
+      "run": 1,
+      "dataset": "clinical_lab",
+      "operational_success": true,
+      "groups": {
+        "1": [
+          "Specimens received",
+          "Samples processed"
+        ],
+        "2": [
+          "Technicians scheduled",
+          "Lab staff on duty"
+        ],
+        "3": [
+          "Estimated test charge",
+          "Final laboratory bill"
+        ],
+        "4": [
+          "Target result turnaround (minutes)",
+          "Actual reporting time (minutes)"
+        ],
+        "5": [
+          "Analyzer units online"
+        ],
+        "6": [
+          "Reagent spend"
+        ],
+        "7": [
+          "Quality pass rate (%)",
+          "SLA compliance (%)"
+        ],
+        "8": [
+          "Planned sample mass (grams)",
+          "Measured specimen weight (kg)"
+        ],
+        "9": [
+          "Analyzer downtime (minutes)",
+          "Reagent mass used (kg)"
+        ]
+      },
+      "assignments": [
+        {
+          "column": "Specimens received",
+          "group_id": 1,
+          "reason": "Represents the number of specimens received in the lab."
+        },
+        {
+          "column": "Samples processed",
+          "group_id": 1,
+          "reason": "Represents the number of samples processed in the lab."
+        },
+        {
+          "column": "Technicians scheduled",
+          "group_id": 2,
+          "reason": "Represents the number of technicians scheduled to work."
+        },
+        {
+          "column": "Lab staff on duty",
+          "group_id": 2,
+          "reason": "Represents the number of lab staff on duty."
+        },
+        {
+          "column": "Estimated test charge",
+          "group_id": 3,
+          "reason": "Represents the estimated cost of a test."
+        },
+        {
+          "column": "Final laboratory bill",
+          "group_id": 3,
+          "reason": "Represents the final cost of the laboratory services."
+        },
+        {
+          "column": "Target result turnaround (minutes)",
+          "group_id": 4,
+          "reason": "Represents the desired turnaround time for a test result."
+        },
+        {
+          "column": "Actual reporting time (minutes)",
+          "group_id": 4,
+          "reason": "Represents the actual time taken to generate a test result."
+        },
+        {
+          "column": "Analyzer units online",
+          "group_id": 5,
+          "reason": "Represents the number of analyzer units that are operational."
+        },
+        {
+          "column": "Reagent spend",
+          "group_id": 6,
+          "reason": "Represents the cost of reagents used in the lab."
+        },
+        {
+          "column": "Quality pass rate (%)",
+          "group_id": 7,
+          "reason": "Represents the percentage of tests that meet quality standards."
+        },
+        {
+          "column": "SLA compliance (%)",
+          "group_id": 7,
+          "reason": "Represents the percentage of tests that meet Service Level Agreements."
+        },
+        {
+          "column": "Planned sample mass (grams)",
+          "group_id": 8,
+          "reason": "Represents the planned mass of a sample before analysis."
+        },
+        {
+          "column": "Measured specimen weight (kg)",
+          "group_id": 8,
+          "reason": "Represents the actual weight of a specimen after analysis."
+        },
+        {
+          "column": "Analyzer downtime (minutes)",
+          "group_id": 9,
+          "reason": "Represents the time an analyzer unit is unavailable for use."
+        },
+        {
+          "column": "Reagent mass used (kg)",
+          "group_id": 9,
+          "reason": "Represents the mass of reagent consumed during a test."
+        }
+      ],
+      "cases": [
+        {
+          "case_id": "specimens_received_samples_processed",
+          "left": "Specimens received",
+          "right": "Samples processed",
+          "expected": true,
+          "predicted": true,
+          "correct": true,
+          "left_group": 1,
+          "right_group": 1
+        },
+        {
+          "case_id": "technicians_scheduled_staff_on_duty",
+          "left": "Technicians scheduled",
+          "right": "Lab staff on duty",
+          "expected": true,
+          "predicted": true,
+          "correct": true,
+          "left_group": 2,
+          "right_group": 2
+        },
+        {
+          "case_id": "estimated_charge_final_bill",
+          "left": "Estimated test charge",
+          "right": "Final laboratory bill",
+          "expected": true,
+          "predicted": true,
+          "correct": true,
+          "left_group": 3,
+          "right_group": 3
+        },
+        {
+          "case_id": "target_turnaround_actual_reporting",
+          "left": "Target result turnaround (minutes)",
+          "right": "Actual reporting time (minutes)",
+          "expected": true,
+          "predicted": true,
+          "correct": true,
+          "left_group": 4,
+          "right_group": 4
+        },
+        {
+          "case_id": "planned_mass_measured_weight",
+          "left": "Planned sample mass (grams)",
+          "right": "Measured specimen weight (kg)",
+          "expected": true,
+          "predicted": true,
+          "correct": true,
+          "left_group": 8,
+          "right_group": 8
+        },
+        {
+          "case_id": "specimens_staff",
+          "left": "Specimens received",
+          "right": "Technicians scheduled",
+          "expected": false,
+          "predicted": false,
+          "correct": true,
+          "left_group": 1,
+          "right_group": 2
+        },
+        {
+          "case_id": "samples_analyzers",
+          "left": "Samples processed",
+          "right": "Analyzer units online",
+          "expected": false,
+          "predicted": false,
+          "correct": true,
+          "left_group": 1,
+          "right_group": 5
+        },
+        {
+          "case_id": "staff_analyzers",
+          "left": "Lab staff on duty",
+          "right": "Analyzer units online",
+          "expected": false,
+          "predicted": false,
+          "correct": true,
+          "left_group": 2,
+          "right_group": 5
+        },
+        {
+          "case_id": "estimated_charge_reagent_spend",
+          "left": "Estimated test charge",
+          "right": "Reagent spend",
+          "expected": false,
+          "predicted": false,
+          "correct": true,
+          "left_group": 3,
+          "right_group": 6
+        },
+        {
+          "case_id": "final_bill_reagent_spend",
+          "left": "Final laboratory bill",
+          "right": "Reagent spend",
+          "expected": false,
+          "predicted": false,
+          "correct": true,
+          "left_group": 3,
+          "right_group": 6
+        },
+        {
+          "case_id": "turnaround_analyzer_downtime",
+          "left": "Target result turnaround (minutes)",
+          "right": "Analyzer downtime (minutes)",
+          "expected": false,
+          "predicted": false,
+          "correct": true,
+          "left_group": 4,
+          "right_group": 9
+        },
+        {
+          "case_id": "reporting_time_analyzer_downtime",
+          "left": "Actual reporting time (minutes)",
+          "right": "Analyzer downtime (minutes)",
+          "expected": false,
+          "predicted": false,
+          "correct": true,
+          "left_group": 4,
+          "right_group": 9
+        },
+        {
+          "case_id": "quality_rate_sla",
+          "left": "Quality pass rate (%)",
+          "right": "SLA compliance (%)",
+          "expected": false,
+          "predicted": true,
+          "correct": false,
+          "left_group": 7,
+          "right_group": 7
+        },
+        {
+          "case_id": "sample_mass_reagent_mass",
+          "left": "Planned sample mass (grams)",
+          "right": "Reagent mass used (kg)",
+          "expected": false,
+          "predicted": false,
+          "correct": true,
+          "left_group": 8,
+          "right_group": 9
+        },
+        {
+          "case_id": "specimen_weight_reagent_mass",
+          "left": "Measured specimen weight (kg)",
+          "right": "Reagent mass used (kg)",
+          "expected": false,
+          "predicted": false,
+          "correct": true,
+          "left_group": 8,
+          "right_group": 9
+        }
+      ],
+      "metrics": {
+        "tp": 5,
+        "fp": 1,
+        "tn": 9,
+        "fn": 0,
+        "accuracy": 0.9333333333333333,
+        "recall": 1.0,
+        "specificity": 0.9
+      }
+    },
+    {
+      "run": 1,
+      "dataset": "customer_support",
+      "operational_success": true,
+      "groups": {
+        "1": [
+          "Cases submitted",
+          "Tickets resolved"
+        ],
+        "2": [
+          "Agents rostered"
+        ],
+        "3": [
+          "Staff online"
+        ],
+        "4": [
+          "Quoted service cost"
+        ],
+        "5": [
+          "Final invoice amount"
+        ],
+        "6": [
+          "Promised response time (minutes)",
+          "Observed first-response delay (minutes)"
+        ],
+        "7": [
+          "SLA compliance (%)"
+        ]
+      },
+      "assignments": [
+        {
+          "column": "Cases submitted",
+          "group_id": 1,
+          "reason": "This column represents the number of customer support cases."
+        },
+        {
+          "column": "Tickets resolved",
+          "group_id": 1,
+          "reason": "This column represents the number of customer support tickets resolved."
+        },
+        {
+          "column": "Agents rostered",
+          "group_id": 2,
+          "reason": "This column represents the number of agents available."
+        },
+        {
+          "column": "Staff online",
+          "group_id": 3,
+          "reason": "This column represents the duration of staff being online."
+        },
+        {
+          "column": "Quoted service cost",
+          "group_id": 4,
+          "reason": "This column represents the cost of a service quote."
+        },
+        {
+          "column": "Final invoice amount",
+          "group_id": 5,
+          "reason": "This column represents the final amount of an invoice."
+        },
+        {
+          "column": "Promised response time (minutes)",
+          "group_id": 6,
+          "reason": "This column represents the promised response time for a support request."
+        },
+        {
+          "column": "Observed first-response delay (minutes)",
+          "group_id": 6,
+          "reason": "This column represents the actual first-response delay for a support request."
+        },
+        {
+          "column": "SLA compliance (%)",
+          "group_id": 7,
+          "reason": "This column represents the percentage of support requests meeting the SLA."
+        }
+      ],
+      "cases": [
+        {
+          "case_id": "submitted_cases_resolved_tickets",
+          "left": "Cases submitted",
+          "right": "Tickets resolved",
+          "expected": true,
+          "predicted": true,
+          "correct": true,
+          "left_group": 1,
+          "right_group": 1
+        },
+        {
+          "case_id": "rostered_agents_online_staff",
+          "left": "Agents rostered",
+          "right": "Staff online",
+          "expected": true,
+          "predicted": false,
+          "correct": false,
+          "left_group": 2,
+          "right_group": 3
+        },
+        {
+          "case_id": "quoted_cost_final_invoice",
+          "left": "Quoted service cost",
+          "right": "Final invoice amount",
+          "expected": true,
+          "predicted": false,
+          "correct": false,
+          "left_group": 4,
+          "right_group": 5
+        },
+        {
+          "case_id": "promised_observed_response_time",
+          "left": "Promised response time (minutes)",
+          "right": "Observed first-response delay (minutes)",
+          "expected": true,
+          "predicted": true,
+          "correct": true,
+          "left_group": 6,
+          "right_group": 6
+        },
+        {
+          "case_id": "response_delay_sla_compliance",
+          "left": "Observed first-response delay (minutes)",
+          "right": "SLA compliance (%)",
+          "expected": false,
+          "predicted": false,
+          "correct": true,
+          "left_group": 6,
+          "right_group": 7
+        },
+        {
+          "case_id": "invoice_online_staff",
+          "left": "Final invoice amount",
+          "right": "Staff online",
+          "expected": false,
+          "predicted": false,
+          "correct": true,
+          "left_group": 5,
+          "right_group": 3
+        }
+      ],
+      "metrics": {
+        "tp": 2,
+        "fp": 0,
+        "tn": 2,
+        "fn": 2,
+        "accuracy": 0.6666666666666666,
+        "recall": 0.5,
+        "specificity": 1.0
+      }
+    },
+    {
+      "run": 2,
+      "dataset": "clinical_lab",
+      "operational_success": true,
+      "groups": {
+        "1": [
+          "Reagent mass used (kg)"
+        ],
+        "2": [
+          "Analyzer downtime (minutes)"
+        ],
+        "3": [
+          "Measured specimen weight (kg)"
+        ],
+        "4": [
+          "Planned sample mass (grams)"
+        ],
+        "5": [
+          "SLA compliance (%)"
+        ],
+        "6": [
+          "Quality pass rate (%)"
+        ],
+        "7": [
+          "Reagent spend"
+        ],
+        "8": [
+          "Analyzer units online"
+        ],
+        "9": [
+          "Actual reporting time (minutes)"
+        ],
+        "10": [
+          "Target result turnaround (minutes)"
+        ],
+        "11": [
+          "Final laboratory bill"
+        ],
+        "12": [
+          "Estimated test charge"
+        ],
+        "13": [
+          "Lab staff on duty"
+        ],
+        "14": [
+          "Technicians scheduled"
+        ],
+        "15": [
+          "Samples processed"
+        ],
+        "16": [
+          "Specimens received"
+        ]
+      },
+      "assignments": [
+        {
+          "column": "Reagent mass used (kg)",
+          "group_id": 1,
+          "reason": "Represents the quantity of reagent consumed."
+        },
+        {
+          "column": "Analyzer downtime (minutes)",
+          "group_id": 2,
+          "reason": "Represents the duration of equipment unavailability."
+        },
+        {
+          "column": "Measured specimen weight (kg)",
+          "group_id": 3,
+          "reason": "Represents the weight of the specimen being measured."
+        },
+        {
+          "column": "Planned sample mass (grams)",
+          "group_id": 4,
+          "reason": "Represents the intended mass of the sample."
+        },
+        {
+          "column": "SLA compliance (%)",
+          "group_id": 5,
+          "reason": "Represents the percentage of samples meeting quality standards."
+        },
+        {
+          "column": "Quality pass rate (%)",
+          "group_id": 6,
+          "reason": "Represents the percentage of tests that pass quality control."
+        },
+        {
+          "column": "Reagent spend",
+          "group_id": 7,
+          "reason": "Represents the cost of reagents used."
+        },
+        {
+          "column": "Analyzer units online",
+          "group_id": 8,
+          "reason": "Represents the number of analyzers available for use."
+        },
+        {
+          "column": "Actual reporting time (minutes)",
+          "group_id": 9,
+          "reason": "Represents the time taken to generate test results."
+        },
+        {
+          "column": "Target result turnaround (minutes)",
+          "group_id": 10,
+          "reason": "Represents the desired time to generate test results."
+        },
+        {
+          "column": "Final laboratory bill",
+          "group_id": 11,
+          "reason": "Represents the total cost of the laboratory services."
+        },
+        {
+          "column": "Estimated test charge",
+          "group_id": 12,
+          "reason": "Represents the estimated cost of a single test."
+        },
+        {
+          "column": "Lab staff on duty",
+          "group_id": 13,
+          "reason": "Represents the number of staff members available."
+        },
+        {
+          "column": "Technicians scheduled",
+          "group_id": 14,
+          "reason": "Represents the number of technicians scheduled to work."
+        },
+        {
+          "column": "Samples processed",
+          "group_id": 15,
+          "reason": "Represents the number of samples analyzed."
+        },
+        {
+          "column": "Specimens received",
+          "group_id": 16,
+          "reason": "Represents the number of specimens received for analysis."
+        }
+      ],
+      "cases": [
+        {
+          "case_id": "specimens_received_samples_processed",
+          "left": "Specimens received",
+          "right": "Samples processed",
+          "expected": true,
+          "predicted": false,
+          "correct": false,
+          "left_group": 16,
+          "right_group": 15
+        },
+        {
+          "case_id": "technicians_scheduled_staff_on_duty",
+          "left": "Technicians scheduled",
+          "right": "Lab staff on duty",
+          "expected": true,
+          "predicted": false,
+          "correct": false,
+          "left_group": 14,
+          "right_group": 13
+        },
+        {
+          "case_id": "estimated_charge_final_bill",
+          "left": "Estimated test charge",
+          "right": "Final laboratory bill",
+          "expected": true,
+          "predicted": false,
+          "correct": false,
+          "left_group": 12,
+          "right_group": 11
+        },
+        {
+          "case_id": "target_turnaround_actual_reporting",
+          "left": "Target result turnaround (minutes)",
+          "right": "Actual reporting time (minutes)",
+          "expected": true,
+          "predicted": false,
+          "correct": false,
+          "left_group": 10,
+          "right_group": 9
+        },
+        {
+          "case_id": "planned_mass_measured_weight",
+          "left": "Planned sample mass (grams)",
+          "right": "Measured specimen weight (kg)",
+          "expected": true,
+          "predicted": false,
+          "correct": false,
+          "left_group": 4,
+          "right_group": 3
+        },
+        {
+          "case_id": "specimens_staff",
+          "left": "Specimens received",
+          "right": "Technicians scheduled",
+          "expected": false,
+          "predicted": false,
+          "correct": true,
+          "left_group": 16,
+          "right_group": 14
+        },
+        {
+          "case_id": "samples_analyzers",
+          "left": "Samples processed",
+          "right": "Analyzer units online",
+          "expected": false,
+          "predicted": false,
+          "correct": true,
+          "left_group": 15,
+          "right_group": 8
+        },
+        {
+          "case_id": "staff_analyzers",
+          "left": "Lab staff on duty",
+          "right": "Analyzer units online",
+          "expected": false,
+          "predicted": false,
+          "correct": true,
+          "left_group": 13,
+          "right_group": 8
+        },
+        {
+          "case_id": "estimated_charge_reagent_spend",
+          "left": "Estimated test charge",
+          "right": "Reagent spend",
+          "expected": false,
+          "predicted": false,
+          "correct": true,
+          "left_group": 12,
+          "right_group": 7
+        },
+        {
+          "case_id": "final_bill_reagent_spend",
+          "left": "Final laboratory bill",
+          "right": "Reagent spend",
+          "expected": false,
+          "predicted": false,
+          "correct": true,
+          "left_group": 11,
+          "right_group": 7
+        },
+        {
+          "case_id": "turnaround_analyzer_downtime",
+          "left": "Target result turnaround (minutes)",
+          "right": "Analyzer downtime (minutes)",
+          "expected": false,
+          "predicted": false,
+          "correct": true,
+          "left_group": 10,
+          "right_group": 2
+        },
+        {
+          "case_id": "reporting_time_analyzer_downtime",
+          "left": "Actual reporting time (minutes)",
+          "right": "Analyzer downtime (minutes)",
+          "expected": false,
+          "predicted": false,
+          "correct": true,
+          "left_group": 9,
+          "right_group": 2
+        },
+        {
+          "case_id": "quality_rate_sla",
+          "left": "Quality pass rate (%)",
+          "right": "SLA compliance (%)",
+          "expected": false,
+          "predicted": false,
+          "correct": true,
+          "left_group": 6,
+          "right_group": 5
+        },
+        {
+          "case_id": "sample_mass_reagent_mass",
+          "left": "Planned sample mass (grams)",
+          "right": "Reagent mass used (kg)",
+          "expected": false,
+          "predicted": false,
+          "correct": true,
+          "left_group": 4,
+          "right_group": 1
+        },
+        {
+          "case_id": "specimen_weight_reagent_mass",
+          "left": "Measured specimen weight (kg)",
+          "right": "Reagent mass used (kg)",
+          "expected": false,
+          "predicted": false,
+          "correct": true,
+          "left_group": 3,
+          "right_group": 1
+        }
+      ],
+      "metrics": {
+        "tp": 0,
+        "fp": 0,
+        "tn": 10,
+        "fn": 5,
+        "accuracy": 0.6666666666666666,
+        "recall": 0.0,
+        "specificity": 1.0
+      }
+    },
+    {
+      "run": 2,
+      "dataset": "customer_support",
+      "operational_success": true,
+      "groups": {
+        "1": [
+          "SLA compliance (%)"
+        ],
+        "2": [
+          "Observed first-response delay (minutes)",
+          "Promised response time (minutes)"
+        ],
+        "3": [
+          "Final invoice amount",
+          "Quoted service cost"
+        ],
+        "4": [
+          "Staff online",
+          "Agents rostered"
+        ],
+        "5": [
+          "Tickets resolved",
+          "Cases submitted"
+        ]
+      },
+      "assignments": [
+        {
+          "column": "SLA compliance (%)",
+          "group_id": 1,
+          "reason": "Represents adherence to service level agreement metrics."
+        },
+        {
+          "column": "Observed first-response delay (minutes)",
+          "group_id": 2,
+          "reason": "Represents the actual time taken to initially respond to a customer."
+        },
+        {
+          "column": "Promised response time (minutes)",
+          "group_id": 2,
+          "reason": "Represents the time promised to the customer for a response."
+        },
+        {
+          "column": "Final invoice amount",
+          "group_id": 3,
+          "reason": "Represents the total cost of the service provided."
+        },
+        {
+          "column": "Quoted service cost",
+          "group_id": 3,
+          "reason": "Represents the initial cost estimate for the service."
+        },
+        {
+          "column": "Staff online",
+          "group_id": 4,
+          "reason": "Represents the number of support staff available at a given time."
+        },
+        {
+          "column": "Agents rostered",
+          "group_id": 4,
+          "reason": "Represents the number of agents scheduled to work."
+        },
+        {
+          "column": "Tickets resolved",
+          "group_id": 5,
+          "reason": "Represents the number of customer issues successfully resolved."
+        },
+        {
+          "column": "Cases submitted",
+          "group_id": 5,
+          "reason": "Represents the number of new customer support requests received."
+        }
+      ],
+      "cases": [
+        {
+          "case_id": "submitted_cases_resolved_tickets",
+          "left": "Cases submitted",
+          "right": "Tickets resolved",
+          "expected": true,
+          "predicted": true,
+          "correct": true,
+          "left_group": 5,
+          "right_group": 5
+        },
+        {
+          "case_id": "rostered_agents_online_staff",
+          "left": "Agents rostered",
+          "right": "Staff online",
+          "expected": true,
+          "predicted": true,
+          "correct": true,
+          "left_group": 4,
+          "right_group": 4
+        },
+        {
+          "case_id": "quoted_cost_final_invoice",
+          "left": "Quoted service cost",
+          "right": "Final invoice amount",
+          "expected": true,
+          "predicted": true,
+          "correct": true,
+          "left_group": 3,
+          "right_group": 3
+        },
+        {
+          "case_id": "promised_observed_response_time",
+          "left": "Promised response time (minutes)",
+          "right": "Observed first-response delay (minutes)",
+          "expected": true,
+          "predicted": true,
+          "correct": true,
+          "left_group": 2,
+          "right_group": 2
+        },
+        {
+          "case_id": "response_delay_sla_compliance",
+          "left": "Observed first-response delay (minutes)",
+          "right": "SLA compliance (%)",
+          "expected": false,
+          "predicted": false,
+          "correct": true,
+          "left_group": 2,
+          "right_group": 1
+        },
+        {
+          "case_id": "invoice_online_staff",
+          "left": "Final invoice amount",
+          "right": "Staff online",
+          "expected": false,
+          "predicted": false,
+          "correct": true,
+          "left_group": 3,
+          "right_group": 4
+        }
+      ],
+      "metrics": {
+        "tp": 4,
+        "fp": 0,
+        "tn": 2,
+        "fn": 0,
+        "accuracy": 1.0,
+        "recall": 1.0,
+        "specificity": 1.0
+      }
+    },
+    {
+      "run": 3,
+      "dataset": "clinical_lab",
+      "operational_success": true,
+      "groups": {
+        "1": [
+          "Lab staff on duty"
+        ],
+        "2": [
+          "Estimated test charge"
+        ],
+        "3": [
+          "Final laboratory bill"
+        ],
+        "4": [
+          "Target result turnaround (minutes)"
+        ],
+        "5": [
+          "Actual reporting time (minutes)"
+        ],
+        "6": [
+          "Analyzer units online"
+        ],
+        "7": [
+          "Reagent spend"
+        ],
+        "8": [
+          "Quality pass rate (%)"
+        ],
+        "9": [
+          "SLA compliance (%)"
+        ],
+        "10": [
+          "Planned sample mass (grams)"
+        ],
+        "11": [
+          "Measured specimen weight (kg)"
+        ],
+        "12": [
+          "Analyzer downtime (minutes)"
+        ],
+        "13": [
+          "Reagent mass used (kg)"
+        ],
+        "14": [
+          "Specimens received"
+        ],
+        "15": [
+          "Samples processed"
+        ],
+        "16": [
+          "Technicians scheduled"
+        ]
+      },
+      "assignments": [
+        {
+          "column": "Lab staff on duty",
+          "group_id": 1,
+          "reason": "Counts the number of staff members on duty."
+        },
+        {
+          "column": "Estimated test charge",
+          "group_id": 2,
+          "reason": "Represents the estimated cost of a test."
+        },
+        {
+          "column": "Final laboratory bill",
+          "group_id": 3,
+          "reason": "Represents the final cost of the laboratory services."
+        },
+        {
+          "column": "Target result turnaround (minutes)",
+          "group_id": 4,
+          "reason": "Represents the desired time to complete a test."
+        },
+        {
+          "column": "Actual reporting time (minutes)",
+          "group_id": 5,
+          "reason": "Represents the actual time taken to complete a test."
+        },
+        {
+          "column": "Analyzer units online",
+          "group_id": 6,
+          "reason": "Counts the number of analyzers that are operational."
+        },
+        {
+          "column": "Reagent spend",
+          "group_id": 7,
+          "reason": "Represents the cost of reagents used in the lab."
+        },
+        {
+          "column": "Quality pass rate (%)",
+          "group_id": 8,
+          "reason": "Represents the percentage of tests that meet quality standards."
+        },
+        {
+          "column": "SLA compliance (%)",
+          "group_id": 9,
+          "reason": "Represents the percentage of tests that meet Service Level Agreements."
+        },
+        {
+          "column": "Planned sample mass (grams)",
+          "group_id": 10,
+          "reason": "Represents the intended mass of a sample."
+        },
+        {
+          "column": "Measured specimen weight (kg)",
+          "group_id": 11,
+          "reason": "Represents the actual weight of a specimen."
+        },
+        {
+          "column": "Analyzer downtime (minutes)",
+          "group_id": 12,
+          "reason": "Represents the time an analyzer is unavailable."
+        },
+        {
+          "column": "Reagent mass used (kg)",
+          "group_id": 13,
+          "reason": "Represents the amount of reagent used in a test."
+        },
+        {
+          "column": "Specimens received",
+          "group_id": 14,
+          "reason": "Counts the number of specimens received."
+        },
+        {
+          "column": "Samples processed",
+          "group_id": 15,
+          "reason": "Counts the number of samples processed."
+        },
+        {
+          "column": "Technicians scheduled",
+          "group_id": 16,
+          "reason": "Counts the number of technicians scheduled to work."
+        }
+      ],
+      "cases": [
+        {
+          "case_id": "specimens_received_samples_processed",
+          "left": "Specimens received",
+          "right": "Samples processed",
+          "expected": true,
+          "predicted": false,
+          "correct": false,
+          "left_group": 14,
+          "right_group": 15
+        },
+        {
+          "case_id": "technicians_scheduled_staff_on_duty",
+          "left": "Technicians scheduled",
+          "right": "Lab staff on duty",
+          "expected": true,
+          "predicted": false,
+          "correct": false,
+          "left_group": 16,
+          "right_group": 1
+        },
+        {
+          "case_id": "estimated_charge_final_bill",
+          "left": "Estimated test charge",
+          "right": "Final laboratory bill",
+          "expected": true,
+          "predicted": false,
+          "correct": false,
+          "left_group": 2,
+          "right_group": 3
+        },
+        {
+          "case_id": "target_turnaround_actual_reporting",
+          "left": "Target result turnaround (minutes)",
+          "right": "Actual reporting time (minutes)",
+          "expected": true,
+          "predicted": false,
+          "correct": false,
+          "left_group": 4,
+          "right_group": 5
+        },
+        {
+          "case_id": "planned_mass_measured_weight",
+          "left": "Planned sample mass (grams)",
+          "right": "Measured specimen weight (kg)",
+          "expected": true,
+          "predicted": false,
+          "correct": false,
+          "left_group": 10,
+          "right_group": 11
+        },
+        {
+          "case_id": "specimens_staff",
+          "left": "Specimens received",
+          "right": "Technicians scheduled",
+          "expected": false,
+          "predicted": false,
+          "correct": true,
+          "left_group": 14,
+          "right_group": 16
+        },
+        {
+          "case_id": "samples_analyzers",
+          "left": "Samples processed",
+          "right": "Analyzer units online",
+          "expected": false,
+          "predicted": false,
+          "correct": true,
+          "left_group": 15,
+          "right_group": 6
+        },
+        {
+          "case_id": "staff_analyzers",
+          "left": "Lab staff on duty",
+          "right": "Analyzer units online",
+          "expected": false,
+          "predicted": false,
+          "correct": true,
+          "left_group": 1,
+          "right_group": 6
+        },
+        {
+          "case_id": "estimated_charge_reagent_spend",
+          "left": "Estimated test charge",
+          "right": "Reagent spend",
+          "expected": false,
+          "predicted": false,
+          "correct": true,
+          "left_group": 2,
+          "right_group": 7
+        },
+        {
+          "case_id": "final_bill_reagent_spend",
+          "left": "Final laboratory bill",
+          "right": "Reagent spend",
+          "expected": false,
+          "predicted": false,
+          "correct": true,
+          "left_group": 3,
+          "right_group": 7
+        },
+        {
+          "case_id": "turnaround_analyzer_downtime",
+          "left": "Target result turnaround (minutes)",
+          "right": "Analyzer downtime (minutes)",
+          "expected": false,
+          "predicted": false,
+          "correct": true,
+          "left_group": 4,
+          "right_group": 12
+        },
+        {
+          "case_id": "reporting_time_analyzer_downtime",
+          "left": "Actual reporting time (minutes)",
+          "right": "Analyzer downtime (minutes)",
+          "expected": false,
+          "predicted": false,
+          "correct": true,
+          "left_group": 5,
+          "right_group": 12
+        },
+        {
+          "case_id": "quality_rate_sla",
+          "left": "Quality pass rate (%)",
+          "right": "SLA compliance (%)",
+          "expected": false,
+          "predicted": false,
+          "correct": true,
+          "left_group": 8,
+          "right_group": 9
+        },
+        {
+          "case_id": "sample_mass_reagent_mass",
+          "left": "Planned sample mass (grams)",
+          "right": "Reagent mass used (kg)",
+          "expected": false,
+          "predicted": false,
+          "correct": true,
+          "left_group": 10,
+          "right_group": 13
+        },
+        {
+          "case_id": "specimen_weight_reagent_mass",
+          "left": "Measured specimen weight (kg)",
+          "right": "Reagent mass used (kg)",
+          "expected": false,
+          "predicted": false,
+          "correct": true,
+          "left_group": 11,
+          "right_group": 13
+        }
+      ],
+      "metrics": {
+        "tp": 0,
+        "fp": 0,
+        "tn": 10,
+        "fn": 5,
+        "accuracy": 0.6666666666666666,
+        "recall": 0.0,
+        "specificity": 1.0
+      }
+    },
+    {
+      "run": 3,
+      "dataset": "customer_support",
+      "operational_success": true,
+      "groups": {
+        "1": [
+          "Staff online"
+        ],
+        "2": [
+          "Quoted service cost"
+        ],
+        "3": [
+          "Final invoice amount"
+        ],
+        "4": [
+          "Promised response time (minutes)"
+        ],
+        "5": [
+          "Observed first-response delay (minutes)"
+        ],
+        "6": [
+          "SLA compliance (%)"
+        ],
+        "7": [
+          "Cases submitted"
+        ],
+        "8": [
+          "Tickets resolved"
+        ],
+        "9": [
+          "Agents rostered"
+        ]
+      },
+      "assignments": [
+        {
+          "column": "Staff online",
+          "group_id": 1,
+          "reason": "Represents staff availability"
+        },
+        {
+          "column": "Quoted service cost",
+          "group_id": 2,
+          "reason": "Represents the cost of a service"
+        },
+        {
+          "column": "Final invoice amount",
+          "group_id": 3,
+          "reason": "Represents the final amount of an invoice"
+        },
+        {
+          "column": "Promised response time (minutes)",
+          "group_id": 4,
+          "reason": "Represents the time a response was promised"
+        },
+        {
+          "column": "Observed first-response delay (minutes)",
+          "group_id": 5,
+          "reason": "Represents the actual time it took to get a first response"
+        },
+        {
+          "column": "SLA compliance (%)",
+          "group_id": 6,
+          "reason": "Represents the compliance with a service level agreement"
+        },
+        {
+          "column": "Cases submitted",
+          "group_id": 7,
+          "reason": "Represents the number of cases submitted"
+        },
+        {
+          "column": "Tickets resolved",
+          "group_id": 8,
+          "reason": "Represents the number of tickets resolved"
+        },
+        {
+          "column": "Agents rostered",
+          "group_id": 9,
+          "reason": "Represents the number of agents rostered"
+        }
+      ],
+      "cases": [
+        {
+          "case_id": "submitted_cases_resolved_tickets",
+          "left": "Cases submitted",
+          "right": "Tickets resolved",
+          "expected": true,
+          "predicted": false,
+          "correct": false,
+          "left_group": 7,
+          "right_group": 8
+        },
+        {
+          "case_id": "rostered_agents_online_staff",
+          "left": "Agents rostered",
+          "right": "Staff online",
+          "expected": true,
+          "predicted": false,
+          "correct": false,
+          "left_group": 9,
+          "right_group": 1
+        },
+        {
+          "case_id": "quoted_cost_final_invoice",
+          "left": "Quoted service cost",
+          "right": "Final invoice amount",
+          "expected": true,
+          "predicted": false,
+          "correct": false,
+          "left_group": 2,
+          "right_group": 3
+        },
+        {
+          "case_id": "promised_observed_response_time",
+          "left": "Promised response time (minutes)",
+          "right": "Observed first-response delay (minutes)",
+          "expected": true,
+          "predicted": false,
+          "correct": false,
+          "left_group": 4,
+          "right_group": 5
+        },
+        {
+          "case_id": "response_delay_sla_compliance",
+          "left": "Observed first-response delay (minutes)",
+          "right": "SLA compliance (%)",
+          "expected": false,
+          "predicted": false,
+          "correct": true,
+          "left_group": 5,
+          "right_group": 6
+        },
+        {
+          "case_id": "invoice_online_staff",
+          "left": "Final invoice amount",
+          "right": "Staff online",
+          "expected": false,
+          "predicted": false,
+          "correct": true,
+          "left_group": 3,
+          "right_group": 1
+        }
+      ],
+      "metrics": {
+        "tp": 0,
+        "fp": 0,
+        "tn": 2,
+        "fn": 4,
+        "accuracy": 0.3333333333333333,
+        "recall": 0.0,
+        "specificity": 1.0
+      }
+    }
+  ]
+}

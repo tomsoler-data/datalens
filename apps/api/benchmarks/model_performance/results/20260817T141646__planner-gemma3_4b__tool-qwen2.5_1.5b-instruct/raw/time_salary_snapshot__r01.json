@@ -1,0 +1,406 @@
+{
+  "status": "ready",
+  "trace_id": "ai:9cde4b4f6f6140d19582699cf0fbf2f5",
+  "planner": {
+    "status": "ready",
+    "objective": "Analyser l'évolution de la médiane de salary selon snapshot_date.",
+    "model": "gemma3:4b",
+    "proposal_count": 1,
+    "validated_count": 1,
+    "blocked_count": 0,
+    "ambiguous_count": 0,
+    "rejected_count": 0,
+    "items": [
+      {
+        "proposal_index": 1,
+        "validation_status": "validated",
+        "raw_proposal": {
+          "decision": "propose",
+          "title": "Analyser l'évolution de la médiane de salary selon snapshot_date.",
+          "family": "time_series",
+          "dataset_id": "dataset:0001",
+          "analytical_grain": "snapshot_date",
+          "x_column": null,
+          "y_column": "salary",
+          "group_column": null,
+          "value_column": null,
+          "time_column": "snapshot_date",
+          "dimension_column": null,
+          "entity_column": null,
+          "aggregation_function": "median",
+          "ranking_order": "none",
+          "ranking_limit": null,
+          "window_operation": "none",
+          "window_size": null,
+          "blockers": [],
+          "reasons": [],
+          "confidence": 0.95
+        },
+        "proposal": {
+          "decision": "propose",
+          "title": "Analyser l'évolution de la médiane de salary selon snapshot_date.",
+          "family": "time_series",
+          "dataset_id": "dataset:0001",
+          "analytical_grain": "snapshot_date",
+          "x_column": null,
+          "y_column": null,
+          "group_column": null,
+          "value_column": "salary",
+          "time_column": "snapshot_date",
+          "dimension_column": null,
+          "entity_column": null,
+          "aggregation_function": "median",
+          "ranking_order": "none",
+          "ranking_limit": null,
+          "window_operation": "none",
+          "window_size": null,
+          "blockers": [],
+          "reasons": [],
+          "confidence": 0.95
+        },
+        "contract": {
+          "contract_id": "ai:51d5b45fee50241d:01",
+          "contract_version": "analytical_contract_v0.2",
+          "origin": "ai_planner",
+          "status": "validated",
+          "title": "Analyser l'évolution de la médiane de salary selon snapshot_date.",
+          "request_text": "Analyser l'évolution de la médiane de salary selon snapshot_date.",
+          "family": "time_series",
+          "required_dataset_ids": [
+            "dataset:0001"
+          ],
+          "required_dataset_filenames": [
+            "datalens_hr_benchmark.csv"
+          ],
+          "analytical_grain": "snapshot_date",
+          "bindings": [
+            {
+              "role": "value",
+              "column": "salary",
+              "dataset_id": "dataset:0001",
+              "dataset_filename": "datalens_hr_benchmark.csv",
+              "semantic_concept": null,
+              "analysis_kind": "quantitative"
+            },
+            {
+              "role": "time",
+              "column": "snapshot_date",
+              "dataset_id": "dataset:0001",
+              "dataset_filename": "datalens_hr_benchmark.csv",
+              "semantic_concept": null,
+              "analysis_kind": "temporal"
+            }
+          ],
+          "aggregation": {
+            "function": "median",
+            "source_role": "value",
+            "group_by_roles": [
+              "time"
+            ],
+            "output_name": "planned_metric"
+          },
+          "ranking": null,
+          "window": null,
+          "filters": [],
+          "joins": [],
+          "derived_variables": [],
+          "required_operations": [
+            "Validate AI-proposed analytical plan against the deterministic dataset catalog.",
+            "Execute only through a deterministic time_series tool."
+          ],
+          "provenance": null,
+          "reasons": [
+            "Le LLM local a proposé la famille analytique et les rôles de colonnes.",
+            "Python a normalisé le protocole du planner pour `time_series` : l'unique colonne quantitative placée dans un rôle générique a été remappée vers value_column. value=salary.",
+            "Python a supprimé des rôles de protocole non pertinents pour `time_series` : y_column. Le contrat canonique conserve uniquement time/value.",
+            "Python a vérifié dataset_id, noms de colonnes, types analytiques et invariants du contrat avant promotion vers `validated`."
+          ],
+          "blockers": [],
+          "planner_confidence": 0.95
+        },
+        "errors": [],
+        "warnings": [],
+        "normalizations": [
+          "Python a normalisé le protocole du planner pour `time_series` : l'unique colonne quantitative placée dans un rôle générique a été remappée vers value_column. value=salary.",
+          "Python a supprimé des rôles de protocole non pertinents pour `time_series` : y_column. Le contrat canonique conserve uniquement time/value."
+        ]
+      }
+    ],
+    "attempt_count": 1,
+    "retry_count": 0,
+    "retry_triggered": false,
+    "retry_feedback": [],
+    "normalization_count": 2,
+    "normalization_applied": true,
+    "timing": {
+      "prompt_construction_ms": 0.012199999218864832,
+      "model_inference_ms": 3933.171699999548,
+      "structured_parse_ms": 0.030499999411404133,
+      "python_validation_ms": 0.3391999998711981,
+      "retry_feedback_ms": 0.0,
+      "total_ms": 3933.562499999425,
+      "attempts": [
+        {
+          "attempt_index": 1,
+          "prompt_construction_ms": 0.012199999218864832,
+          "model_inference_ms": 3933.171699999548,
+          "structured_parse_ms": 0.030499999411404133,
+          "python_validation_ms": 0.3391999998711981,
+          "total_ms": 3933.5535999980493
+        }
+      ]
+    },
+    "planner_rule_version": "ai_analytical_planner_v0.15"
+  },
+  "planner_model": "gemma3:4b",
+  "tool_model": "qwen2.5:1.5b-instruct",
+  "supported_native_families": [
+    "categorical_association",
+    "distribution",
+    "group_comparison",
+    "quantitative_association",
+    "time_series"
+  ],
+  "validated_contract_count": 1,
+  "pipeline_item_count": 1,
+  "executed_count": 1,
+  "not_supported_count": 0,
+  "rejected_count": 0,
+  "items": [
+    {
+      "contract_id": "ai:51d5b45fee50241d:01",
+      "family": "time_series",
+      "pipeline_status": "executed",
+      "native_tool": {
+        "status": "ready",
+        "model": "qwen2.5:1.5b-instruct",
+        "contract_id": "ai:51d5b45fee50241d:01",
+        "contract_family": "time_series",
+        "available_tools": [
+          "run_categorical_association",
+          "run_distribution",
+          "run_group_comparison",
+          "run_quantitative_association",
+          "run_time_series"
+        ],
+        "expected_tool": "run_time_series",
+        "tool_call_received": true,
+        "requested_tool": "run_time_series",
+        "requested_arguments": {
+          "time_column": "snapshot_date",
+          "value_column": "salary",
+          "dataset_id": "dataset:0001"
+        },
+        "validation_status": "validated",
+        "validation_errors": [],
+        "attempt_count": 1,
+        "retry_count": 0,
+        "attempts": [
+          {
+            "attempt_index": 1,
+            "prompt_variant": "standard",
+            "tool_call_count": 1,
+            "assistant_content": "",
+            "selected_tool_name": "run_time_series",
+            "errors": [],
+            "prompt_construction_ms": 0.01300000076298602,
+            "model_inference_ms": 311.4090999997643,
+            "response_parse_ms": 0.008600000001024455,
+            "total_ms": 311.4186000002519
+          }
+        ],
+        "execution": {
+          "call_index": 1,
+          "contract_id": "ai:51d5b45fee50241d:01",
+          "family": "time_series",
+          "tool_name": "run_time_series",
+          "selection_source": "validated_contract_family",
+          "execution_status": "executed",
+          "dataset_id": "dataset:0001",
+          "dataset_filename": "datalens_hr_benchmark.csv",
+          "arguments": {
+            "family": "time_series",
+            "dataset_ids": [
+              "dataset:0001"
+            ],
+            "analytical_grain": "snapshot_date",
+            "variables": {
+              "value": "salary",
+              "time": "snapshot_date"
+            },
+            "aggregation": {
+              "function": "median",
+              "source_role": "value",
+              "group_by_roles": [
+                "time"
+              ],
+              "output_name": "planned_metric"
+            }
+          },
+          "result": {
+            "analysis_id": "ai_tool:ai:51d5b45fee50241d:01",
+            "dataset_id": "dataset:0001",
+            "dataset_filename": "datalens_hr_benchmark.csv",
+            "title": "Analyser l'évolution de la médiane de salary selon snapshot_date.",
+            "family": "time_series",
+            "planned_readiness": "executable_now",
+            "execution_status": "complete",
+            "chart_type": "line_band",
+            "summary": [
+              "12 période(s) distincte(s) ont été agrégées par médiane pour salary.",
+              "Les quartiles Q1 et Q3 sont calculés pour chaque période afin de représenter la dispersion autour de la médiane."
+            ],
+            "metrics": {
+              "time_column": "snapshot_date",
+              "value_column": "salary",
+              "aggregation_function": "median",
+              "aggregation_group_role": "time",
+              "source_observation_count": 900,
+              "valid_observations": 900,
+              "period_count": 12,
+              "chart_point_count": 12,
+              "time_start": "2025-01-28T00:00:00",
+              "time_end": "2025-12-28T00:00:00",
+              "period_median_min": 54200.0,
+              "period_median_max": 65550.0
+            },
+            "chart_data": [
+              {
+                "period": "2025-01-28T00:00:00",
+                "median": 56550.0,
+                "q1": 48475.0,
+                "q3": 69100.0,
+                "count": 90
+              },
+              {
+                "period": "2025-02-28T00:00:00",
+                "median": 57100.0,
+                "q1": 47700.0,
+                "q3": 69050.0,
+                "count": 75
+              },
+              {
+                "period": "2025-03-28T00:00:00",
+                "median": 58400.0,
+                "q1": 49600.0,
+                "q3": 72000.0,
+                "count": 57
+              },
+              {
+                "period": "2025-04-28T00:00:00",
+                "median": 55250.0,
+                "q1": 47075.0,
+                "q3": 71900.0,
+                "count": 78
+              },
+              {
+                "period": "2025-05-28T00:00:00",
+                "median": 65550.0,
+                "q1": 52850.0,
+                "q3": 78425.0,
+                "count": 66
+              },
+              {
+                "period": "2025-06-28T00:00:00",
+                "median": 57500.0,
+                "q1": 47550.0,
+                "q3": 69650.0,
+                "count": 78
+              },
+              {
+                "period": "2025-07-28T00:00:00",
+                "median": 62250.0,
+                "q1": 49825.0,
+                "q3": 72950.0,
+                "count": 80
+              },
+              {
+                "period": "2025-08-28T00:00:00",
+                "median": 55450.0,
+                "q1": 49050.0,
+                "q3": 69475.0,
+                "count": 74
+              },
+              {
+                "period": "2025-09-28T00:00:00",
+                "median": 54200.0,
+                "q1": 45100.0,
+                "q3": 65800.0,
+                "count": 69
+              },
+              {
+                "period": "2025-10-28T00:00:00",
+                "median": 57900.0,
+                "q1": 46600.0,
+                "q3": 70700.0,
+                "count": 85
+              },
+              {
+                "period": "2025-11-28T00:00:00",
+                "median": 62700.0,
+                "q1": 48475.0,
+                "q3": 74700.0,
+                "count": 74
+              },
+              {
+                "period": "2025-12-28T00:00:00",
+                "median": 55750.0,
+                "q1": 49800.0,
+                "q3": 68950.0,
+                "count": 74
+              }
+            ],
+            "statistical_decision": null,
+            "statistical_result": null,
+            "visualization": null,
+            "warnings": [],
+            "limitations": [
+              "This AI-native time-series execution is descriptive. It does not fit a forecasting, causal or inferential time-series model.",
+              "The current native scope executes the validated median aggregation and adds Q1/Q3 as deterministic descriptive dispersion summaries."
+            ],
+            "execution_rule_version": "ai_tool_time_series_median_v0.1"
+          },
+          "errors": [],
+          "warnings": [
+            "The LLM did not execute Python. It produced the analytical intent; Python selected and ran a whitelisted deterministic tool."
+          ]
+        },
+        "timing": {
+          "prompt_construction_ms": 0.01300000076298602,
+          "model_inference_ms": 311.4090999997643,
+          "response_parse_ms": 0.008600000001024455,
+          "python_validation_ms": 0.023300000066228677,
+          "deterministic_execution_ms": 8.10170000022481,
+          "total_ms": 319.5808999998917
+        },
+        "notes": [
+          "The local tool model selected one function from the native DataLens tool catalog.",
+          "Python verified that the selected tool matched the validated analytical family and that every argument exactly matched the validated contract.",
+          "A missing tool call may trigger one stricter retry; ordinary assistant prose is never treated as executable.",
+          "The deterministic DataLens executor performed the statistical calculation."
+        ],
+        "native_tool_rule_version": "native_tool_calling_v0.7"
+      },
+      "errors": [],
+      "warnings": [
+        "The planner model and native tool model had separate roles. Python validated both boundaries before deterministic execution."
+      ]
+    }
+  ],
+  "timing": {
+    "tool_prompt_construction_ms": 0.01300000076298602,
+    "tool_model_inference_ms": 311.4090999997643,
+    "tool_response_parse_ms": 0.008600000001024455,
+    "tool_python_validation_ms": 0.023300000066228677,
+    "deterministic_execution_ms": 8.10170000022481,
+    "total_ms": 319.6084000001065
+  },
+  "notes": [
+    "Stage 1: Gemma proposes a structured analytical contract from the user objective and dataset catalog.",
+    "Stage 2: Python validates dataset ids, column names, analytical types and contract invariants.",
+    "Stage 3: Qwen selects one matching function from the native DataLens tool catalog.",
+    "Stage 4: Python verifies the selected tool against the validated family and checks every argument.",
+    "Stage 5: the deterministic DataLens executor computes the result."
+  ],
+  "pipeline_rule_version": "ai_native_pipeline_v0.4"
+}

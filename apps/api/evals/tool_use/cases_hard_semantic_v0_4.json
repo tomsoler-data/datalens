@@ -1,0 +1,373 @@
+[
+  {
+    "case_id": "hard_exact_revenue_distribution",
+    "objective": "Analyser la distribution de revenue.",
+    "fixture": "fixtures/semantic_collision_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "distribution",
+      "acceptable_bindings": [
+        {
+          "value": "revenue"
+        }
+      ],
+      "tool": "run_distribution",
+      "should_execute": true,
+      "chart_type": "histogram",
+      "expected_dataset_filenames": [
+        "semantic_collision_benchmark.csv"
+      ]
+    }
+  },
+  {
+    "case_id": "hard_exact_net_revenue_distribution",
+    "objective": "Analyser la distribution de net_revenue.",
+    "fixture": "fixtures/semantic_collision_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "distribution",
+      "acceptable_bindings": [
+        {
+          "value": "net_revenue"
+        }
+      ],
+      "tool": "run_distribution",
+      "should_execute": true,
+      "chart_type": "histogram",
+      "expected_dataset_filenames": [
+        "semantic_collision_benchmark.csv"
+      ]
+    }
+  },
+  {
+    "case_id": "hard_exact_profit_margin_distribution",
+    "objective": "Show me the distribution of profit_margin.",
+    "fixture": "fixtures/semantic_collision_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "distribution",
+      "acceptable_bindings": [
+        {
+          "value": "profit_margin"
+        }
+      ],
+      "tool": "run_distribution",
+      "should_execute": true,
+      "chart_type": "histogram",
+      "expected_dataset_filenames": [
+        "semantic_collision_benchmark.csv"
+      ]
+    }
+  },
+  {
+    "case_id": "hard_missing_margin_no_substitution",
+    "objective": "Show me the distribution of margin.",
+    "fixture": "fixtures/semantic_collision_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "blocked",
+        "rejected"
+      ],
+      "family": "distribution",
+      "acceptable_families": [
+        "distribution",
+        "unresolved"
+      ],
+      "acceptable_bindings": [],
+      "tool": null,
+      "should_execute": false,
+      "forbidden_columns": [
+        "profit_margin",
+        "gross_profit",
+        "revenue",
+        "net_revenue"
+      ],
+      "must_have_fidelity_guard": true
+    }
+  },
+  {
+    "case_id": "hard_time_order_date_exact",
+    "objective": "Track median revenue over order_date.",
+    "fixture": "fixtures/semantic_collision_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "time_series",
+      "acceptable_bindings": [
+        {
+          "time": "order_date",
+          "value": "revenue"
+        }
+      ],
+      "tool": "run_time_series",
+      "should_execute": true,
+      "chart_type": "line_band",
+      "aggregation_function": "median",
+      "expected_dataset_filenames": [
+        "semantic_collision_benchmark.csv"
+      ]
+    }
+  },
+  {
+    "case_id": "hard_time_fiscal_period_exact",
+    "objective": "Analyser l'évolution de la médiane de revenue selon fiscal_period.",
+    "fixture": "fixtures/semantic_collision_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "time_series",
+      "acceptable_bindings": [
+        {
+          "time": "fiscal_period",
+          "value": "revenue"
+        }
+      ],
+      "tool": "run_time_series",
+      "should_execute": true,
+      "chart_type": "line_band",
+      "aggregation_function": "median",
+      "expected_dataset_filenames": [
+        "semantic_collision_benchmark.csv"
+      ]
+    }
+  },
+  {
+    "case_id": "hard_group_gross_profit_region",
+    "objective": "Comparer gross_profit selon region.",
+    "fixture": "fixtures/semantic_collision_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "group_comparison",
+      "acceptable_bindings": [
+        {
+          "group": "region",
+          "value": "gross_profit"
+        }
+      ],
+      "tool": "run_group_comparison",
+      "should_execute": true,
+      "chart_type": "boxplot",
+      "expected_dataset_filenames": [
+        "semantic_collision_benchmark.csv"
+      ]
+    }
+  },
+  {
+    "case_id": "hard_categorical_returned_channel",
+    "objective": "Does returned depend on channel?",
+    "fixture": "fixtures/semantic_collision_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "categorical_association",
+      "acceptable_bindings": [
+        {
+          "x": "returned",
+          "y": "channel"
+        },
+        {
+          "x": "channel",
+          "y": "returned"
+        }
+      ],
+      "tool": "run_categorical_association",
+      "should_execute": true,
+      "chart_type": "heatmap",
+      "expected_dataset_filenames": [
+        "semantic_collision_benchmark.csv"
+      ]
+    }
+  },
+  {
+    "case_id": "hard_mixed_revenue_region",
+    "objective": "Est-ce que revenue diffère selon region ?",
+    "fixture": "fixtures/semantic_collision_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "group_comparison",
+      "acceptable_bindings": [
+        {
+          "group": "region",
+          "value": "revenue"
+        }
+      ],
+      "tool": "run_group_comparison",
+      "should_execute": true,
+      "chart_type": "boxplot",
+      "expected_dataset_filenames": [
+        "semantic_collision_benchmark.csv"
+      ]
+    }
+  },
+  {
+    "case_id": "hard_unsupported_categorical_distribution",
+    "objective": "Analyser la distribution de region.",
+    "fixture": "fixtures/semantic_collision_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "blocked",
+        "rejected",
+        "ambiguous"
+      ],
+      "family": "distribution",
+      "acceptable_families": [
+        "distribution",
+        "unresolved"
+      ],
+      "acceptable_bindings": [],
+      "tool": null,
+      "should_execute": false
+    }
+  },
+  {
+    "case_id": "hard_ambiguous_performance_region",
+    "objective": "Analyse la performance par region.",
+    "fixture": "fixtures/semantic_collision_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "ambiguous",
+        "blocked",
+        "rejected"
+      ],
+      "family": "unresolved",
+      "acceptable_families": [
+        "unresolved",
+        "group_comparison"
+      ],
+      "acceptable_bindings": [],
+      "tool": null,
+      "should_execute": false
+    }
+  },
+  {
+    "case_id": "hard_ambiguous_results_over_time",
+    "objective": "Montre-moi l'évolution des résultats.",
+    "fixture": "fixtures/semantic_collision_benchmark.csv",
+    "expected": {
+      "acceptable_planner_statuses": [
+        "ambiguous",
+        "blocked",
+        "rejected"
+      ],
+      "family": "unresolved",
+      "acceptable_families": [
+        "unresolved",
+        "time_series"
+      ],
+      "acceptable_bindings": [],
+      "tool": null,
+      "should_execute": false
+    }
+  },
+  {
+    "case_id": "hard_multi_dataset_online_explicit",
+    "objective": "Dans le dataset online_sales.csv, analyse la distribution de revenue.",
+    "fixtures": [
+      "fixtures/online_sales.csv",
+      "fixtures/retail_sales.csv"
+    ],
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "distribution",
+      "acceptable_bindings": [
+        {
+          "value": "revenue"
+        }
+      ],
+      "tool": "run_distribution",
+      "should_execute": true,
+      "chart_type": "histogram",
+      "expected_dataset_filenames": [
+        "online_sales.csv"
+      ]
+    }
+  },
+  {
+    "case_id": "hard_multi_dataset_retail_explicit",
+    "objective": "In dataset retail_sales.csv, track median revenue over order_date.",
+    "fixtures": [
+      "fixtures/online_sales.csv",
+      "fixtures/retail_sales.csv"
+    ],
+    "expected": {
+      "acceptable_planner_statuses": [
+        "validated"
+      ],
+      "family": "time_series",
+      "acceptable_bindings": [
+        {
+          "time": "order_date",
+          "value": "revenue"
+        }
+      ],
+      "tool": "run_time_series",
+      "should_execute": true,
+      "chart_type": "line_band",
+      "aggregation_function": "median",
+      "expected_dataset_filenames": [
+        "retail_sales.csv"
+      ]
+    }
+  },
+  {
+    "case_id": "hard_multi_dataset_unspecified",
+    "objective": "Analyser la distribution de revenue.",
+    "fixtures": [
+      "fixtures/online_sales.csv",
+      "fixtures/retail_sales.csv"
+    ],
+    "expected": {
+      "acceptable_planner_statuses": [
+        "ambiguous",
+        "blocked",
+        "rejected"
+      ],
+      "family": "distribution",
+      "acceptable_families": [
+        "distribution",
+        "unresolved"
+      ],
+      "acceptable_bindings": [],
+      "tool": null,
+      "should_execute": false
+    }
+  },
+  {
+    "case_id": "hard_multi_dataset_cross_compare",
+    "objective": "Compare revenue between online_sales.csv and retail_sales.csv.",
+    "fixtures": [
+      "fixtures/online_sales.csv",
+      "fixtures/retail_sales.csv"
+    ],
+    "expected": {
+      "acceptable_planner_statuses": [
+        "ambiguous",
+        "blocked",
+        "rejected"
+      ],
+      "family": "unresolved",
+      "acceptable_families": [
+        "unresolved",
+        "group_comparison"
+      ],
+      "acceptable_bindings": [],
+      "tool": null,
+      "should_execute": false
+    }
+  }
+]

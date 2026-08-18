@@ -1,0 +1,70 @@
+{
+  "baseline_id": "tool_use_hard_semantic_v0.4",
+  "status": "frozen",
+  "run_id": "20260817T121534_149114",
+  "scope": {
+    "domains": [
+      "sales",
+      "multi_dataset_sales"
+    ],
+    "case_count": 16,
+    "repeat_count": 3,
+    "run_count": 48,
+    "focus": [
+      "semantic column collisions",
+      "exact-column fidelity",
+      "temporal text detection",
+      "ambiguity abstention",
+      "multi-dataset explicit selection",
+      "multi-dataset unspecified ambiguity",
+      "unsupported cross-dataset comparison",
+      "guardrail abstention"
+    ],
+    "native_families": [
+      "quantitative_association",
+      "categorical_association",
+      "group_comparison",
+      "distribution",
+      "time_series"
+    ]
+  },
+  "versions": {
+    "planner_rule_version": "ai_analytical_planner_v0.14",
+    "ingestion_analysis_kind_rule_version": "ingestion_analysis_kind_v0.2",
+    "contract_version": "analytical_contract_v0.2",
+    "tool_orchestrator_rule_version": "ai_tool_orchestrator_v0.2",
+    "native_tool_rule_version": "native_tool_calling_v0.6",
+    "pipeline_rule_version": "ai_native_pipeline_v0.2",
+    "eval_runner_version": "tool_use_eval_runner_v0.8"
+  },
+  "metrics": {
+    "overall_pass_rate": 1.0,
+    "planner_family_accuracy": 1.0,
+    "planner_binding_accuracy": 1.0,
+    "planner_dataset_selection_accuracy": 1.0,
+    "planner_first_pass_rate": 0.8125,
+    "planner_first_pass_rate_executable": 1.0,
+    "planner_retry_rate": 0.1875,
+    "planner_retry_recovery_rate": 1.0,
+    "planner_execution_retry_rate": 0.0,
+    "planner_guardrail_retry_rate": 0.5,
+    "planner_unresolved_retry_count": 0,
+    "planner_normalization_rate": 0.75,
+    "native_tool_selection_accuracy": 1.0,
+    "native_argument_accuracy": 1.0,
+    "native_first_pass_rate": 1.0,
+    "native_retry_rate": 0.0,
+    "execution_success_rate": 1.0,
+    "chart_type_accuracy": 1.0,
+    "guardrail_accuracy": 1.0,
+    "latency_seconds_median": 4.01
+  },
+  "interpretation": {
+    "executable_path": "All executable hard semantic cases were planned on the first pass, routed to the correct deterministic native tool with correct arguments, and executed successfully across three repetitions.",
+    "dataset_selection": "Explicit multi-dataset requests selected the intended dataset, while an unspecified compatible multi-dataset request abstained as ambiguous.",
+    "semantic_fidelity": "Exact identifiers such as revenue, net_revenue and profit_margin remained distinct; absent margin was not silently substituted.",
+    "ambiguity": "Under-specified requests such as performance by region did not trigger an invented metric; unsupported or ambiguous requests abstained safely.",
+    "temporal_typing": "String-based fiscal_period values were classified as temporal at ingestion using conservative name-plus-parseability rules.",
+    "scope_warning": "This is a controlled synthetic benchmark. It is strong evidence for the covered scenarios, not a general reliability guarantee."
+  }
+}

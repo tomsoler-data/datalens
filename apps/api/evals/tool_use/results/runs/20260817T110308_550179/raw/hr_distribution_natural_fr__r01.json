@@ -1,0 +1,334 @@
+{
+  "status": "ready",
+  "planner": {
+    "status": "ready",
+    "objective": "À quoi ressemble la répartition de salary ?",
+    "model": "gemma3:4b",
+    "proposal_count": 1,
+    "validated_count": 1,
+    "blocked_count": 0,
+    "ambiguous_count": 0,
+    "rejected_count": 0,
+    "items": [
+      {
+        "proposal_index": 1,
+        "validation_status": "validated",
+        "raw_proposal": {
+          "decision": "propose",
+          "title": "Analyser la distribution de salary",
+          "family": "distribution",
+          "dataset_id": "dataset:0001",
+          "analytical_grain": null,
+          "x_column": null,
+          "y_column": "salary",
+          "group_column": null,
+          "value_column": "salary",
+          "time_column": null,
+          "dimension_column": null,
+          "entity_column": null,
+          "aggregation_function": "none",
+          "ranking_order": "none",
+          "ranking_limit": null,
+          "window_operation": "none",
+          "window_size": null,
+          "blockers": [],
+          "reasons": [],
+          "confidence": 0.95
+        },
+        "proposal": {
+          "decision": "propose",
+          "title": "Analyser la distribution de salary",
+          "family": "distribution",
+          "dataset_id": "dataset:0001",
+          "analytical_grain": null,
+          "x_column": null,
+          "y_column": null,
+          "group_column": null,
+          "value_column": "salary",
+          "time_column": null,
+          "dimension_column": null,
+          "entity_column": null,
+          "aggregation_function": "none",
+          "ranking_order": "none",
+          "ranking_limit": null,
+          "window_operation": "none",
+          "window_size": null,
+          "blockers": [],
+          "reasons": [],
+          "confidence": 0.95
+        },
+        "contract": {
+          "contract_id": "ai:6a1afb72ade55179:01",
+          "contract_version": "analytical_contract_v0.2",
+          "origin": "ai_planner",
+          "status": "validated",
+          "title": "Analyser la distribution de salary",
+          "request_text": "À quoi ressemble la répartition de salary ?",
+          "family": "distribution",
+          "required_dataset_ids": [
+            "dataset:0001"
+          ],
+          "required_dataset_filenames": [
+            "tool_use_benchmark.csv"
+          ],
+          "analytical_grain": null,
+          "bindings": [
+            {
+              "role": "value",
+              "column": "salary",
+              "dataset_id": "dataset:0001",
+              "dataset_filename": "tool_use_benchmark.csv",
+              "semantic_concept": null,
+              "analysis_kind": "quantitative"
+            }
+          ],
+          "aggregation": null,
+          "ranking": null,
+          "window": null,
+          "filters": [],
+          "joins": [],
+          "derived_variables": [],
+          "required_operations": [
+            "Validate AI-proposed analytical plan against the deterministic dataset catalog.",
+            "Execute only through a deterministic distribution tool."
+          ],
+          "provenance": null,
+          "reasons": [
+            "Le LLM local a proposé la famille analytique et les rôles de colonnes.",
+            "Python a supprimé des rôles de protocole non pertinents pour `distribution` : y_column. Le contrat canonique conserve uniquement value.",
+            "Python a vérifié dataset_id, noms de colonnes, types analytiques et invariants du contrat avant promotion vers `validated`."
+          ],
+          "blockers": [],
+          "planner_confidence": 0.95
+        },
+        "errors": [],
+        "warnings": [],
+        "normalizations": [
+          "Python a supprimé des rôles de protocole non pertinents pour `distribution` : y_column. Le contrat canonique conserve uniquement value."
+        ]
+      }
+    ],
+    "attempt_count": 1,
+    "retry_count": 0,
+    "retry_triggered": false,
+    "retry_feedback": [],
+    "normalization_count": 1,
+    "normalization_applied": true,
+    "planner_rule_version": "ai_analytical_planner_v0.12"
+  },
+  "planner_model": "gemma3:4b",
+  "tool_model": "qwen2.5:1.5b-instruct",
+  "supported_native_families": [
+    "categorical_association",
+    "distribution",
+    "group_comparison",
+    "quantitative_association",
+    "time_series"
+  ],
+  "validated_contract_count": 1,
+  "pipeline_item_count": 1,
+  "executed_count": 1,
+  "not_supported_count": 0,
+  "rejected_count": 0,
+  "items": [
+    {
+      "contract_id": "ai:6a1afb72ade55179:01",
+      "family": "distribution",
+      "pipeline_status": "executed",
+      "native_tool": {
+        "status": "ready",
+        "model": "qwen2.5:1.5b-instruct",
+        "contract_id": "ai:6a1afb72ade55179:01",
+        "contract_family": "distribution",
+        "available_tools": [
+          "run_categorical_association",
+          "run_distribution",
+          "run_group_comparison",
+          "run_quantitative_association",
+          "run_time_series"
+        ],
+        "expected_tool": "run_distribution",
+        "tool_call_received": true,
+        "requested_tool": "run_distribution",
+        "requested_arguments": {
+          "dataset_id": "dataset:0001",
+          "value_column": "salary"
+        },
+        "validation_status": "validated",
+        "validation_errors": [],
+        "attempt_count": 1,
+        "retry_count": 0,
+        "attempts": [
+          {
+            "attempt_index": 1,
+            "prompt_variant": "standard",
+            "tool_call_count": 1,
+            "assistant_content": "",
+            "selected_tool_name": "run_distribution",
+            "errors": []
+          }
+        ],
+        "execution": {
+          "call_index": 1,
+          "contract_id": "ai:6a1afb72ade55179:01",
+          "family": "distribution",
+          "tool_name": "run_distribution",
+          "selection_source": "validated_contract_family",
+          "execution_status": "executed",
+          "dataset_id": "dataset:0001",
+          "dataset_filename": "tool_use_benchmark.csv",
+          "arguments": {
+            "family": "distribution",
+            "dataset_ids": [
+              "dataset:0001"
+            ],
+            "analytical_grain": null,
+            "variables": {
+              "value": "salary"
+            },
+            "aggregation": null
+          },
+          "result": {
+            "analysis_id": "ai_tool:ai:6a1afb72ade55179:01",
+            "dataset_id": "dataset:0001",
+            "dataset_filename": "tool_use_benchmark.csv",
+            "title": "Analyser la distribution de salary",
+            "family": "distribution",
+            "planned_readiness": "executable_now",
+            "execution_status": "complete",
+            "chart_type": "histogram",
+            "summary": [
+              "240 valeur(s) valides ont été analysées pour salary.",
+              "La médiane est 7.459e+04 et l'intervalle interquartile s'étend de 6.984e+04 à 7.899e+04.",
+              "0 observation(s) se situent en dehors des bornes IQR 1,5."
+            ],
+            "metrics": {
+              "column": "salary",
+              "count": 240,
+              "missing_count": 0,
+              "mean": 74437.16666666667,
+              "median": 74590.0,
+              "std": 6254.4925688885205,
+              "min": 59105.0,
+              "q1": 69837.5,
+              "q3": 78986.25,
+              "max": 87395.0,
+              "iqr": 9148.75,
+              "outlier_count_iqr": 0,
+              "outlier_ratio_iqr": 0.0,
+              "skewness": -0.15886723420531856
+            },
+            "chart_data": [
+              {
+                "bin_start": 59105.0,
+                "bin_end": 60991.0,
+                "count": 3
+              },
+              {
+                "bin_start": 60991.0,
+                "bin_end": 62877.0,
+                "count": 5
+              },
+              {
+                "bin_start": 62877.0,
+                "bin_end": 64763.0,
+                "count": 10
+              },
+              {
+                "bin_start": 64763.0,
+                "bin_end": 66649.0,
+                "count": 11
+              },
+              {
+                "bin_start": 66649.0,
+                "bin_end": 68535.0,
+                "count": 16
+              },
+              {
+                "bin_start": 68535.0,
+                "bin_end": 70421.0,
+                "count": 21
+              },
+              {
+                "bin_start": 70421.0,
+                "bin_end": 72307.0,
+                "count": 24
+              },
+              {
+                "bin_start": 72307.0,
+                "bin_end": 74193.0,
+                "count": 22
+              },
+              {
+                "bin_start": 74193.0,
+                "bin_end": 76079.0,
+                "count": 28
+              },
+              {
+                "bin_start": 76079.0,
+                "bin_end": 77965.0,
+                "count": 25
+              },
+              {
+                "bin_start": 77965.0,
+                "bin_end": 79851.0,
+                "count": 25
+              },
+              {
+                "bin_start": 79851.0,
+                "bin_end": 81737.0,
+                "count": 18
+              },
+              {
+                "bin_start": 81737.0,
+                "bin_end": 83623.0,
+                "count": 16
+              },
+              {
+                "bin_start": 83623.0,
+                "bin_end": 85509.0,
+                "count": 10
+              },
+              {
+                "bin_start": 85509.0,
+                "bin_end": 87395.0,
+                "count": 6
+              }
+            ],
+            "statistical_decision": null,
+            "statistical_result": null,
+            "visualization": null,
+            "warnings": [],
+            "limitations": [
+              "AI tool orchestration v0.2 supports only single-dataset contracts and does not allow LLM-generated joins, derived variables or arbitrary Python code."
+            ],
+            "execution_rule_version": "analysis_executor_v0.1"
+          },
+          "errors": [],
+          "warnings": [
+            "The LLM did not execute Python. It produced the analytical intent; Python selected and ran a whitelisted deterministic tool."
+          ]
+        },
+        "notes": [
+          "The local tool model selected one function from the native DataLens tool catalog.",
+          "Python verified that the selected tool matched the validated analytical family and that every argument exactly matched the validated contract.",
+          "A missing tool call may trigger one stricter retry; ordinary assistant prose is never treated as executable.",
+          "The deterministic DataLens executor performed the statistical calculation."
+        ],
+        "native_tool_rule_version": "native_tool_calling_v0.6"
+      },
+      "errors": [],
+      "warnings": [
+        "The planner model and native tool model had separate roles. Python validated both boundaries before deterministic execution."
+      ]
+    }
+  ],
+  "notes": [
+    "Stage 1: Gemma proposes a structured analytical contract from the user objective and dataset catalog.",
+    "Stage 2: Python validates dataset ids, column names, analytical types and contract invariants.",
+    "Stage 3: Qwen selects one matching function from the native DataLens tool catalog.",
+    "Stage 4: Python verifies the selected tool against the validated family and checks every argument.",
+    "Stage 5: the deterministic DataLens executor computes the result."
+  ],
+  "pipeline_rule_version": "ai_native_pipeline_v0.2"
+}

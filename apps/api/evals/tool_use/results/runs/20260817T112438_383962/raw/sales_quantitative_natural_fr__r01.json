@@ -1,0 +1,1496 @@
+{
+  "status": "ready",
+  "planner": {
+    "status": "ready",
+    "objective": "Quand marketing_spend augmente, est-ce que revenue augmente aussi ?",
+    "model": "gemma3:4b",
+    "proposal_count": 1,
+    "validated_count": 1,
+    "blocked_count": 0,
+    "ambiguous_count": 0,
+    "rejected_count": 0,
+    "items": [
+      {
+        "proposal_index": 1,
+        "validation_status": "validated",
+        "raw_proposal": {
+          "decision": "propose",
+          "title": "quantitative_association",
+          "family": "quantitative_association",
+          "dataset_id": "dataset:0001",
+          "analytical_grain": null,
+          "x_column": "marketing_spend",
+          "y_column": "revenue",
+          "group_column": null,
+          "value_column": null,
+          "time_column": null,
+          "dimension_column": null,
+          "entity_column": null,
+          "aggregation_function": "none",
+          "ranking_order": "none",
+          "ranking_limit": null,
+          "window_operation": "none",
+          "window_size": null,
+          "blockers": [],
+          "reasons": [],
+          "confidence": 0.95
+        },
+        "proposal": {
+          "decision": "propose",
+          "title": "quantitative_association",
+          "family": "quantitative_association",
+          "dataset_id": "dataset:0001",
+          "analytical_grain": null,
+          "x_column": "marketing_spend",
+          "y_column": "revenue",
+          "group_column": null,
+          "value_column": null,
+          "time_column": null,
+          "dimension_column": null,
+          "entity_column": null,
+          "aggregation_function": "none",
+          "ranking_order": "none",
+          "ranking_limit": null,
+          "window_operation": "none",
+          "window_size": null,
+          "blockers": [],
+          "reasons": [],
+          "confidence": 0.95
+        },
+        "contract": {
+          "contract_id": "ai:0b73e1b5b6c12c40:01",
+          "contract_version": "analytical_contract_v0.2",
+          "origin": "ai_planner",
+          "status": "validated",
+          "title": "quantitative_association",
+          "request_text": "Quand marketing_spend augmente, est-ce que revenue augmente aussi ?",
+          "family": "quantitative_association",
+          "required_dataset_ids": [
+            "dataset:0001"
+          ],
+          "required_dataset_filenames": [
+            "tool_use_sales_benchmark.csv"
+          ],
+          "analytical_grain": null,
+          "bindings": [
+            {
+              "role": "x",
+              "column": "marketing_spend",
+              "dataset_id": "dataset:0001",
+              "dataset_filename": "tool_use_sales_benchmark.csv",
+              "semantic_concept": null,
+              "analysis_kind": "quantitative"
+            },
+            {
+              "role": "y",
+              "column": "revenue",
+              "dataset_id": "dataset:0001",
+              "dataset_filename": "tool_use_sales_benchmark.csv",
+              "semantic_concept": null,
+              "analysis_kind": "quantitative"
+            }
+          ],
+          "aggregation": null,
+          "ranking": null,
+          "window": null,
+          "filters": [],
+          "joins": [],
+          "derived_variables": [],
+          "required_operations": [
+            "Validate AI-proposed analytical plan against the deterministic dataset catalog.",
+            "Execute only through a deterministic quantitative_association tool."
+          ],
+          "provenance": null,
+          "reasons": [
+            "Le LLM local a proposé la famille analytique et les rôles de colonnes.",
+            "Python a vérifié dataset_id, noms de colonnes, types analytiques et invariants du contrat avant promotion vers `validated`."
+          ],
+          "blockers": [],
+          "planner_confidence": 0.95
+        },
+        "errors": [],
+        "warnings": [],
+        "normalizations": []
+      }
+    ],
+    "attempt_count": 1,
+    "retry_count": 0,
+    "retry_triggered": false,
+    "retry_feedback": [],
+    "normalization_count": 0,
+    "normalization_applied": false,
+    "planner_rule_version": "ai_analytical_planner_v0.13"
+  },
+  "planner_model": "gemma3:4b",
+  "tool_model": "qwen2.5:1.5b-instruct",
+  "supported_native_families": [
+    "categorical_association",
+    "distribution",
+    "group_comparison",
+    "quantitative_association",
+    "time_series"
+  ],
+  "validated_contract_count": 1,
+  "pipeline_item_count": 1,
+  "executed_count": 1,
+  "not_supported_count": 0,
+  "rejected_count": 0,
+  "items": [
+    {
+      "contract_id": "ai:0b73e1b5b6c12c40:01",
+      "family": "quantitative_association",
+      "pipeline_status": "executed",
+      "native_tool": {
+        "status": "ready",
+        "model": "qwen2.5:1.5b-instruct",
+        "contract_id": "ai:0b73e1b5b6c12c40:01",
+        "contract_family": "quantitative_association",
+        "available_tools": [
+          "run_categorical_association",
+          "run_distribution",
+          "run_group_comparison",
+          "run_quantitative_association",
+          "run_time_series"
+        ],
+        "expected_tool": "run_quantitative_association",
+        "tool_call_received": true,
+        "requested_tool": "run_quantitative_association",
+        "requested_arguments": {
+          "dataset_id": "dataset:0001",
+          "x_column": "marketing_spend",
+          "y_column": "revenue"
+        },
+        "validation_status": "validated",
+        "validation_errors": [],
+        "attempt_count": 1,
+        "retry_count": 0,
+        "attempts": [
+          {
+            "attempt_index": 1,
+            "prompt_variant": "standard",
+            "tool_call_count": 1,
+            "assistant_content": "",
+            "selected_tool_name": "run_quantitative_association",
+            "errors": []
+          }
+        ],
+        "execution": {
+          "call_index": 1,
+          "contract_id": "ai:0b73e1b5b6c12c40:01",
+          "family": "quantitative_association",
+          "tool_name": "run_quantitative_association",
+          "selection_source": "validated_contract_family",
+          "execution_status": "executed",
+          "dataset_id": "dataset:0001",
+          "dataset_filename": "tool_use_sales_benchmark.csv",
+          "arguments": {
+            "family": "quantitative_association",
+            "dataset_ids": [
+              "dataset:0001"
+            ],
+            "analytical_grain": null,
+            "variables": {
+              "x": "marketing_spend",
+              "y": "revenue"
+            },
+            "aggregation": null
+          },
+          "result": {
+            "analysis_id": "ai_tool:ai:0b73e1b5b6c12c40:01",
+            "dataset_id": "dataset:0001",
+            "dataset_filename": "tool_use_sales_benchmark.csv",
+            "title": "quantitative_association",
+            "family": "quantitative_association",
+            "planned_readiness": "executable_now",
+            "execution_status": "complete",
+            "chart_type": "scatter",
+            "summary": [
+              "pearson a été sélectionné automatiquement pour étudier marketing_spend et revenue.",
+              "Le coefficient calculé est 0.8609.",
+              "La p-value calculée est 6.495e-86."
+            ],
+            "metrics": {
+              "x_column": "marketing_spend",
+              "y_column": "revenue",
+              "valid_pairs": 288,
+              "test": "pearson",
+              "coefficient": 0.8608794688708987,
+              "p_value": 6.494777566616539e-86,
+              "statistically_significant": true
+            },
+            "chart_data": [
+              {
+                "x": 132.0,
+                "y": 2054.2
+              },
+              {
+                "x": 167.0,
+                "y": 1810.7
+              },
+              {
+                "x": 202.0,
+                "y": 2157.2
+              },
+              {
+                "x": 237.0,
+                "y": 2283.7
+              },
+              {
+                "x": 272.0,
+                "y": 2340.2
+              },
+              {
+                "x": 307.0,
+                "y": 2366.7
+              },
+              {
+                "x": 342.0,
+                "y": 2673.2
+              },
+              {
+                "x": 377.0,
+                "y": 2429.7
+              },
+              {
+                "x": 132.0,
+                "y": 2028.2
+              },
+              {
+                "x": 167.0,
+                "y": 2154.7
+              },
+              {
+                "x": 202.0,
+                "y": 1951.2
+              },
+              {
+                "x": 237.0,
+                "y": 2117.7
+              },
+              {
+                "x": 272.0,
+                "y": 2544.2
+              },
+              {
+                "x": 307.0,
+                "y": 2300.7
+              },
+              {
+                "x": 342.0,
+                "y": 2647.2
+              },
+              {
+                "x": 377.0,
+                "y": 2633.7
+              },
+              {
+                "x": 132.0,
+                "y": 1822.2
+              },
+              {
+                "x": 167.0,
+                "y": 1988.7
+              },
+              {
+                "x": 202.0,
+                "y": 2295.2
+              },
+              {
+                "x": 237.0,
+                "y": 2051.7
+              },
+              {
+                "x": 272.0,
+                "y": 2378.2
+              },
+              {
+                "x": 307.0,
+                "y": 2504.7
+              },
+              {
+                "x": 342.0,
+                "y": 2441.2
+              },
+              {
+                "x": 377.0,
+                "y": 2607.7
+              },
+              {
+                "x": 144.0,
+                "y": 2136.4
+              },
+              {
+                "x": 179.0,
+                "y": 1892.9
+              },
+              {
+                "x": 214.0,
+                "y": 2239.4
+              },
+              {
+                "x": 249.0,
+                "y": 2365.9
+              },
+              {
+                "x": 284.0,
+                "y": 2422.4
+              },
+              {
+                "x": 319.0,
+                "y": 2448.9
+              },
+              {
+                "x": 354.0,
+                "y": 2755.4
+              },
+              {
+                "x": 389.0,
+                "y": 2511.9
+              },
+              {
+                "x": 144.0,
+                "y": 2110.4
+              },
+              {
+                "x": 179.0,
+                "y": 2236.9
+              },
+              {
+                "x": 214.0,
+                "y": 2033.4
+              },
+              {
+                "x": 249.0,
+                "y": 2199.9
+              },
+              {
+                "x": 284.0,
+                "y": 2626.4
+              },
+              {
+                "x": 319.0,
+                "y": 2382.9
+              },
+              {
+                "x": 354.0,
+                "y": 2729.4
+              },
+              {
+                "x": 389.0,
+                "y": 2715.9
+              },
+              {
+                "x": 144.0,
+                "y": 1904.4
+              },
+              {
+                "x": 179.0,
+                "y": 2070.9
+              },
+              {
+                "x": 214.0,
+                "y": 2377.4
+              },
+              {
+                "x": 249.0,
+                "y": 2133.9
+              },
+              {
+                "x": 284.0,
+                "y": 2460.4
+              },
+              {
+                "x": 319.0,
+                "y": 2586.9
+              },
+              {
+                "x": 354.0,
+                "y": 2523.4
+              },
+              {
+                "x": 389.0,
+                "y": 2689.9
+              },
+              {
+                "x": 156.0,
+                "y": 2218.6
+              },
+              {
+                "x": 191.0,
+                "y": 1975.1
+              },
+              {
+                "x": 226.0,
+                "y": 2321.6
+              },
+              {
+                "x": 261.0,
+                "y": 2448.1
+              },
+              {
+                "x": 296.0,
+                "y": 2504.6
+              },
+              {
+                "x": 331.0,
+                "y": 2531.1
+              },
+              {
+                "x": 366.0,
+                "y": 2837.6
+              },
+              {
+                "x": 401.0,
+                "y": 2594.1
+              },
+              {
+                "x": 156.0,
+                "y": 2192.6
+              },
+              {
+                "x": 191.0,
+                "y": 2319.1
+              },
+              {
+                "x": 226.0,
+                "y": 2115.6
+              },
+              {
+                "x": 261.0,
+                "y": 2282.1
+              },
+              {
+                "x": 296.0,
+                "y": 2708.6
+              },
+              {
+                "x": 331.0,
+                "y": 2465.1
+              },
+              {
+                "x": 366.0,
+                "y": 2811.6
+              },
+              {
+                "x": 401.0,
+                "y": 2798.1
+              },
+              {
+                "x": 156.0,
+                "y": 1986.6
+              },
+              {
+                "x": 191.0,
+                "y": 2153.1
+              },
+              {
+                "x": 226.0,
+                "y": 2459.6
+              },
+              {
+                "x": 261.0,
+                "y": 2216.1
+              },
+              {
+                "x": 296.0,
+                "y": 2542.6
+              },
+              {
+                "x": 331.0,
+                "y": 2669.1
+              },
+              {
+                "x": 366.0,
+                "y": 2605.6
+              },
+              {
+                "x": 401.0,
+                "y": 2772.1
+              },
+              {
+                "x": 168.0,
+                "y": 2300.8
+              },
+              {
+                "x": 203.0,
+                "y": 2057.3
+              },
+              {
+                "x": 238.0,
+                "y": 2403.8
+              },
+              {
+                "x": 273.0,
+                "y": 2530.3
+              },
+              {
+                "x": 308.0,
+                "y": 2586.8
+              },
+              {
+                "x": 343.0,
+                "y": 2613.3
+              },
+              {
+                "x": 378.0,
+                "y": 2919.8
+              },
+              {
+                "x": 413.0,
+                "y": 2676.3
+              },
+              {
+                "x": 168.0,
+                "y": 2274.8
+              },
+              {
+                "x": 203.0,
+                "y": 2401.3
+              },
+              {
+                "x": 238.0,
+                "y": 2197.8
+              },
+              {
+                "x": 273.0,
+                "y": 2364.3
+              },
+              {
+                "x": 308.0,
+                "y": 2790.8
+              },
+              {
+                "x": 343.0,
+                "y": 2547.3
+              },
+              {
+                "x": 378.0,
+                "y": 2893.8
+              },
+              {
+                "x": 413.0,
+                "y": 2880.3
+              },
+              {
+                "x": 168.0,
+                "y": 2068.8
+              },
+              {
+                "x": 203.0,
+                "y": 2235.3
+              },
+              {
+                "x": 238.0,
+                "y": 2541.8
+              },
+              {
+                "x": 273.0,
+                "y": 2298.3
+              },
+              {
+                "x": 308.0,
+                "y": 2624.8
+              },
+              {
+                "x": 343.0,
+                "y": 2751.3
+              },
+              {
+                "x": 378.0,
+                "y": 2687.8
+              },
+              {
+                "x": 413.0,
+                "y": 2854.3
+              },
+              {
+                "x": 180.0,
+                "y": 2383.0
+              },
+              {
+                "x": 215.0,
+                "y": 2139.5
+              },
+              {
+                "x": 250.0,
+                "y": 2486.0
+              },
+              {
+                "x": 285.0,
+                "y": 2612.5
+              },
+              {
+                "x": 320.0,
+                "y": 2669.0
+              },
+              {
+                "x": 355.0,
+                "y": 2695.5
+              },
+              {
+                "x": 390.0,
+                "y": 3002.0
+              },
+              {
+                "x": 425.0,
+                "y": 2758.5
+              },
+              {
+                "x": 180.0,
+                "y": 2357.0
+              },
+              {
+                "x": 215.0,
+                "y": 2483.5
+              },
+              {
+                "x": 250.0,
+                "y": 2280.0
+              },
+              {
+                "x": 285.0,
+                "y": 2446.5
+              },
+              {
+                "x": 320.0,
+                "y": 2873.0
+              },
+              {
+                "x": 355.0,
+                "y": 2629.5
+              },
+              {
+                "x": 390.0,
+                "y": 2976.0
+              },
+              {
+                "x": 425.0,
+                "y": 2962.5
+              },
+              {
+                "x": 180.0,
+                "y": 2151.0
+              },
+              {
+                "x": 215.0,
+                "y": 2317.5
+              },
+              {
+                "x": 250.0,
+                "y": 2624.0
+              },
+              {
+                "x": 285.0,
+                "y": 2380.5
+              },
+              {
+                "x": 320.0,
+                "y": 2707.0
+              },
+              {
+                "x": 355.0,
+                "y": 2833.5
+              },
+              {
+                "x": 390.0,
+                "y": 2770.0
+              },
+              {
+                "x": 425.0,
+                "y": 2936.5
+              },
+              {
+                "x": 192.0,
+                "y": 2465.2
+              },
+              {
+                "x": 227.0,
+                "y": 2221.7
+              },
+              {
+                "x": 262.0,
+                "y": 2568.2
+              },
+              {
+                "x": 297.0,
+                "y": 2694.7
+              },
+              {
+                "x": 332.0,
+                "y": 2751.2
+              },
+              {
+                "x": 367.0,
+                "y": 2777.7
+              },
+              {
+                "x": 402.0,
+                "y": 3084.2
+              },
+              {
+                "x": 437.0,
+                "y": 2840.7
+              },
+              {
+                "x": 192.0,
+                "y": 2439.2
+              },
+              {
+                "x": 227.0,
+                "y": 2565.7
+              },
+              {
+                "x": 262.0,
+                "y": 2362.2
+              },
+              {
+                "x": 297.0,
+                "y": 2528.7
+              },
+              {
+                "x": 332.0,
+                "y": 2955.2
+              },
+              {
+                "x": 367.0,
+                "y": 2711.7
+              },
+              {
+                "x": 402.0,
+                "y": 3058.2
+              },
+              {
+                "x": 437.0,
+                "y": 3044.7
+              },
+              {
+                "x": 192.0,
+                "y": 2233.2
+              },
+              {
+                "x": 227.0,
+                "y": 2399.7
+              },
+              {
+                "x": 262.0,
+                "y": 2706.2
+              },
+              {
+                "x": 297.0,
+                "y": 2462.7
+              },
+              {
+                "x": 332.0,
+                "y": 2789.2
+              },
+              {
+                "x": 367.0,
+                "y": 2915.7
+              },
+              {
+                "x": 402.0,
+                "y": 2852.2
+              },
+              {
+                "x": 437.0,
+                "y": 3018.7
+              },
+              {
+                "x": 204.0,
+                "y": 2547.4
+              },
+              {
+                "x": 239.0,
+                "y": 2303.9
+              },
+              {
+                "x": 274.0,
+                "y": 2650.4
+              },
+              {
+                "x": 309.0,
+                "y": 2776.9
+              },
+              {
+                "x": 344.0,
+                "y": 2833.4
+              },
+              {
+                "x": 379.0,
+                "y": 2859.9
+              },
+              {
+                "x": 414.0,
+                "y": 3166.4
+              },
+              {
+                "x": 449.0,
+                "y": 2922.9
+              },
+              {
+                "x": 204.0,
+                "y": 2521.4
+              },
+              {
+                "x": 239.0,
+                "y": 2647.9
+              },
+              {
+                "x": 274.0,
+                "y": 2444.4
+              },
+              {
+                "x": 309.0,
+                "y": 2610.9
+              },
+              {
+                "x": 344.0,
+                "y": 3037.4
+              },
+              {
+                "x": 379.0,
+                "y": 2793.9
+              },
+              {
+                "x": 414.0,
+                "y": 3140.4
+              },
+              {
+                "x": 449.0,
+                "y": 3126.9
+              },
+              {
+                "x": 204.0,
+                "y": 2315.4
+              },
+              {
+                "x": 239.0,
+                "y": 2481.9
+              },
+              {
+                "x": 274.0,
+                "y": 2788.4
+              },
+              {
+                "x": 309.0,
+                "y": 2544.9
+              },
+              {
+                "x": 344.0,
+                "y": 2871.4
+              },
+              {
+                "x": 379.0,
+                "y": 2997.9
+              },
+              {
+                "x": 414.0,
+                "y": 2934.4
+              },
+              {
+                "x": 449.0,
+                "y": 3100.9
+              },
+              {
+                "x": 216.0,
+                "y": 2629.6
+              },
+              {
+                "x": 251.0,
+                "y": 2386.1
+              },
+              {
+                "x": 286.0,
+                "y": 2732.6
+              },
+              {
+                "x": 321.0,
+                "y": 2859.1
+              },
+              {
+                "x": 356.0,
+                "y": 2915.6
+              },
+              {
+                "x": 391.0,
+                "y": 2942.1
+              },
+              {
+                "x": 426.0,
+                "y": 3248.6
+              },
+              {
+                "x": 461.0,
+                "y": 3005.1
+              },
+              {
+                "x": 216.0,
+                "y": 2603.6
+              },
+              {
+                "x": 251.0,
+                "y": 2730.1
+              },
+              {
+                "x": 286.0,
+                "y": 2526.6
+              },
+              {
+                "x": 321.0,
+                "y": 2693.1
+              },
+              {
+                "x": 356.0,
+                "y": 3119.6
+              },
+              {
+                "x": 391.0,
+                "y": 2876.1
+              },
+              {
+                "x": 426.0,
+                "y": 3222.6
+              },
+              {
+                "x": 461.0,
+                "y": 3209.1
+              },
+              {
+                "x": 216.0,
+                "y": 2397.6
+              },
+              {
+                "x": 251.0,
+                "y": 2564.1
+              },
+              {
+                "x": 286.0,
+                "y": 2870.6
+              },
+              {
+                "x": 321.0,
+                "y": 2627.1
+              },
+              {
+                "x": 356.0,
+                "y": 2953.6
+              },
+              {
+                "x": 391.0,
+                "y": 3080.1
+              },
+              {
+                "x": 426.0,
+                "y": 3016.6
+              },
+              {
+                "x": 461.0,
+                "y": 3183.1
+              },
+              {
+                "x": 228.0,
+                "y": 2711.8
+              },
+              {
+                "x": 263.0,
+                "y": 2468.3
+              },
+              {
+                "x": 298.0,
+                "y": 2814.8
+              },
+              {
+                "x": 333.0,
+                "y": 2941.3
+              },
+              {
+                "x": 368.0,
+                "y": 2997.8
+              },
+              {
+                "x": 403.0,
+                "y": 3024.3
+              },
+              {
+                "x": 438.0,
+                "y": 3330.8
+              },
+              {
+                "x": 473.0,
+                "y": 3087.3
+              },
+              {
+                "x": 228.0,
+                "y": 2685.8
+              },
+              {
+                "x": 263.0,
+                "y": 2812.3
+              },
+              {
+                "x": 298.0,
+                "y": 2608.8
+              },
+              {
+                "x": 333.0,
+                "y": 2775.3
+              },
+              {
+                "x": 368.0,
+                "y": 3201.8
+              },
+              {
+                "x": 403.0,
+                "y": 2958.3
+              },
+              {
+                "x": 438.0,
+                "y": 3304.8
+              },
+              {
+                "x": 473.0,
+                "y": 3291.3
+              },
+              {
+                "x": 228.0,
+                "y": 2479.8
+              },
+              {
+                "x": 263.0,
+                "y": 2646.3
+              },
+              {
+                "x": 298.0,
+                "y": 2952.8
+              },
+              {
+                "x": 333.0,
+                "y": 2709.3
+              },
+              {
+                "x": 368.0,
+                "y": 3035.8
+              },
+              {
+                "x": 403.0,
+                "y": 3162.3
+              },
+              {
+                "x": 438.0,
+                "y": 3098.8
+              },
+              {
+                "x": 473.0,
+                "y": 3265.3
+              },
+              {
+                "x": 240.0,
+                "y": 2794.0
+              },
+              {
+                "x": 275.0,
+                "y": 2550.5
+              },
+              {
+                "x": 310.0,
+                "y": 2897.0
+              },
+              {
+                "x": 345.0,
+                "y": 3023.5
+              },
+              {
+                "x": 380.0,
+                "y": 3080.0
+              },
+              {
+                "x": 415.0,
+                "y": 3106.5
+              },
+              {
+                "x": 450.0,
+                "y": 3413.0
+              },
+              {
+                "x": 485.0,
+                "y": 3169.5
+              },
+              {
+                "x": 240.0,
+                "y": 2768.0
+              },
+              {
+                "x": 275.0,
+                "y": 2894.5
+              },
+              {
+                "x": 310.0,
+                "y": 2691.0
+              },
+              {
+                "x": 345.0,
+                "y": 2857.5
+              },
+              {
+                "x": 380.0,
+                "y": 3284.0
+              },
+              {
+                "x": 415.0,
+                "y": 3040.5
+              },
+              {
+                "x": 450.0,
+                "y": 3387.0
+              },
+              {
+                "x": 485.0,
+                "y": 3373.5
+              },
+              {
+                "x": 240.0,
+                "y": 2562.0
+              },
+              {
+                "x": 275.0,
+                "y": 2728.5
+              },
+              {
+                "x": 310.0,
+                "y": 3035.0
+              },
+              {
+                "x": 345.0,
+                "y": 2791.5
+              },
+              {
+                "x": 380.0,
+                "y": 3118.0
+              },
+              {
+                "x": 415.0,
+                "y": 3244.5
+              },
+              {
+                "x": 450.0,
+                "y": 3181.0
+              },
+              {
+                "x": 485.0,
+                "y": 3347.5
+              },
+              {
+                "x": 252.0,
+                "y": 2876.2
+              },
+              {
+                "x": 287.0,
+                "y": 2632.7
+              },
+              {
+                "x": 322.0,
+                "y": 2979.2
+              },
+              {
+                "x": 357.0,
+                "y": 3105.7
+              },
+              {
+                "x": 392.0,
+                "y": 3162.2
+              },
+              {
+                "x": 427.0,
+                "y": 3188.7
+              },
+              {
+                "x": 462.0,
+                "y": 3495.2
+              },
+              {
+                "x": 497.0,
+                "y": 3251.7
+              },
+              {
+                "x": 252.0,
+                "y": 2850.2
+              },
+              {
+                "x": 287.0,
+                "y": 2976.7
+              },
+              {
+                "x": 322.0,
+                "y": 2773.2
+              },
+              {
+                "x": 357.0,
+                "y": 2939.7
+              },
+              {
+                "x": 392.0,
+                "y": 3366.2
+              },
+              {
+                "x": 427.0,
+                "y": 3122.7
+              },
+              {
+                "x": 462.0,
+                "y": 3469.2
+              },
+              {
+                "x": 497.0,
+                "y": 3455.7
+              },
+              {
+                "x": 252.0,
+                "y": 2644.2
+              },
+              {
+                "x": 287.0,
+                "y": 2810.7
+              },
+              {
+                "x": 322.0,
+                "y": 3117.2
+              },
+              {
+                "x": 357.0,
+                "y": 2873.7
+              },
+              {
+                "x": 392.0,
+                "y": 3200.2
+              },
+              {
+                "x": 427.0,
+                "y": 3326.7
+              },
+              {
+                "x": 462.0,
+                "y": 3263.2
+              },
+              {
+                "x": 497.0,
+                "y": 3429.7
+              },
+              {
+                "x": 264.0,
+                "y": 2958.4
+              },
+              {
+                "x": 299.0,
+                "y": 2714.9
+              },
+              {
+                "x": 334.0,
+                "y": 3061.4
+              },
+              {
+                "x": 369.0,
+                "y": 3187.9
+              },
+              {
+                "x": 404.0,
+                "y": 3244.4
+              },
+              {
+                "x": 439.0,
+                "y": 3270.9
+              },
+              {
+                "x": 474.0,
+                "y": 3577.4
+              },
+              {
+                "x": 509.0,
+                "y": 3333.9
+              },
+              {
+                "x": 264.0,
+                "y": 2932.4
+              },
+              {
+                "x": 299.0,
+                "y": 3058.9
+              },
+              {
+                "x": 334.0,
+                "y": 2855.4
+              },
+              {
+                "x": 369.0,
+                "y": 3021.9
+              },
+              {
+                "x": 404.0,
+                "y": 3448.4
+              },
+              {
+                "x": 439.0,
+                "y": 3204.9
+              },
+              {
+                "x": 474.0,
+                "y": 3551.4
+              },
+              {
+                "x": 509.0,
+                "y": 3537.9
+              },
+              {
+                "x": 264.0,
+                "y": 2726.4
+              },
+              {
+                "x": 299.0,
+                "y": 2892.9
+              },
+              {
+                "x": 334.0,
+                "y": 3199.4
+              },
+              {
+                "x": 369.0,
+                "y": 2955.9
+              },
+              {
+                "x": 404.0,
+                "y": 3282.4
+              },
+              {
+                "x": 439.0,
+                "y": 3408.9
+              },
+              {
+                "x": 474.0,
+                "y": 3345.4
+              },
+              {
+                "x": 509.0,
+                "y": 3511.9
+              }
+            ],
+            "statistical_decision": {
+              "status": "selected",
+              "analysis_goal": "general_association",
+              "analysis_mode": "exploratory",
+              "x_column": "marketing_spend",
+              "y_column": "revenue",
+              "selected_test": "pearson",
+              "inference_method": "standard",
+              "selection_is_data_driven": true,
+              "reasons": [
+                "Rows are treated as independent observational units.",
+                "Both variables are continuous.",
+                "Exploratory diagnostics identify an approximately linear candidate pattern under the current DataLens heuristic."
+              ],
+              "missing_information": [],
+              "warnings": [
+                "The test recommendation is based on exploratory inspection of the observed relationship shape. This is data-driven selection, not a pre-specified confirmatory test."
+              ],
+              "diagnostics": {
+                "x_column": "marketing_spend",
+                "y_column": "revenue",
+                "x_kind": "continuous",
+                "y_kind": "continuous",
+                "n_total": 288,
+                "n_valid": 288,
+                "n_excluded": 0,
+                "excluded_fraction": 0.0,
+                "x_unique": 96,
+                "y_unique": 288,
+                "x_tied_observation_count": 288,
+                "y_tied_observation_count": 0,
+                "x_tied_observation_fraction": 1.0,
+                "y_tied_observation_fraction": 0.0,
+                "x_outlier_count": 0,
+                "y_outlier_count": 0,
+                "x_outlier_fraction": 0.0,
+                "y_outlier_fraction": 0.0,
+                "pearson_coefficient": 0.8608794688708987,
+                "spearman_coefficient": 0.8572233820360108,
+                "coefficient_gap": 0.0036560868348879394,
+                "linear_r_squared": 0.7411134599234407,
+                "quadratic_r_squared": 0.7411855207160505,
+                "quadratic_r_squared_gain": 0.00007206079260979603,
+                "same_direction": true,
+                "shape_signal": "linear_candidate",
+                "reliability": "standard",
+                "data_driven_shape_assessment": true,
+                "warnings": []
+              },
+              "decision_rule_version": "quantitative_association_v0.2"
+            },
+            "statistical_result": {
+              "test": "pearson",
+              "relationship_type": "linear",
+              "coefficient_name": "r",
+              "coefficient": 0.8608794688708987,
+              "p_value": 6.494777566616539e-86,
+              "alternative": "two-sided",
+              "n": 288,
+              "alpha": 0.05,
+              "statistically_significant": true
+            },
+            "visualization": {
+              "visualization_id": "visualization:0001",
+              "status": "selected",
+              "purpose": "relationship",
+              "chart_type": "scatter",
+              "x_column": "marketing_spend",
+              "y_column": "revenue",
+              "aggregation": "none",
+              "trend": "linear",
+              "show_raw_points": true,
+              "show_missing_summary": true,
+              "selection_is_data_driven": false,
+              "reasons": [
+                "Both variables are continuous.",
+                "The analysis concerns the relationship between two quantitative variables.",
+                "A scatter plot preserves the individual paired observations.",
+                "Pearson was selected, so a linear trend may be displayed to match the linear association being analysed."
+              ],
+              "warnings": [],
+              "compatible_alternatives": [
+                "hexbin"
+              ],
+              "visualization_rule_version": "correlation_visualization_v0.1"
+            },
+            "warnings": [
+              "The test recommendation is based on exploratory inspection of the observed relationship shape. This is data-driven selection, not a pre-specified confirmatory test."
+            ],
+            "limitations": [
+              "AI tool orchestration v0.2 supports only single-dataset contracts and does not allow LLM-generated joins, derived variables or arbitrary Python code."
+            ],
+            "execution_rule_version": "analysis_executor_v0.1"
+          },
+          "errors": [],
+          "warnings": [
+            "The LLM did not execute Python. It produced the analytical intent; Python selected and ran a whitelisted deterministic tool."
+          ]
+        },
+        "notes": [
+          "The local tool model selected one function from the native DataLens tool catalog.",
+          "Python verified that the selected tool matched the validated analytical family and that every argument exactly matched the validated contract.",
+          "A missing tool call may trigger one stricter retry; ordinary assistant prose is never treated as executable.",
+          "The deterministic DataLens executor performed the statistical calculation."
+        ],
+        "native_tool_rule_version": "native_tool_calling_v0.6"
+      },
+      "errors": [],
+      "warnings": [
+        "The planner model and native tool model had separate roles. Python validated both boundaries before deterministic execution."
+      ]
+    }
+  ],
+  "notes": [
+    "Stage 1: Gemma proposes a structured analytical contract from the user objective and dataset catalog.",
+    "Stage 2: Python validates dataset ids, column names, analytical types and contract invariants.",
+    "Stage 3: Qwen selects one matching function from the native DataLens tool catalog.",
+    "Stage 4: Python verifies the selected tool against the validated family and checks every argument.",
+    "Stage 5: the deterministic DataLens executor computes the result."
+  ],
+  "pipeline_rule_version": "ai_native_pipeline_v0.2"
+}

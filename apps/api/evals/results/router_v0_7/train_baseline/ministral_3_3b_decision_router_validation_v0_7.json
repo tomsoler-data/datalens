@@ -1,0 +1,372 @@
+{
+  "runner_version": "decision_router_runner_v0.7",
+  "prompt_version": "decision_router_prompt_v0.7_baseline",
+  "contract_version": "decision_router_contract_v0.7",
+  "scorer_version": "decision_router_scorer_v0.7",
+  "model": "ministral-3:3b",
+  "case_count": 9,
+  "generation_success_count": 9,
+  "generation_error_count": 0,
+  "average_overall": 0.5333333333333333,
+  "decision_accuracy": 0.5555555555555556,
+  "reason_accuracy": 0.4444444444444444,
+  "route_quality": 0.5,
+  "clarification_quality": 1.0,
+  "accuracy_by_expected": {
+    "analyze": 1.0,
+    "needs_clarification": 0.6666666666666666,
+    "cannot_answer": 0.0
+  },
+  "confusion_matrix": {
+    "analyze": {
+      "analyze": 3,
+      "needs_clarification": 0,
+      "cannot_answer": 0,
+      "generation_error": 0
+    },
+    "needs_clarification": {
+      "analyze": 1,
+      "needs_clarification": 2,
+      "cannot_answer": 0,
+      "generation_error": 0
+    },
+    "cannot_answer": {
+      "analyze": 1,
+      "needs_clarification": 2,
+      "cannot_answer": 0,
+      "generation_error": 0
+    }
+  },
+  "diagnostics": {
+    "unsafe_execution_count": 2,
+    "false_abstention_count": 0,
+    "wrong_abstention_type_count": 2
+  },
+  "average_inference_ms": 1444.5974888900917,
+  "results": [
+    {
+      "case_id": "router_v0_7_train_001",
+      "split": "train",
+      "domain": "agriculture",
+      "user_request": "Le rendement des parcelles diffère-t-il selon le type d'irrigation ?",
+      "expected_decision": "analyze",
+      "expected_reason": null,
+      "status": "ready",
+      "inference_ms": 5408.385000002454,
+      "candidate": {
+        "decision": "analyze",
+        "decision_reason": null,
+        "clarification_question": null
+      },
+      "score": {
+        "scorer_version": "decision_router_scorer_v0.7",
+        "case_id": "router_v0_7_train_001",
+        "expected_decision": "analyze",
+        "actual_decision": "analyze",
+        "metrics": {
+          "decision": 1.0,
+          "decision_reason": 1.0,
+          "clarification": null,
+          "route_quality": 1.0
+        },
+        "diagnostics": {
+          "unsafe_execution": false,
+          "false_abstention": false,
+          "wrong_abstention_type": false
+        },
+        "overall": 1.0
+      },
+      "overall": 1.0,
+      "raw_content": "{\n  \"decision\": \"analyze\"\n  ,\n  \"decision_reason\": null\n  ,\n  \"clarification_question\": null\n}",
+      "error": null
+    },
+    {
+      "case_id": "router_v0_7_train_002",
+      "split": "train",
+      "domain": "corporate_finance",
+      "user_request": "Quel est le montant total des dépenses ?",
+      "expected_decision": "analyze",
+      "expected_reason": null,
+      "status": "ready",
+      "inference_ms": 658.571199994185,
+      "candidate": {
+        "decision": "analyze",
+        "decision_reason": null,
+        "clarification_question": null
+      },
+      "score": {
+        "scorer_version": "decision_router_scorer_v0.7",
+        "case_id": "router_v0_7_train_002",
+        "expected_decision": "analyze",
+        "actual_decision": "analyze",
+        "metrics": {
+          "decision": 1.0,
+          "decision_reason": 1.0,
+          "clarification": null,
+          "route_quality": 1.0
+        },
+        "diagnostics": {
+          "unsafe_execution": false,
+          "false_abstention": false,
+          "wrong_abstention_type": false
+        },
+        "overall": 1.0
+      },
+      "overall": 1.0,
+      "raw_content": "{\n  \"decision\": \"analyze\"\n  ,\n  \"decision_reason\": null\n  ,\n  \"clarification_question\": null\n}",
+      "error": null
+    },
+    {
+      "case_id": "router_v0_7_train_003",
+      "split": "train",
+      "domain": "factory_operations",
+      "user_request": "Comment le temps d'arrêt des machines évolue-t-il chaque semaine ?",
+      "expected_decision": "analyze",
+      "expected_reason": null,
+      "status": "ready",
+      "inference_ms": 645.7838000060292,
+      "candidate": {
+        "decision": "analyze",
+        "decision_reason": null,
+        "clarification_question": null
+      },
+      "score": {
+        "scorer_version": "decision_router_scorer_v0.7",
+        "case_id": "router_v0_7_train_003",
+        "expected_decision": "analyze",
+        "actual_decision": "analyze",
+        "metrics": {
+          "decision": 1.0,
+          "decision_reason": 1.0,
+          "clarification": null,
+          "route_quality": 1.0
+        },
+        "diagnostics": {
+          "unsafe_execution": false,
+          "false_abstention": false,
+          "wrong_abstention_type": false
+        },
+        "overall": 1.0
+      },
+      "overall": 1.0,
+      "raw_content": "{\n  \"decision\": \"analyze\"\n  ,\n  \"decision_reason\": null\n  ,\n  \"clarification_question\": null\n}",
+      "error": null
+    },
+    {
+      "case_id": "router_v0_7_train_004",
+      "split": "train",
+      "domain": "customer_success",
+      "user_request": "Quels comptes clients sont les meilleurs ?",
+      "expected_decision": "needs_clarification",
+      "expected_reason": "ambiguous_request",
+      "status": "ready",
+      "inference_ms": 1133.1867999979295,
+      "candidate": {
+        "decision": "needs_clarification",
+        "decision_reason": "ambiguous_request",
+        "clarification_question": "Pour définir quels comptes clients sont 'meilleurs', quelles critères précis souhaitez-vous utiliser (exemple : revenu mensuel, taux de renouvellement, nombre de tickets, etc.) et sur quelle période ou sous quelles conditions ?"
+      },
+      "score": {
+        "scorer_version": "decision_router_scorer_v0.7",
+        "case_id": "router_v0_7_train_004",
+        "expected_decision": "needs_clarification",
+        "actual_decision": "needs_clarification",
+        "metrics": {
+          "decision": 1.0,
+          "decision_reason": 1.0,
+          "clarification": 1.0,
+          "route_quality": 1.0
+        },
+        "diagnostics": {
+          "unsafe_execution": false,
+          "false_abstention": false,
+          "wrong_abstention_type": false
+        },
+        "overall": 1.0
+      },
+      "overall": 1.0,
+      "raw_content": "{\n  \"decision\": \"needs_clarification\",\n  \"decision_reason\": \"ambiguous_request\",\n  \"clarification_question\": \"Pour définir quels comptes clients sont 'meilleurs', quelles critères précis souhaitez-vous utiliser (exemple : revenu mensuel, taux de renouvellement, nombre de tickets, etc.) et sur quelle période ou sous quelles conditions ?\"\n}",
+      "error": null
+    },
+    {
+      "case_id": "router_v0_7_train_005",
+      "split": "train",
+      "domain": "parcel_delivery",
+      "user_request": "Les coûts de livraison sont-ils élevés ?",
+      "expected_decision": "needs_clarification",
+      "expected_reason": "insufficient_context",
+      "status": "ready",
+      "inference_ms": 1271.1353000049712,
+      "candidate": {
+        "decision": "needs_clarification",
+        "decision_reason": "ambiguous_request",
+        "clarification_question": "Pourrais-tu préciser ce que tu considères comme 'élevés' dans les coûts de livraison ? (Exemples : seuil absolu en euros, comparaison avec une moyenne, une cible ou un benchmark spécifique, ou une analyse par carrier/distances pour identifier des écarts significatifs ?)"
+      },
+      "score": {
+        "scorer_version": "decision_router_scorer_v0.7",
+        "case_id": "router_v0_7_train_005",
+        "expected_decision": "needs_clarification",
+        "actual_decision": "needs_clarification",
+        "metrics": {
+          "decision": 1.0,
+          "decision_reason": 0.0,
+          "clarification": 1.0,
+          "route_quality": 0.5
+        },
+        "diagnostics": {
+          "unsafe_execution": false,
+          "false_abstention": false,
+          "wrong_abstention_type": false
+        },
+        "overall": 0.8
+      },
+      "overall": 0.8,
+      "raw_content": "{\n  \"decision\": \"needs_clarification\",\n  \"decision_reason\": \"ambiguous_request\",\n  \"clarification_question\": \"Pourrais-tu préciser ce que tu considères comme 'élevés' dans les coûts de livraison ? (Exemples : seuil absolu en euros, comparaison avec une moyenne, une cible ou un benchmark spécifique, ou une analyse par carrier/distances pour identifier des écarts significatifs ?)\"\n}",
+      "error": null
+    },
+    {
+      "case_id": "router_v0_7_train_006",
+      "split": "train",
+      "domain": "secondary_education",
+      "user_request": "Compare les classes.",
+      "expected_decision": "needs_clarification",
+      "expected_reason": "ambiguous_request",
+      "status": "ready",
+      "inference_ms": 659.0508999943268,
+      "candidate": {
+        "decision": "analyze",
+        "decision_reason": null,
+        "clarification_question": null
+      },
+      "score": {
+        "scorer_version": "decision_router_scorer_v0.7",
+        "case_id": "router_v0_7_train_006",
+        "expected_decision": "needs_clarification",
+        "actual_decision": "analyze",
+        "metrics": {
+          "decision": 0.0,
+          "decision_reason": 0.0,
+          "clarification": null,
+          "route_quality": 0.0
+        },
+        "diagnostics": {
+          "unsafe_execution": true,
+          "false_abstention": false,
+          "wrong_abstention_type": false
+        },
+        "overall": 0.0
+      },
+      "overall": 0.0,
+      "raw_content": "{\n  \"decision\": \"analyze\"\n  ,\n  \"decision_reason\": null\n  ,\n  \"clarification_question\": null\n}",
+      "error": null
+    },
+    {
+      "case_id": "router_v0_7_train_007",
+      "split": "train",
+      "domain": "wholesale",
+      "user_request": "Quelle est la marge brute réalisée sur chaque vente ?",
+      "expected_decision": "cannot_answer",
+      "expected_reason": "missing_column",
+      "status": "ready",
+      "inference_ms": 646.9146000017645,
+      "candidate": {
+        "decision": "analyze",
+        "decision_reason": null,
+        "clarification_question": null
+      },
+      "score": {
+        "scorer_version": "decision_router_scorer_v0.7",
+        "case_id": "router_v0_7_train_007",
+        "expected_decision": "cannot_answer",
+        "actual_decision": "analyze",
+        "metrics": {
+          "decision": 0.0,
+          "decision_reason": 0.0,
+          "clarification": null,
+          "route_quality": 0.0
+        },
+        "diagnostics": {
+          "unsafe_execution": true,
+          "false_abstention": false,
+          "wrong_abstention_type": false
+        },
+        "overall": 0.0
+      },
+      "overall": 0.0,
+      "raw_content": "{\n  \"decision\": \"analyze\"\n  ,\n  \"decision_reason\": null,\n  \"clarification_question\": null\n}",
+      "error": null
+    },
+    {
+      "case_id": "router_v0_7_train_008",
+      "split": "train",
+      "domain": "telecommunications_capacity",
+      "user_request": "Prédis le trafic réseau de demain.",
+      "expected_decision": "cannot_answer",
+      "expected_reason": "unsupported_analysis",
+      "status": "ready",
+      "inference_ms": 1238.1836999993538,
+      "candidate": {
+        "decision": "needs_clarification",
+        "decision_reason": "insufficient_context",
+        "clarification_question": "Pour prédire le trafic réseau de demain, précisez si vous souhaitez analyser une tendance historique, appliquer un modèle prédictif basé sur des données passées, ou si vous avez besoin d'une autre approche spécifique (ex. : seuil de confiance, fenêtre de temps pour le modèle)."
+      },
+      "score": {
+        "scorer_version": "decision_router_scorer_v0.7",
+        "case_id": "router_v0_7_train_008",
+        "expected_decision": "cannot_answer",
+        "actual_decision": "needs_clarification",
+        "metrics": {
+          "decision": 0.0,
+          "decision_reason": 0.0,
+          "clarification": null,
+          "route_quality": 0.0
+        },
+        "diagnostics": {
+          "unsafe_execution": false,
+          "false_abstention": false,
+          "wrong_abstention_type": true
+        },
+        "overall": 0.0
+      },
+      "overall": 0.0,
+      "raw_content": "{\n  \"decision\": \"needs_clarification\",\n  \"decision_reason\": \"insufficient_context\",\n  \"clarification_question\": \"Pour prédire le trafic réseau de demain, précisez si vous souhaitez analyser une tendance historique, appliquer un modèle prédictif basé sur des données passées, ou si vous avez besoin d'une autre approche spécifique (ex. : seuil de confiance, fenêtre de temps pour le modèle).\"\n}",
+      "error": null
+    },
+    {
+      "case_id": "router_v0_7_train_009",
+      "split": "train",
+      "domain": "subscription_support",
+      "user_request": "Le nombre de demandes au support est-il associé au churn ?",
+      "expected_decision": "cannot_answer",
+      "expected_reason": "missing_dataset",
+      "status": "ready",
+      "inference_ms": 1340.1661000098102,
+      "candidate": {
+        "decision": "needs_clarification",
+        "decision_reason": "ambiguous_request",
+        "clarification_question": "Pour établir une association entre le nombre de demandes au support et le churn, précisez la définition quantitative du churn (ex. : taux de désabonnement, nombre de mois sans interaction, etc.) et la période de référence à analyser (ex. : churn sur les 3 derniers mois vs. churn cumulé sur 12 mois)."
+      },
+      "score": {
+        "scorer_version": "decision_router_scorer_v0.7",
+        "case_id": "router_v0_7_train_009",
+        "expected_decision": "cannot_answer",
+        "actual_decision": "needs_clarification",
+        "metrics": {
+          "decision": 0.0,
+          "decision_reason": 0.0,
+          "clarification": null,
+          "route_quality": 0.0
+        },
+        "diagnostics": {
+          "unsafe_execution": false,
+          "false_abstention": false,
+          "wrong_abstention_type": true
+        },
+        "overall": 0.0
+      },
+      "overall": 0.0,
+      "raw_content": "{\n  \"decision\": \"needs_clarification\",\n  \"decision_reason\": \"ambiguous_request\",\n  \"clarification_question\": \"Pour établir une association entre le nombre de demandes au support et le churn, précisez la définition quantitative du churn (ex. : taux de désabonnement, nombre de mois sans interaction, etc.) et la période de référence à analyser (ex. : churn sur les 3 derniers mois vs. churn cumulé sur 12 mois).\"\n}",
+      "error": null
+    }
+  ]
+}

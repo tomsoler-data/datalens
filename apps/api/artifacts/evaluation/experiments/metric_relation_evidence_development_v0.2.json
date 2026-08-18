@@ -1,0 +1,2590 @@
+{
+  "component": "MetricRelationEvidence",
+  "component_version": "metric_relation_evidence_v0.2",
+  "evaluation": "development_same_metric_detection",
+  "model": "gemma3:4b",
+  "positive_class": "same_metric_different_state",
+  "ground_truth": {
+    "path": "artifacts\\evaluation\\development\\metric_relation_taxonomy_development_v0.1.json",
+    "sha256": "cc834f4ae7607b78837e66f878cef2e288c3e9be4e94692e0f9baad0d8905086",
+    "case_count": 21,
+    "positive_count": 7
+  },
+  "confusion_matrix": {
+    "tp": 2,
+    "fp": 0,
+    "tn": 14,
+    "fn": 5
+  },
+  "metrics": {
+    "precision": 1.0,
+    "recall": 0.2857142857142857,
+    "specificity": 1.0,
+    "accuracy": 0.7619047619047619
+  },
+  "gates": {
+    "safety_fp_zero": true,
+    "capability_tp_positive": true,
+    "development_gate": true
+  },
+  "prediction_counts": {
+    "uncertain": 19,
+    "same_metric_different_state": 2
+  },
+  "embedding_evidence_used": false,
+  "analytical_authority": "none_semantic_evidence_only",
+  "cases": [
+    {
+      "domain": "clinical_lab",
+      "dataset_id": "clinical_lab:0001",
+      "case_id": "specimens_received_samples_processed",
+      "left": "Specimens received",
+      "right": "Samples processed",
+      "expected_relation": "same_process_different_stage",
+      "predicted_relation": "uncertain",
+      "confidence": "low",
+      "binary_outcome": "TN",
+      "family_source": "no_positive_evidence",
+      "same_quantity_family": false,
+      "same_known_dimension": true,
+      "same_concept_family": true,
+      "distinct_known_states": false,
+      "dimension_conflict": false,
+      "full_evidence": {
+        "left": {
+          "dataset_id": "clinical_lab:0001",
+          "column": "Specimens received",
+          "concept": "specimens_received",
+          "semantic_group": "laboratory_operations",
+          "domain": "healthcare",
+          "variant": "unknown",
+          "measure_kind": "count",
+          "unit_kind": "unknown",
+          "quantity_dimension": "count",
+          "quantity_unit": "count",
+          "entity_role": "measure",
+          "profile_confidence": "medium",
+          "profile_source": "llm"
+        },
+        "right": {
+          "dataset_id": "clinical_lab:0001",
+          "column": "Samples processed",
+          "concept": "samples_processed",
+          "semantic_group": "laboratory_operations",
+          "domain": "healthcare",
+          "variant": "unknown",
+          "measure_kind": "count",
+          "unit_kind": "unknown",
+          "quantity_dimension": "count",
+          "quantity_unit": "count",
+          "entity_role": "measure",
+          "profile_confidence": "medium",
+          "profile_source": "llm"
+        },
+        "quantity": {
+          "same_known_quantity_dimension": true,
+          "compatible_quantity_dimensions": true,
+          "exact_same_known_unit": true,
+          "compatible_units": true,
+          "directly_subtractable": true,
+          "dimension_conflict": false,
+          "quantity_field_provenance_available": false
+        },
+        "comparator": {
+          "same_concept": false,
+          "same_concept_family": true,
+          "same_domain": true,
+          "distinct_variants": false,
+          "conceptual_proximity": "high",
+          "association_novelty": "low",
+          "redundancy_risk": "high",
+          "derived_gap_compatible": true,
+          "reasons": [
+            "Les deux colonnes appartiennent à la même famille conceptuelle.",
+            "Les deux colonnes appartiennent au même domaine analytique.",
+            "Les deux mesures appartiennent à la même dimension quantitative (count).",
+            "Une association directe peut être partiellement redondante car les mesures décrivent un phénomène proche.",
+            "Les mesures sont conceptuellement liées, distinctes et directement comparables pour examiner un écart déterministe."
+          ]
+        },
+        "family": {
+          "available": true,
+          "same_quantity_family": false,
+          "relation_source": "no_positive_evidence",
+          "left_family": "specimen_count",
+          "right_family": "sample_count",
+          "left_family_source": "llm",
+          "right_family_source": "llm",
+          "left_family_confidence": "high",
+          "right_family_confidence": "high",
+          "left_signature": "specimens_received",
+          "right_signature": "samples_processed",
+          "signature_same": false,
+          "left_state": "unknown",
+          "right_state": "unknown",
+          "distinct_known_states": false,
+          "llm_same_family": false,
+          "reasons": [
+            "Aucune preuve positive suffisante de même famille quantitative n'a été établie."
+          ]
+        },
+        "embedding": {
+          "candidate_retrieved": false,
+          "cosine_similarity": null,
+          "left_to_right_rank": null,
+          "right_to_left_rank": null,
+          "mutual_retrieval": null,
+          "role": "candidate_generation_only"
+        },
+        "interpretation": {
+          "proposed_relation": "uncertain",
+          "confidence": "low",
+          "evidence_for_same_metric_different_state": [
+            "Les profils appartiennent à la même famille conceptuelle.",
+            "Les deux profils ont la même dimension quantitative connue.",
+            "Les deux profils ont exactement la même unité quantitative connue."
+          ],
+          "evidence_for_same_process_different_stage": [],
+          "evidence_for_related_distinct_metric": [],
+          "contradictory_evidence": [
+            "Le réconciliateur n'a pas établi de même famille quantitative."
+          ],
+          "limitations": [
+            "La provenance et la confiance ne sont pas encore suivies séparément pour chaque champ quantity_dimension / quantity_unit.",
+            "Les preuves disponibles sont insuffisantes pour attribuer une relation plus précise sans augmenter le risque de faux positif."
+          ]
+        },
+        "analytical_authority": "none_semantic_evidence_only",
+        "relation_evidence_version": "metric_relation_evidence_v0.2"
+      }
+    },
+    {
+      "domain": "clinical_lab",
+      "dataset_id": "clinical_lab:0001",
+      "case_id": "technicians_scheduled_staff_on_duty",
+      "left": "Technicians scheduled",
+      "right": "Lab staff on duty",
+      "expected_relation": "same_metric_different_state",
+      "predicted_relation": "uncertain",
+      "confidence": "low",
+      "binary_outcome": "FN",
+      "family_source": "llm_cluster",
+      "same_quantity_family": true,
+      "same_known_dimension": false,
+      "same_concept_family": false,
+      "distinct_known_states": false,
+      "dimension_conflict": false,
+      "full_evidence": {
+        "left": {
+          "dataset_id": "clinical_lab:0001",
+          "column": "Technicians scheduled",
+          "concept": "technicians_scheduled",
+          "semantic_group": "staff_scheduling",
+          "domain": "healthcare",
+          "variant": "unknown",
+          "measure_kind": "unknown",
+          "unit_kind": "unknown",
+          "quantity_dimension": "unknown",
+          "quantity_unit": "unknown",
+          "entity_role": "measure",
+          "profile_confidence": "low",
+          "profile_source": "llm"
+        },
+        "right": {
+          "dataset_id": "clinical_lab:0001",
+          "column": "Lab staff on duty",
+          "concept": "lab_staffing",
+          "semantic_group": "staff_levels",
+          "domain": "healthcare",
+          "variant": "on_duty",
+          "measure_kind": "count",
+          "unit_kind": "unknown",
+          "quantity_dimension": "count",
+          "quantity_unit": "count",
+          "entity_role": "measure",
+          "profile_confidence": "medium",
+          "profile_source": "llm"
+        },
+        "quantity": {
+          "same_known_quantity_dimension": false,
+          "compatible_quantity_dimensions": false,
+          "exact_same_known_unit": false,
+          "compatible_units": false,
+          "directly_subtractable": false,
+          "dimension_conflict": false,
+          "quantity_field_provenance_available": false
+        },
+        "comparator": {
+          "same_concept": false,
+          "same_concept_family": false,
+          "same_domain": true,
+          "distinct_variants": false,
+          "conceptual_proximity": "medium",
+          "association_novelty": "medium",
+          "redundancy_risk": "medium",
+          "derived_gap_compatible": false,
+          "reasons": [
+            "Les deux colonnes appartiennent au même domaine analytique."
+          ]
+        },
+        "family": {
+          "available": true,
+          "same_quantity_family": true,
+          "relation_source": "llm_cluster",
+          "left_family": "staff_count",
+          "right_family": "staff_count",
+          "left_family_source": "llm",
+          "right_family_source": "llm",
+          "left_family_confidence": "high",
+          "right_family_confidence": "high",
+          "left_signature": "technicians_scheduled",
+          "right_signature": "lab_staff",
+          "signature_same": false,
+          "left_state": "unknown",
+          "right_state": "on_duty",
+          "distinct_known_states": false,
+          "llm_same_family": true,
+          "reasons": [
+            "Le clustering sémantique place les deux colonnes dans la même famille quantitative."
+          ]
+        },
+        "embedding": {
+          "candidate_retrieved": false,
+          "cosine_similarity": null,
+          "left_to_right_rank": null,
+          "right_to_left_rank": null,
+          "mutual_retrieval": null,
+          "role": "candidate_generation_only"
+        },
+        "interpretation": {
+          "proposed_relation": "uncertain",
+          "confidence": "low",
+          "evidence_for_same_metric_different_state": [
+            "Le réconciliateur de familles quantitatives a établi une même famille."
+          ],
+          "evidence_for_same_process_different_stage": [],
+          "evidence_for_related_distinct_metric": [
+            "Les profils partagent un domaine analytique sans partager de famille conceptuelle connue."
+          ],
+          "contradictory_evidence": [],
+          "limitations": [
+            "La provenance et la confiance ne sont pas encore suivies séparément pour chaque champ quantity_dimension / quantity_unit.",
+            "Le clustering de famille quantitative est positif, mais aucune corroboration indépendante suffisante n'est disponible.",
+            "Les preuves disponibles sont insuffisantes pour attribuer une relation plus précise sans augmenter le risque de faux positif."
+          ]
+        },
+        "analytical_authority": "none_semantic_evidence_only",
+        "relation_evidence_version": "metric_relation_evidence_v0.2"
+      }
+    },
+    {
+      "domain": "clinical_lab",
+      "dataset_id": "clinical_lab:0001",
+      "case_id": "estimated_charge_final_bill",
+      "left": "Estimated test charge",
+      "right": "Final laboratory bill",
+      "expected_relation": "same_metric_different_state",
+      "predicted_relation": "uncertain",
+      "confidence": "low",
+      "binary_outcome": "FN",
+      "family_source": "no_positive_evidence",
+      "same_quantity_family": false,
+      "same_known_dimension": false,
+      "same_concept_family": false,
+      "distinct_known_states": true,
+      "dimension_conflict": false,
+      "full_evidence": {
+        "left": {
+          "dataset_id": "clinical_lab:0001",
+          "column": "Estimated test charge",
+          "concept": "test_charge",
+          "semantic_group": "laboratory_costs",
+          "domain": "healthcare",
+          "variant": "estimated",
+          "measure_kind": "unknown",
+          "unit_kind": "unknown",
+          "quantity_dimension": "unknown",
+          "quantity_unit": "unknown",
+          "entity_role": "measure",
+          "profile_confidence": "medium",
+          "profile_source": "llm"
+        },
+        "right": {
+          "dataset_id": "clinical_lab:0001",
+          "column": "Final laboratory bill",
+          "concept": "laboratory_bill",
+          "semantic_group": "financial_reporting",
+          "domain": "healthcare",
+          "variant": "final",
+          "measure_kind": "currency",
+          "unit_kind": "unknown",
+          "quantity_dimension": "currency",
+          "quantity_unit": "currency",
+          "entity_role": "measure",
+          "profile_confidence": "medium",
+          "profile_source": "llm"
+        },
+        "quantity": {
+          "same_known_quantity_dimension": false,
+          "compatible_quantity_dimensions": false,
+          "exact_same_known_unit": false,
+          "compatible_units": false,
+          "directly_subtractable": false,
+          "dimension_conflict": false,
+          "quantity_field_provenance_available": false
+        },
+        "comparator": {
+          "same_concept": false,
+          "same_concept_family": false,
+          "same_domain": true,
+          "distinct_variants": true,
+          "conceptual_proximity": "medium",
+          "association_novelty": "medium",
+          "redundancy_risk": "medium",
+          "derived_gap_compatible": false,
+          "reasons": [
+            "Les colonnes représentent des variantes différentes du phénomène.",
+            "Les deux colonnes appartiennent au même domaine analytique."
+          ]
+        },
+        "family": {
+          "available": true,
+          "same_quantity_family": false,
+          "relation_source": "no_positive_evidence",
+          "left_family": "test_cost",
+          "right_family": "bill_amount",
+          "left_family_source": "llm",
+          "right_family_source": "llm",
+          "left_family_confidence": "high",
+          "right_family_confidence": "high",
+          "left_signature": "test_charge",
+          "right_signature": "laboratory_bill",
+          "signature_same": false,
+          "left_state": "estimated",
+          "right_state": "final",
+          "distinct_known_states": true,
+          "llm_same_family": false,
+          "reasons": [
+            "Aucune preuve positive suffisante de même famille quantitative n'a été établie."
+          ]
+        },
+        "embedding": {
+          "candidate_retrieved": false,
+          "cosine_similarity": null,
+          "left_to_right_rank": null,
+          "right_to_left_rank": null,
+          "mutual_retrieval": null,
+          "role": "candidate_generation_only"
+        },
+        "interpretation": {
+          "proposed_relation": "uncertain",
+          "confidence": "low",
+          "evidence_for_same_metric_different_state": [
+            "Les profils portent des variantes sémantiques distinctes.",
+            "Deux états distincts et connus sont présents."
+          ],
+          "evidence_for_same_process_different_stage": [],
+          "evidence_for_related_distinct_metric": [
+            "Les profils partagent un domaine analytique sans partager de famille conceptuelle connue."
+          ],
+          "contradictory_evidence": [
+            "Le réconciliateur n'a pas établi de même famille quantitative."
+          ],
+          "limitations": [
+            "La provenance et la confiance ne sont pas encore suivies séparément pour chaque champ quantity_dimension / quantity_unit.",
+            "Les preuves disponibles sont insuffisantes pour attribuer une relation plus précise sans augmenter le risque de faux positif."
+          ]
+        },
+        "analytical_authority": "none_semantic_evidence_only",
+        "relation_evidence_version": "metric_relation_evidence_v0.2"
+      }
+    },
+    {
+      "domain": "clinical_lab",
+      "dataset_id": "clinical_lab:0001",
+      "case_id": "target_turnaround_actual_reporting",
+      "left": "Target result turnaround (minutes)",
+      "right": "Actual reporting time (minutes)",
+      "expected_relation": "same_metric_different_state",
+      "predicted_relation": "same_metric_different_state",
+      "confidence": "medium",
+      "binary_outcome": "TP",
+      "family_source": "llm_cluster",
+      "same_quantity_family": true,
+      "same_known_dimension": true,
+      "same_concept_family": false,
+      "distinct_known_states": true,
+      "dimension_conflict": false,
+      "full_evidence": {
+        "left": {
+          "dataset_id": "clinical_lab:0001",
+          "column": "Target result turnaround (minutes)",
+          "concept": "turnaround_time",
+          "semantic_group": "laboratory_metrics",
+          "domain": "healthcare",
+          "variant": "target",
+          "measure_kind": "duration",
+          "unit_kind": "duration",
+          "quantity_dimension": "duration",
+          "quantity_unit": "minute",
+          "entity_role": "measure",
+          "profile_confidence": "high",
+          "profile_source": "llm"
+        },
+        "right": {
+          "dataset_id": "clinical_lab:0001",
+          "column": "Actual reporting time (minutes)",
+          "concept": "test_turnaround_time",
+          "semantic_group": "result_turnaround_time",
+          "domain": "healthcare",
+          "variant": "actual",
+          "measure_kind": "duration",
+          "unit_kind": "duration",
+          "quantity_dimension": "duration",
+          "quantity_unit": "minute",
+          "entity_role": "measure",
+          "profile_confidence": "high",
+          "profile_source": "llm"
+        },
+        "quantity": {
+          "same_known_quantity_dimension": true,
+          "compatible_quantity_dimensions": true,
+          "exact_same_known_unit": true,
+          "compatible_units": true,
+          "directly_subtractable": true,
+          "dimension_conflict": false,
+          "quantity_field_provenance_available": false
+        },
+        "comparator": {
+          "same_concept": false,
+          "same_concept_family": false,
+          "same_domain": true,
+          "distinct_variants": true,
+          "conceptual_proximity": "medium",
+          "association_novelty": "medium",
+          "redundancy_risk": "medium",
+          "derived_gap_compatible": false,
+          "reasons": [
+            "Les colonnes représentent des variantes différentes du phénomène.",
+            "Les deux colonnes appartiennent au même domaine analytique.",
+            "Les deux mesures appartiennent à la même dimension quantitative (duration)."
+          ]
+        },
+        "family": {
+          "available": true,
+          "same_quantity_family": true,
+          "relation_source": "llm_cluster",
+          "left_family": "turnaround_time",
+          "right_family": "turnaround_time",
+          "left_family_source": "llm",
+          "right_family_source": "llm",
+          "left_family_confidence": "high",
+          "right_family_confidence": "high",
+          "left_signature": "result_turnaround",
+          "right_signature": "reporting_time",
+          "signature_same": false,
+          "left_state": "target",
+          "right_state": "actual",
+          "distinct_known_states": true,
+          "llm_same_family": true,
+          "reasons": [
+            "Le clustering sémantique place les deux colonnes dans la même famille quantitative."
+          ]
+        },
+        "embedding": {
+          "candidate_retrieved": false,
+          "cosine_similarity": null,
+          "left_to_right_rank": null,
+          "right_to_left_rank": null,
+          "mutual_retrieval": null,
+          "role": "candidate_generation_only"
+        },
+        "interpretation": {
+          "proposed_relation": "same_metric_different_state",
+          "confidence": "medium",
+          "evidence_for_same_metric_different_state": [
+            "Les profils portent des variantes sémantiques distinctes.",
+            "Deux états distincts et connus sont présents.",
+            "Le réconciliateur de familles quantitatives a établi une même famille.",
+            "Les deux profils ont la même dimension quantitative connue.",
+            "Les deux profils ont exactement la même unité quantitative connue."
+          ],
+          "evidence_for_same_process_different_stage": [],
+          "evidence_for_related_distinct_metric": [
+            "Les profils partagent un domaine analytique sans partager de famille conceptuelle connue."
+          ],
+          "contradictory_evidence": [],
+          "limitations": [
+            "La provenance et la confiance ne sont pas encore suivies séparément pour chaque champ quantity_dimension / quantity_unit.",
+            "La relation proposée repose sur une famille quantitative positive accompagnée d'au moins une corroboration indépendante.",
+            "Cette relation sémantique n'autorise aucune opération analytique par elle-même."
+          ]
+        },
+        "analytical_authority": "none_semantic_evidence_only",
+        "relation_evidence_version": "metric_relation_evidence_v0.2"
+      }
+    },
+    {
+      "domain": "clinical_lab",
+      "dataset_id": "clinical_lab:0001",
+      "case_id": "planned_mass_measured_weight",
+      "left": "Planned sample mass (grams)",
+      "right": "Measured specimen weight (kg)",
+      "expected_relation": "same_metric_different_state",
+      "predicted_relation": "uncertain",
+      "confidence": "low",
+      "binary_outcome": "FN",
+      "family_source": "no_positive_evidence",
+      "same_quantity_family": false,
+      "same_known_dimension": true,
+      "same_concept_family": false,
+      "distinct_known_states": false,
+      "dimension_conflict": false,
+      "full_evidence": {
+        "left": {
+          "dataset_id": "clinical_lab:0001",
+          "column": "Planned sample mass (grams)",
+          "concept": "sample_mass",
+          "semantic_group": "laboratory_measure",
+          "domain": "healthcare",
+          "variant": "planned",
+          "measure_kind": "unknown",
+          "unit_kind": "unknown",
+          "quantity_dimension": "mass",
+          "quantity_unit": "gram",
+          "entity_role": "measure",
+          "profile_confidence": "medium",
+          "profile_source": "llm"
+        },
+        "right": {
+          "dataset_id": "clinical_lab:0001",
+          "column": "Measured specimen weight (kg)",
+          "concept": "specimen_weight",
+          "semantic_group": "laboratory_measurements",
+          "domain": "healthcare",
+          "variant": "unknown",
+          "measure_kind": "unknown",
+          "unit_kind": "unknown",
+          "quantity_dimension": "mass",
+          "quantity_unit": "kilogram",
+          "entity_role": "measure",
+          "profile_confidence": "medium",
+          "profile_source": "llm"
+        },
+        "quantity": {
+          "same_known_quantity_dimension": true,
+          "compatible_quantity_dimensions": true,
+          "exact_same_known_unit": false,
+          "compatible_units": true,
+          "directly_subtractable": false,
+          "dimension_conflict": false,
+          "quantity_field_provenance_available": false
+        },
+        "comparator": {
+          "same_concept": false,
+          "same_concept_family": false,
+          "same_domain": true,
+          "distinct_variants": false,
+          "conceptual_proximity": "medium",
+          "association_novelty": "medium",
+          "redundancy_risk": "medium",
+          "derived_gap_compatible": false,
+          "reasons": [
+            "Les deux colonnes appartiennent au même domaine analytique.",
+            "Les deux mesures appartiennent à la même dimension quantitative (mass).",
+            "Les dimensions quantitatives sont compatibles, mais une conversion d'unité est requise avant une soustraction."
+          ]
+        },
+        "family": {
+          "available": true,
+          "same_quantity_family": false,
+          "relation_source": "no_positive_evidence",
+          "left_family": "sample_mass",
+          "right_family": "specimen_weight",
+          "left_family_source": "llm",
+          "right_family_source": "llm",
+          "left_family_confidence": "high",
+          "right_family_confidence": "high",
+          "left_signature": "sample_mass",
+          "right_signature": "measured_specimen_weight",
+          "signature_same": false,
+          "left_state": "planned",
+          "right_state": "unknown",
+          "distinct_known_states": false,
+          "llm_same_family": false,
+          "reasons": [
+            "Aucune preuve positive suffisante de même famille quantitative n'a été établie."
+          ]
+        },
+        "embedding": {
+          "candidate_retrieved": false,
+          "cosine_similarity": null,
+          "left_to_right_rank": null,
+          "right_to_left_rank": null,
+          "mutual_retrieval": null,
+          "role": "candidate_generation_only"
+        },
+        "interpretation": {
+          "proposed_relation": "uncertain",
+          "confidence": "low",
+          "evidence_for_same_metric_different_state": [
+            "Les deux profils ont la même dimension quantitative connue."
+          ],
+          "evidence_for_same_process_different_stage": [],
+          "evidence_for_related_distinct_metric": [
+            "Les profils partagent un domaine analytique sans partager de famille conceptuelle connue."
+          ],
+          "contradictory_evidence": [
+            "Le réconciliateur n'a pas établi de même famille quantitative."
+          ],
+          "limitations": [
+            "La provenance et la confiance ne sont pas encore suivies séparément pour chaque champ quantity_dimension / quantity_unit.",
+            "Les preuves disponibles sont insuffisantes pour attribuer une relation plus précise sans augmenter le risque de faux positif."
+          ]
+        },
+        "analytical_authority": "none_semantic_evidence_only",
+        "relation_evidence_version": "metric_relation_evidence_v0.2"
+      }
+    },
+    {
+      "domain": "clinical_lab",
+      "dataset_id": "clinical_lab:0001",
+      "case_id": "specimens_staff",
+      "left": "Specimens received",
+      "right": "Technicians scheduled",
+      "expected_relation": "related_distinct_metric",
+      "predicted_relation": "uncertain",
+      "confidence": "low",
+      "binary_outcome": "TN",
+      "family_source": "no_positive_evidence",
+      "same_quantity_family": false,
+      "same_known_dimension": false,
+      "same_concept_family": false,
+      "distinct_known_states": false,
+      "dimension_conflict": false,
+      "full_evidence": {
+        "left": {
+          "dataset_id": "clinical_lab:0001",
+          "column": "Specimens received",
+          "concept": "specimens_received",
+          "semantic_group": "laboratory_operations",
+          "domain": "healthcare",
+          "variant": "unknown",
+          "measure_kind": "count",
+          "unit_kind": "unknown",
+          "quantity_dimension": "count",
+          "quantity_unit": "count",
+          "entity_role": "measure",
+          "profile_confidence": "medium",
+          "profile_source": "llm"
+        },
+        "right": {
+          "dataset_id": "clinical_lab:0001",
+          "column": "Technicians scheduled",
+          "concept": "technicians_scheduled",
+          "semantic_group": "staff_scheduling",
+          "domain": "healthcare",
+          "variant": "unknown",
+          "measure_kind": "unknown",
+          "unit_kind": "unknown",
+          "quantity_dimension": "unknown",
+          "quantity_unit": "unknown",
+          "entity_role": "measure",
+          "profile_confidence": "low",
+          "profile_source": "llm"
+        },
+        "quantity": {
+          "same_known_quantity_dimension": false,
+          "compatible_quantity_dimensions": false,
+          "exact_same_known_unit": false,
+          "compatible_units": false,
+          "directly_subtractable": false,
+          "dimension_conflict": false,
+          "quantity_field_provenance_available": false
+        },
+        "comparator": {
+          "same_concept": false,
+          "same_concept_family": false,
+          "same_domain": true,
+          "distinct_variants": false,
+          "conceptual_proximity": "medium",
+          "association_novelty": "medium",
+          "redundancy_risk": "medium",
+          "derived_gap_compatible": false,
+          "reasons": [
+            "Les deux colonnes appartiennent au même domaine analytique."
+          ]
+        },
+        "family": {
+          "available": true,
+          "same_quantity_family": false,
+          "relation_source": "no_positive_evidence",
+          "left_family": "specimen_count",
+          "right_family": "staff_count",
+          "left_family_source": "llm",
+          "right_family_source": "llm",
+          "left_family_confidence": "high",
+          "right_family_confidence": "high",
+          "left_signature": "specimens_received",
+          "right_signature": "technicians_scheduled",
+          "signature_same": false,
+          "left_state": "unknown",
+          "right_state": "unknown",
+          "distinct_known_states": false,
+          "llm_same_family": false,
+          "reasons": [
+            "Aucune preuve positive suffisante de même famille quantitative n'a été établie."
+          ]
+        },
+        "embedding": {
+          "candidate_retrieved": false,
+          "cosine_similarity": null,
+          "left_to_right_rank": null,
+          "right_to_left_rank": null,
+          "mutual_retrieval": null,
+          "role": "candidate_generation_only"
+        },
+        "interpretation": {
+          "proposed_relation": "uncertain",
+          "confidence": "low",
+          "evidence_for_same_metric_different_state": [],
+          "evidence_for_same_process_different_stage": [],
+          "evidence_for_related_distinct_metric": [
+            "Les profils partagent un domaine analytique sans partager de famille conceptuelle connue."
+          ],
+          "contradictory_evidence": [
+            "Le réconciliateur n'a pas établi de même famille quantitative."
+          ],
+          "limitations": [
+            "La provenance et la confiance ne sont pas encore suivies séparément pour chaque champ quantity_dimension / quantity_unit.",
+            "Les preuves disponibles sont insuffisantes pour attribuer une relation plus précise sans augmenter le risque de faux positif."
+          ]
+        },
+        "analytical_authority": "none_semantic_evidence_only",
+        "relation_evidence_version": "metric_relation_evidence_v0.2"
+      }
+    },
+    {
+      "domain": "clinical_lab",
+      "dataset_id": "clinical_lab:0001",
+      "case_id": "samples_analyzers",
+      "left": "Samples processed",
+      "right": "Analyzer units online",
+      "expected_relation": "related_distinct_metric",
+      "predicted_relation": "uncertain",
+      "confidence": "low",
+      "binary_outcome": "TN",
+      "family_source": "no_positive_evidence",
+      "same_quantity_family": false,
+      "same_known_dimension": true,
+      "same_concept_family": false,
+      "distinct_known_states": false,
+      "dimension_conflict": false,
+      "full_evidence": {
+        "left": {
+          "dataset_id": "clinical_lab:0001",
+          "column": "Samples processed",
+          "concept": "samples_processed",
+          "semantic_group": "laboratory_operations",
+          "domain": "healthcare",
+          "variant": "unknown",
+          "measure_kind": "count",
+          "unit_kind": "unknown",
+          "quantity_dimension": "count",
+          "quantity_unit": "count",
+          "entity_role": "measure",
+          "profile_confidence": "medium",
+          "profile_source": "llm"
+        },
+        "right": {
+          "dataset_id": "clinical_lab:0001",
+          "column": "Analyzer units online",
+          "concept": "analyzer_availability",
+          "semantic_group": "equipment_utilization",
+          "domain": "healthcare",
+          "variant": "online",
+          "measure_kind": "count",
+          "unit_kind": "count",
+          "quantity_dimension": "count",
+          "quantity_unit": "count",
+          "entity_role": "measure",
+          "profile_confidence": "medium",
+          "profile_source": "llm"
+        },
+        "quantity": {
+          "same_known_quantity_dimension": true,
+          "compatible_quantity_dimensions": true,
+          "exact_same_known_unit": true,
+          "compatible_units": true,
+          "directly_subtractable": true,
+          "dimension_conflict": false,
+          "quantity_field_provenance_available": false
+        },
+        "comparator": {
+          "same_concept": false,
+          "same_concept_family": false,
+          "same_domain": true,
+          "distinct_variants": false,
+          "conceptual_proximity": "medium",
+          "association_novelty": "medium",
+          "redundancy_risk": "medium",
+          "derived_gap_compatible": false,
+          "reasons": [
+            "Les deux colonnes appartiennent au même domaine analytique.",
+            "Les deux mesures appartiennent à la même dimension quantitative (count)."
+          ]
+        },
+        "family": {
+          "available": true,
+          "same_quantity_family": false,
+          "relation_source": "no_positive_evidence",
+          "left_family": "sample_count",
+          "right_family": "equipment_availability",
+          "left_family_source": "llm",
+          "right_family_source": "llm",
+          "left_family_confidence": "high",
+          "right_family_confidence": "high",
+          "left_signature": "samples_processed",
+          "right_signature": "analyzer_units",
+          "signature_same": false,
+          "left_state": "unknown",
+          "right_state": "online",
+          "distinct_known_states": false,
+          "llm_same_family": false,
+          "reasons": [
+            "Aucune preuve positive suffisante de même famille quantitative n'a été établie."
+          ]
+        },
+        "embedding": {
+          "candidate_retrieved": false,
+          "cosine_similarity": null,
+          "left_to_right_rank": null,
+          "right_to_left_rank": null,
+          "mutual_retrieval": null,
+          "role": "candidate_generation_only"
+        },
+        "interpretation": {
+          "proposed_relation": "uncertain",
+          "confidence": "low",
+          "evidence_for_same_metric_different_state": [
+            "Les deux profils ont la même dimension quantitative connue.",
+            "Les deux profils ont exactement la même unité quantitative connue."
+          ],
+          "evidence_for_same_process_different_stage": [],
+          "evidence_for_related_distinct_metric": [
+            "Les profils partagent un domaine analytique sans partager de famille conceptuelle connue."
+          ],
+          "contradictory_evidence": [
+            "Le réconciliateur n'a pas établi de même famille quantitative."
+          ],
+          "limitations": [
+            "La provenance et la confiance ne sont pas encore suivies séparément pour chaque champ quantity_dimension / quantity_unit.",
+            "Les preuves disponibles sont insuffisantes pour attribuer une relation plus précise sans augmenter le risque de faux positif."
+          ]
+        },
+        "analytical_authority": "none_semantic_evidence_only",
+        "relation_evidence_version": "metric_relation_evidence_v0.2"
+      }
+    },
+    {
+      "domain": "clinical_lab",
+      "dataset_id": "clinical_lab:0001",
+      "case_id": "staff_analyzers",
+      "left": "Lab staff on duty",
+      "right": "Analyzer units online",
+      "expected_relation": "related_distinct_metric",
+      "predicted_relation": "uncertain",
+      "confidence": "low",
+      "binary_outcome": "TN",
+      "family_source": "no_positive_evidence",
+      "same_quantity_family": false,
+      "same_known_dimension": true,
+      "same_concept_family": false,
+      "distinct_known_states": true,
+      "dimension_conflict": false,
+      "full_evidence": {
+        "left": {
+          "dataset_id": "clinical_lab:0001",
+          "column": "Lab staff on duty",
+          "concept": "lab_staffing",
+          "semantic_group": "staff_levels",
+          "domain": "healthcare",
+          "variant": "on_duty",
+          "measure_kind": "count",
+          "unit_kind": "unknown",
+          "quantity_dimension": "count",
+          "quantity_unit": "count",
+          "entity_role": "measure",
+          "profile_confidence": "medium",
+          "profile_source": "llm"
+        },
+        "right": {
+          "dataset_id": "clinical_lab:0001",
+          "column": "Analyzer units online",
+          "concept": "analyzer_availability",
+          "semantic_group": "equipment_utilization",
+          "domain": "healthcare",
+          "variant": "online",
+          "measure_kind": "count",
+          "unit_kind": "count",
+          "quantity_dimension": "count",
+          "quantity_unit": "count",
+          "entity_role": "measure",
+          "profile_confidence": "medium",
+          "profile_source": "llm"
+        },
+        "quantity": {
+          "same_known_quantity_dimension": true,
+          "compatible_quantity_dimensions": true,
+          "exact_same_known_unit": true,
+          "compatible_units": true,
+          "directly_subtractable": true,
+          "dimension_conflict": false,
+          "quantity_field_provenance_available": false
+        },
+        "comparator": {
+          "same_concept": false,
+          "same_concept_family": false,
+          "same_domain": true,
+          "distinct_variants": true,
+          "conceptual_proximity": "medium",
+          "association_novelty": "medium",
+          "redundancy_risk": "medium",
+          "derived_gap_compatible": false,
+          "reasons": [
+            "Les colonnes représentent des variantes différentes du phénomène.",
+            "Les deux colonnes appartiennent au même domaine analytique.",
+            "Les deux mesures appartiennent à la même dimension quantitative (count)."
+          ]
+        },
+        "family": {
+          "available": true,
+          "same_quantity_family": false,
+          "relation_source": "no_positive_evidence",
+          "left_family": "staff_count",
+          "right_family": "equipment_availability",
+          "left_family_source": "llm",
+          "right_family_source": "llm",
+          "left_family_confidence": "high",
+          "right_family_confidence": "high",
+          "left_signature": "lab_staff",
+          "right_signature": "analyzer_units",
+          "signature_same": false,
+          "left_state": "on_duty",
+          "right_state": "online",
+          "distinct_known_states": true,
+          "llm_same_family": false,
+          "reasons": [
+            "Aucune preuve positive suffisante de même famille quantitative n'a été établie."
+          ]
+        },
+        "embedding": {
+          "candidate_retrieved": false,
+          "cosine_similarity": null,
+          "left_to_right_rank": null,
+          "right_to_left_rank": null,
+          "mutual_retrieval": null,
+          "role": "candidate_generation_only"
+        },
+        "interpretation": {
+          "proposed_relation": "uncertain",
+          "confidence": "low",
+          "evidence_for_same_metric_different_state": [
+            "Les profils portent des variantes sémantiques distinctes.",
+            "Deux états distincts et connus sont présents.",
+            "Les deux profils ont la même dimension quantitative connue.",
+            "Les deux profils ont exactement la même unité quantitative connue."
+          ],
+          "evidence_for_same_process_different_stage": [],
+          "evidence_for_related_distinct_metric": [
+            "Les profils partagent un domaine analytique sans partager de famille conceptuelle connue."
+          ],
+          "contradictory_evidence": [
+            "Le réconciliateur n'a pas établi de même famille quantitative."
+          ],
+          "limitations": [
+            "La provenance et la confiance ne sont pas encore suivies séparément pour chaque champ quantity_dimension / quantity_unit.",
+            "Les preuves disponibles sont insuffisantes pour attribuer une relation plus précise sans augmenter le risque de faux positif."
+          ]
+        },
+        "analytical_authority": "none_semantic_evidence_only",
+        "relation_evidence_version": "metric_relation_evidence_v0.2"
+      }
+    },
+    {
+      "domain": "clinical_lab",
+      "dataset_id": "clinical_lab:0001",
+      "case_id": "estimated_charge_reagent_spend",
+      "left": "Estimated test charge",
+      "right": "Reagent spend",
+      "expected_relation": "related_distinct_metric",
+      "predicted_relation": "uncertain",
+      "confidence": "low",
+      "binary_outcome": "TN",
+      "family_source": "no_positive_evidence",
+      "same_quantity_family": false,
+      "same_known_dimension": false,
+      "same_concept_family": false,
+      "distinct_known_states": false,
+      "dimension_conflict": false,
+      "full_evidence": {
+        "left": {
+          "dataset_id": "clinical_lab:0001",
+          "column": "Estimated test charge",
+          "concept": "test_charge",
+          "semantic_group": "laboratory_costs",
+          "domain": "healthcare",
+          "variant": "estimated",
+          "measure_kind": "unknown",
+          "unit_kind": "unknown",
+          "quantity_dimension": "unknown",
+          "quantity_unit": "unknown",
+          "entity_role": "measure",
+          "profile_confidence": "medium",
+          "profile_source": "llm"
+        },
+        "right": {
+          "dataset_id": "clinical_lab:0001",
+          "column": "Reagent spend",
+          "concept": "reagent_spend",
+          "semantic_group": "laboratory_expenses",
+          "domain": "healthcare",
+          "variant": "unknown",
+          "measure_kind": "unknown",
+          "unit_kind": "unknown",
+          "quantity_dimension": "unknown",
+          "quantity_unit": "unknown",
+          "entity_role": "measure",
+          "profile_confidence": "medium",
+          "profile_source": "llm"
+        },
+        "quantity": {
+          "same_known_quantity_dimension": false,
+          "compatible_quantity_dimensions": false,
+          "exact_same_known_unit": false,
+          "compatible_units": false,
+          "directly_subtractable": false,
+          "dimension_conflict": false,
+          "quantity_field_provenance_available": false
+        },
+        "comparator": {
+          "same_concept": false,
+          "same_concept_family": false,
+          "same_domain": true,
+          "distinct_variants": false,
+          "conceptual_proximity": "medium",
+          "association_novelty": "medium",
+          "redundancy_risk": "medium",
+          "derived_gap_compatible": false,
+          "reasons": [
+            "Les deux colonnes appartiennent au même domaine analytique."
+          ]
+        },
+        "family": {
+          "available": true,
+          "same_quantity_family": false,
+          "relation_source": "no_positive_evidence",
+          "left_family": "test_cost",
+          "right_family": "reagent_cost",
+          "left_family_source": "llm",
+          "right_family_source": "llm",
+          "left_family_confidence": "high",
+          "right_family_confidence": "high",
+          "left_signature": "test_charge",
+          "right_signature": "reagent_spend",
+          "signature_same": false,
+          "left_state": "estimated",
+          "right_state": "unknown",
+          "distinct_known_states": false,
+          "llm_same_family": false,
+          "reasons": [
+            "Aucune preuve positive suffisante de même famille quantitative n'a été établie."
+          ]
+        },
+        "embedding": {
+          "candidate_retrieved": false,
+          "cosine_similarity": null,
+          "left_to_right_rank": null,
+          "right_to_left_rank": null,
+          "mutual_retrieval": null,
+          "role": "candidate_generation_only"
+        },
+        "interpretation": {
+          "proposed_relation": "uncertain",
+          "confidence": "low",
+          "evidence_for_same_metric_different_state": [],
+          "evidence_for_same_process_different_stage": [],
+          "evidence_for_related_distinct_metric": [
+            "Les profils partagent un domaine analytique sans partager de famille conceptuelle connue."
+          ],
+          "contradictory_evidence": [
+            "Le réconciliateur n'a pas établi de même famille quantitative."
+          ],
+          "limitations": [
+            "La provenance et la confiance ne sont pas encore suivies séparément pour chaque champ quantity_dimension / quantity_unit.",
+            "Les preuves disponibles sont insuffisantes pour attribuer une relation plus précise sans augmenter le risque de faux positif."
+          ]
+        },
+        "analytical_authority": "none_semantic_evidence_only",
+        "relation_evidence_version": "metric_relation_evidence_v0.2"
+      }
+    },
+    {
+      "domain": "clinical_lab",
+      "dataset_id": "clinical_lab:0001",
+      "case_id": "final_bill_reagent_spend",
+      "left": "Final laboratory bill",
+      "right": "Reagent spend",
+      "expected_relation": "related_distinct_metric",
+      "predicted_relation": "uncertain",
+      "confidence": "low",
+      "binary_outcome": "TN",
+      "family_source": "no_positive_evidence",
+      "same_quantity_family": false,
+      "same_known_dimension": false,
+      "same_concept_family": false,
+      "distinct_known_states": false,
+      "dimension_conflict": false,
+      "full_evidence": {
+        "left": {
+          "dataset_id": "clinical_lab:0001",
+          "column": "Final laboratory bill",
+          "concept": "laboratory_bill",
+          "semantic_group": "financial_reporting",
+          "domain": "healthcare",
+          "variant": "final",
+          "measure_kind": "currency",
+          "unit_kind": "unknown",
+          "quantity_dimension": "currency",
+          "quantity_unit": "currency",
+          "entity_role": "measure",
+          "profile_confidence": "medium",
+          "profile_source": "llm"
+        },
+        "right": {
+          "dataset_id": "clinical_lab:0001",
+          "column": "Reagent spend",
+          "concept": "reagent_spend",
+          "semantic_group": "laboratory_expenses",
+          "domain": "healthcare",
+          "variant": "unknown",
+          "measure_kind": "unknown",
+          "unit_kind": "unknown",
+          "quantity_dimension": "unknown",
+          "quantity_unit": "unknown",
+          "entity_role": "measure",
+          "profile_confidence": "medium",
+          "profile_source": "llm"
+        },
+        "quantity": {
+          "same_known_quantity_dimension": false,
+          "compatible_quantity_dimensions": false,
+          "exact_same_known_unit": false,
+          "compatible_units": false,
+          "directly_subtractable": false,
+          "dimension_conflict": false,
+          "quantity_field_provenance_available": false
+        },
+        "comparator": {
+          "same_concept": false,
+          "same_concept_family": false,
+          "same_domain": true,
+          "distinct_variants": false,
+          "conceptual_proximity": "medium",
+          "association_novelty": "medium",
+          "redundancy_risk": "medium",
+          "derived_gap_compatible": false,
+          "reasons": [
+            "Les deux colonnes appartiennent au même domaine analytique."
+          ]
+        },
+        "family": {
+          "available": true,
+          "same_quantity_family": false,
+          "relation_source": "no_positive_evidence",
+          "left_family": "bill_amount",
+          "right_family": "reagent_cost",
+          "left_family_source": "llm",
+          "right_family_source": "llm",
+          "left_family_confidence": "high",
+          "right_family_confidence": "high",
+          "left_signature": "laboratory_bill",
+          "right_signature": "reagent_spend",
+          "signature_same": false,
+          "left_state": "final",
+          "right_state": "unknown",
+          "distinct_known_states": false,
+          "llm_same_family": false,
+          "reasons": [
+            "Aucune preuve positive suffisante de même famille quantitative n'a été établie."
+          ]
+        },
+        "embedding": {
+          "candidate_retrieved": false,
+          "cosine_similarity": null,
+          "left_to_right_rank": null,
+          "right_to_left_rank": null,
+          "mutual_retrieval": null,
+          "role": "candidate_generation_only"
+        },
+        "interpretation": {
+          "proposed_relation": "uncertain",
+          "confidence": "low",
+          "evidence_for_same_metric_different_state": [],
+          "evidence_for_same_process_different_stage": [],
+          "evidence_for_related_distinct_metric": [
+            "Les profils partagent un domaine analytique sans partager de famille conceptuelle connue."
+          ],
+          "contradictory_evidence": [
+            "Le réconciliateur n'a pas établi de même famille quantitative."
+          ],
+          "limitations": [
+            "La provenance et la confiance ne sont pas encore suivies séparément pour chaque champ quantity_dimension / quantity_unit.",
+            "Les preuves disponibles sont insuffisantes pour attribuer une relation plus précise sans augmenter le risque de faux positif."
+          ]
+        },
+        "analytical_authority": "none_semantic_evidence_only",
+        "relation_evidence_version": "metric_relation_evidence_v0.2"
+      }
+    },
+    {
+      "domain": "clinical_lab",
+      "dataset_id": "clinical_lab:0001",
+      "case_id": "turnaround_analyzer_downtime",
+      "left": "Target result turnaround (minutes)",
+      "right": "Analyzer downtime (minutes)",
+      "expected_relation": "related_distinct_metric",
+      "predicted_relation": "uncertain",
+      "confidence": "low",
+      "binary_outcome": "TN",
+      "family_source": "no_positive_evidence",
+      "same_quantity_family": false,
+      "same_known_dimension": true,
+      "same_concept_family": false,
+      "distinct_known_states": false,
+      "dimension_conflict": false,
+      "full_evidence": {
+        "left": {
+          "dataset_id": "clinical_lab:0001",
+          "column": "Target result turnaround (minutes)",
+          "concept": "turnaround_time",
+          "semantic_group": "laboratory_metrics",
+          "domain": "healthcare",
+          "variant": "target",
+          "measure_kind": "duration",
+          "unit_kind": "duration",
+          "quantity_dimension": "duration",
+          "quantity_unit": "minute",
+          "entity_role": "measure",
+          "profile_confidence": "high",
+          "profile_source": "llm"
+        },
+        "right": {
+          "dataset_id": "clinical_lab:0001",
+          "column": "Analyzer downtime (minutes)",
+          "concept": "analyzer_downtime",
+          "semantic_group": "equipment_availability",
+          "domain": "healthcare",
+          "variant": "unknown",
+          "measure_kind": "duration",
+          "unit_kind": "duration",
+          "quantity_dimension": "duration",
+          "quantity_unit": "minute",
+          "entity_role": "measure",
+          "profile_confidence": "high",
+          "profile_source": "llm"
+        },
+        "quantity": {
+          "same_known_quantity_dimension": true,
+          "compatible_quantity_dimensions": true,
+          "exact_same_known_unit": true,
+          "compatible_units": true,
+          "directly_subtractable": true,
+          "dimension_conflict": false,
+          "quantity_field_provenance_available": false
+        },
+        "comparator": {
+          "same_concept": false,
+          "same_concept_family": false,
+          "same_domain": true,
+          "distinct_variants": false,
+          "conceptual_proximity": "medium",
+          "association_novelty": "medium",
+          "redundancy_risk": "medium",
+          "derived_gap_compatible": false,
+          "reasons": [
+            "Les deux colonnes appartiennent au même domaine analytique.",
+            "Les deux mesures appartiennent à la même dimension quantitative (duration)."
+          ]
+        },
+        "family": {
+          "available": true,
+          "same_quantity_family": false,
+          "relation_source": "no_positive_evidence",
+          "left_family": "turnaround_time",
+          "right_family": "equipment_downtime",
+          "left_family_source": "llm",
+          "right_family_source": "llm",
+          "left_family_confidence": "high",
+          "right_family_confidence": "high",
+          "left_signature": "result_turnaround",
+          "right_signature": "analyzer_downtime",
+          "signature_same": false,
+          "left_state": "target",
+          "right_state": "unknown",
+          "distinct_known_states": false,
+          "llm_same_family": false,
+          "reasons": [
+            "Aucune preuve positive suffisante de même famille quantitative n'a été établie."
+          ]
+        },
+        "embedding": {
+          "candidate_retrieved": false,
+          "cosine_similarity": null,
+          "left_to_right_rank": null,
+          "right_to_left_rank": null,
+          "mutual_retrieval": null,
+          "role": "candidate_generation_only"
+        },
+        "interpretation": {
+          "proposed_relation": "uncertain",
+          "confidence": "low",
+          "evidence_for_same_metric_different_state": [
+            "Les deux profils ont la même dimension quantitative connue.",
+            "Les deux profils ont exactement la même unité quantitative connue."
+          ],
+          "evidence_for_same_process_different_stage": [],
+          "evidence_for_related_distinct_metric": [
+            "Les profils partagent un domaine analytique sans partager de famille conceptuelle connue."
+          ],
+          "contradictory_evidence": [
+            "Le réconciliateur n'a pas établi de même famille quantitative."
+          ],
+          "limitations": [
+            "La provenance et la confiance ne sont pas encore suivies séparément pour chaque champ quantity_dimension / quantity_unit.",
+            "Les preuves disponibles sont insuffisantes pour attribuer une relation plus précise sans augmenter le risque de faux positif."
+          ]
+        },
+        "analytical_authority": "none_semantic_evidence_only",
+        "relation_evidence_version": "metric_relation_evidence_v0.2"
+      }
+    },
+    {
+      "domain": "clinical_lab",
+      "dataset_id": "clinical_lab:0001",
+      "case_id": "reporting_time_analyzer_downtime",
+      "left": "Actual reporting time (minutes)",
+      "right": "Analyzer downtime (minutes)",
+      "expected_relation": "related_distinct_metric",
+      "predicted_relation": "uncertain",
+      "confidence": "low",
+      "binary_outcome": "TN",
+      "family_source": "no_positive_evidence",
+      "same_quantity_family": false,
+      "same_known_dimension": true,
+      "same_concept_family": false,
+      "distinct_known_states": false,
+      "dimension_conflict": false,
+      "full_evidence": {
+        "left": {
+          "dataset_id": "clinical_lab:0001",
+          "column": "Actual reporting time (minutes)",
+          "concept": "test_turnaround_time",
+          "semantic_group": "result_turnaround_time",
+          "domain": "healthcare",
+          "variant": "actual",
+          "measure_kind": "duration",
+          "unit_kind": "duration",
+          "quantity_dimension": "duration",
+          "quantity_unit": "minute",
+          "entity_role": "measure",
+          "profile_confidence": "high",
+          "profile_source": "llm"
+        },
+        "right": {
+          "dataset_id": "clinical_lab:0001",
+          "column": "Analyzer downtime (minutes)",
+          "concept": "analyzer_downtime",
+          "semantic_group": "equipment_availability",
+          "domain": "healthcare",
+          "variant": "unknown",
+          "measure_kind": "duration",
+          "unit_kind": "duration",
+          "quantity_dimension": "duration",
+          "quantity_unit": "minute",
+          "entity_role": "measure",
+          "profile_confidence": "high",
+          "profile_source": "llm"
+        },
+        "quantity": {
+          "same_known_quantity_dimension": true,
+          "compatible_quantity_dimensions": true,
+          "exact_same_known_unit": true,
+          "compatible_units": true,
+          "directly_subtractable": true,
+          "dimension_conflict": false,
+          "quantity_field_provenance_available": false
+        },
+        "comparator": {
+          "same_concept": false,
+          "same_concept_family": false,
+          "same_domain": true,
+          "distinct_variants": false,
+          "conceptual_proximity": "medium",
+          "association_novelty": "medium",
+          "redundancy_risk": "medium",
+          "derived_gap_compatible": false,
+          "reasons": [
+            "Les deux colonnes appartiennent au même domaine analytique.",
+            "Les deux mesures appartiennent à la même dimension quantitative (duration)."
+          ]
+        },
+        "family": {
+          "available": true,
+          "same_quantity_family": false,
+          "relation_source": "no_positive_evidence",
+          "left_family": "turnaround_time",
+          "right_family": "equipment_downtime",
+          "left_family_source": "llm",
+          "right_family_source": "llm",
+          "left_family_confidence": "high",
+          "right_family_confidence": "high",
+          "left_signature": "reporting_time",
+          "right_signature": "analyzer_downtime",
+          "signature_same": false,
+          "left_state": "actual",
+          "right_state": "unknown",
+          "distinct_known_states": false,
+          "llm_same_family": false,
+          "reasons": [
+            "Aucune preuve positive suffisante de même famille quantitative n'a été établie."
+          ]
+        },
+        "embedding": {
+          "candidate_retrieved": false,
+          "cosine_similarity": null,
+          "left_to_right_rank": null,
+          "right_to_left_rank": null,
+          "mutual_retrieval": null,
+          "role": "candidate_generation_only"
+        },
+        "interpretation": {
+          "proposed_relation": "uncertain",
+          "confidence": "low",
+          "evidence_for_same_metric_different_state": [
+            "Les deux profils ont la même dimension quantitative connue.",
+            "Les deux profils ont exactement la même unité quantitative connue."
+          ],
+          "evidence_for_same_process_different_stage": [],
+          "evidence_for_related_distinct_metric": [
+            "Les profils partagent un domaine analytique sans partager de famille conceptuelle connue."
+          ],
+          "contradictory_evidence": [
+            "Le réconciliateur n'a pas établi de même famille quantitative."
+          ],
+          "limitations": [
+            "La provenance et la confiance ne sont pas encore suivies séparément pour chaque champ quantity_dimension / quantity_unit.",
+            "Les preuves disponibles sont insuffisantes pour attribuer une relation plus précise sans augmenter le risque de faux positif."
+          ]
+        },
+        "analytical_authority": "none_semantic_evidence_only",
+        "relation_evidence_version": "metric_relation_evidence_v0.2"
+      }
+    },
+    {
+      "domain": "clinical_lab",
+      "dataset_id": "clinical_lab:0001",
+      "case_id": "quality_rate_sla",
+      "left": "Quality pass rate (%)",
+      "right": "SLA compliance (%)",
+      "expected_relation": "related_distinct_metric",
+      "predicted_relation": "uncertain",
+      "confidence": "low",
+      "binary_outcome": "TN",
+      "family_source": "no_positive_evidence",
+      "same_quantity_family": false,
+      "same_known_dimension": true,
+      "same_concept_family": true,
+      "distinct_known_states": false,
+      "dimension_conflict": false,
+      "full_evidence": {
+        "left": {
+          "dataset_id": "clinical_lab:0001",
+          "column": "Quality pass rate (%)",
+          "concept": "laboratory_quality",
+          "semantic_group": "laboratory_performance",
+          "domain": "healthcare",
+          "variant": "pass_rate",
+          "measure_kind": "percentage",
+          "unit_kind": "percent",
+          "quantity_dimension": "proportion",
+          "quantity_unit": "percent",
+          "entity_role": "measure",
+          "profile_confidence": "high",
+          "profile_source": "llm"
+        },
+        "right": {
+          "dataset_id": "clinical_lab:0001",
+          "column": "SLA compliance (%)",
+          "concept": "sla_compliance",
+          "semantic_group": "laboratory_performance",
+          "domain": "healthcare",
+          "variant": "unknown",
+          "measure_kind": "percentage",
+          "unit_kind": "percent",
+          "quantity_dimension": "proportion",
+          "quantity_unit": "percent",
+          "entity_role": "measure",
+          "profile_confidence": "high",
+          "profile_source": "llm"
+        },
+        "quantity": {
+          "same_known_quantity_dimension": true,
+          "compatible_quantity_dimensions": true,
+          "exact_same_known_unit": true,
+          "compatible_units": true,
+          "directly_subtractable": true,
+          "dimension_conflict": false,
+          "quantity_field_provenance_available": false
+        },
+        "comparator": {
+          "same_concept": false,
+          "same_concept_family": true,
+          "same_domain": true,
+          "distinct_variants": false,
+          "conceptual_proximity": "high",
+          "association_novelty": "low",
+          "redundancy_risk": "high",
+          "derived_gap_compatible": true,
+          "reasons": [
+            "Les deux colonnes appartiennent à la même famille conceptuelle.",
+            "Les deux colonnes appartiennent au même domaine analytique.",
+            "Les deux mesures appartiennent à la même dimension quantitative (proportion).",
+            "Une association directe peut être partiellement redondante car les mesures décrivent un phénomène proche.",
+            "Les mesures sont conceptuellement liées, distinctes et directement comparables pour examiner un écart déterministe."
+          ]
+        },
+        "family": {
+          "available": true,
+          "same_quantity_family": false,
+          "relation_source": "no_positive_evidence",
+          "left_family": "quality_rate",
+          "right_family": "compliance_rate",
+          "left_family_source": "llm",
+          "right_family_source": "llm",
+          "left_family_confidence": "high",
+          "right_family_confidence": "high",
+          "left_signature": "quality",
+          "right_signature": "sla_compliance",
+          "signature_same": false,
+          "left_state": "pass_rate",
+          "right_state": "unknown",
+          "distinct_known_states": false,
+          "llm_same_family": false,
+          "reasons": [
+            "Aucune preuve positive suffisante de même famille quantitative n'a été établie."
+          ]
+        },
+        "embedding": {
+          "candidate_retrieved": false,
+          "cosine_similarity": null,
+          "left_to_right_rank": null,
+          "right_to_left_rank": null,
+          "mutual_retrieval": null,
+          "role": "candidate_generation_only"
+        },
+        "interpretation": {
+          "proposed_relation": "uncertain",
+          "confidence": "low",
+          "evidence_for_same_metric_different_state": [
+            "Les profils appartiennent à la même famille conceptuelle.",
+            "Les deux profils ont la même dimension quantitative connue.",
+            "Les deux profils ont exactement la même unité quantitative connue."
+          ],
+          "evidence_for_same_process_different_stage": [],
+          "evidence_for_related_distinct_metric": [],
+          "contradictory_evidence": [
+            "Le réconciliateur n'a pas établi de même famille quantitative."
+          ],
+          "limitations": [
+            "La provenance et la confiance ne sont pas encore suivies séparément pour chaque champ quantity_dimension / quantity_unit.",
+            "Les preuves disponibles sont insuffisantes pour attribuer une relation plus précise sans augmenter le risque de faux positif."
+          ]
+        },
+        "analytical_authority": "none_semantic_evidence_only",
+        "relation_evidence_version": "metric_relation_evidence_v0.2"
+      }
+    },
+    {
+      "domain": "clinical_lab",
+      "dataset_id": "clinical_lab:0001",
+      "case_id": "sample_mass_reagent_mass",
+      "left": "Planned sample mass (grams)",
+      "right": "Reagent mass used (kg)",
+      "expected_relation": "related_distinct_metric",
+      "predicted_relation": "uncertain",
+      "confidence": "low",
+      "binary_outcome": "TN",
+      "family_source": "no_positive_evidence",
+      "same_quantity_family": false,
+      "same_known_dimension": true,
+      "same_concept_family": false,
+      "distinct_known_states": true,
+      "dimension_conflict": false,
+      "full_evidence": {
+        "left": {
+          "dataset_id": "clinical_lab:0001",
+          "column": "Planned sample mass (grams)",
+          "concept": "sample_mass",
+          "semantic_group": "laboratory_measure",
+          "domain": "healthcare",
+          "variant": "planned",
+          "measure_kind": "unknown",
+          "unit_kind": "unknown",
+          "quantity_dimension": "mass",
+          "quantity_unit": "gram",
+          "entity_role": "measure",
+          "profile_confidence": "medium",
+          "profile_source": "llm"
+        },
+        "right": {
+          "dataset_id": "clinical_lab:0001",
+          "column": "Reagent mass used (kg)",
+          "concept": "reagent_mass",
+          "semantic_group": "reagent_consumption",
+          "domain": "laboratory",
+          "variant": "used",
+          "measure_kind": "unknown",
+          "unit_kind": "unknown",
+          "quantity_dimension": "mass",
+          "quantity_unit": "kilogram",
+          "entity_role": "measure",
+          "profile_confidence": "medium",
+          "profile_source": "llm"
+        },
+        "quantity": {
+          "same_known_quantity_dimension": true,
+          "compatible_quantity_dimensions": true,
+          "exact_same_known_unit": false,
+          "compatible_units": true,
+          "directly_subtractable": false,
+          "dimension_conflict": false,
+          "quantity_field_provenance_available": false
+        },
+        "comparator": {
+          "same_concept": false,
+          "same_concept_family": false,
+          "same_domain": false,
+          "distinct_variants": true,
+          "conceptual_proximity": "low",
+          "association_novelty": "high",
+          "redundancy_risk": "low",
+          "derived_gap_compatible": false,
+          "reasons": [
+            "Les colonnes représentent des variantes différentes du phénomène.",
+            "Les colonnes appartiennent à des domaines analytiques distincts.",
+            "Les deux mesures appartiennent à la même dimension quantitative (mass).",
+            "Les dimensions quantitatives sont compatibles, mais une conversion d'unité est requise avant une soustraction.",
+            "Une association entre ces mesures peut apporter un angle conceptuel distinct."
+          ]
+        },
+        "family": {
+          "available": true,
+          "same_quantity_family": false,
+          "relation_source": "no_positive_evidence",
+          "left_family": "sample_mass",
+          "right_family": "reagent_mass",
+          "left_family_source": "llm",
+          "right_family_source": "llm",
+          "left_family_confidence": "high",
+          "right_family_confidence": "high",
+          "left_signature": "sample_mass",
+          "right_signature": "reagent_mass",
+          "signature_same": false,
+          "left_state": "planned",
+          "right_state": "used",
+          "distinct_known_states": true,
+          "llm_same_family": false,
+          "reasons": [
+            "Aucune preuve positive suffisante de même famille quantitative n'a été établie."
+          ]
+        },
+        "embedding": {
+          "candidate_retrieved": false,
+          "cosine_similarity": null,
+          "left_to_right_rank": null,
+          "right_to_left_rank": null,
+          "mutual_retrieval": null,
+          "role": "candidate_generation_only"
+        },
+        "interpretation": {
+          "proposed_relation": "uncertain",
+          "confidence": "low",
+          "evidence_for_same_metric_different_state": [
+            "Les profils portent des variantes sémantiques distinctes.",
+            "Deux états distincts et connus sont présents.",
+            "Les deux profils ont la même dimension quantitative connue."
+          ],
+          "evidence_for_same_process_different_stage": [],
+          "evidence_for_related_distinct_metric": [],
+          "contradictory_evidence": [
+            "Le réconciliateur n'a pas établi de même famille quantitative."
+          ],
+          "limitations": [
+            "La provenance et la confiance ne sont pas encore suivies séparément pour chaque champ quantity_dimension / quantity_unit.",
+            "Les preuves disponibles sont insuffisantes pour attribuer une relation plus précise sans augmenter le risque de faux positif."
+          ]
+        },
+        "analytical_authority": "none_semantic_evidence_only",
+        "relation_evidence_version": "metric_relation_evidence_v0.2"
+      }
+    },
+    {
+      "domain": "clinical_lab",
+      "dataset_id": "clinical_lab:0001",
+      "case_id": "specimen_weight_reagent_mass",
+      "left": "Measured specimen weight (kg)",
+      "right": "Reagent mass used (kg)",
+      "expected_relation": "related_distinct_metric",
+      "predicted_relation": "uncertain",
+      "confidence": "low",
+      "binary_outcome": "TN",
+      "family_source": "no_positive_evidence",
+      "same_quantity_family": false,
+      "same_known_dimension": true,
+      "same_concept_family": false,
+      "distinct_known_states": false,
+      "dimension_conflict": false,
+      "full_evidence": {
+        "left": {
+          "dataset_id": "clinical_lab:0001",
+          "column": "Measured specimen weight (kg)",
+          "concept": "specimen_weight",
+          "semantic_group": "laboratory_measurements",
+          "domain": "healthcare",
+          "variant": "unknown",
+          "measure_kind": "unknown",
+          "unit_kind": "unknown",
+          "quantity_dimension": "mass",
+          "quantity_unit": "kilogram",
+          "entity_role": "measure",
+          "profile_confidence": "medium",
+          "profile_source": "llm"
+        },
+        "right": {
+          "dataset_id": "clinical_lab:0001",
+          "column": "Reagent mass used (kg)",
+          "concept": "reagent_mass",
+          "semantic_group": "reagent_consumption",
+          "domain": "laboratory",
+          "variant": "used",
+          "measure_kind": "unknown",
+          "unit_kind": "unknown",
+          "quantity_dimension": "mass",
+          "quantity_unit": "kilogram",
+          "entity_role": "measure",
+          "profile_confidence": "medium",
+          "profile_source": "llm"
+        },
+        "quantity": {
+          "same_known_quantity_dimension": true,
+          "compatible_quantity_dimensions": true,
+          "exact_same_known_unit": true,
+          "compatible_units": true,
+          "directly_subtractable": true,
+          "dimension_conflict": false,
+          "quantity_field_provenance_available": false
+        },
+        "comparator": {
+          "same_concept": false,
+          "same_concept_family": false,
+          "same_domain": false,
+          "distinct_variants": false,
+          "conceptual_proximity": "low",
+          "association_novelty": "high",
+          "redundancy_risk": "low",
+          "derived_gap_compatible": false,
+          "reasons": [
+            "Les colonnes appartiennent à des domaines analytiques distincts.",
+            "Les deux mesures appartiennent à la même dimension quantitative (mass).",
+            "Une association entre ces mesures peut apporter un angle conceptuel distinct."
+          ]
+        },
+        "family": {
+          "available": true,
+          "same_quantity_family": false,
+          "relation_source": "no_positive_evidence",
+          "left_family": "specimen_weight",
+          "right_family": "reagent_mass",
+          "left_family_source": "llm",
+          "right_family_source": "llm",
+          "left_family_confidence": "high",
+          "right_family_confidence": "high",
+          "left_signature": "measured_specimen_weight",
+          "right_signature": "reagent_mass",
+          "signature_same": false,
+          "left_state": "unknown",
+          "right_state": "used",
+          "distinct_known_states": false,
+          "llm_same_family": false,
+          "reasons": [
+            "Aucune preuve positive suffisante de même famille quantitative n'a été établie."
+          ]
+        },
+        "embedding": {
+          "candidate_retrieved": false,
+          "cosine_similarity": null,
+          "left_to_right_rank": null,
+          "right_to_left_rank": null,
+          "mutual_retrieval": null,
+          "role": "candidate_generation_only"
+        },
+        "interpretation": {
+          "proposed_relation": "uncertain",
+          "confidence": "low",
+          "evidence_for_same_metric_different_state": [
+            "Les deux profils ont la même dimension quantitative connue.",
+            "Les deux profils ont exactement la même unité quantitative connue."
+          ],
+          "evidence_for_same_process_different_stage": [],
+          "evidence_for_related_distinct_metric": [],
+          "contradictory_evidence": [
+            "Le réconciliateur n'a pas établi de même famille quantitative."
+          ],
+          "limitations": [
+            "La provenance et la confiance ne sont pas encore suivies séparément pour chaque champ quantity_dimension / quantity_unit.",
+            "Les preuves disponibles sont insuffisantes pour attribuer une relation plus précise sans augmenter le risque de faux positif."
+          ]
+        },
+        "analytical_authority": "none_semantic_evidence_only",
+        "relation_evidence_version": "metric_relation_evidence_v0.2"
+      }
+    },
+    {
+      "domain": "customer_support",
+      "dataset_id": "customer_support:0001",
+      "case_id": "submitted_cases_resolved_tickets",
+      "left": "Cases submitted",
+      "right": "Tickets resolved",
+      "expected_relation": "same_process_different_stage",
+      "predicted_relation": "uncertain",
+      "confidence": "low",
+      "binary_outcome": "TN",
+      "family_source": "no_positive_evidence",
+      "same_quantity_family": false,
+      "same_known_dimension": true,
+      "same_concept_family": true,
+      "distinct_known_states": false,
+      "dimension_conflict": false,
+      "full_evidence": {
+        "left": {
+          "dataset_id": "customer_support:0001",
+          "column": "Cases submitted",
+          "concept": "customer_support",
+          "semantic_group": "support_operations",
+          "domain": "customer",
+          "variant": "cases_submitted",
+          "measure_kind": "count",
+          "unit_kind": "unknown",
+          "quantity_dimension": "count",
+          "quantity_unit": "count",
+          "entity_role": "measure",
+          "profile_confidence": "medium",
+          "profile_source": "llm"
+        },
+        "right": {
+          "dataset_id": "customer_support:0001",
+          "column": "Tickets resolved",
+          "concept": "tickets_resolved",
+          "semantic_group": "support_operations",
+          "domain": "customer_support",
+          "variant": "unknown",
+          "measure_kind": "count",
+          "unit_kind": "unknown",
+          "quantity_dimension": "count",
+          "quantity_unit": "count",
+          "entity_role": "measure",
+          "profile_confidence": "medium",
+          "profile_source": "llm"
+        },
+        "quantity": {
+          "same_known_quantity_dimension": true,
+          "compatible_quantity_dimensions": true,
+          "exact_same_known_unit": true,
+          "compatible_units": true,
+          "directly_subtractable": true,
+          "dimension_conflict": false,
+          "quantity_field_provenance_available": false
+        },
+        "comparator": {
+          "same_concept": false,
+          "same_concept_family": true,
+          "same_domain": false,
+          "distinct_variants": false,
+          "conceptual_proximity": "high",
+          "association_novelty": "low",
+          "redundancy_risk": "high",
+          "derived_gap_compatible": true,
+          "reasons": [
+            "Les deux colonnes appartiennent à la même famille conceptuelle.",
+            "Les colonnes appartiennent à des domaines analytiques distincts.",
+            "Les deux mesures appartiennent à la même dimension quantitative (count).",
+            "Une association directe peut être partiellement redondante car les mesures décrivent un phénomène proche.",
+            "Les mesures sont conceptuellement liées, distinctes et directement comparables pour examiner un écart déterministe."
+          ]
+        },
+        "family": {
+          "available": true,
+          "same_quantity_family": false,
+          "relation_source": "no_positive_evidence",
+          "left_family": "cases",
+          "right_family": "tickets",
+          "left_family_source": "llm",
+          "right_family_source": "llm",
+          "left_family_confidence": "high",
+          "right_family_confidence": "high",
+          "left_signature": "cases_submitted",
+          "right_signature": "tickets_resolved",
+          "signature_same": false,
+          "left_state": "cases_submitted",
+          "right_state": "unknown",
+          "distinct_known_states": false,
+          "llm_same_family": false,
+          "reasons": [
+            "Aucune preuve positive suffisante de même famille quantitative n'a été établie."
+          ]
+        },
+        "embedding": {
+          "candidate_retrieved": false,
+          "cosine_similarity": null,
+          "left_to_right_rank": null,
+          "right_to_left_rank": null,
+          "mutual_retrieval": null,
+          "role": "candidate_generation_only"
+        },
+        "interpretation": {
+          "proposed_relation": "uncertain",
+          "confidence": "low",
+          "evidence_for_same_metric_different_state": [
+            "Les profils appartiennent à la même famille conceptuelle.",
+            "Les deux profils ont la même dimension quantitative connue.",
+            "Les deux profils ont exactement la même unité quantitative connue."
+          ],
+          "evidence_for_same_process_different_stage": [],
+          "evidence_for_related_distinct_metric": [],
+          "contradictory_evidence": [
+            "Le réconciliateur n'a pas établi de même famille quantitative."
+          ],
+          "limitations": [
+            "La provenance et la confiance ne sont pas encore suivies séparément pour chaque champ quantity_dimension / quantity_unit.",
+            "Les preuves disponibles sont insuffisantes pour attribuer une relation plus précise sans augmenter le risque de faux positif."
+          ]
+        },
+        "analytical_authority": "none_semantic_evidence_only",
+        "relation_evidence_version": "metric_relation_evidence_v0.2"
+      }
+    },
+    {
+      "domain": "customer_support",
+      "dataset_id": "customer_support:0001",
+      "case_id": "rostered_agents_online_staff",
+      "left": "Agents rostered",
+      "right": "Staff online",
+      "expected_relation": "same_metric_different_state",
+      "predicted_relation": "uncertain",
+      "confidence": "low",
+      "binary_outcome": "FN",
+      "family_source": "dimension_veto",
+      "same_quantity_family": false,
+      "same_known_dimension": false,
+      "same_concept_family": true,
+      "distinct_known_states": false,
+      "dimension_conflict": true,
+      "full_evidence": {
+        "left": {
+          "dataset_id": "customer_support:0001",
+          "column": "Agents rostered",
+          "concept": "staff_availability",
+          "semantic_group": "staff_roster",
+          "domain": "customer_support",
+          "variant": "unknown",
+          "measure_kind": "count",
+          "unit_kind": "unknown",
+          "quantity_dimension": "count",
+          "quantity_unit": "count",
+          "entity_role": "measure",
+          "profile_confidence": "medium",
+          "profile_source": "llm"
+        },
+        "right": {
+          "dataset_id": "customer_support:0001",
+          "column": "Staff online",
+          "concept": "staff_availability",
+          "semantic_group": "staff_online_time",
+          "domain": "customer_support",
+          "variant": "online",
+          "measure_kind": "duration",
+          "unit_kind": "unknown",
+          "quantity_dimension": "duration",
+          "quantity_unit": "unknown",
+          "entity_role": "measure",
+          "profile_confidence": "medium",
+          "profile_source": "llm"
+        },
+        "quantity": {
+          "same_known_quantity_dimension": false,
+          "compatible_quantity_dimensions": false,
+          "exact_same_known_unit": false,
+          "compatible_units": false,
+          "directly_subtractable": false,
+          "dimension_conflict": true,
+          "quantity_field_provenance_available": false
+        },
+        "comparator": {
+          "same_concept": true,
+          "same_concept_family": true,
+          "same_domain": true,
+          "distinct_variants": false,
+          "conceptual_proximity": "high",
+          "association_novelty": "low",
+          "redundancy_risk": "high",
+          "derived_gap_compatible": false,
+          "reasons": [
+            "Les deux colonnes représentent le même concept sémantique.",
+            "Les deux colonnes appartiennent au même domaine analytique.",
+            "Une association directe peut être partiellement redondante car les mesures décrivent un phénomène proche."
+          ]
+        },
+        "family": {
+          "available": true,
+          "same_quantity_family": false,
+          "relation_source": "dimension_veto",
+          "left_family": "staff",
+          "right_family": "staff",
+          "left_family_source": "llm",
+          "right_family_source": "llm",
+          "left_family_confidence": "high",
+          "right_family_confidence": "high",
+          "left_signature": "agents_rostered",
+          "right_signature": "staff",
+          "signature_same": false,
+          "left_state": "unknown",
+          "right_state": "online",
+          "distinct_known_states": false,
+          "llm_same_family": true,
+          "reasons": [
+            "Les dimensions quantitatives connues sont différentes ; la relation de même quantité est rejetée déterministiquement."
+          ]
+        },
+        "embedding": {
+          "candidate_retrieved": false,
+          "cosine_similarity": null,
+          "left_to_right_rank": null,
+          "right_to_left_rank": null,
+          "mutual_retrieval": null,
+          "role": "candidate_generation_only"
+        },
+        "interpretation": {
+          "proposed_relation": "uncertain",
+          "confidence": "low",
+          "evidence_for_same_metric_different_state": [
+            "Les profils partagent le même concept.",
+            "Les profils appartiennent à la même famille conceptuelle."
+          ],
+          "evidence_for_same_process_different_stage": [],
+          "evidence_for_related_distinct_metric": [],
+          "contradictory_evidence": [
+            "Les dimensions quantitatives connues sont différentes.",
+            "Le réconciliateur n'a pas établi de même famille quantitative.",
+            "Un veto de dimension a été appliqué par le réconciliateur."
+          ],
+          "limitations": [
+            "La provenance et la confiance ne sont pas encore suivies séparément pour chaque champ quantity_dimension / quantity_unit.",
+            "Les preuves disponibles sont insuffisantes pour attribuer une relation plus précise sans augmenter le risque de faux positif."
+          ]
+        },
+        "analytical_authority": "none_semantic_evidence_only",
+        "relation_evidence_version": "metric_relation_evidence_v0.2"
+      }
+    },
+    {
+      "domain": "customer_support",
+      "dataset_id": "customer_support:0001",
+      "case_id": "quoted_cost_final_invoice",
+      "left": "Quoted service cost",
+      "right": "Final invoice amount",
+      "expected_relation": "same_metric_different_state",
+      "predicted_relation": "uncertain",
+      "confidence": "low",
+      "binary_outcome": "FN",
+      "family_source": "llm_cluster",
+      "same_quantity_family": true,
+      "same_known_dimension": false,
+      "same_concept_family": false,
+      "distinct_known_states": false,
+      "dimension_conflict": false,
+      "full_evidence": {
+        "left": {
+          "dataset_id": "customer_support:0001",
+          "column": "Quoted service cost",
+          "concept": "service_cost",
+          "semantic_group": "cost_of_service",
+          "domain": "customer",
+          "variant": "quoted",
+          "measure_kind": "currency",
+          "unit_kind": "currency",
+          "quantity_dimension": "currency",
+          "quantity_unit": "currency",
+          "entity_role": "measure",
+          "profile_confidence": "medium",
+          "profile_source": "llm"
+        },
+        "right": {
+          "dataset_id": "customer_support:0001",
+          "column": "Final invoice amount",
+          "concept": "invoice_amount",
+          "semantic_group": "financial_transactions",
+          "domain": "finance",
+          "variant": "unknown",
+          "measure_kind": "unknown",
+          "unit_kind": "unknown",
+          "quantity_dimension": "unknown",
+          "quantity_unit": "unknown",
+          "entity_role": "measure",
+          "profile_confidence": "medium",
+          "profile_source": "llm"
+        },
+        "quantity": {
+          "same_known_quantity_dimension": false,
+          "compatible_quantity_dimensions": false,
+          "exact_same_known_unit": false,
+          "compatible_units": false,
+          "directly_subtractable": false,
+          "dimension_conflict": false,
+          "quantity_field_provenance_available": false
+        },
+        "comparator": {
+          "same_concept": false,
+          "same_concept_family": false,
+          "same_domain": false,
+          "distinct_variants": false,
+          "conceptual_proximity": "low",
+          "association_novelty": "high",
+          "redundancy_risk": "low",
+          "derived_gap_compatible": false,
+          "reasons": [
+            "Les colonnes appartiennent à des domaines analytiques distincts.",
+            "Une association entre ces mesures peut apporter un angle conceptuel distinct."
+          ]
+        },
+        "family": {
+          "available": true,
+          "same_quantity_family": true,
+          "relation_source": "llm_cluster",
+          "left_family": "costs",
+          "right_family": "costs",
+          "left_family_source": "llm",
+          "right_family_source": "llm",
+          "left_family_confidence": "high",
+          "right_family_confidence": "high",
+          "left_signature": "service_cost",
+          "right_signature": "final_invoice_amount",
+          "signature_same": false,
+          "left_state": "quoted",
+          "right_state": "unknown",
+          "distinct_known_states": false,
+          "llm_same_family": true,
+          "reasons": [
+            "Le clustering sémantique place les deux colonnes dans la même famille quantitative."
+          ]
+        },
+        "embedding": {
+          "candidate_retrieved": false,
+          "cosine_similarity": null,
+          "left_to_right_rank": null,
+          "right_to_left_rank": null,
+          "mutual_retrieval": null,
+          "role": "candidate_generation_only"
+        },
+        "interpretation": {
+          "proposed_relation": "uncertain",
+          "confidence": "low",
+          "evidence_for_same_metric_different_state": [
+            "Le réconciliateur de familles quantitatives a établi une même famille."
+          ],
+          "evidence_for_same_process_different_stage": [],
+          "evidence_for_related_distinct_metric": [],
+          "contradictory_evidence": [],
+          "limitations": [
+            "La provenance et la confiance ne sont pas encore suivies séparément pour chaque champ quantity_dimension / quantity_unit.",
+            "Le clustering de famille quantitative est positif, mais aucune corroboration indépendante suffisante n'est disponible.",
+            "Les preuves disponibles sont insuffisantes pour attribuer une relation plus précise sans augmenter le risque de faux positif."
+          ]
+        },
+        "analytical_authority": "none_semantic_evidence_only",
+        "relation_evidence_version": "metric_relation_evidence_v0.2"
+      }
+    },
+    {
+      "domain": "customer_support",
+      "dataset_id": "customer_support:0001",
+      "case_id": "promised_observed_response_time",
+      "left": "Promised response time (minutes)",
+      "right": "Observed first-response delay (minutes)",
+      "expected_relation": "same_metric_different_state",
+      "predicted_relation": "same_metric_different_state",
+      "confidence": "medium",
+      "binary_outcome": "TP",
+      "family_source": "llm_cluster",
+      "same_quantity_family": true,
+      "same_known_dimension": true,
+      "same_concept_family": true,
+      "distinct_known_states": false,
+      "dimension_conflict": false,
+      "full_evidence": {
+        "left": {
+          "dataset_id": "customer_support:0001",
+          "column": "Promised response time (minutes)",
+          "concept": "response_time",
+          "semantic_group": "service_response_time",
+          "domain": "customer_support",
+          "variant": "unknown",
+          "measure_kind": "duration",
+          "unit_kind": "duration",
+          "quantity_dimension": "duration",
+          "quantity_unit": "minute",
+          "entity_role": "measure",
+          "profile_confidence": "medium",
+          "profile_source": "llm"
+        },
+        "right": {
+          "dataset_id": "customer_support:0001",
+          "column": "Observed first-response delay (minutes)",
+          "concept": "response_time",
+          "semantic_group": "first_response_delay",
+          "domain": "customer_support",
+          "variant": "actual",
+          "measure_kind": "duration",
+          "unit_kind": "duration",
+          "quantity_dimension": "duration",
+          "quantity_unit": "minute",
+          "entity_role": "measure",
+          "profile_confidence": "high",
+          "profile_source": "llm"
+        },
+        "quantity": {
+          "same_known_quantity_dimension": true,
+          "compatible_quantity_dimensions": true,
+          "exact_same_known_unit": true,
+          "compatible_units": true,
+          "directly_subtractable": true,
+          "dimension_conflict": false,
+          "quantity_field_provenance_available": false
+        },
+        "comparator": {
+          "same_concept": true,
+          "same_concept_family": true,
+          "same_domain": true,
+          "distinct_variants": false,
+          "conceptual_proximity": "high",
+          "association_novelty": "low",
+          "redundancy_risk": "high",
+          "derived_gap_compatible": false,
+          "reasons": [
+            "Les deux colonnes représentent le même concept sémantique.",
+            "Les deux colonnes appartiennent au même domaine analytique.",
+            "Les deux mesures appartiennent à la même dimension quantitative (duration).",
+            "Une association directe peut être partiellement redondante car les mesures décrivent un phénomène proche."
+          ]
+        },
+        "family": {
+          "available": true,
+          "same_quantity_family": true,
+          "relation_source": "llm_cluster",
+          "left_family": "response_times",
+          "right_family": "response_times",
+          "left_family_source": "llm",
+          "right_family_source": "llm",
+          "left_family_confidence": "high",
+          "right_family_confidence": "high",
+          "left_signature": "promised_response_time",
+          "right_signature": "observed_first_response_delay",
+          "signature_same": false,
+          "left_state": "unknown",
+          "right_state": "actual",
+          "distinct_known_states": false,
+          "llm_same_family": true,
+          "reasons": [
+            "Le clustering sémantique place les deux colonnes dans la même famille quantitative."
+          ]
+        },
+        "embedding": {
+          "candidate_retrieved": false,
+          "cosine_similarity": null,
+          "left_to_right_rank": null,
+          "right_to_left_rank": null,
+          "mutual_retrieval": null,
+          "role": "candidate_generation_only"
+        },
+        "interpretation": {
+          "proposed_relation": "same_metric_different_state",
+          "confidence": "medium",
+          "evidence_for_same_metric_different_state": [
+            "Les profils partagent le même concept.",
+            "Les profils appartiennent à la même famille conceptuelle.",
+            "Le réconciliateur de familles quantitatives a établi une même famille.",
+            "Les deux profils ont la même dimension quantitative connue.",
+            "Les deux profils ont exactement la même unité quantitative connue."
+          ],
+          "evidence_for_same_process_different_stage": [],
+          "evidence_for_related_distinct_metric": [],
+          "contradictory_evidence": [],
+          "limitations": [
+            "La provenance et la confiance ne sont pas encore suivies séparément pour chaque champ quantity_dimension / quantity_unit.",
+            "La relation proposée repose sur une famille quantitative positive accompagnée d'au moins une corroboration indépendante.",
+            "Cette relation sémantique n'autorise aucune opération analytique par elle-même."
+          ]
+        },
+        "analytical_authority": "none_semantic_evidence_only",
+        "relation_evidence_version": "metric_relation_evidence_v0.2"
+      }
+    },
+    {
+      "domain": "customer_support",
+      "dataset_id": "customer_support:0001",
+      "case_id": "response_delay_sla_compliance",
+      "left": "Observed first-response delay (minutes)",
+      "right": "SLA compliance (%)",
+      "expected_relation": "related_distinct_metric",
+      "predicted_relation": "uncertain",
+      "confidence": "low",
+      "binary_outcome": "TN",
+      "family_source": "dimension_veto",
+      "same_quantity_family": false,
+      "same_known_dimension": false,
+      "same_concept_family": false,
+      "distinct_known_states": false,
+      "dimension_conflict": true,
+      "full_evidence": {
+        "left": {
+          "dataset_id": "customer_support:0001",
+          "column": "Observed first-response delay (minutes)",
+          "concept": "response_time",
+          "semantic_group": "first_response_delay",
+          "domain": "customer_support",
+          "variant": "actual",
+          "measure_kind": "duration",
+          "unit_kind": "duration",
+          "quantity_dimension": "duration",
+          "quantity_unit": "minute",
+          "entity_role": "measure",
+          "profile_confidence": "high",
+          "profile_source": "llm"
+        },
+        "right": {
+          "dataset_id": "customer_support:0001",
+          "column": "SLA compliance (%)",
+          "concept": "sla_compliance",
+          "semantic_group": "service_level_agreement",
+          "domain": "customer_support",
+          "variant": "unknown",
+          "measure_kind": "percentage",
+          "unit_kind": "percent",
+          "quantity_dimension": "proportion",
+          "quantity_unit": "percent",
+          "entity_role": "measure",
+          "profile_confidence": "high",
+          "profile_source": "llm"
+        },
+        "quantity": {
+          "same_known_quantity_dimension": false,
+          "compatible_quantity_dimensions": false,
+          "exact_same_known_unit": false,
+          "compatible_units": false,
+          "directly_subtractable": false,
+          "dimension_conflict": true,
+          "quantity_field_provenance_available": false
+        },
+        "comparator": {
+          "same_concept": false,
+          "same_concept_family": false,
+          "same_domain": true,
+          "distinct_variants": false,
+          "conceptual_proximity": "medium",
+          "association_novelty": "medium",
+          "redundancy_risk": "medium",
+          "derived_gap_compatible": false,
+          "reasons": [
+            "Les deux colonnes appartiennent au même domaine analytique."
+          ]
+        },
+        "family": {
+          "available": true,
+          "same_quantity_family": false,
+          "relation_source": "dimension_veto",
+          "left_family": "response_times",
+          "right_family": "sla_compliance",
+          "left_family_source": "llm",
+          "right_family_source": "llm",
+          "left_family_confidence": "high",
+          "right_family_confidence": "high",
+          "left_signature": "observed_first_response_delay",
+          "right_signature": "sla_compliance",
+          "signature_same": false,
+          "left_state": "actual",
+          "right_state": "unknown",
+          "distinct_known_states": false,
+          "llm_same_family": false,
+          "reasons": [
+            "Les dimensions quantitatives connues sont différentes ; la relation de même quantité est rejetée déterministiquement."
+          ]
+        },
+        "embedding": {
+          "candidate_retrieved": false,
+          "cosine_similarity": null,
+          "left_to_right_rank": null,
+          "right_to_left_rank": null,
+          "mutual_retrieval": null,
+          "role": "candidate_generation_only"
+        },
+        "interpretation": {
+          "proposed_relation": "uncertain",
+          "confidence": "low",
+          "evidence_for_same_metric_different_state": [],
+          "evidence_for_same_process_different_stage": [],
+          "evidence_for_related_distinct_metric": [
+            "Les profils partagent un domaine analytique sans partager de famille conceptuelle connue."
+          ],
+          "contradictory_evidence": [
+            "Les dimensions quantitatives connues sont différentes.",
+            "Le réconciliateur n'a pas établi de même famille quantitative.",
+            "Un veto de dimension a été appliqué par le réconciliateur."
+          ],
+          "limitations": [
+            "La provenance et la confiance ne sont pas encore suivies séparément pour chaque champ quantity_dimension / quantity_unit.",
+            "Les preuves disponibles sont insuffisantes pour attribuer une relation plus précise sans augmenter le risque de faux positif."
+          ]
+        },
+        "analytical_authority": "none_semantic_evidence_only",
+        "relation_evidence_version": "metric_relation_evidence_v0.2"
+      }
+    },
+    {
+      "domain": "customer_support",
+      "dataset_id": "customer_support:0001",
+      "case_id": "invoice_online_staff",
+      "left": "Final invoice amount",
+      "right": "Staff online",
+      "expected_relation": "related_distinct_metric",
+      "predicted_relation": "uncertain",
+      "confidence": "low",
+      "binary_outcome": "TN",
+      "family_source": "no_positive_evidence",
+      "same_quantity_family": false,
+      "same_known_dimension": false,
+      "same_concept_family": false,
+      "distinct_known_states": false,
+      "dimension_conflict": false,
+      "full_evidence": {
+        "left": {
+          "dataset_id": "customer_support:0001",
+          "column": "Final invoice amount",
+          "concept": "invoice_amount",
+          "semantic_group": "financial_transactions",
+          "domain": "finance",
+          "variant": "unknown",
+          "measure_kind": "unknown",
+          "unit_kind": "unknown",
+          "quantity_dimension": "unknown",
+          "quantity_unit": "unknown",
+          "entity_role": "measure",
+          "profile_confidence": "medium",
+          "profile_source": "llm"
+        },
+        "right": {
+          "dataset_id": "customer_support:0001",
+          "column": "Staff online",
+          "concept": "staff_availability",
+          "semantic_group": "staff_online_time",
+          "domain": "customer_support",
+          "variant": "online",
+          "measure_kind": "duration",
+          "unit_kind": "unknown",
+          "quantity_dimension": "duration",
+          "quantity_unit": "unknown",
+          "entity_role": "measure",
+          "profile_confidence": "medium",
+          "profile_source": "llm"
+        },
+        "quantity": {
+          "same_known_quantity_dimension": false,
+          "compatible_quantity_dimensions": false,
+          "exact_same_known_unit": false,
+          "compatible_units": false,
+          "directly_subtractable": false,
+          "dimension_conflict": false,
+          "quantity_field_provenance_available": false
+        },
+        "comparator": {
+          "same_concept": false,
+          "same_concept_family": false,
+          "same_domain": false,
+          "distinct_variants": false,
+          "conceptual_proximity": "low",
+          "association_novelty": "high",
+          "redundancy_risk": "low",
+          "derived_gap_compatible": false,
+          "reasons": [
+            "Les colonnes appartiennent à des domaines analytiques distincts.",
+            "Une association entre ces mesures peut apporter un angle conceptuel distinct."
+          ]
+        },
+        "family": {
+          "available": true,
+          "same_quantity_family": false,
+          "relation_source": "no_positive_evidence",
+          "left_family": "costs",
+          "right_family": "staff",
+          "left_family_source": "llm",
+          "right_family_source": "llm",
+          "left_family_confidence": "high",
+          "right_family_confidence": "high",
+          "left_signature": "final_invoice_amount",
+          "right_signature": "staff",
+          "signature_same": false,
+          "left_state": "unknown",
+          "right_state": "online",
+          "distinct_known_states": false,
+          "llm_same_family": false,
+          "reasons": [
+            "Aucune preuve positive suffisante de même famille quantitative n'a été établie."
+          ]
+        },
+        "embedding": {
+          "candidate_retrieved": false,
+          "cosine_similarity": null,
+          "left_to_right_rank": null,
+          "right_to_left_rank": null,
+          "mutual_retrieval": null,
+          "role": "candidate_generation_only"
+        },
+        "interpretation": {
+          "proposed_relation": "uncertain",
+          "confidence": "low",
+          "evidence_for_same_metric_different_state": [],
+          "evidence_for_same_process_different_stage": [],
+          "evidence_for_related_distinct_metric": [],
+          "contradictory_evidence": [
+            "Le réconciliateur n'a pas établi de même famille quantitative."
+          ],
+          "limitations": [
+            "La provenance et la confiance ne sont pas encore suivies séparément pour chaque champ quantity_dimension / quantity_unit.",
+            "Les preuves disponibles sont insuffisantes pour attribuer une relation plus précise sans augmenter le risque de faux positif."
+          ]
+        },
+        "analytical_authority": "none_semantic_evidence_only",
+        "relation_evidence_version": "metric_relation_evidence_v0.2"
+      }
+    }
+  ]
+}

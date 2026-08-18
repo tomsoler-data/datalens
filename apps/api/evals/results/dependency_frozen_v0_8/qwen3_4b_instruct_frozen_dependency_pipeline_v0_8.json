@@ -1,0 +1,974 @@
+{
+  "evaluation": "dataset_dependency_frozen_runner_v0.8",
+  "metadata": {
+    "runner_version": "dataset_dependency_frozen_runner_v0.8",
+    "benchmark_version": "dataset_dependency_frozen_benchmark_v0.8",
+    "extractor_version": "dataset_dependency_extractor_v0.8",
+    "prompt_version": "dataset_dependency_prompt_v0.8_baseline",
+    "scorer_version": "dataset_dependency_scorer_v0.8",
+    "dependency_gate_version": "dataset_dependency_gate_v0.8",
+    "relationship_context_version": "routing_relationship_context_v0.8",
+    "model": "qwen3:4b-instruct",
+    "temperature": 0,
+    "thinking": false
+  },
+  "benchmark": "C:\\Users\\tomas\\datalens\\apps\\api\\evals\\dataset_dependency_frozen_v0_8.jsonl",
+  "frozen": true,
+  "first_run": true,
+  "summary": {
+    "case_count": 12,
+    "semantic_exact_count": 12,
+    "semantic_exact_accuracy": 1.0,
+    "semantic_average_overall": 1.0,
+    "dataset_f1": 1.0,
+    "grouping_f1": 1.0,
+    "final_verdict_exact_count": 12,
+    "final_verdict_accuracy": 1.0,
+    "structural_detail_exact_count": 12,
+    "structural_detail_accuracy": 1.0,
+    "end_to_end_exact_count": 12,
+    "end_to_end_accuracy": 1.0,
+    "hallucinated_dataset_count": 0,
+    "missing_dataset_count": 0,
+    "generation_error_count": 0,
+    "gate_error_count": 0,
+    "average_inference_ms": 1176.1174333332747
+  },
+  "results": [
+    {
+      "case_id": "dependency_frozen_v0_8_001",
+      "domain": "pharmacy_operations",
+      "status": "ready",
+      "inference_ms": 4241.352600001846,
+      "candidate": {
+        "requirements": [
+          {
+            "requirement_id": "average_prescriptions_per_day",
+            "dataset_ids": [
+              "prescriptions"
+            ]
+          }
+        ]
+      },
+      "actual_groups": [
+        [
+          "prescriptions"
+        ]
+      ],
+      "semantic_score": {
+        "scorer_version": "dataset_dependency_scorer_v0.8",
+        "metrics": {
+          "exact_groups": 1.0,
+          "dataset_f1": 1.0,
+          "pairwise_grouping_f1": 1.0,
+          "requirement_count": 1.0
+        },
+        "diagnostics": {
+          "expected_groups": [
+            [
+              "prescriptions"
+            ]
+          ],
+          "actual_groups": [
+            [
+              "prescriptions"
+            ]
+          ],
+          "missing_dataset_ids": [],
+          "hallucinated_dataset_ids": [],
+          "duplicate_requirement_groups": []
+        },
+        "overall": 1.0
+      },
+      "semantic_exact": true,
+      "gate": {
+        "executable": true,
+        "routing_override_reason": null,
+        "blocking_requirements": [],
+        "requirements": [
+          {
+            "requirement_id": "average_prescriptions_per_day",
+            "dataset_ids": [
+              "prescriptions"
+            ],
+            "feasibility": "not_required",
+            "executable": true
+          }
+        ]
+      },
+      "gate_error": null,
+      "final_verdict_exact": true,
+      "structural_detail_exact": true,
+      "end_to_end_exact": true,
+      "raw_content": "{\n  \"requirements\": [\n    {\n      \"requirement_id\": \"average_prescriptions_per_day\",\n      \"dataset_ids\": [\n        \"prescriptions\"\n      ]\n    }\n  ]\n}",
+      "error": null
+    },
+    {
+      "case_id": "dependency_frozen_v0_8_002",
+      "domain": "streaming_media",
+      "status": "ready",
+      "inference_ms": 758.7074000039138,
+      "candidate": {
+        "requirements": [
+          {
+            "requirement_id": "daily_reading_trend",
+            "dataset_ids": [
+              "plays"
+            ]
+          }
+        ]
+      },
+      "actual_groups": [
+        [
+          "plays"
+        ]
+      ],
+      "semantic_score": {
+        "scorer_version": "dataset_dependency_scorer_v0.8",
+        "metrics": {
+          "exact_groups": 1.0,
+          "dataset_f1": 1.0,
+          "pairwise_grouping_f1": 1.0,
+          "requirement_count": 1.0
+        },
+        "diagnostics": {
+          "expected_groups": [
+            [
+              "plays"
+            ]
+          ],
+          "actual_groups": [
+            [
+              "plays"
+            ]
+          ],
+          "missing_dataset_ids": [],
+          "hallucinated_dataset_ids": [],
+          "duplicate_requirement_groups": []
+        },
+        "overall": 1.0
+      },
+      "semantic_exact": true,
+      "gate": {
+        "executable": true,
+        "routing_override_reason": null,
+        "blocking_requirements": [],
+        "requirements": [
+          {
+            "requirement_id": "daily_reading_trend",
+            "dataset_ids": [
+              "plays"
+            ],
+            "feasibility": "not_required",
+            "executable": true
+          }
+        ]
+      },
+      "gate_error": null,
+      "final_verdict_exact": true,
+      "structural_detail_exact": true,
+      "end_to_end_exact": true,
+      "raw_content": "{\n  \"requirements\": [\n    {\n      \"requirement_id\": \"daily_reading_trend\",\n      \"dataset_ids\": [\n        \"plays\"\n      ]\n    }\n  ]\n}",
+      "error": null
+    },
+    {
+      "case_id": "dependency_frozen_v0_8_003",
+      "domain": "airport_operations",
+      "status": "ready",
+      "inference_ms": 1104.0667000052053,
+      "candidate": {
+        "requirements": [
+          {
+            "requirement_id": "average_flight_delay",
+            "dataset_ids": [
+              "flights"
+            ]
+          },
+          {
+            "requirement_id": "total_baggage_claims",
+            "dataset_ids": [
+              "baggage_claims"
+            ]
+          }
+        ]
+      },
+      "actual_groups": [
+        [
+          "flights"
+        ],
+        [
+          "baggage_claims"
+        ]
+      ],
+      "semantic_score": {
+        "scorer_version": "dataset_dependency_scorer_v0.8",
+        "metrics": {
+          "exact_groups": 1.0,
+          "dataset_f1": 1.0,
+          "pairwise_grouping_f1": 1.0,
+          "requirement_count": 1.0
+        },
+        "diagnostics": {
+          "expected_groups": [
+            [
+              "baggage_claims"
+            ],
+            [
+              "flights"
+            ]
+          ],
+          "actual_groups": [
+            [
+              "baggage_claims"
+            ],
+            [
+              "flights"
+            ]
+          ],
+          "missing_dataset_ids": [],
+          "hallucinated_dataset_ids": [],
+          "duplicate_requirement_groups": []
+        },
+        "overall": 1.0
+      },
+      "semantic_exact": true,
+      "gate": {
+        "executable": true,
+        "routing_override_reason": null,
+        "blocking_requirements": [],
+        "requirements": [
+          {
+            "requirement_id": "average_flight_delay",
+            "dataset_ids": [
+              "flights"
+            ],
+            "feasibility": "not_required",
+            "executable": true
+          },
+          {
+            "requirement_id": "total_baggage_claims",
+            "dataset_ids": [
+              "baggage_claims"
+            ],
+            "feasibility": "not_required",
+            "executable": true
+          }
+        ]
+      },
+      "gate_error": null,
+      "final_verdict_exact": true,
+      "structural_detail_exact": true,
+      "end_to_end_exact": true,
+      "raw_content": "{\n  \"requirements\": [\n    {\n      \"requirement_id\": \"average_flight_delay\",\n      \"dataset_ids\": [\n        \"flights\"\n      ]\n    },\n    {\n      \"requirement_id\": \"total_baggage_claims\",\n      \"dataset_ids\": [\n        \"baggage_claims\"\n      ]\n    }\n  ]\n}",
+      "error": null
+    },
+    {
+      "case_id": "dependency_frozen_v0_8_004",
+      "domain": "fitness_platform",
+      "status": "ready",
+      "inference_ms": 1112.487999998848,
+      "candidate": {
+        "requirements": [
+          {
+            "requirement_id": "average_workout_duration",
+            "dataset_ids": [
+              "workouts"
+            ]
+          },
+          {
+            "requirement_id": "total_support_requests",
+            "dataset_ids": [
+              "support_requests"
+            ]
+          }
+        ]
+      },
+      "actual_groups": [
+        [
+          "workouts"
+        ],
+        [
+          "support_requests"
+        ]
+      ],
+      "semantic_score": {
+        "scorer_version": "dataset_dependency_scorer_v0.8",
+        "metrics": {
+          "exact_groups": 1.0,
+          "dataset_f1": 1.0,
+          "pairwise_grouping_f1": 1.0,
+          "requirement_count": 1.0
+        },
+        "diagnostics": {
+          "expected_groups": [
+            [
+              "support_requests"
+            ],
+            [
+              "workouts"
+            ]
+          ],
+          "actual_groups": [
+            [
+              "support_requests"
+            ],
+            [
+              "workouts"
+            ]
+          ],
+          "missing_dataset_ids": [],
+          "hallucinated_dataset_ids": [],
+          "duplicate_requirement_groups": []
+        },
+        "overall": 1.0
+      },
+      "semantic_exact": true,
+      "gate": {
+        "executable": true,
+        "routing_override_reason": null,
+        "blocking_requirements": [],
+        "requirements": [
+          {
+            "requirement_id": "average_workout_duration",
+            "dataset_ids": [
+              "workouts"
+            ],
+            "feasibility": "not_required",
+            "executable": true
+          },
+          {
+            "requirement_id": "total_support_requests",
+            "dataset_ids": [
+              "support_requests"
+            ],
+            "feasibility": "not_required",
+            "executable": true
+          }
+        ]
+      },
+      "gate_error": null,
+      "final_verdict_exact": true,
+      "structural_detail_exact": true,
+      "end_to_end_exact": true,
+      "raw_content": "{\n  \"requirements\": [\n    {\n      \"requirement_id\": \"average_workout_duration\",\n      \"dataset_ids\": [\n        \"workouts\"\n      ]\n    },\n    {\n      \"requirement_id\": \"total_support_requests\",\n      \"dataset_ids\": [\n        \"support_requests\"\n      ]\n    }\n  ]\n}",
+      "error": null
+    },
+    {
+      "case_id": "dependency_frozen_v0_8_005",
+      "domain": "university_services",
+      "status": "ready",
+      "inference_ms": 824.9443999957293,
+      "candidate": {
+        "requirements": [
+          {
+            "requirement_id": "advising_final_score_relationship",
+            "dataset_ids": [
+              "advising",
+              "academic_results"
+            ]
+          }
+        ]
+      },
+      "actual_groups": [
+        [
+          "advising",
+          "academic_results"
+        ]
+      ],
+      "semantic_score": {
+        "scorer_version": "dataset_dependency_scorer_v0.8",
+        "metrics": {
+          "exact_groups": 1.0,
+          "dataset_f1": 1.0,
+          "pairwise_grouping_f1": 1.0,
+          "requirement_count": 1.0
+        },
+        "diagnostics": {
+          "expected_groups": [
+            [
+              "academic_results",
+              "advising"
+            ]
+          ],
+          "actual_groups": [
+            [
+              "academic_results",
+              "advising"
+            ]
+          ],
+          "missing_dataset_ids": [],
+          "hallucinated_dataset_ids": [],
+          "duplicate_requirement_groups": []
+        },
+        "overall": 1.0
+      },
+      "semantic_exact": true,
+      "gate": {
+        "executable": true,
+        "routing_override_reason": null,
+        "blocking_requirements": [],
+        "requirements": [
+          {
+            "requirement_id": "advising_final_score_relationship",
+            "dataset_ids": [
+              "advising",
+              "academic_results"
+            ],
+            "feasibility": "supported",
+            "executable": true
+          }
+        ]
+      },
+      "gate_error": null,
+      "final_verdict_exact": true,
+      "structural_detail_exact": true,
+      "end_to_end_exact": true,
+      "raw_content": "{\n  \"requirements\": [\n    {\n      \"requirement_id\": \"advising_final_score_relationship\",\n      \"dataset_ids\": [\n        \"advising\",\n        \"academic_results\"\n      ]\n    }\n  ]\n}",
+      "error": null
+    },
+    {
+      "case_id": "dependency_frozen_v0_8_006",
+      "domain": "vehicle_fleet",
+      "status": "ready",
+      "inference_ms": 787.0846000005258,
+      "candidate": {
+        "requirements": [
+          {
+            "requirement_id": "fuel_maintenance_relationship",
+            "dataset_ids": [
+              "fuel_usage",
+              "maintenance"
+            ]
+          }
+        ]
+      },
+      "actual_groups": [
+        [
+          "fuel_usage",
+          "maintenance"
+        ]
+      ],
+      "semantic_score": {
+        "scorer_version": "dataset_dependency_scorer_v0.8",
+        "metrics": {
+          "exact_groups": 1.0,
+          "dataset_f1": 1.0,
+          "pairwise_grouping_f1": 1.0,
+          "requirement_count": 1.0
+        },
+        "diagnostics": {
+          "expected_groups": [
+            [
+              "fuel_usage",
+              "maintenance"
+            ]
+          ],
+          "actual_groups": [
+            [
+              "fuel_usage",
+              "maintenance"
+            ]
+          ],
+          "missing_dataset_ids": [],
+          "hallucinated_dataset_ids": [],
+          "duplicate_requirement_groups": []
+        },
+        "overall": 1.0
+      },
+      "semantic_exact": true,
+      "gate": {
+        "executable": true,
+        "routing_override_reason": null,
+        "blocking_requirements": [],
+        "requirements": [
+          {
+            "requirement_id": "fuel_maintenance_relationship",
+            "dataset_ids": [
+              "fuel_usage",
+              "maintenance"
+            ],
+            "feasibility": "supported",
+            "executable": true
+          }
+        ]
+      },
+      "gate_error": null,
+      "final_verdict_exact": true,
+      "structural_detail_exact": true,
+      "end_to_end_exact": true,
+      "raw_content": "{\n  \"requirements\": [\n    {\n      \"requirement_id\": \"fuel_maintenance_relationship\",\n      \"dataset_ids\": [\n        \"fuel_usage\",\n        \"maintenance\"\n      ]\n    }\n  ]\n}",
+      "error": null
+    },
+    {
+      "case_id": "dependency_frozen_v0_8_007",
+      "domain": "museum_operations",
+      "status": "ready",
+      "inference_ms": 795.3602999914438,
+      "candidate": {
+        "requirements": [
+          {
+            "requirement_id": "visits_ad_spend_relationship",
+            "dataset_ids": [
+              "visits",
+              "advertising"
+            ]
+          }
+        ]
+      },
+      "actual_groups": [
+        [
+          "visits",
+          "advertising"
+        ]
+      ],
+      "semantic_score": {
+        "scorer_version": "dataset_dependency_scorer_v0.8",
+        "metrics": {
+          "exact_groups": 1.0,
+          "dataset_f1": 1.0,
+          "pairwise_grouping_f1": 1.0,
+          "requirement_count": 1.0
+        },
+        "diagnostics": {
+          "expected_groups": [
+            [
+              "advertising",
+              "visits"
+            ]
+          ],
+          "actual_groups": [
+            [
+              "advertising",
+              "visits"
+            ]
+          ],
+          "missing_dataset_ids": [],
+          "hallucinated_dataset_ids": [],
+          "duplicate_requirement_groups": []
+        },
+        "overall": 1.0
+      },
+      "semantic_exact": true,
+      "gate": {
+        "executable": false,
+        "routing_override_reason": "unsupported_analysis",
+        "blocking_requirements": [
+          "visits_ad_spend_relationship"
+        ],
+        "requirements": [
+          {
+            "requirement_id": "visits_ad_spend_relationship",
+            "dataset_ids": [
+              "visits",
+              "advertising"
+            ],
+            "feasibility": "missing_combination_capability",
+            "executable": false
+          }
+        ]
+      },
+      "gate_error": null,
+      "final_verdict_exact": true,
+      "structural_detail_exact": true,
+      "end_to_end_exact": true,
+      "raw_content": "{\n  \"requirements\": [\n    {\n      \"requirement_id\": \"visits_ad_spend_relationship\",\n      \"dataset_ids\": [\n        \"visits\",\n        \"advertising\"\n      ]\n    }\n  ]\n}",
+      "error": null
+    },
+    {
+      "case_id": "dependency_frozen_v0_8_008",
+      "domain": "food_delivery",
+      "status": "ready",
+      "inference_ms": 742.6529999938793,
+      "candidate": {
+        "requirements": [
+          {
+            "requirement_id": "prep_time_rating_relationship",
+            "dataset_ids": [
+              "orders",
+              "ratings"
+            ]
+          }
+        ]
+      },
+      "actual_groups": [
+        [
+          "orders",
+          "ratings"
+        ]
+      ],
+      "semantic_score": {
+        "scorer_version": "dataset_dependency_scorer_v0.8",
+        "metrics": {
+          "exact_groups": 1.0,
+          "dataset_f1": 1.0,
+          "pairwise_grouping_f1": 1.0,
+          "requirement_count": 1.0
+        },
+        "diagnostics": {
+          "expected_groups": [
+            [
+              "orders",
+              "ratings"
+            ]
+          ],
+          "actual_groups": [
+            [
+              "orders",
+              "ratings"
+            ]
+          ],
+          "missing_dataset_ids": [],
+          "hallucinated_dataset_ids": [],
+          "duplicate_requirement_groups": []
+        },
+        "overall": 1.0
+      },
+      "semantic_exact": true,
+      "gate": {
+        "executable": false,
+        "routing_override_reason": "unsupported_analysis",
+        "blocking_requirements": [
+          "prep_time_rating_relationship"
+        ],
+        "requirements": [
+          {
+            "requirement_id": "prep_time_rating_relationship",
+            "dataset_ids": [
+              "orders",
+              "ratings"
+            ],
+            "feasibility": "missing_combination_capability",
+            "executable": false
+          }
+        ]
+      },
+      "gate_error": null,
+      "final_verdict_exact": true,
+      "structural_detail_exact": true,
+      "end_to_end_exact": true,
+      "raw_content": "{\n  \"requirements\": [\n    {\n      \"requirement_id\": \"prep_time_rating_relationship\",\n      \"dataset_ids\": [\n        \"orders\",\n        \"ratings\"\n      ]\n    }\n  ]\n}",
+      "error": null
+    },
+    {
+      "case_id": "dependency_frozen_v0_8_009",
+      "domain": "construction_safety",
+      "status": "ready",
+      "inference_ms": 795.3219000046374,
+      "candidate": {
+        "requirements": [
+          {
+            "requirement_id": "training_incident_association",
+            "dataset_ids": [
+              "training",
+              "site_incidents"
+            ]
+          }
+        ]
+      },
+      "actual_groups": [
+        [
+          "training",
+          "site_incidents"
+        ]
+      ],
+      "semantic_score": {
+        "scorer_version": "dataset_dependency_scorer_v0.8",
+        "metrics": {
+          "exact_groups": 1.0,
+          "dataset_f1": 1.0,
+          "pairwise_grouping_f1": 1.0,
+          "requirement_count": 1.0
+        },
+        "diagnostics": {
+          "expected_groups": [
+            [
+              "site_incidents",
+              "training"
+            ]
+          ],
+          "actual_groups": [
+            [
+              "site_incidents",
+              "training"
+            ]
+          ],
+          "missing_dataset_ids": [],
+          "hallucinated_dataset_ids": [],
+          "duplicate_requirement_groups": []
+        },
+        "overall": 1.0
+      },
+      "semantic_exact": true,
+      "gate": {
+        "executable": false,
+        "routing_override_reason": "unsupported_analysis",
+        "blocking_requirements": [
+          "training_incident_association"
+        ],
+        "requirements": [
+          {
+            "requirement_id": "training_incident_association",
+            "dataset_ids": [
+              "training",
+              "site_incidents"
+            ],
+            "feasibility": "missing_validated_relationship",
+            "executable": false
+          }
+        ]
+      },
+      "gate_error": null,
+      "final_verdict_exact": true,
+      "structural_detail_exact": true,
+      "end_to_end_exact": true,
+      "raw_content": "{\n  \"requirements\": [\n    {\n      \"requirement_id\": \"training_incident_association\",\n      \"dataset_ids\": [\n        \"training\",\n        \"site_incidents\"\n      ]\n    }\n  ]\n}",
+      "error": null
+    },
+    {
+      "case_id": "dependency_frozen_v0_8_010",
+      "domain": "public_library",
+      "status": "ready",
+      "inference_ms": 798.9331999997376,
+      "candidate": {
+        "requirements": [
+          {
+            "requirement_id": "event_participation_vs_loan_count",
+            "dataset_ids": [
+              "events",
+              "loans"
+            ]
+          }
+        ]
+      },
+      "actual_groups": [
+        [
+          "events",
+          "loans"
+        ]
+      ],
+      "semantic_score": {
+        "scorer_version": "dataset_dependency_scorer_v0.8",
+        "metrics": {
+          "exact_groups": 1.0,
+          "dataset_f1": 1.0,
+          "pairwise_grouping_f1": 1.0,
+          "requirement_count": 1.0
+        },
+        "diagnostics": {
+          "expected_groups": [
+            [
+              "events",
+              "loans"
+            ]
+          ],
+          "actual_groups": [
+            [
+              "events",
+              "loans"
+            ]
+          ],
+          "missing_dataset_ids": [],
+          "hallucinated_dataset_ids": [],
+          "duplicate_requirement_groups": []
+        },
+        "overall": 1.0
+      },
+      "semantic_exact": true,
+      "gate": {
+        "executable": false,
+        "routing_override_reason": "unsupported_analysis",
+        "blocking_requirements": [
+          "event_participation_vs_loan_count"
+        ],
+        "requirements": [
+          {
+            "requirement_id": "event_participation_vs_loan_count",
+            "dataset_ids": [
+              "events",
+              "loans"
+            ],
+            "feasibility": "missing_validated_relationship",
+            "executable": false
+          }
+        ]
+      },
+      "gate_error": null,
+      "final_verdict_exact": true,
+      "structural_detail_exact": true,
+      "end_to_end_exact": true,
+      "raw_content": "{\n  \"requirements\": [\n    {\n      \"requirement_id\": \"event_participation_vs_loan_count\",\n      \"dataset_ids\": [\n        \"events\",\n        \"loans\"\n      ]\n    }\n  ]\n}",
+      "error": null
+    },
+    {
+      "case_id": "dependency_frozen_v0_8_011",
+      "domain": "telemedicine",
+      "status": "ready",
+      "inference_ms": 899.9456000019563,
+      "candidate": {
+        "requirements": [
+          {
+            "requirement_id": "consultations_satisfaction_care_cost_association",
+            "dataset_ids": [
+              "consultations",
+              "care_costs"
+            ]
+          }
+        ]
+      },
+      "actual_groups": [
+        [
+          "consultations",
+          "care_costs"
+        ]
+      ],
+      "semantic_score": {
+        "scorer_version": "dataset_dependency_scorer_v0.8",
+        "metrics": {
+          "exact_groups": 1.0,
+          "dataset_f1": 1.0,
+          "pairwise_grouping_f1": 1.0,
+          "requirement_count": 1.0
+        },
+        "diagnostics": {
+          "expected_groups": [
+            [
+              "care_costs",
+              "consultations"
+            ]
+          ],
+          "actual_groups": [
+            [
+              "care_costs",
+              "consultations"
+            ]
+          ],
+          "missing_dataset_ids": [],
+          "hallucinated_dataset_ids": [],
+          "duplicate_requirement_groups": []
+        },
+        "overall": 1.0
+      },
+      "semantic_exact": true,
+      "gate": {
+        "executable": true,
+        "routing_override_reason": null,
+        "blocking_requirements": [],
+        "requirements": [
+          {
+            "requirement_id": "consultations_satisfaction_care_cost_association",
+            "dataset_ids": [
+              "consultations",
+              "care_costs"
+            ],
+            "feasibility": "supported",
+            "executable": true
+          }
+        ]
+      },
+      "gate_error": null,
+      "final_verdict_exact": true,
+      "structural_detail_exact": true,
+      "end_to_end_exact": true,
+      "raw_content": "{\n  \"requirements\": [\n    {\n      \"requirement_id\": \"consultations_satisfaction_care_cost_association\",\n      \"dataset_ids\": [\n        \"consultations\",\n        \"care_costs\"\n      ]\n    }\n  ]\n}",
+      "error": null
+    },
+    {
+      "case_id": "dependency_frozen_v0_8_012",
+      "domain": "agricultural_cooperative",
+      "status": "ready",
+      "inference_ms": 1252.551500001573,
+      "candidate": {
+        "requirements": [
+          {
+            "requirement_id": "total_production",
+            "dataset_ids": [
+              "production"
+            ]
+          },
+          {
+            "requirement_id": "soil_humidity_vs_sale_price_relationship",
+            "dataset_ids": [
+              "soil_sensors",
+              "market_sales"
+            ]
+          }
+        ]
+      },
+      "actual_groups": [
+        [
+          "production"
+        ],
+        [
+          "soil_sensors",
+          "market_sales"
+        ]
+      ],
+      "semantic_score": {
+        "scorer_version": "dataset_dependency_scorer_v0.8",
+        "metrics": {
+          "exact_groups": 1.0,
+          "dataset_f1": 1.0,
+          "pairwise_grouping_f1": 1.0,
+          "requirement_count": 1.0
+        },
+        "diagnostics": {
+          "expected_groups": [
+            [
+              "market_sales",
+              "soil_sensors"
+            ],
+            [
+              "production"
+            ]
+          ],
+          "actual_groups": [
+            [
+              "market_sales",
+              "soil_sensors"
+            ],
+            [
+              "production"
+            ]
+          ],
+          "missing_dataset_ids": [],
+          "hallucinated_dataset_ids": [],
+          "duplicate_requirement_groups": []
+        },
+        "overall": 1.0
+      },
+      "semantic_exact": true,
+      "gate": {
+        "executable": false,
+        "routing_override_reason": "unsupported_analysis",
+        "blocking_requirements": [
+          "soil_humidity_vs_sale_price_relationship"
+        ],
+        "requirements": [
+          {
+            "requirement_id": "total_production",
+            "dataset_ids": [
+              "production"
+            ],
+            "feasibility": "not_required",
+            "executable": true
+          },
+          {
+            "requirement_id": "soil_humidity_vs_sale_price_relationship",
+            "dataset_ids": [
+              "soil_sensors",
+              "market_sales"
+            ],
+            "feasibility": "missing_validated_relationship",
+            "executable": false
+          }
+        ]
+      },
+      "gate_error": null,
+      "final_verdict_exact": true,
+      "structural_detail_exact": true,
+      "end_to_end_exact": true,
+      "raw_content": "{\n  \"requirements\": [\n    {\n      \"requirement_id\": \"total_production\",\n      \"dataset_ids\": [\n        \"production\"\n      ]\n    },\n    {\n      \"requirement_id\": \"soil_humidity_vs_sale_price_relationship\",\n      \"dataset_ids\": [\n        \"soil_sensors\",\n        \"market_sales\"\n      ]\n    }\n  ]\n}",
+      "error": null
+    }
+  ]
+}

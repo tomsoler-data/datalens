@@ -1,0 +1,308 @@
+from __future__ import annotations
+
+from typing import (
+    Any,
+    Dict,
+    List,
+)
+
+from fastapi import (
+    APIRouter,
+    HTTPException,
+    status,
+)
+
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+)
+
+from app.preparation.preparation_session import (
+    PREPARATION_SESSION_RULE_VERSION,
+    PreparationSessionNotFoundError,
+    PreparationSessionView,
+    create_preparation_session,
+    get_preparation_session,
+)
+
+
+# ============================================================
+# VERSION
+# ============================================================
+
+
+PREPARATION_SESSION_API_VERSION = (
+    "preparation_session_api_v0.1"
+)
+
+
+# ============================================================
+# ROUTER
+# ============================================================
+
+
+router = APIRouter(
+    prefix="/preparation",
+    tags=[
+        "preparation",
+    ],
+)
+
+
+# ============================================================
+# STRICT REQUEST MODEL
+# ============================================================
+
+
+class StrictPreparationSessionRequest(
+    BaseModel,
+):
+    model_config = ConfigDict(
+        extra="forbid"
+    )
+
+
+class PreparationSessionCreateRequest(
+    StrictPreparationSessionRequest,
+):
+    selected_analysis_dataset_ids: List[
+        str
+    ] = Field(
+        min_length=
+            1
+    )
+
+
+# ============================================================
+# CAPABILITIES
+# ============================================================
+
+
+class PreparationSessionCapabilities(
+    BaseModel,
+):
+    api_version: str
+
+    session_version: str
+
+    storage: str
+
+    persistent: bool
+
+    client_can_set_workflow_id: bool
+
+    client_can_update_stage_status: bool
+
+    client_can_set_ready_for_analysis: bool
+
+    notes: List[
+        str
+    ]
+
+
+# ============================================================
+# ERROR HELPERS
+# ============================================================
+
+
+def _invalid_session_detail(
+    exc: Exception,
+) -> Dict[
+    str,
+    Any,
+]:
+    return {
+        "error": (
+            "invalid_preparation_session"
+        ),
+
+        "message": str(
+            exc
+        ),
+
+        "api_version": (
+            PREPARATION_SESSION_API_VERSION
+        ),
+    }
+
+
+def _not_found_detail(
+    exc: Exception,
+) -> Dict[
+    str,
+    Any,
+]:
+    return {
+        "error": (
+            "preparation_session_not_found"
+        ),
+
+        "message": str(
+            exc
+        ),
+
+        "api_version": (
+            PREPARATION_SESSION_API_VERSION
+        ),
+    }
+
+
+# ============================================================
+# CAPABILITIES
+# ============================================================
+
+
+@router.get(
+    "/sessions/capabilities",
+    response_model=
+        PreparationSessionCapabilities,
+)
+def get_preparation_session_capabilities(
+) -> PreparationSessionCapabilities:
+    return (
+        PreparationSessionCapabilities(
+            api_version=
+                PREPARATION_SESSION_API_VERSION,
+
+            session_version=
+                PREPARATION_SESSION_RULE_VERSION,
+
+            storage=
+                "in_memory",
+
+            persistent=
+                False,
+
+            client_can_set_workflow_id=
+                False,
+
+            client_can_update_stage_status=
+                False,
+
+            client_can_set_ready_for_analysis=
+                False,
+
+            notes=[
+                (
+                    "Preparation Session v0.1 stores "
+                    "state in the FastAPI process."
+                ),
+
+                (
+                    "Sessions are lost when the "
+                    "backend process restarts."
+                ),
+
+                (
+                    "workflow_id values are generated "
+                    "by the backend."
+                ),
+
+                (
+                    "No public endpoint allows the "
+                    "client to mark preparation stages "
+                    "as PASSED."
+                ),
+
+                (
+                    "No public endpoint allows the "
+                    "client to set READY FOR ANALYSIS."
+                ),
+
+                (
+                    "Stage updates are reserved for "
+                    "backend preparation engines."
+                ),
+            ],
+        )
+    )
+
+
+# ============================================================
+# CREATE SESSION
+# ============================================================
+
+
+@router.post(
+    "/sessions",
+    response_model=
+        PreparationSessionView,
+    status_code=
+        status.HTTP_201_CREATED,
+)
+def create_session(
+    request: PreparationSessionCreateRequest,
+) -> PreparationSessionView:
+    """
+    Create a server-owned preparation session.
+
+    The client supplies only the selected dataset IDs.
+
+    workflow_id is generated by the backend.
+
+    The client cannot submit stage statuses.
+    """
+
+    try:
+        return (
+            create_preparation_session(
+                selected_analysis_dataset_ids=(
+                    request
+                    .selected_analysis_dataset_ids
+                )
+            )
+        )
+
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=(
+                status.HTTP_422_UNPROCESSABLE_CONTENT
+            ),
+
+            detail=(
+                _invalid_session_detail(
+                    exc
+                )
+            ),
+        ) from exc
+
+
+# ============================================================
+# READ SESSION
+# ============================================================
+
+
+@router.get(
+    "/sessions/{workflow_id}",
+    response_model=
+        PreparationSessionView,
+)
+def read_session(
+    workflow_id: str,
+) -> PreparationSessionView:
+    """
+    Return the current server-derived preparation snapshot.
+
+    This endpoint is read-only.
+    """
+
+    try:
+        return (
+            get_preparation_session(
+                workflow_id
+            )
+        )
+
+    except PreparationSessionNotFoundError as exc:
+        raise HTTPException(
+            status_code=(
+                status.HTTP_404_NOT_FOUND
+            ),
+
+            detail=(
+                _not_found_detail(
+                    exc
+                )
+            ),
+        ) from exc

@@ -1,0 +1,1003 @@
+{
+  "experiment_id": "semantic-s2-cloud-holdout",
+  "created_at": "2026-08-15T21:36:13.846510+02:00",
+  "phase": "pre_adaptation_holdout",
+  "split": "holdout",
+  "benchmark_ids": [
+    "semantic:cloud:holdout:v0.1"
+  ],
+  "benchmark_versions": {
+    "semantic:cloud:holdout:v0.1": "cloud_semantic_holdout_v0.1"
+  },
+  "system": {
+    "system_label": "DataLens Semantic System S2",
+    "model_name": "gemma3:4b",
+    "component_versions": {
+      "semantic_profiler": "semantic_data_profiler_v0.2",
+      "semantic_normalizer": "semantic_normalizer_v0.3",
+      "semantic_comparator": "comparator_v0.2",
+      "semantic_preparation": "semantic_preparation_pipeline_v0.1",
+      "semantic_advisor": "semantic_discovery_advisor_v0.1",
+      "ranking_overlay": "semantic_ranking_overlay_v0.1",
+      "benchmark_registry": "semantic_benchmark_registry_v0.2",
+      "benchmark_runner": "semantic_global_benchmark_runner_v0.2",
+      "safety_gate": "analytical_safety_gate_v0.2"
+    },
+    "notes": [
+      "S2 is frozen before the first Cloud Infrastructure Holdout #3 execution."
+    ]
+  },
+  "result": {
+    "split": "holdout",
+    "suite_count": 1,
+    "domain_count": 1,
+    "domains": [
+      "cloud_infrastructure"
+    ],
+    "raw_correct_count": 22,
+    "raw_assertion_count": 35,
+    "normalized_correct_count": 25,
+    "normalized_assertion_count": 35,
+    "raw_micro_accuracy": 0.628571,
+    "normalized_micro_accuracy": 0.714286,
+    "micro_accuracy_delta": 0.085714,
+    "raw_macro_accuracy": 0.628571,
+    "normalized_macro_accuracy": 0.714286,
+    "macro_accuracy_delta": 0.085715,
+    "raw_safety_assertion_count": 12,
+    "raw_safety_failure_count": 4,
+    "normalized_safety_assertion_count": 12,
+    "normalized_safety_failure_count": 4,
+    "raw_safety_decisions": {
+      "assertion_count": 12,
+      "true_positive_count": 0,
+      "false_positive_count": 0,
+      "true_negative_count": 8,
+      "false_negative_count": 4,
+      "unclassified_count": 0,
+      "accuracy": 0.666667,
+      "precision": null,
+      "recall": 0.0,
+      "specificity": 1.0,
+      "f1": null,
+      "decision_rule_version": "analytical_safety_decision_v0.2"
+    },
+    "normalized_safety_decisions": {
+      "assertion_count": 12,
+      "true_positive_count": 0,
+      "false_positive_count": 0,
+      "true_negative_count": 8,
+      "false_negative_count": 4,
+      "unclassified_count": 0,
+      "accuracy": 0.666667,
+      "precision": null,
+      "recall": 0.0,
+      "specificity": 1.0,
+      "f1": null,
+      "decision_rule_version": "analytical_safety_decision_v0.2"
+    },
+    "normalized_failure_count": 10,
+    "safety_gate_passed": true,
+    "regression_gate_passed": false,
+    "suites": [
+      {
+        "benchmark_id": "semantic:cloud:holdout:v0.1",
+        "benchmark_name": "Cloud infrastructure semantic holdout",
+        "domain": "cloud_infrastructure",
+        "split": "holdout",
+        "raw_columns": {
+          "benchmark_name": "semantic:cloud:holdout:v0.1:raw:columns",
+          "case_count": 8,
+          "assertion_count": 17,
+          "correct_count": 8,
+          "incorrect_count": 9,
+          "accuracy": 0.470588,
+          "field_accuracy": {
+            "measure_kind": 0.5,
+            "unit_kind": 0.166667,
+            "variant": 0.8
+          },
+          "assertions": [
+            {
+              "case_id": "requested_cpu_cores",
+              "dataset_id": "cloud:0001",
+              "subject": "Requested CPU cores",
+              "field": "variant",
+              "expected": "requested",
+              "actual": "requested",
+              "correct": true
+            },
+            {
+              "case_id": "requested_cpu_cores",
+              "dataset_id": "cloud:0001",
+              "subject": "Requested CPU cores",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "requested_cpu_cores",
+              "dataset_id": "cloud:0001",
+              "subject": "Requested CPU cores",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "allocated_cpu_cores",
+              "dataset_id": "cloud:0001",
+              "subject": "Allocated CPU cores",
+              "field": "variant",
+              "expected": "allocated",
+              "actual": "allocated",
+              "correct": true
+            },
+            {
+              "case_id": "allocated_cpu_cores",
+              "dataset_id": "cloud:0001",
+              "subject": "Allocated CPU cores",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "allocated_cpu_cores",
+              "dataset_id": "cloud:0001",
+              "subject": "Allocated CPU cores",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "failed_jobs",
+              "dataset_id": "cloud:0001",
+              "subject": "Failed jobs",
+              "field": "variant",
+              "expected": "failed",
+              "actual": "count",
+              "correct": false
+            },
+            {
+              "case_id": "failed_jobs",
+              "dataset_id": "cloud:0001",
+              "subject": "Failed jobs",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "failed_jobs",
+              "dataset_id": "cloud:0001",
+              "subject": "Failed jobs",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "queue_time",
+              "dataset_id": "cloud:0001",
+              "subject": "Queue time (seconds)",
+              "field": "measure_kind",
+              "expected": "duration",
+              "actual": "duration",
+              "correct": true
+            },
+            {
+              "case_id": "queue_time",
+              "dataset_id": "cloud:0001",
+              "subject": "Queue time (seconds)",
+              "field": "unit_kind",
+              "expected": "duration",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "compute_cost",
+              "dataset_id": "cloud:0001",
+              "subject": "Compute cost",
+              "field": "measure_kind",
+              "expected": "currency",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "compute_cost",
+              "dataset_id": "cloud:0001",
+              "subject": "Compute cost",
+              "field": "unit_kind",
+              "expected": "currency",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "cpu_utilization",
+              "dataset_id": "cloud:0001",
+              "subject": "CPU utilization (%)",
+              "field": "measure_kind",
+              "expected": "percentage",
+              "actual": "percentage",
+              "correct": true
+            },
+            {
+              "case_id": "cpu_utilization",
+              "dataset_id": "cloud:0001",
+              "subject": "CPU utilization (%)",
+              "field": "unit_kind",
+              "expected": "percent",
+              "actual": "percent",
+              "correct": true
+            },
+            {
+              "case_id": "provisioned_storage",
+              "dataset_id": "cloud:0001",
+              "subject": "Provisioned storage (GB)",
+              "field": "variant",
+              "expected": "provisioned",
+              "actual": "provisioned",
+              "correct": true
+            },
+            {
+              "case_id": "used_storage",
+              "dataset_id": "cloud:0001",
+              "subject": "Used storage (GB)",
+              "field": "variant",
+              "expected": "used",
+              "actual": "used",
+              "correct": true
+            }
+          ],
+          "benchmark_rule_version": "semantic_benchmark_v0.2"
+        },
+        "normalized_columns": {
+          "benchmark_name": "semantic:cloud:holdout:v0.1:normalized:columns",
+          "case_count": 8,
+          "assertion_count": 17,
+          "correct_count": 11,
+          "incorrect_count": 6,
+          "accuracy": 0.647059,
+          "field_accuracy": {
+            "measure_kind": 0.666667,
+            "unit_kind": 0.5,
+            "variant": 0.8
+          },
+          "assertions": [
+            {
+              "case_id": "requested_cpu_cores",
+              "dataset_id": "cloud:0001",
+              "subject": "Requested CPU cores",
+              "field": "variant",
+              "expected": "requested",
+              "actual": "requested",
+              "correct": true
+            },
+            {
+              "case_id": "requested_cpu_cores",
+              "dataset_id": "cloud:0001",
+              "subject": "Requested CPU cores",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "requested_cpu_cores",
+              "dataset_id": "cloud:0001",
+              "subject": "Requested CPU cores",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "allocated_cpu_cores",
+              "dataset_id": "cloud:0001",
+              "subject": "Allocated CPU cores",
+              "field": "variant",
+              "expected": "allocated",
+              "actual": "allocated",
+              "correct": true
+            },
+            {
+              "case_id": "allocated_cpu_cores",
+              "dataset_id": "cloud:0001",
+              "subject": "Allocated CPU cores",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "allocated_cpu_cores",
+              "dataset_id": "cloud:0001",
+              "subject": "Allocated CPU cores",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "failed_jobs",
+              "dataset_id": "cloud:0001",
+              "subject": "Failed jobs",
+              "field": "variant",
+              "expected": "failed",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "failed_jobs",
+              "dataset_id": "cloud:0001",
+              "subject": "Failed jobs",
+              "field": "measure_kind",
+              "expected": "count",
+              "actual": "count",
+              "correct": true
+            },
+            {
+              "case_id": "failed_jobs",
+              "dataset_id": "cloud:0001",
+              "subject": "Failed jobs",
+              "field": "unit_kind",
+              "expected": "count",
+              "actual": "unknown",
+              "correct": false
+            },
+            {
+              "case_id": "queue_time",
+              "dataset_id": "cloud:0001",
+              "subject": "Queue time (seconds)",
+              "field": "measure_kind",
+              "expected": "duration",
+              "actual": "duration",
+              "correct": true
+            },
+            {
+              "case_id": "queue_time",
+              "dataset_id": "cloud:0001",
+              "subject": "Queue time (seconds)",
+              "field": "unit_kind",
+              "expected": "duration",
+              "actual": "duration",
+              "correct": true
+            },
+            {
+              "case_id": "compute_cost",
+              "dataset_id": "cloud:0001",
+              "subject": "Compute cost",
+              "field": "measure_kind",
+              "expected": "currency",
+              "actual": "currency",
+              "correct": true
+            },
+            {
+              "case_id": "compute_cost",
+              "dataset_id": "cloud:0001",
+              "subject": "Compute cost",
+              "field": "unit_kind",
+              "expected": "currency",
+              "actual": "currency",
+              "correct": true
+            },
+            {
+              "case_id": "cpu_utilization",
+              "dataset_id": "cloud:0001",
+              "subject": "CPU utilization (%)",
+              "field": "measure_kind",
+              "expected": "percentage",
+              "actual": "percentage",
+              "correct": true
+            },
+            {
+              "case_id": "cpu_utilization",
+              "dataset_id": "cloud:0001",
+              "subject": "CPU utilization (%)",
+              "field": "unit_kind",
+              "expected": "percent",
+              "actual": "percent",
+              "correct": true
+            },
+            {
+              "case_id": "provisioned_storage",
+              "dataset_id": "cloud:0001",
+              "subject": "Provisioned storage (GB)",
+              "field": "variant",
+              "expected": "provisioned",
+              "actual": "provisioned",
+              "correct": true
+            },
+            {
+              "case_id": "used_storage",
+              "dataset_id": "cloud:0001",
+              "subject": "Used storage (GB)",
+              "field": "variant",
+              "expected": "used",
+              "actual": "used",
+              "correct": true
+            }
+          ],
+          "benchmark_rule_version": "semantic_benchmark_v0.2"
+        },
+        "raw_pairs": {
+          "benchmark_name": "semantic:cloud:holdout:v0.1:raw:pairs",
+          "case_count": 6,
+          "assertion_count": 18,
+          "correct_count": 14,
+          "incorrect_count": 4,
+          "accuracy": 0.777778,
+          "field_accuracy": {
+            "compatible_units": 0.666667,
+            "derived_gap_compatible": 0.666667,
+            "distinct_variants": 1.0,
+            "same_concept_family": 1.0,
+            "same_domain": 1.0
+          },
+          "assertions": [
+            {
+              "case_id": "requested_allocated_cpu",
+              "dataset_id": "cloud:0001",
+              "subject": "Requested CPU cores vs Allocated CPU cores",
+              "field": "same_concept_family",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "requested_allocated_cpu",
+              "dataset_id": "cloud:0001",
+              "subject": "Requested CPU cores vs Allocated CPU cores",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "requested_allocated_cpu",
+              "dataset_id": "cloud:0001",
+              "subject": "Requested CPU cores vs Allocated CPU cores",
+              "field": "distinct_variants",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "requested_allocated_cpu",
+              "dataset_id": "cloud:0001",
+              "subject": "Requested CPU cores vs Allocated CPU cores",
+              "field": "compatible_units",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "requested_allocated_cpu",
+              "dataset_id": "cloud:0001",
+              "subject": "Requested CPU cores vs Allocated CPU cores",
+              "field": "derived_gap_compatible",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "provisioned_used_storage",
+              "dataset_id": "cloud:0001",
+              "subject": "Provisioned storage (GB) vs Used storage (GB)",
+              "field": "same_concept_family",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "provisioned_used_storage",
+              "dataset_id": "cloud:0001",
+              "subject": "Provisioned storage (GB) vs Used storage (GB)",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "provisioned_used_storage",
+              "dataset_id": "cloud:0001",
+              "subject": "Provisioned storage (GB) vs Used storage (GB)",
+              "field": "distinct_variants",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "provisioned_used_storage",
+              "dataset_id": "cloud:0001",
+              "subject": "Provisioned storage (GB) vs Used storage (GB)",
+              "field": "compatible_units",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "provisioned_used_storage",
+              "dataset_id": "cloud:0001",
+              "subject": "Provisioned storage (GB) vs Used storage (GB)",
+              "field": "derived_gap_compatible",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "failed_jobs_cpu_utilization",
+              "dataset_id": "cloud:0001",
+              "subject": "Failed jobs vs CPU utilization (%)",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "failed_jobs_cpu_utilization",
+              "dataset_id": "cloud:0001",
+              "subject": "Failed jobs vs CPU utilization (%)",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "queue_time_compute_cost",
+              "dataset_id": "cloud:0001",
+              "subject": "Queue time (seconds) vs Compute cost",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "queue_time_compute_cost",
+              "dataset_id": "cloud:0001",
+              "subject": "Queue time (seconds) vs Compute cost",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "storage_compute_cost",
+              "dataset_id": "cloud:0001",
+              "subject": "Used storage (GB) vs Compute cost",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "storage_compute_cost",
+              "dataset_id": "cloud:0001",
+              "subject": "Used storage (GB) vs Compute cost",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "allocated_cpu_utilization",
+              "dataset_id": "cloud:0001",
+              "subject": "Allocated CPU cores vs CPU utilization (%)",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "allocated_cpu_utilization",
+              "dataset_id": "cloud:0001",
+              "subject": "Allocated CPU cores vs CPU utilization (%)",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            }
+          ],
+          "benchmark_rule_version": "semantic_benchmark_v0.2"
+        },
+        "normalized_pairs": {
+          "benchmark_name": "semantic:cloud:holdout:v0.1:normalized:pairs",
+          "case_count": 6,
+          "assertion_count": 18,
+          "correct_count": 14,
+          "incorrect_count": 4,
+          "accuracy": 0.777778,
+          "field_accuracy": {
+            "compatible_units": 0.666667,
+            "derived_gap_compatible": 0.666667,
+            "distinct_variants": 1.0,
+            "same_concept_family": 1.0,
+            "same_domain": 1.0
+          },
+          "assertions": [
+            {
+              "case_id": "requested_allocated_cpu",
+              "dataset_id": "cloud:0001",
+              "subject": "Requested CPU cores vs Allocated CPU cores",
+              "field": "same_concept_family",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "requested_allocated_cpu",
+              "dataset_id": "cloud:0001",
+              "subject": "Requested CPU cores vs Allocated CPU cores",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "requested_allocated_cpu",
+              "dataset_id": "cloud:0001",
+              "subject": "Requested CPU cores vs Allocated CPU cores",
+              "field": "distinct_variants",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "requested_allocated_cpu",
+              "dataset_id": "cloud:0001",
+              "subject": "Requested CPU cores vs Allocated CPU cores",
+              "field": "compatible_units",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "requested_allocated_cpu",
+              "dataset_id": "cloud:0001",
+              "subject": "Requested CPU cores vs Allocated CPU cores",
+              "field": "derived_gap_compatible",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "provisioned_used_storage",
+              "dataset_id": "cloud:0001",
+              "subject": "Provisioned storage (GB) vs Used storage (GB)",
+              "field": "same_concept_family",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "provisioned_used_storage",
+              "dataset_id": "cloud:0001",
+              "subject": "Provisioned storage (GB) vs Used storage (GB)",
+              "field": "same_domain",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "provisioned_used_storage",
+              "dataset_id": "cloud:0001",
+              "subject": "Provisioned storage (GB) vs Used storage (GB)",
+              "field": "distinct_variants",
+              "expected": "true",
+              "actual": "true",
+              "correct": true
+            },
+            {
+              "case_id": "provisioned_used_storage",
+              "dataset_id": "cloud:0001",
+              "subject": "Provisioned storage (GB) vs Used storage (GB)",
+              "field": "compatible_units",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "provisioned_used_storage",
+              "dataset_id": "cloud:0001",
+              "subject": "Provisioned storage (GB) vs Used storage (GB)",
+              "field": "derived_gap_compatible",
+              "expected": "true",
+              "actual": "false",
+              "correct": false
+            },
+            {
+              "case_id": "failed_jobs_cpu_utilization",
+              "dataset_id": "cloud:0001",
+              "subject": "Failed jobs vs CPU utilization (%)",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "failed_jobs_cpu_utilization",
+              "dataset_id": "cloud:0001",
+              "subject": "Failed jobs vs CPU utilization (%)",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "queue_time_compute_cost",
+              "dataset_id": "cloud:0001",
+              "subject": "Queue time (seconds) vs Compute cost",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "queue_time_compute_cost",
+              "dataset_id": "cloud:0001",
+              "subject": "Queue time (seconds) vs Compute cost",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "storage_compute_cost",
+              "dataset_id": "cloud:0001",
+              "subject": "Used storage (GB) vs Compute cost",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "storage_compute_cost",
+              "dataset_id": "cloud:0001",
+              "subject": "Used storage (GB) vs Compute cost",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "allocated_cpu_utilization",
+              "dataset_id": "cloud:0001",
+              "subject": "Allocated CPU cores vs CPU utilization (%)",
+              "field": "compatible_units",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            },
+            {
+              "case_id": "allocated_cpu_utilization",
+              "dataset_id": "cloud:0001",
+              "subject": "Allocated CPU cores vs CPU utilization (%)",
+              "field": "derived_gap_compatible",
+              "expected": "false",
+              "actual": "false",
+              "correct": true
+            }
+          ],
+          "benchmark_rule_version": "semantic_benchmark_v0.2"
+        },
+        "raw_correct_count": 22,
+        "raw_assertion_count": 35,
+        "normalized_correct_count": 25,
+        "normalized_assertion_count": 35,
+        "raw_accuracy": 0.628571,
+        "normalized_accuracy": 0.714286,
+        "raw_safety_assertion_count": 12,
+        "raw_safety_failure_count": 4,
+        "normalized_safety_assertion_count": 12,
+        "normalized_safety_failure_count": 4,
+        "raw_safety_failures": [
+          {
+            "case_id": "requested_allocated_cpu",
+            "dataset_id": "cloud:0001",
+            "subject": "Requested CPU cores vs Allocated CPU cores",
+            "field": "compatible_units",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "requested_allocated_cpu",
+            "dataset_id": "cloud:0001",
+            "subject": "Requested CPU cores vs Allocated CPU cores",
+            "field": "derived_gap_compatible",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "provisioned_used_storage",
+            "dataset_id": "cloud:0001",
+            "subject": "Provisioned storage (GB) vs Used storage (GB)",
+            "field": "compatible_units",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "provisioned_used_storage",
+            "dataset_id": "cloud:0001",
+            "subject": "Provisioned storage (GB) vs Used storage (GB)",
+            "field": "derived_gap_compatible",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          }
+        ],
+        "normalized_safety_failures": [
+          {
+            "case_id": "requested_allocated_cpu",
+            "dataset_id": "cloud:0001",
+            "subject": "Requested CPU cores vs Allocated CPU cores",
+            "field": "compatible_units",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "requested_allocated_cpu",
+            "dataset_id": "cloud:0001",
+            "subject": "Requested CPU cores vs Allocated CPU cores",
+            "field": "derived_gap_compatible",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "provisioned_used_storage",
+            "dataset_id": "cloud:0001",
+            "subject": "Provisioned storage (GB) vs Used storage (GB)",
+            "field": "compatible_units",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "provisioned_used_storage",
+            "dataset_id": "cloud:0001",
+            "subject": "Provisioned storage (GB) vs Used storage (GB)",
+            "field": "derived_gap_compatible",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          }
+        ],
+        "raw_safety_decisions": {
+          "assertion_count": 12,
+          "true_positive_count": 0,
+          "false_positive_count": 0,
+          "true_negative_count": 8,
+          "false_negative_count": 4,
+          "unclassified_count": 0,
+          "accuracy": 0.666667,
+          "precision": null,
+          "recall": 0.0,
+          "specificity": 1.0,
+          "f1": null,
+          "decision_rule_version": "analytical_safety_decision_v0.2"
+        },
+        "normalized_safety_decisions": {
+          "assertion_count": 12,
+          "true_positive_count": 0,
+          "false_positive_count": 0,
+          "true_negative_count": 8,
+          "false_negative_count": 4,
+          "unclassified_count": 0,
+          "accuracy": 0.666667,
+          "precision": null,
+          "recall": 0.0,
+          "specificity": 1.0,
+          "f1": null,
+          "decision_rule_version": "analytical_safety_decision_v0.2"
+        },
+        "normalized_failures": [
+          {
+            "case_id": "requested_cpu_cores",
+            "dataset_id": "cloud:0001",
+            "subject": "Requested CPU cores",
+            "field": "measure_kind",
+            "expected": "count",
+            "actual": "unknown",
+            "correct": false
+          },
+          {
+            "case_id": "requested_cpu_cores",
+            "dataset_id": "cloud:0001",
+            "subject": "Requested CPU cores",
+            "field": "unit_kind",
+            "expected": "count",
+            "actual": "unknown",
+            "correct": false
+          },
+          {
+            "case_id": "allocated_cpu_cores",
+            "dataset_id": "cloud:0001",
+            "subject": "Allocated CPU cores",
+            "field": "measure_kind",
+            "expected": "count",
+            "actual": "unknown",
+            "correct": false
+          },
+          {
+            "case_id": "allocated_cpu_cores",
+            "dataset_id": "cloud:0001",
+            "subject": "Allocated CPU cores",
+            "field": "unit_kind",
+            "expected": "count",
+            "actual": "unknown",
+            "correct": false
+          },
+          {
+            "case_id": "failed_jobs",
+            "dataset_id": "cloud:0001",
+            "subject": "Failed jobs",
+            "field": "variant",
+            "expected": "failed",
+            "actual": "unknown",
+            "correct": false
+          },
+          {
+            "case_id": "failed_jobs",
+            "dataset_id": "cloud:0001",
+            "subject": "Failed jobs",
+            "field": "unit_kind",
+            "expected": "count",
+            "actual": "unknown",
+            "correct": false
+          },
+          {
+            "case_id": "requested_allocated_cpu",
+            "dataset_id": "cloud:0001",
+            "subject": "Requested CPU cores vs Allocated CPU cores",
+            "field": "compatible_units",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "requested_allocated_cpu",
+            "dataset_id": "cloud:0001",
+            "subject": "Requested CPU cores vs Allocated CPU cores",
+            "field": "derived_gap_compatible",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "provisioned_used_storage",
+            "dataset_id": "cloud:0001",
+            "subject": "Provisioned storage (GB) vs Used storage (GB)",
+            "field": "compatible_units",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          },
+          {
+            "case_id": "provisioned_used_storage",
+            "dataset_id": "cloud:0001",
+            "subject": "Provisioned storage (GB) vs Used storage (GB)",
+            "field": "derived_gap_compatible",
+            "expected": "true",
+            "actual": "false",
+            "correct": false
+          }
+        ]
+      }
+    ],
+    "safety_gate_rule_version": "analytical_safety_gate_v0.2",
+    "runner_rule_version": "semantic_global_benchmark_runner_v0.2"
+  },
+  "notes": [
+    "Third frozen out-of-domain semantic evaluation.",
+    "Cloud ground truth was frozen before observing S2 predictions.",
+    "No S2 semantic rule was modified using Cloud results before this snapshot."
+  ],
+  "snapshot_rule_version": "semantic_experiment_snapshot_v0.1"
+}

@@ -1,0 +1,244 @@
+{
+  "benchmark_rule_version": "model_performance_benchmark_v0.2",
+  "generated_at_utc": "2026-08-17T14:41:54.131243+00:00",
+  "planner_model": "qwen2.5:3b",
+  "tool_model": "qwen2.5:1.5b-instruct",
+  "dataset": "C:\\Users\\tomas\\datalens\\apps\\api\\benchmarks\\model_performance\\datalens_hr_benchmark.csv",
+  "cases": "C:\\Users\\tomas\\datalens\\apps\\api\\benchmarks\\model_performance\\cases_model_performance_v0_1.json",
+  "repeats": 3,
+  "warmup_runs": 1,
+  "run_count": 18,
+  "successful_run_count": 18,
+  "case_pass_rate": 0.8333333333333334,
+  "planner_outcome_accuracy": 0.8333333333333334,
+  "planner_family_accuracy": 0.8333333333333334,
+  "planner_binding_accuracy": 0.8,
+  "planner_first_pass_rate": 0.6666666666666666,
+  "planner_retry_rate": 0.3333333333333333,
+  "tool_selection_accuracy": 0.8,
+  "tool_argument_accuracy": 0.8,
+  "tool_first_pass_rate": 0.8,
+  "tool_retry_rate": 0.0,
+  "execution_accuracy": 0.8333333333333334,
+  "wall_total_latency": {
+    "median_ms": 6540.681,
+    "p95_ms": 16985.288,
+    "mean_ms": 9025.487,
+    "min_ms": 5523.503,
+    "max_ms": 17190.023
+  },
+  "planner_total_latency": {
+    "median_ms": 5957.483,
+    "p95_ms": 16961.331,
+    "mean_ms": 8705.307,
+    "min_ms": 5196.04,
+    "max_ms": 17165.683
+  },
+  "planner_model_inference_latency": {
+    "median_ms": 5957.111,
+    "p95_ms": 16960.768,
+    "mean_ms": 8704.875,
+    "min_ms": 5195.661,
+    "max_ms": 17165.025
+  },
+  "planner_python_validation_latency": {
+    "median_ms": 0.332,
+    "p95_ms": 0.449,
+    "mean_ms": 0.359,
+    "min_ms": 0.308,
+    "max_ms": 0.53
+  },
+  "native_total_latency": {
+    "median_ms": 325.073,
+    "p95_ms": 782.978,
+    "mean_ms": 356.164,
+    "min_ms": 0.002,
+    "max_ms": 1790.477
+  },
+  "tool_model_inference_latency": {
+    "median_ms": 317.835,
+    "p95_ms": 773.71,
+    "mean_ms": 350.09,
+    "min_ms": 0.0,
+    "max_ms": 1775.894
+  },
+  "tool_python_validation_latency": {
+    "median_ms": 0.022,
+    "p95_ms": 0.028,
+    "mean_ms": 0.019,
+    "min_ms": 0.0,
+    "max_ms": 0.032
+  },
+  "deterministic_execution_latency": {
+    "median_ms": 6.778,
+    "p95_ms": 14.872,
+    "mean_ms": 5.987,
+    "min_ms": 0.0,
+    "max_ms": 14.909
+  },
+  "planner_inference_share_wall_median_pct": 94.693,
+  "tool_inference_share_wall_median_pct": 5.205,
+  "deterministic_execution_share_wall_median_pct": 0.101,
+  "environment": {
+    "python": "3.13.12",
+    "platform": "Windows-11-10.0.26200-SP0"
+  },
+  "cases_summary": [
+    {
+      "case_id": "quantitative_salary_training",
+      "run_count": 3,
+      "pass_rate": 1.0,
+      "wall_total_latency": {
+        "median_ms": 5964.209,
+        "p95_ms": 7298.535,
+        "mean_ms": 6327.563,
+        "min_ms": 5571.686,
+        "max_ms": 7446.793
+      },
+      "planner_model_inference_latency": {
+        "median_ms": 5591.728,
+        "p95_ms": 5627.428,
+        "mean_ms": 5472.928,
+        "min_ms": 5195.661,
+        "max_ms": 5631.395
+      },
+      "tool_model_inference_latency": {
+        "median_ms": 336.185,
+        "p95_ms": 1631.923,
+        "mean_ms": 815.501,
+        "min_ms": 334.424,
+        "max_ms": 1775.894
+      }
+    },
+    {
+      "case_id": "categorical_overtime_left",
+      "run_count": 3,
+      "pass_rate": 1.0,
+      "wall_total_latency": {
+        "median_ms": 6556.243,
+        "p95_ms": 6902.945,
+        "mean_ms": 6674.276,
+        "min_ms": 6525.119,
+        "max_ms": 6941.467
+      },
+      "planner_model_inference_latency": {
+        "median_ms": 6182.187,
+        "p95_ms": 6532.301,
+        "mean_ms": 6303.039,
+        "min_ms": 6155.726,
+        "max_ms": 6571.203
+      },
+      "tool_model_inference_latency": {
+        "median_ms": 341.338,
+        "p95_ms": 343.916,
+        "mean_ms": 341.191,
+        "min_ms": 338.034,
+        "max_ms": 344.202
+      }
+    },
+    {
+      "case_id": "group_salary_department",
+      "run_count": 3,
+      "pass_rate": 1.0,
+      "wall_total_latency": {
+        "median_ms": 6072.941,
+        "p95_ms": 6102.776,
+        "mean_ms": 6068.366,
+        "min_ms": 6026.067,
+        "max_ms": 6106.091
+      },
+      "planner_model_inference_latency": {
+        "median_ms": 5721.468,
+        "p95_ms": 5754.794,
+        "mean_ms": 5718.727,
+        "min_ms": 5676.216,
+        "max_ms": 5758.497
+      },
+      "tool_model_inference_latency": {
+        "median_ms": 317.835,
+        "p95_ms": 318.24,
+        "mean_ms": 317.562,
+        "min_ms": 316.565,
+        "max_ms": 318.285
+      }
+    },
+    {
+      "case_id": "distribution_salary",
+      "run_count": 3,
+      "pass_rate": 1.0,
+      "wall_total_latency": {
+        "median_ms": 5808.283,
+        "p95_ms": 5932.117,
+        "mean_ms": 5759.221,
+        "min_ms": 5523.503,
+        "max_ms": 5945.876
+      },
+      "planner_model_inference_latency": {
+        "median_ms": 5504.697,
+        "p95_ms": 5626.276,
+        "mean_ms": 5458.787,
+        "min_ms": 5231.88,
+        "max_ms": 5639.785
+      },
+      "tool_model_inference_latency": {
+        "median_ms": 279.653,
+        "p95_ms": 280.853,
+        "mean_ms": 276.196,
+        "min_ms": 267.949,
+        "max_ms": 280.986
+      }
+    },
+    {
+      "case_id": "time_salary_snapshot",
+      "run_count": 3,
+      "pass_rate": 0.0,
+      "wall_total_latency": {
+        "median_ms": 12445.932,
+        "p95_ms": 13035.861,
+        "mean_ms": 12561.132,
+        "min_ms": 12136.054,
+        "max_ms": 13101.409
+      },
+      "planner_model_inference_latency": {
+        "median_ms": 12423.655,
+        "p95_ms": 13010.691,
+        "mean_ms": 12537.876,
+        "min_ms": 12114.055,
+        "max_ms": 13075.917
+      },
+      "tool_model_inference_latency": {
+        "median_ms": 0.0,
+        "p95_ms": 0.0,
+        "mean_ms": 0.0,
+        "min_ms": 0.0,
+        "max_ms": 0.0
+      }
+    },
+    {
+      "case_id": "guardrail_missing_year",
+      "run_count": 3,
+      "pass_rate": 1.0,
+      "wall_total_latency": {
+        "median_ms": 16949.158,
+        "p95_ms": 17165.936,
+        "mean_ms": 16762.363,
+        "min_ms": 16147.909,
+        "max_ms": 17190.023
+      },
+      "planner_model_inference_latency": {
+        "median_ms": 16924.723,
+        "p95_ms": 17140.995,
+        "mean_ms": 16737.891,
+        "min_ms": 16123.926,
+        "max_ms": 17165.025
+      },
+      "tool_model_inference_latency": {
+        "median_ms": 0.0,
+        "p95_ms": 0.0,
+        "mean_ms": 0.0,
+        "min_ms": 0.0,
+        "max_ms": 0.0
+      }
+    }
+  ]
+}

@@ -1,0 +1,392 @@
+{
+  "status": "ready",
+  "trace_id": "ai:cc388990b9464369827def338d4ac5ed",
+  "planner": {
+    "status": "ready",
+    "objective": "Comparer salary selon department.",
+    "model": "llama3.2:3b",
+    "proposal_count": 1,
+    "validated_count": 1,
+    "blocked_count": 0,
+    "ambiguous_count": 0,
+    "rejected_count": 0,
+    "items": [
+      {
+        "proposal_index": 1,
+        "validation_status": "validated",
+        "raw_proposal": {
+          "decision": "propose",
+          "title": "Comparaison de salaire selon département",
+          "family": "group_comparison",
+          "dataset_id": "dataset:0001",
+          "analytical_grain": "department",
+          "x_column": null,
+          "y_column": "salary",
+          "group_column": "department",
+          "value_column": "salary",
+          "time_column": null,
+          "dimension_column": null,
+          "entity_column": null,
+          "aggregation_function": "none",
+          "ranking_order": "none",
+          "ranking_limit": null,
+          "window_operation": "none",
+          "window_size": null,
+          "blockers": [],
+          "reasons": [
+            "Comparaison de salaire selon département est un plan analytique approprié pour répondre à l'objectif."
+          ],
+          "confidence": 1.0
+        },
+        "proposal": {
+          "decision": "propose",
+          "title": "Comparaison de salaire selon département",
+          "family": "group_comparison",
+          "dataset_id": "dataset:0001",
+          "analytical_grain": "department",
+          "x_column": null,
+          "y_column": null,
+          "group_column": "department",
+          "value_column": "salary",
+          "time_column": null,
+          "dimension_column": null,
+          "entity_column": null,
+          "aggregation_function": "none",
+          "ranking_order": "none",
+          "ranking_limit": null,
+          "window_operation": "none",
+          "window_size": null,
+          "blockers": [],
+          "reasons": [
+            "Comparaison de salaire selon département est un plan analytique approprié pour répondre à l'objectif."
+          ],
+          "confidence": 1.0
+        },
+        "contract": {
+          "contract_id": "ai:15344737a091731e:01",
+          "contract_version": "analytical_contract_v0.2",
+          "origin": "ai_planner",
+          "status": "validated",
+          "title": "Comparaison de salaire selon département",
+          "request_text": "Comparer salary selon department.",
+          "family": "group_comparison",
+          "required_dataset_ids": [
+            "dataset:0001"
+          ],
+          "required_dataset_filenames": [
+            "datalens_hr_benchmark.csv"
+          ],
+          "analytical_grain": "department",
+          "bindings": [
+            {
+              "role": "group",
+              "column": "department",
+              "dataset_id": "dataset:0001",
+              "dataset_filename": "datalens_hr_benchmark.csv",
+              "semantic_concept": null,
+              "analysis_kind": "categorical"
+            },
+            {
+              "role": "value",
+              "column": "salary",
+              "dataset_id": "dataset:0001",
+              "dataset_filename": "datalens_hr_benchmark.csv",
+              "semantic_concept": null,
+              "analysis_kind": "quantitative"
+            }
+          ],
+          "aggregation": null,
+          "ranking": null,
+          "window": null,
+          "filters": [],
+          "joins": [],
+          "derived_variables": [],
+          "required_operations": [
+            "Validate AI-proposed analytical plan against the deterministic dataset catalog.",
+            "Execute only through a deterministic group_comparison tool."
+          ],
+          "provenance": null,
+          "reasons": [
+            "Le LLM local a proposé la famille analytique et les rôles de colonnes.",
+            "Python a supprimé des rôles de protocole non pertinents pour `group_comparison` : y_column. Le contrat canonique conserve uniquement group/value.",
+            "Python a vérifié dataset_id, noms de colonnes, types analytiques et invariants du contrat avant promotion vers `validated`."
+          ],
+          "blockers": [],
+          "planner_confidence": 1.0
+        },
+        "errors": [],
+        "warnings": [],
+        "normalizations": [
+          "Python a supprimé des rôles de protocole non pertinents pour `group_comparison` : y_column. Le contrat canonique conserve uniquement group/value."
+        ]
+      }
+    ],
+    "attempt_count": 1,
+    "retry_count": 0,
+    "retry_triggered": false,
+    "retry_feedback": [],
+    "normalization_count": 1,
+    "normalization_applied": true,
+    "timing": {
+      "prompt_construction_ms": 0.013699999726668466,
+      "model_inference_ms": 5037.319099999877,
+      "structured_parse_ms": 0.02969999968627235,
+      "python_validation_ms": 0.3268000000389293,
+      "retry_feedback_ms": 0.0,
+      "total_ms": 5037.697200000366,
+      "attempts": [
+        {
+          "attempt_index": 1,
+          "prompt_construction_ms": 0.013699999726668466,
+          "model_inference_ms": 5037.319099999877,
+          "structured_parse_ms": 0.02969999968627235,
+          "python_validation_ms": 0.3268000000389293,
+          "total_ms": 5037.689299999329
+        }
+      ]
+    },
+    "planner_rule_version": "ai_analytical_planner_v0.15"
+  },
+  "planner_model": "llama3.2:3b",
+  "tool_model": "qwen2.5:1.5b-instruct",
+  "supported_native_families": [
+    "categorical_association",
+    "distribution",
+    "group_comparison",
+    "quantitative_association",
+    "time_series"
+  ],
+  "validated_contract_count": 1,
+  "pipeline_item_count": 1,
+  "executed_count": 1,
+  "not_supported_count": 0,
+  "rejected_count": 0,
+  "items": [
+    {
+      "contract_id": "ai:15344737a091731e:01",
+      "family": "group_comparison",
+      "pipeline_status": "executed",
+      "native_tool": {
+        "status": "ready",
+        "model": "qwen2.5:1.5b-instruct",
+        "contract_id": "ai:15344737a091731e:01",
+        "contract_family": "group_comparison",
+        "available_tools": [
+          "run_categorical_association",
+          "run_distribution",
+          "run_group_comparison",
+          "run_quantitative_association",
+          "run_time_series"
+        ],
+        "expected_tool": "run_group_comparison",
+        "tool_call_received": true,
+        "requested_tool": "run_group_comparison",
+        "requested_arguments": {
+          "group_column": "department",
+          "value_column": "salary",
+          "dataset_id": "dataset:0001"
+        },
+        "validation_status": "validated",
+        "validation_errors": [],
+        "attempt_count": 1,
+        "retry_count": 0,
+        "attempts": [
+          {
+            "attempt_index": 1,
+            "prompt_variant": "standard",
+            "tool_call_count": 1,
+            "assistant_content": "",
+            "selected_tool_name": "run_group_comparison",
+            "errors": [],
+            "prompt_construction_ms": 0.015999999959603883,
+            "model_inference_ms": 297.6730000000316,
+            "response_parse_ms": 0.009000000318337698,
+            "total_ms": 297.682999999779
+          }
+        ],
+        "execution": {
+          "call_index": 1,
+          "contract_id": "ai:15344737a091731e:01",
+          "family": "group_comparison",
+          "tool_name": "run_group_comparison",
+          "selection_source": "validated_contract_family",
+          "execution_status": "executed",
+          "dataset_id": "dataset:0001",
+          "dataset_filename": "datalens_hr_benchmark.csv",
+          "arguments": {
+            "family": "group_comparison",
+            "dataset_ids": [
+              "dataset:0001"
+            ],
+            "analytical_grain": "department",
+            "variables": {
+              "group": "department",
+              "value": "salary"
+            },
+            "aggregation": null
+          },
+          "result": {
+            "analysis_id": "ai_tool:ai:15344737a091731e:01",
+            "dataset_id": "dataset:0001",
+            "dataset_filename": "datalens_hr_benchmark.csv",
+            "title": "Comparaison de salaire selon département",
+            "family": "group_comparison",
+            "planned_readiness": "executable_now",
+            "execution_status": "descriptive_only",
+            "chart_type": "boxplot",
+            "summary": [
+              "8 groupe(s) ont été comparés pour salary.",
+              "DataLens calculated the sample size, mean, median, dispersion and quartiles for each group."
+            ],
+            "metrics": {
+              "group_column": "department",
+              "value_column": "salary",
+              "group_count": 8,
+              "valid_observations": 900,
+              "repeated_measure_structure": null
+            },
+            "chart_data": [
+              {
+                "group": "Data",
+                "count": 110,
+                "mean": 70309.09090909091,
+                "median": 66000.0,
+                "std": 19305.128592984296,
+                "min": 40600.0,
+                "q1": 54875.0,
+                "q3": 82475.0,
+                "max": 119300.0
+              },
+              {
+                "group": "Engineering",
+                "count": 180,
+                "mean": 71272.77777777778,
+                "median": 68000.0,
+                "std": 18107.57065831505,
+                "min": 44600.0,
+                "q1": 58800.0,
+                "q3": 81000.0,
+                "max": 122400.0
+              },
+              {
+                "group": "Finance",
+                "count": 94,
+                "mean": 63885.10638297872,
+                "median": 59300.0,
+                "std": 18616.271974985364,
+                "min": 36700.0,
+                "q1": 49325.0,
+                "q3": 73975.0,
+                "max": 113900.0
+              },
+              {
+                "group": "HR",
+                "count": 75,
+                "mean": 54982.666666666664,
+                "median": 51100.0,
+                "std": 15030.270117992552,
+                "min": 31800.0,
+                "q1": 42550.0,
+                "q3": 66050.0,
+                "max": 92200.0
+              },
+              {
+                "group": "Marketing",
+                "count": 78,
+                "mean": 56673.07692307692,
+                "median": 54150.0,
+                "std": 13689.47527360831,
+                "min": 30900.0,
+                "q1": 46525.0,
+                "q3": 68625.0,
+                "max": 94000.0
+              },
+              {
+                "group": "Operations",
+                "count": 130,
+                "mean": 57146.92307692308,
+                "median": 52300.0,
+                "std": 16550.609199596187,
+                "min": 31200.0,
+                "q1": 44175.0,
+                "q3": 69375.0,
+                "max": 96900.0
+              },
+              {
+                "group": "Sales",
+                "count": 156,
+                "mean": 58882.692307692305,
+                "median": 54550.0,
+                "std": 17045.78337211965,
+                "min": 36400.0,
+                "q1": 46500.0,
+                "q3": 68050.0,
+                "max": 104800.0
+              },
+              {
+                "group": "Support",
+                "count": 77,
+                "mean": 48355.844155844155,
+                "median": 44500.0,
+                "std": 13334.743830611244,
+                "min": 30600.0,
+                "q1": 38700.0,
+                "q3": 57700.0,
+                "max": 90700.0
+              }
+            ],
+            "statistical_decision": null,
+            "statistical_result": null,
+            "visualization": null,
+            "warnings": [
+              "This execution compares group distributions descriptively. No inferential group-comparison test has been applied yet."
+            ],
+            "limitations": [
+              "AI tool orchestration v0.2 supports only single-dataset contracts and does not allow LLM-generated joins, derived variables or arbitrary Python code."
+            ],
+            "execution_rule_version": "analysis_executor_v0.1"
+          },
+          "errors": [],
+          "warnings": [
+            "The LLM did not execute Python. It produced the analytical intent; Python selected and ran a whitelisted deterministic tool."
+          ]
+        },
+        "timing": {
+          "prompt_construction_ms": 0.015999999959603883,
+          "model_inference_ms": 297.6730000000316,
+          "response_parse_ms": 0.009000000318337698,
+          "python_validation_ms": 0.028299999939918052,
+          "deterministic_execution_ms": 9.576000000379281,
+          "total_ms": 307.3303000001033
+        },
+        "notes": [
+          "The local tool model selected one function from the native DataLens tool catalog.",
+          "Python verified that the selected tool matched the validated analytical family and that every argument exactly matched the validated contract.",
+          "A missing tool call may trigger one stricter retry; ordinary assistant prose is never treated as executable.",
+          "The deterministic DataLens executor performed the statistical calculation."
+        ],
+        "native_tool_rule_version": "native_tool_calling_v0.7"
+      },
+      "errors": [],
+      "warnings": [
+        "The planner model and native tool model had separate roles. Python validated both boundaries before deterministic execution."
+      ]
+    }
+  ],
+  "timing": {
+    "tool_prompt_construction_ms": 0.015999999959603883,
+    "tool_model_inference_ms": 297.6730000000316,
+    "tool_response_parse_ms": 0.009000000318337698,
+    "tool_python_validation_ms": 0.028299999939918052,
+    "deterministic_execution_ms": 9.576000000379281,
+    "total_ms": 307.3560000002544
+  },
+  "notes": [
+    "Stage 1: Gemma proposes a structured analytical contract from the user objective and dataset catalog.",
+    "Stage 2: Python validates dataset ids, column names, analytical types and contract invariants.",
+    "Stage 3: Qwen selects one matching function from the native DataLens tool catalog.",
+    "Stage 4: Python verifies the selected tool against the validated family and checks every argument.",
+    "Stage 5: the deterministic DataLens executor computes the result."
+  ],
+  "pipeline_rule_version": "ai_native_pipeline_v0.4"
+}

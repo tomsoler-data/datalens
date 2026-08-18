@@ -1,0 +1,173 @@
+{
+  "benchmark_version": "rag_explanation_benchmark_v0.2",
+  "explanation_rule_version": "rag_explanation_v0.2",
+  "model": "gemma3:4b",
+  "cases_sha256": "110fec89c9035cdd97ea049464c67660ccd9a3bdddac81fe65e382b7cdc5a8f7",
+  "metrics": {
+    "case_count": 6,
+    "successful_cases": 6,
+    "abstentions": 0,
+    "validation_errors": 0,
+    "success_rate": 1.0,
+    "invalid_citations": 0,
+    "invalid_evidence_quotes": 0,
+    "numeric_violations": 0
+  },
+  "gates": {
+    "minimum_success_rate": 0.8,
+    "maximum_invalid_citations": 0,
+    "maximum_invalid_evidence_quotes": 0,
+    "maximum_numeric_violations": 0,
+    "success_rate_pass": true,
+    "citation_pass": true,
+    "evidence_pass": true,
+    "numeric_pass": true,
+    "benchmark_pass": true
+  },
+  "cases": [
+    {
+      "case_id": "water_gap",
+      "status": "ready",
+      "success": true,
+      "explanation": "Il existe un écart entre l'accès basique et l'accès sécurisé à l'eau potable.",
+      "claims": [
+        {
+          "statement": "Il existe un écart entre l'accès basique et l'accès sécurisé à l'eau potable.",
+          "evidence_quote": "L'accès basique et l'accès sécurisé ne représentent pas le même niveau de service.",
+          "citation": {
+            "chunk_id": "benchmark:water_gap:chunk:0001",
+            "filename": "water_gap.txt",
+            "source_locator": "document",
+            "page_number": null
+          },
+          "citation_valid": true,
+          "evidence_valid": true
+        }
+      ]
+    },
+    {
+      "case_id": "missing_values",
+      "status": "ready",
+      "success": true,
+      "explanation": "Des valeurs manquantes doivent être examinées avant l'analyse. La répartition des valeurs manquantes peut affecter l'interprétation des résultats.",
+      "claims": [
+        {
+          "statement": "Des valeurs manquantes doivent être examinées avant l'analyse.",
+          "evidence_quote": "Les valeurs manquantes doivent être examinées avant l'analyse.",
+          "citation": {
+            "chunk_id": "benchmark:missing_values:chunk:0001",
+            "filename": "missing_values.txt",
+            "source_locator": "document",
+            "page_number": null
+          },
+          "citation_valid": true,
+          "evidence_valid": true
+        },
+        {
+          "statement": "La répartition des valeurs manquantes peut affecter l'interprétation des résultats.",
+          "evidence_quote": "Leur répartition peut modifier l'interprétation des résultats et la qualité des estimations.",
+          "citation": {
+            "chunk_id": "benchmark:missing_values:chunk:0001",
+            "filename": "missing_values.txt",
+            "source_locator": "document",
+            "page_number": null
+          },
+          "citation_valid": true,
+          "evidence_valid": true
+        }
+      ]
+    },
+    {
+      "case_id": "join_grain",
+      "status": "ready",
+      "success": true,
+      "explanation": "Une jointure peut entraîner une multiplication des observations.",
+      "claims": [
+        {
+          "statement": "Une jointure peut entraîner une multiplication des observations.",
+          "evidence_quote": "Une relation plusieurs à plusieurs peut dupliquer les observations lors d'une jointure.",
+          "citation": {
+            "chunk_id": "benchmark:join_grain:chunk:0001",
+            "filename": "join_grain.txt",
+            "source_locator": "document",
+            "page_number": null
+          },
+          "citation_valid": true,
+          "evidence_valid": true
+        }
+      ]
+    },
+    {
+      "case_id": "correlation",
+      "status": "ready",
+      "success": true,
+      "explanation": "Une corrélation indique la force et la direction d'une association entre des variables.",
+      "claims": [
+        {
+          "statement": "Une corrélation indique la force et la direction d'une association entre des variables.",
+          "evidence_quote": "Une corrélation mesure la force et la direction d'une association entre deux variables.",
+          "citation": {
+            "chunk_id": "benchmark:correlation:chunk:0001",
+            "filename": "correlation.txt",
+            "source_locator": "document",
+            "page_number": null
+          },
+          "citation_valid": true,
+          "evidence_valid": true
+        }
+      ]
+    },
+    {
+      "case_id": "sensor_drift",
+      "status": "ready",
+      "success": true,
+      "explanation": "La dérive d'un capteur est caractérisée par une augmentation de l'erreur par rapport à une référence avec le temps. La dérive d'un capteur est une perte progressive d'étalonnage.",
+      "claims": [
+        {
+          "statement": "La dérive d'un capteur est caractérisée par une augmentation de l'erreur par rapport à une référence avec le temps.",
+          "evidence_quote": "Elle peut être détectée lorsque l'erreur par rapport à une référence stable augmente avec le temps.",
+          "citation": {
+            "chunk_id": "benchmark:sensor_drift:chunk:0001",
+            "filename": "sensor_drift.txt",
+            "source_locator": "document",
+            "page_number": null
+          },
+          "citation_valid": true,
+          "evidence_valid": true
+        },
+        {
+          "statement": "La dérive d'un capteur est une perte progressive d'étalonnage.",
+          "evidence_quote": "La dérive d'un capteur correspond à une perte progressive d'étalonnage.",
+          "citation": {
+            "chunk_id": "benchmark:sensor_drift:chunk:0001",
+            "filename": "sensor_drift.txt",
+            "source_locator": "document",
+            "page_number": null
+          },
+          "citation_valid": true,
+          "evidence_valid": true
+        }
+      ]
+    },
+    {
+      "case_id": "least_privilege",
+      "status": "ready",
+      "success": true,
+      "explanation": "L'attribution des permissions doit être limitée aux besoins spécifiques de chaque tâche.",
+      "claims": [
+        {
+          "statement": "L'attribution des permissions doit être limitée aux besoins spécifiques de chaque tâche.",
+          "evidence_quote": "Le principe du moindre privilège consiste à attribuer uniquement les permissions nécessaires à l'exécution d'une tâche.",
+          "citation": {
+            "chunk_id": "benchmark:least_privilege:chunk:0001",
+            "filename": "least_privilege.txt",
+            "source_locator": "document",
+            "page_number": null
+          },
+          "citation_valid": true,
+          "evidence_valid": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,392 @@
+{
+  "status": "complete",
+  "baseline_rule_version": "ollama_analytical_baseline_v0.3",
+  "candidate_contract_version": "analytical_candidate_typed_v0.3",
+  "model": "gemma3:4b",
+  "split": "validation",
+  "case_count": 6,
+  "generation_success_count": 6,
+  "generation_error_count": 0,
+  "total_inference_ms": 20344.65499999351,
+  "average_inference_ms": 3390.7758333322513,
+  "average_metrics": {
+    "intent": 0.6666666666666666,
+    "entity": 0.6666666666666666,
+    "grain": 0.8333333333333334,
+    "relevant_columns": 0.9259259259259259,
+    "family": 0.8333333333333334,
+    "tool_selection": 0.5777777777777778,
+    "tool_arguments": 0.5,
+    "safety": 1.0
+  },
+  "average_overall": 0.7377777777777778,
+  "invented_column_count": 0,
+  "invented_tool_count": 0,
+  "forbidden_tool_count": 0,
+  "forbidden_assumption_count": 0,
+  "results": [
+    {
+      "case_id": "hard_v0_4_001",
+      "domain": "retail_operations",
+      "user_request": "Certains magasins ont-ils un comportement inhabituel en tenant compte du volume de commandes, du chiffre d'affaires et du taux de retour ?",
+      "model": "gemma3:4b",
+      "status": "ready",
+      "inference_ms": 6182.850600001984,
+      "candidate": {
+        "intent": "entity_anomaly_analysis",
+        "entity": null,
+        "current_grain": "store_day",
+        "target_grain": null,
+        "relevant_columns": [
+          "store_id",
+          "date",
+          "order_count",
+          "revenue",
+          "return_rate"
+        ],
+        "family": "entity_outlier",
+        "tool_calls": [
+          {
+            "name": "build_entity_view",
+            "arguments": {
+              "entity": "store_id"
+            }
+          },
+          {
+            "name": "aggregate",
+            "arguments": {
+              "metrics": [
+                "order_count",
+                "revenue",
+                "return_rate"
+              ],
+              "group_by": [
+                "store_id",
+                "date"
+              ]
+            }
+          },
+          {
+            "name": "analyze_distribution",
+            "arguments": {
+              "target": "return_rate"
+            }
+          },
+          {
+            "name": "detect_entity_outliers",
+            "arguments": {
+              "entity": "store_id",
+              "metrics": [
+                "order_count",
+                "revenue",
+                "return_rate"
+              ]
+            }
+          }
+        ],
+        "assumptions": []
+      },
+      "score_metrics": {
+        "intent": 1.0,
+        "entity": 0.0,
+        "grain": 0.5,
+        "relevant_columns": 0.888888888888889,
+        "family": 1.0,
+        "tool_selection": 0.6666666666666666,
+        "tool_arguments": 1.0,
+        "safety": 1.0
+      },
+      "score_diagnostics": {
+        "invented_columns": [],
+        "invented_tools": [],
+        "forbidden_tools_used": [],
+        "forbidden_assumptions_used": []
+      },
+      "overall": 0.7666666666666666,
+      "raw_content": "{\"intent\": \"entity_anomaly_analysis\", \"entity\": null, \"current_grain\": \"store_day\", \"target_grain\": null, \"relevant_columns\": [\"store_id\", \"date\", \"order_count\", \"revenue\", \"return_rate\"], \"family\": \"entity_outlier\", \"tool_calls\": [{\"name\": \"build_entity_view\", \"arguments\": {\"entity\": \"store_id\"}}, {\"name\": \"aggregate\", \"arguments\": {\"metrics\": [\"order_count\", \"revenue\", \"return_rate\"], \"group_by\": [\"store_id\", \"date\"]}}, {\"name\": \"analyze_distribution\", \"arguments\": {\"target\": \"return_rate\"}}, {\"name\": \"detect_entity_outliers\", \"arguments\": {\"entity\": \"store_id\", \"metrics\": [\"order_count\", \"revenue\", \"return_rate\"]}} ] , \"assumptions\": []}",
+      "error": null
+    },
+    {
+      "case_id": "hard_v0_4_002",
+      "domain": "telecom",
+      "user_request": "Le temps moyen d'attente est-il associé au taux d'abandon des appels ?",
+      "model": "gemma3:4b",
+      "status": "ready",
+      "inference_ms": 2732.3885000078008,
+      "candidate": {
+        "intent": "data_quality_analysis",
+        "entity": null,
+        "current_grain": "call_center_day",
+        "target_grain": null,
+        "relevant_columns": [
+          "center_id",
+          "date",
+          "avg_wait_seconds",
+          "abandon_rate"
+        ],
+        "family": "association",
+        "tool_calls": [
+          {
+            "name": "measure_association",
+            "arguments": {
+              "target": "abandon_rate",
+              "value": "avg_wait_seconds"
+            }
+          }
+        ],
+        "assumptions": []
+      },
+      "score_metrics": {
+        "intent": 0.0,
+        "entity": 1.0,
+        "grain": 1.0,
+        "relevant_columns": 0.6666666666666666,
+        "family": 1.0,
+        "tool_selection": 1.0,
+        "tool_arguments": 0.0,
+        "safety": 1.0
+      },
+      "score_diagnostics": {
+        "invented_columns": [],
+        "invented_tools": [],
+        "forbidden_tools_used": [],
+        "forbidden_assumptions_used": []
+      },
+      "overall": 0.7000000000000001,
+      "raw_content": "{\"intent\": \"data_quality_analysis\", \"entity\": null, \"current_grain\": \"call_center_day\", \"target_grain\": null, \"relevant_columns\": [\"center_id\", \"date\", \"avg_wait_seconds\", \"abandon_rate\"], \"family\": \"association\", \"tool_calls\": [{\"name\": \"measure_association\", \"arguments\": {\"target\": \"abandon_rate\", \"value\": \"avg_wait_seconds\"}}]\n    , \"assumptions\": []}",
+      "error": null
+    },
+    {
+      "case_id": "hard_v0_4_003",
+      "domain": "marketing",
+      "user_request": "Les taux de conversion diffèrent-ils selon le canal d'acquisition ?",
+      "model": "gemma3:4b",
+      "status": "ready",
+      "inference_ms": 2400.5306999897584,
+      "candidate": {
+        "intent": "compare_groups",
+        "entity": null,
+        "current_grain": "campaign_day",
+        "target_grain": null,
+        "relevant_columns": [
+          "channel",
+          "conversion_rate"
+        ],
+        "family": "group_comparison",
+        "tool_calls": [
+          {
+            "name": "aggregate",
+            "arguments": {
+              "metrics": [
+                "conversion_rate"
+              ],
+              "group_by": [
+                "channel"
+              ]
+            }
+          }
+        ],
+        "assumptions": []
+      },
+      "score_metrics": {
+        "intent": 1.0,
+        "entity": 1.0,
+        "grain": 1.0,
+        "relevant_columns": 1.0,
+        "family": 1.0,
+        "tool_selection": 0.0,
+        "tool_arguments": 0.0,
+        "safety": 1.0
+      },
+      "score_diagnostics": {
+        "invented_columns": [],
+        "invented_tools": [],
+        "forbidden_tools_used": [],
+        "forbidden_assumptions_used": []
+      },
+      "overall": 0.7,
+      "raw_content": "{\"intent\": \"compare_groups\", \"entity\": null, \"current_grain\": \"campaign_day\", \"target_grain\": null, \"relevant_columns\": [\"channel\", \"conversion_rate\"], \"family\": \"group_comparison\", \"tool_calls\": [{\"name\": \"aggregate\", \"arguments\": {\"metrics\": [\"conversion_rate\"], \"group_by\": [\"channel\"]}}], \"assumptions\": []}",
+      "error": null
+    },
+    {
+      "case_id": "hard_v0_4_004",
+      "domain": "human_resources",
+      "user_request": "La formation a-t-elle causé l'amélioration de la productivité ?",
+      "model": "gemma3:4b",
+      "status": "ready",
+      "inference_ms": 2622.9611999879126,
+      "candidate": {
+        "intent": "compare_groups",
+        "entity": null,
+        "current_grain": "employee",
+        "target_grain": null,
+        "relevant_columns": [
+          "productivity_score",
+          "training_hours"
+        ],
+        "family": "group_comparison",
+        "tool_calls": [
+          {
+            "name": "compare_groups",
+            "arguments": {
+              "target": "productivity_score",
+              "group_by": "training_hours"
+            }
+          }
+        ],
+        "assumptions": []
+      },
+      "score_metrics": {
+        "intent": 0.0,
+        "entity": 1.0,
+        "grain": 1.0,
+        "relevant_columns": 1.0,
+        "family": 0.0,
+        "tool_selection": 0.0,
+        "tool_arguments": 0.0,
+        "safety": 1.0
+      },
+      "score_diagnostics": {
+        "invented_columns": [],
+        "invented_tools": [],
+        "forbidden_tools_used": [],
+        "forbidden_assumptions_used": []
+      },
+      "overall": 0.44999999999999996,
+      "raw_content": "{\"intent\": \"compare_groups\", \"entity\": null, \"current_grain\": \"employee\", \"target_grain\": null, \"relevant_columns\": [\"productivity_score\", \"training_hours\"], \"family\": \"group_comparison\", \"tool_calls\": [{\"name\": \"compare_groups\", \"arguments\": {\"target\": \"productivity_score\", \"group_by\": \"training_hours\"}}]\n, \"assumptions\": []}",
+      "error": null
+    },
+    {
+      "case_id": "hard_v0_4_005",
+      "domain": "manufacturing",
+      "user_request": "Quelles machines ont un profil inhabituel en matière de vibration, de défauts et de volume produit ?",
+      "model": "gemma3:4b",
+      "status": "ready",
+      "inference_ms": 3871.3787000015145,
+      "candidate": {
+        "intent": "entity_anomaly_analysis",
+        "entity": null,
+        "current_grain": "machine_shift",
+        "target_grain": null,
+        "relevant_columns": [
+          "machine_id",
+          "vibration_score",
+          "defect_rate",
+          "units_produced"
+        ],
+        "family": "entity_outlier",
+        "tool_calls": [
+          {
+            "name": "build_entity_view",
+            "arguments": {
+              "entity": "machine_id"
+            }
+          },
+          {
+            "name": "detect_entity_outliers",
+            "arguments": {
+              "entity": "machine_id",
+              "metrics": [
+                "vibration_score",
+                "defect_rate",
+                "units_produced"
+              ]
+            }
+          },
+          {
+            "name": "analyze_distribution",
+            "arguments": {
+              "target": "vibration_score"
+            }
+          },
+          {
+            "name": "analyze_distribution",
+            "arguments": {
+              "target": "defect_rate"
+            }
+          },
+          {
+            "name": "analyze_distribution",
+            "arguments": {
+              "target": "units_produced"
+            }
+          }
+        ],
+        "assumptions": []
+      },
+      "score_metrics": {
+        "intent": 1.0,
+        "entity": 0.0,
+        "grain": 0.5,
+        "relevant_columns": 1.0,
+        "family": 1.0,
+        "tool_selection": 0.8,
+        "tool_arguments": 1.0,
+        "safety": 1.0
+      },
+      "score_diagnostics": {
+        "invented_columns": [],
+        "invented_tools": [],
+        "forbidden_tools_used": [],
+        "forbidden_assumptions_used": []
+      },
+      "overall": 0.8099999999999999,
+      "raw_content": "{\"intent\": \"entity_anomaly_analysis\", \"entity\": null, \"current_grain\": \"machine_shift\", \"target_grain\": null, \"relevant_columns\": [\"machine_id\", \"vibration_score\", \"defect_rate\", \"units_produced\"], \"family\": \"entity_outlier\", \"tool_calls\": [{\"name\": \"build_entity_view\", \"arguments\": {\"entity\": \"machine_id\"}}, {\"name\": \"detect_entity_outliers\", \"arguments\": {\"entity\": \"machine_id\", \"metrics\": [\"vibration_score\", \"defect_rate\", \"units_produced\"]}}, {\"name\": \"analyze_distribution\", \"arguments\": {\"target\": \"vibration_score\"}}, {\"name\": \"analyze_distribution\", \"arguments\": {\"target\": \"defect_rate\"}}, {\"name\": \"analyze_distribution\", \"arguments\": {\"target\": \"units_produced\"}}]\n, \"assumptions\": []}",
+      "error": null
+    },
+    {
+      "case_id": "hard_v0_4_006",
+      "domain": "customer_support",
+      "user_request": "Les tickets prioritaires prennent-ils plus de temps à résoudre que les autres ?",
+      "model": "gemma3:4b",
+      "status": "ready",
+      "inference_ms": 2534.545300004538,
+      "candidate": {
+        "intent": "compare_groups",
+        "entity": null,
+        "current_grain": "ticket",
+        "target_grain": null,
+        "relevant_columns": [
+          "priority",
+          "resolution_minutes"
+        ],
+        "family": "group_comparison",
+        "tool_calls": [
+          {
+            "name": "compare_groups",
+            "arguments": {
+              "target": "resolution_minutes",
+              "group_by": "priority"
+            }
+          }
+        ],
+        "assumptions": []
+      },
+      "score_metrics": {
+        "intent": 1.0,
+        "entity": 1.0,
+        "grain": 1.0,
+        "relevant_columns": 1.0,
+        "family": 1.0,
+        "tool_selection": 1.0,
+        "tool_arguments": 1.0,
+        "safety": 1.0
+      },
+      "score_diagnostics": {
+        "invented_columns": [],
+        "invented_tools": [],
+        "forbidden_tools_used": [],
+        "forbidden_assumptions_used": []
+      },
+      "overall": 1.0,
+      "raw_content": "{\"intent\": \"compare_groups\", \"entity\": null, \"current_grain\": \"ticket\", \"target_grain\": null, \"relevant_columns\": [\"priority\", \"resolution_minutes\"], \"family\": \"group_comparison\", \"tool_calls\": [{\"name\": \"compare_groups\", \"arguments\": {\"target\": \"resolution_minutes\", \"group_by\": \"priority\"}}]\n    , \"assumptions\": []}",
+      "error": null
+    }
+  ],
+  "evaluation_name": "hard_validation_v0.4",
+  "capability_view": {
+    "comprehension": 0.7851851851851852,
+    "planning": 0.538888888888889,
+    "reliability": 1.0
+  }
+}

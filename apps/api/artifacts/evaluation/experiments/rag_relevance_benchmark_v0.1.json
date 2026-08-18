@@ -1,0 +1,134 @@
+{
+  "benchmark_version": "rag_relevance_benchmark_v0.1",
+  "relevance_rule_version": "rag_relevance_v0.1",
+  "model": "gemma3:4b",
+  "cases_sha256": "57953385a02b0dc8fc6c3309c879f95b25c21ecf6461d1946b153a08132c0508",
+  "metrics": {
+    "true_positive": 5,
+    "false_negative": 1,
+    "true_negative": 6,
+    "false_positive": 0,
+    "positive_recall": 0.8333333333333334,
+    "specificity": 1.0,
+    "false_positive_rate": 0.0,
+    "accuracy": 0.9166666666666666,
+    "dangerous_false_positives": 0
+  },
+  "gates": {
+    "minimum_positive_recall": 0.8,
+    "maximum_dangerous_false_positives": 0,
+    "positive_recall_pass": true,
+    "false_positive_pass": true,
+    "benchmark_pass": true
+  },
+  "cases": [
+    {
+      "case_id": "positive_water_gap",
+      "expected": "relevant",
+      "predicted": "relevant",
+      "correct": true,
+      "reason": "The passage directly addresses the gap between basic and secure water service coverage, which is the core of the analytical finding.",
+      "finding": "Écart entre la population utilisant au moins un service d'eau basique et la population utilisant un service géré en toute sécurité.",
+      "passage": "L'accès basique et l'accès sécurisé ne représentent pas le même niveau de service. La modernisation peut être étudiée en examinant l'écart entre ces niveaux de couverture."
+    },
+    {
+      "case_id": "positive_safe_access",
+      "expected": "relevant",
+      "predicted": "not_relevant",
+      "correct": false,
+      "reason": "The passage discusses levels of service and security, but doesn't directly address the evolution of the population using safe water services.",
+      "finding": "Évolution de la population utilisant des services d'eau potable gérés en toute sécurité.",
+      "passage": "L'accès basique et l'accès sécurisé ne représentent pas le même niveau de service. Le niveau sécurisé correspond à un niveau de couverture plus exigeant."
+    },
+    {
+      "case_id": "positive_infrastructure_creation",
+      "expected": "relevant",
+      "predicted": "relevant",
+      "correct": true,
+      "reason": "The passage directly addresses the finding by stating that new infrastructure creation is specifically related to populations lacking basic access to potable water.",
+      "finding": "Population ne disposant pas d'un accès basique à l'eau potable.",
+      "passage": "La création de nouvelles infrastructures concerne notamment les populations qui ne disposent pas d'un accès basique à l'eau potable."
+    },
+    {
+      "case_id": "positive_missing_values",
+      "expected": "relevant",
+      "predicted": "relevant",
+      "correct": true,
+      "reason": "The passage directly addresses the issue of missing values and their potential impact on analysis, aligning with the finding that the dataset contains a significant proportion of missing values.",
+      "finding": "Le dataset contient une proportion importante de valeurs manquantes.",
+      "passage": "Les valeurs manquantes doivent être examinées avant l'analyse. Leur répartition peut affecter la qualité des estimations et l'interprétation des résultats."
+    },
+    {
+      "case_id": "positive_join_grain",
+      "expected": "relevant",
+      "predicted": "relevant",
+      "correct": true,
+      "reason": "The passage directly explains a mechanism (a many-to-many relationship) that can lead to multiple matches during a join, which is precisely what the finding describes.",
+      "finding": "Une jointure entre deux tables peut produire plusieurs correspondances pour la même observation.",
+      "passage": "Une relation plusieurs à plusieurs peut dupliquer artificiellement les observations lors d'une jointure. Le grain des tables doit être vérifié."
+    },
+    {
+      "case_id": "positive_churn",
+      "expected": "relevant",
+      "predicted": "relevant",
+      "correct": true,
+      "reason": "The passage directly states that a decrease in usage or an increase in complaints can precede subscription cancellation and serve as a churn risk signal, which aligns with the finding.",
+      "finding": "Certains comportements semblent précéder la résiliation d'un abonnement.",
+      "passage": "Une baisse d'utilisation ou une hausse des réclamations peut précéder la résiliation d'un abonnement et servir de signal de risque de churn."
+    },
+    {
+      "case_id": "negative_political_stability_water_context",
+      "expected": "not_relevant",
+      "predicted": "not_relevant",
+      "correct": true,
+      "reason": "The passage discusses identifying water access needs, which doesn't directly address the relationship between basic water access and political stability.",
+      "finding": "Relation entre l'accès basique à l'eau potable et la stabilité politique.",
+      "passage": "DWFA souhaite identifier les pays où les besoins d'intervention sur l'accès à l'eau potable sont les plus importants."
+    },
+    {
+      "case_id": "negative_political_stability_water_definition",
+      "expected": "not_relevant",
+      "predicted": "not_relevant",
+      "correct": true,
+      "reason": "The passage discusses levels of service and modernization, which doesn't directly address the relationship between basic water access and political stability.",
+      "finding": "Relation entre l'accès basique à l'eau potable et la stabilité politique.",
+      "passage": "L'accès basique et l'accès sécurisé ne représentent pas le même niveau de service. La modernisation peut être étudiée en examinant leur écart."
+    },
+    {
+      "case_id": "negative_population_trend_water_definition",
+      "expected": "not_relevant",
+      "predicted": "not_relevant",
+      "correct": true,
+      "reason": "The passage discusses water access levels, which is unrelated to population evolution over time.",
+      "finding": "Évolution de la population totale au cours du temps.",
+      "passage": "L'accès basique et l'accès sécurisé ne représentent pas le même niveau de service d'eau potable."
+    },
+    {
+      "case_id": "negative_missing_values_duplicates",
+      "expected": "not_relevant",
+      "predicted": "not_relevant",
+      "correct": true,
+      "reason": "The passage discusses duplicate entries, which is a different issue than missing values. It doesn't explain or contextualize the finding that the dataset contains many missing values.",
+      "finding": "Le dataset contient de nombreuses valeurs manquantes.",
+      "passage": "Les doublons stricts correspondent à des lignes identiques présentes plusieurs fois dans un dataset et peuvent gonfler artificiellement les effectifs."
+    },
+    {
+      "case_id": "negative_causality_confidence_interval",
+      "expected": "not_relevant",
+      "predicted": "not_relevant",
+      "correct": true,
+      "reason": "The passage discusses confidence intervals, which relate to uncertainty in data, but doesn't directly address the correlation between variables and the lack of causal demonstration in the finding.",
+      "finding": "Une corrélation a été observée entre deux variables mais elle ne démontre pas une causalité.",
+      "passage": "Un intervalle de confiance décrit l'incertitude autour d'une estimation et fournit une plage de valeurs compatibles avec les données."
+    },
+    {
+      "case_id": "negative_churn_seasonality",
+      "expected": "not_relevant",
+      "predicted": "not_relevant",
+      "correct": true,
+      "reason": "The passage discusses seasonal demand patterns, which is not directly related to behaviors observed before churn.",
+      "finding": "Des comportements observés avant résiliation pourraient indiquer un risque de churn.",
+      "passage": "Une demande saisonnière présente des cycles qui reviennent à des intervalles réguliers, par exemple chaque semaine ou chaque année."
+    }
+  ]
+}
