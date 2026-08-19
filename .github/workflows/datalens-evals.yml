@@ -1,15 +1,19 @@
 # DataLens CI Evals Gate
-# Contract version: datalens_ci_evals_gate_v0.1
+# Contract version: datalens_ci_evals_gate_v0.2
 
 name: DataLens Evals Gate
 
 on:
   push:
+    branches:
+      - main
     paths:
       - "apps/api/**"
       - ".github/workflows/datalens-evals.yml"
 
   pull_request:
+    branches:
+      - main
     paths:
       - "apps/api/**"
       - ".github/workflows/datalens-evals.yml"
@@ -51,10 +55,10 @@ jobs:
       # PYTHON
       # ------------------------------------------------------
 
-      - name: Set up Python 3.9.13
+      - name: Set up Python 3.13
         uses: actions/setup-python@v7
         with:
-          python-version: "3.9.13"
+          python-version: "3.13"
 
 
       - name: Show Python environment

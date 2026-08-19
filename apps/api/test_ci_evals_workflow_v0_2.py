@@ -4,14 +4,18 @@ from pathlib import Path
 
 
 CI_EVALS_GATE_RULE_VERSION = (
-    "datalens_ci_evals_gate_v0.1"
+    "datalens_ci_evals_gate_v0.2"
+)
+
+CI_PYTHON_VERSION = (
+    "3.13"
 )
 
 
 def repository_root(
 ) -> Path:
     """
-    test_ci_evals_workflow_v0_1.py lives in:
+    test_ci_evals_workflow_v0_2.py lives in:
 
         datalens/apps/api/
 
@@ -94,7 +98,7 @@ def test_workflow_uses_read_only_repository_permission(
     )
 
 
-def test_workflow_runs_on_push_pull_request_and_manual_dispatch(
+def test_workflow_runs_on_main_push_pull_request_and_manual_dispatch(
 ) -> None:
     text = workflow_text()
 
@@ -103,9 +107,23 @@ def test_workflow_runs_on_push_pull_request_and_manual_dispatch(
     assert "\n  pull_request:" in text
     assert "\n  workflow_dispatch:" in text
 
+    assert (
+        "push:\n"
+        "    branches:\n"
+        "      - main"
+        in text
+    )
+
+    assert (
+        "pull_request:\n"
+        "    branches:\n"
+        "      - main"
+        in text
+    )
+
 
     print(
-        "CI eval workflow has push, pull_request and manual triggers: PASS"
+        "CI eval workflow targets main pushes and pull requests: PASS"
     )
 
 
@@ -115,7 +133,7 @@ def test_workflow_pins_backend_python_contract(
 
 
     assert (
-        'python-version: "3.9.13"'
+        f'python-version: "{CI_PYTHON_VERSION}"'
         in text
     )
 
@@ -217,9 +235,6 @@ def test_workflow_failure_propagates_to_ci(
     text = workflow_text()
 
 
-    # The suite and gate commands are deliberately run without
-    # continue-on-error. Their existing non-zero exit codes must
-    # therefore fail the GitHub Actions job.
     assert (
         "continue-on-error:"
         not in text
@@ -255,7 +270,7 @@ def test_workflow_scopes_execution_to_backend_changes(
 
 def main() -> None:
     print(
-        "=== DATALENS CI EVALS GATE v0.1 ==="
+        "=== DATALENS CI EVALS GATE v0.2 ==="
     )
 
     print()
@@ -265,7 +280,7 @@ def main() -> None:
 
     test_workflow_uses_read_only_repository_permission()
 
-    test_workflow_runs_on_push_pull_request_and_manual_dispatch()
+    test_workflow_runs_on_main_push_pull_request_and_manual_dispatch()
 
     test_workflow_pins_backend_python_contract()
 
@@ -283,7 +298,7 @@ def main() -> None:
     print()
 
     print(
-        "CI Evals Gate v0.1: PASS"
+        "CI Evals Gate v0.2: PASS"
     )
 
 
