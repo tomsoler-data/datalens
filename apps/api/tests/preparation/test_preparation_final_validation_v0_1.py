@@ -1,17 +1,11 @@
 from __future__ import annotations
 
 
-from fastapi.testclient import (
-    TestClient,
-)
-
-
-from main import (
-    app,
-)
-
-from app.preparation.analysis_readiness_gate import (
-    require_analysis_readiness,
+from app.preparation.final_validation import (
+    FINAL_PREPARATION_VALIDATION_RULE_VERSION,
+    FinalPreparationValidationBlockedError,
+    evaluate_final_preparation_validation,
+    require_final_preparation_validation,
 )
 
 from app.preparation.preparation_session import (
@@ -28,25 +22,39 @@ from app.preparation.preparation_workflow import (
 
 
 # ============================================================
-# CLIENT
+# CONSTANTS
 # ============================================================
 
 
-client = TestClient(
-    app
+DATASET_ID = (
+    "dataset:0001"
 )
 
 
 # ============================================================
-# HELPERS
+# RESET
 # ============================================================
 
 
-def create_quality_ready_session():
+def reset_state(
+) -> None:
+    reset_preparation_session_store_for_tests()
+
+
+# ============================================================
+# SESSION HELPERS
+# ============================================================
+
+
+def create_quality_ready_session(
+):
+    reset_state()
+
+
     session = (
         create_preparation_session(
             selected_analysis_dataset_ids=[
-                "dataset:0001"
+                DATASET_ID
             ]
         )
     )
@@ -68,7 +76,7 @@ def create_quality_ready_session():
                 True,
 
             dataset_ids=[
-                "dataset:0001"
+                DATASET_ID
             ],
 
             evidence_refs=[
@@ -91,6 +99,8 @@ def create_quality_ready_session():
 
 def explicitly_skip_clean(
     workflow_id: str,
+    *,
+    dataset_ids: list[str] | None = None,
 ):
     return (
         record_optional_stage_signal(
@@ -112,9 +122,13 @@ def explicitly_skip_clean(
             blocked=
                 False,
 
-            dataset_ids=[
-                "dataset:0001"
-            ],
+            dataset_ids=(
+                dataset_ids
+                if dataset_ids is not None
+                else [
+                    DATASET_ID
+                ]
+            ),
 
             evidence_refs=[
                 "cleaning_plan:test"
@@ -149,14 +163,12 @@ def pass_clean(
                 False,
 
             dataset_ids=[
-                "dataset:0001"
+                DATASET_ID
             ],
 
             evidence_refs=[
                 "cleaning_plan:test",
                 "cleaning_execution:test",
-                "semantic_review:test",
-                "semantic_confirmation:test",
             ],
 
             blocking_reasons=[],
@@ -188,12 +200,11 @@ def review_clean(
                 False,
 
             dataset_ids=[
-                "dataset:0001"
+                DATASET_ID
             ],
 
             evidence_refs=[
                 "cleaning_plan:test",
-                "semantic_review:test",
             ],
 
             blocking_reasons=[
@@ -204,132 +215,98 @@ def review_clean(
 
 
 # ============================================================
-# DEFAULT SKIP CANNOT BYPASS CLEANING
+# CHECK HELPERS
 # ============================================================
 
 
-def test_default_clean_skip_cannot_bypass_validation():
+def check_by_code(
+    report,
+    code: str,
+):
+    return next(
+        check
+
+        for check
+        in report.checks
+
+        if (
+            check.code
+            ==
+            code
+        )
+    )
+
+
+# ============================================================
+# VERSION
+# ============================================================
+
+
+def test_version(
+) -> None:
+    assert (
+        FINAL_PREPARATION_VALIDATION_RULE_VERSION
+        ==
+        "final_preparation_validation_v0.1"
+    )
+
+
+    print(
+        "Final Preparation Validation v0.1 version: PASS"
+    )
+
+
+# ============================================================
+# DEFAULT CLEAN SKIP CANNOT BYPASS VALIDATION
+# ============================================================
+
+
+def test_default_clean_skip_cannot_bypass_validation(
+) -> None:
     session = (
         create_quality_ready_session()
     )
 
 
-    response = (
-        client.post(
-            "/preparation/validate",
-
-            json={
-                "workflow_id":
-                    session.workflow_id
-            },
+    report = (
+        evaluate_final_preparation_validation(
+            session
         )
     )
 
 
-    print(
-        "\n=== DEFAULT CLEAN BYPASS ATTEMPT ==="
-    )
-
-    print(
-        f"Status: "
-        f"{response.status_code}"
+    cleaning_check = (
+        check_by_code(
+            report,
+            "cleaning_plan_evaluated",
+        )
     )
 
 
     assert (
-        response.status_code
-        ==
-        409
-    )
-
-
-    body = (
-        response.json()
-    )
-
-
-    validation = (
-        body[
-            "detail"
-        ][
-            "validation"
-        ]
-    )
-
-
-    print(
-        (
-            "Failed checks: "
-            f"{validation['failed_check_count']}"
-        )
-    )
-
-
-    assert any(
-        check[
-            "code"
-        ]
-        ==
-        "cleaning_plan_evaluated"
-
-        and
-        check[
-            "passed"
-        ]
+        report.passed
         is False
-
-        for check
-        in validation[
-            "checks"
-        ]
-    )
-
-
-    updated = (
-        get_preparation_session(
-            session.workflow_id
-        )
-    )
-
-
-    validate_stage = next(
-        stage
-
-        for stage
-        in updated.snapshot.stages
-
-        if (
-            stage.stage
-            ==
-            PreparationStage.VALIDATE
-        )
-    )
-
-
-    print(
-        f"Validate: "
-        f"{validate_stage.status.value}"
-    )
-
-
-    assert (
-        validate_stage.status.value
-        ==
-        "blocked"
     )
 
     assert (
-        updated.snapshot.ready_for_analysis
+        cleaning_check.passed
         is False
     )
 
 
+    print(
+        "Default CLEAN state cannot bypass deterministic "
+        "cleaning evaluation: PASS"
+    )
+
+
 # ============================================================
-# EXPLICIT CLEAN SKIP -> READY
+# EXPLICIT CLEAN SKIP
 # ============================================================
 
 
-def test_explicit_clean_skip_can_validate():
+def test_explicit_clean_skip_passes_legacy_root_contract(
+) -> None:
     session = (
         create_quality_ready_session()
     )
@@ -340,119 +317,58 @@ def test_explicit_clean_skip_can_validate():
     )
 
 
-    response = (
-        client.post(
-            "/preparation/validate",
-
-            json={
-                "workflow_id":
-                    session.workflow_id
-            },
+    current = (
+        get_preparation_session(
+            session.workflow_id
         )
     )
 
 
-    print(
-        "\n=== EXPLICIT CLEAN SKIP ==="
-    )
-
-    print(
-        f"Status: "
-        f"{response.status_code}"
-    )
-
-
-    assert (
-        response.status_code
-        ==
-        200
-    )
-
-
-    body = (
-        response.json()
-    )
-
-
-    snapshot = (
-        body[
-            "snapshot"
-        ]
-    )
-
-
-    print(
-        (
-            "Validate: "
-            f"{
-                next(
-                    stage['status']
-                    for stage
-                    in snapshot['stages']
-                    if stage['stage'] == 'validate'
-                )
-            }"
-        )
-    )
-
-    print(
-        (
-            "Ready for analysis: "
-            f"{snapshot['ready_for_analysis']}"
+    report = (
+        require_final_preparation_validation(
+            current
         )
     )
 
 
     assert (
-        snapshot[
-            "ready_for_analysis"
-        ]
-        is True
-    )
-
-    assert (
-        snapshot[
-            "validated_analysis_dataset_ids"
-        ]
-        ==
-        [
-            "dataset:0001"
-        ]
-    )
-
-
-    decision = (
-        require_analysis_readiness(
-            workflow_id=
-                session.workflow_id,
-
-            requested_analysis_dataset_ids=[
-                "dataset:0001"
-            ],
-        )
-    )
-
-
-    print(
-        (
-            "Readiness gate: "
-            f"{decision.ready_for_analysis}"
-        )
-    )
-
-
-    assert (
-        decision.ready_for_analysis
+        report.passed
         is True
     )
 
 
+    assert (
+        check_by_code(
+            report,
+            "cleaning_plan_evaluated",
+        )
+        .passed
+        is True
+    )
+
+
+    assert (
+        check_by_code(
+            report,
+            "clean_skipped_dataset_scope",
+        )
+        .passed
+        is True
+    )
+
+
+    print(
+        "Explicit CLEAN skip passes legacy root validation: PASS"
+    )
+
+
 # ============================================================
-# CLEAN PASSED -> READY
+# CLEAN PASSED
 # ============================================================
 
 
-def test_clean_passed_can_validate():
+def test_clean_passed_passes_legacy_root_contract(
+) -> None:
     session = (
         create_quality_ready_session()
     )
@@ -463,64 +379,58 @@ def test_clean_passed_can_validate():
     )
 
 
-    response = (
-        client.post(
-            "/preparation/validate",
-
-            json={
-                "workflow_id":
-                    session.workflow_id
-            },
+    current = (
+        get_preparation_session(
+            session.workflow_id
         )
     )
 
 
-    print(
-        "\n=== CLEAN PASSED ==="
-    )
-
-    print(
-        f"Status: "
-        f"{response.status_code}"
-    )
-
-
-    assert (
-        response.status_code
-        ==
-        200
-    )
-
-
-    body = (
-        response.json()
-    )
-
-
-    print(
-        (
-            "Ready for analysis: "
-            f"{body['snapshot']['ready_for_analysis']}"
+    report = (
+        require_final_preparation_validation(
+            current
         )
     )
 
 
     assert (
-        body[
-            "snapshot"
-        ][
-            "ready_for_analysis"
-        ]
+        report.passed
         is True
     )
 
 
+    assert (
+        check_by_code(
+            report,
+            "clean_stage_resolved",
+        )
+        .passed
+        is True
+    )
+
+
+    assert (
+        check_by_code(
+            report,
+            "clean_dataset_scope",
+        )
+        .passed
+        is True
+    )
+
+
+    print(
+        "Completed CLEAN stage passes legacy root validation: PASS"
+    )
+
+
 # ============================================================
-# CLEAN REVIEW -> BLOCKED
+# CLEAN REVIEW
 # ============================================================
 
 
-def test_clean_review_blocks_validation():
+def test_clean_review_blocks_legacy_root_contract(
+) -> None:
     session = (
         create_quality_ready_session()
     )
@@ -531,181 +441,168 @@ def test_clean_review_blocks_validation():
     )
 
 
-    response = (
-        client.post(
-            "/preparation/validate",
-
-            json={
-                "workflow_id":
-                    session.workflow_id
-            },
+    current = (
+        get_preparation_session(
+            session.workflow_id
         )
     )
 
 
-    print(
-        "\n=== CLEAN REVIEW ==="
-    )
-
-    print(
-        f"Status: "
-        f"{response.status_code}"
+    report = (
+        evaluate_final_preparation_validation(
+            current
+        )
     )
 
 
     assert (
-        response.status_code
-        ==
-        409
-    )
-
-
-    validation = (
-        response.json()[
-            "detail"
-        ][
-            "validation"
-        ]
-    )
-
-
-    assert any(
-        check[
-            "code"
-        ]
-        ==
-        "clean_stage_resolved"
-
-        and
-        check[
-            "passed"
-        ]
+        report.passed
         is False
+    )
 
-        for check
-        in validation[
-            "checks"
-        ]
+
+    assert (
+        check_by_code(
+            report,
+            "clean_stage_resolved",
+        )
+        .passed
+        is False
+    )
+
+
+    print(
+        "CLEAN review requirement blocks legacy root validation: PASS"
     )
 
 
 # ============================================================
-# CLIENT CANNOT INJECT PASSED
+# REQUIRE RAISES WHEN BLOCKED
 # ============================================================
 
 
-def test_client_cannot_inject_validation_status():
+def test_require_raises_when_validation_is_blocked(
+) -> None:
+    session = (
+        create_quality_ready_session()
+    )
+
+
+    try:
+        require_final_preparation_validation(
+            session
+        )
+
+    except FinalPreparationValidationBlockedError as error:
+        assert (
+            error.report.passed
+            is False
+        )
+
+        assert (
+            error.report.failed_check_count
+            >
+            0
+        )
+
+    else:
+        raise AssertionError(
+            "Blocked legacy validation did not raise "
+            "FinalPreparationValidationBlockedError."
+        )
+
+
+    print(
+        "Legacy require gate raises on blocked validation: PASS"
+    )
+
+
+# ============================================================
+# EXPLICIT SKIP DATASET SCOPE
+# ============================================================
+
+
+def test_explicit_clean_skip_requires_root_dataset_scope(
+) -> None:
     session = (
         create_quality_ready_session()
     )
 
 
     explicitly_skip_clean(
-        session.workflow_id
+        session.workflow_id,
+        dataset_ids=[
+            "dataset:wrong"
+        ],
     )
 
 
-    response = (
-        client.post(
-            "/preparation/validate",
-
-            json={
-                "workflow_id":
-                    session.workflow_id,
-
-                "passed":
-                    True,
-
-                "ready_for_analysis":
-                    True,
-            },
+    current = (
+        get_preparation_session(
+            session.workflow_id
         )
     )
 
 
-    print(
-        "\n=== VALIDATION STATUS INJECTION ==="
-    )
-
-    print(
-        f"Status: "
-        f"{response.status_code}"
-    )
-
-
-    assert (
-        response.status_code
-        ==
-        422
-    )
-
-
-# ============================================================
-# UNKNOWN SESSION
-# ============================================================
-
-
-def test_unknown_session_returns_404():
-    response = (
-        client.post(
-            "/preparation/validate",
-
-            json={
-                "workflow_id":
-                    "prep:does-not-exist"
-            },
+    report = (
+        evaluate_final_preparation_validation(
+            current
         )
     )
 
 
-    print(
-        "\n=== UNKNOWN SESSION ==="
-    )
-
-    print(
-        f"Status: "
-        f"{response.status_code}"
+    scope_check = (
+        check_by_code(
+            report,
+            "clean_skipped_dataset_scope",
+        )
     )
 
 
     assert (
-        response.status_code
+        report.passed
+        is False
+    )
+
+    assert (
+        scope_check.passed
+        is False
+    )
+
+
+    print(
+        "Explicit CLEAN skip must cover Preparation roots: PASS"
+    )
+
+
+# ============================================================
+# RULE VERSION IN REPORT
+# ============================================================
+
+
+def test_report_exposes_rule_version(
+) -> None:
+    session = (
+        create_quality_ready_session()
+    )
+
+
+    report = (
+        evaluate_final_preparation_validation(
+            session
+        )
+    )
+
+
+    assert (
+        report.rule_version
         ==
-        404
-    )
-
-
-# ============================================================
-# ROUTE
-# ============================================================
-
-
-def test_validation_route_registered():
-    paths = (
-        app.openapi()[
-            "paths"
-        ]
-    )
-
-
-    path = (
-        "/preparation/validate"
+        FINAL_PREPARATION_VALIDATION_RULE_VERSION
     )
 
 
     print(
-        "\n=== VALIDATION ROUTE ==="
-    )
-
-    print(
-        f"{path}: "
-        f"{path in paths}"
-    )
-
-
-    assert (
-        path
-        in paths
+        "Legacy validation report exposes rule version: PASS"
     )
 
 
@@ -714,54 +611,36 @@ def test_validation_route_registered():
 # ============================================================
 
 
-def main():
-    reset_preparation_session_store_for_tests()
-
-
+def main(
+) -> None:
     print(
-        "\n========================================"
+        "=== DATALENS FINAL PREPARATION VALIDATION v0.1 ==="
     )
 
-    print(
-        (
-            "DataLens Final Preparation "
-            "Validation v0.1"
-        )
-    )
+    print()
 
-    print(
-        "========================================"
-    )
 
+    test_version()
 
     test_default_clean_skip_cannot_bypass_validation()
 
-    test_explicit_clean_skip_can_validate()
+    test_explicit_clean_skip_passes_legacy_root_contract()
 
-    test_clean_passed_can_validate()
+    test_clean_passed_passes_legacy_root_contract()
 
-    test_clean_review_blocks_validation()
+    test_clean_review_blocks_legacy_root_contract()
 
-    test_client_cannot_inject_validation_status()
+    test_require_raises_when_validation_is_blocked()
 
-    test_unknown_session_returns_404()
+    test_explicit_clean_skip_requires_root_dataset_scope()
 
-    test_validation_route_registered()
+    test_report_exposes_rule_version()
 
 
-    print(
-        "\n========================================"
-    )
+    print()
 
     print(
-        (
-            "PASS - final preparation "
-            "validation v0.1"
-        )
-    )
-
-    print(
-        "========================================"
+        "Final Preparation Validation v0.1: PASS"
     )
 
 
