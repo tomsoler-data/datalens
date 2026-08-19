@@ -22,13 +22,13 @@ from app.evals.decision_router_runner_v0_7_1 import (
 
 BASE_DIR = Path(
     __file__,
-).resolve().parent
+).resolve().parents[2]
 
 
 BENCHMARK_PATH = (
     BASE_DIR
     / "evals"
-    / "decision_router_development_v0_7.jsonl"
+    / "decision_router_multidataset_train_v0_7_2.jsonl"
 )
 
 
@@ -37,13 +37,13 @@ RESULTS_DIR = (
     / "evals"
     / "results"
     / "router_v0_7_1"
-    / "train"
+    / "multidataset_train"
 )
 
 
 OUTPUT_PATH = (
     RESULTS_DIR
-    / "qwen3_4b_instruct_router_train_v0_7_1.json"
+    / "qwen3_4b_instruct_multidataset_train_v0_7_1.json"
 )
 
 
@@ -56,7 +56,7 @@ def print_case(
 ) -> None:
 
     print(
-        "-" * 84
+        "-" * 88
     )
 
 
@@ -107,6 +107,7 @@ def print_case(
             ],
         )
 
+
         print(
             "Inference:",
             round(
@@ -117,6 +118,7 @@ def print_case(
             ),
             "ms",
         )
+
 
         return
 
@@ -271,7 +273,7 @@ def print_case(
 def main() -> None:
 
     print(
-        "=== DATALENS DECISION ROUTER TRAIN v0.7.1 ==="
+        "=== DATALENS QWEN MULTI-DATASET TRAIN TEST v0.7.1 ==="
     )
 
     print()
@@ -296,6 +298,12 @@ def main() -> None:
 
 
     print(
+        "Benchmark:",
+        BENCHMARK_PATH.name,
+    )
+
+
+    print(
         "Split: train"
     )
 
@@ -312,19 +320,24 @@ def main() -> None:
 
     print()
 
-
     print(
         "IMPORTANT:"
     )
 
 
     print(
-        "Only TRAIN cases are used in this prompt iteration."
+        "Prompt v0.7.1 is used unchanged."
     )
 
 
     print(
-        "Validation is NOT executed by this script."
+        "These 6 cases were created after the previous "
+        "v0.7.1 validation failure."
+    )
+
+
+    print(
+        "No v0.7.2 prompt exists yet."
     )
 
 
@@ -332,10 +345,10 @@ def main() -> None:
 
 
     # ========================================================
-    # LOAD TRAIN
-    # ========================================================
+    # LOAD CHALLENGE
+    # ============================================================
 
-    train_cases = (
+    cases = (
         load_decision_router_benchmark(
             BENCHMARK_PATH,
             split="train",
@@ -345,40 +358,62 @@ def main() -> None:
 
     assert (
         len(
-            train_cases
+            cases
         )
-        == 9
+        == 6
+    )
+
+
+    assert all(
+        not case.frozen
+        for case
+        in cases
+    )
+
+
+    assert all(
+        len(
+            case.datasets
+        )
+        == 2
+
+        for case
+        in cases
     )
 
 
     print(
-        "Train cases:",
+        "Challenge cases:",
         len(
-            train_cases
+            cases
         ),
     )
 
 
+    print()
+
+
     # ========================================================
-    # RUN
-    # ========================================================
+    # RUN EXISTING v0.7.1 UNCHANGED
+    # ============================================================
 
     report = (
         run_router_train_v071(
-            train_cases,
+            cases,
         )
     )
 
 
     # ========================================================
     # DISPLAY CASES
-    # ========================================================
+    # ============================================================
 
     for result in (
         report[
             "results"
         ]
     ):
+
         print_case(
             result,
         )
@@ -386,22 +421,22 @@ def main() -> None:
 
     # ========================================================
     # SUMMARY
-    # ========================================================
+    # ============================================================
 
     print()
 
     print(
-        "=" * 92
+        "=" * 96
     )
 
 
     print(
-        "TRAIN SUMMARY v0.7.1"
+        "MULTI-DATASET TRAIN SUMMARY — PROMPT v0.7.1"
     )
 
 
     print(
-        "=" * 92
+        "=" * 96
     )
 
 
@@ -449,17 +484,6 @@ def main() -> None:
     )
 
 
-    print(
-        "Clarification quality:",
-        round(
-            report[
-                "clarification_quality"
-            ],
-            3,
-        ),
-    )
-
-
     print()
 
 
@@ -475,17 +499,6 @@ def main() -> None:
         round(
             accuracy[
                 "analyze"
-            ],
-            3,
-        ),
-    )
-
-
-    print(
-        "Clarification accuracy:",
-        round(
-            accuracy[
-                "needs_clarification"
             ],
             3,
         ),
@@ -559,12 +572,12 @@ def main() -> None:
 
     # ========================================================
     # CONFUSION MATRIX
-    # ========================================================
+    # ============================================================
 
     print()
 
     print(
-        "=" * 92
+        "=" * 96
     )
 
 
@@ -574,7 +587,7 @@ def main() -> None:
 
 
     print(
-        "=" * 92
+        "=" * 96
     )
 
 
@@ -590,8 +603,128 @@ def main() -> None:
 
 
     # ========================================================
-    # SAVE
+    # IMPORTANT CASE BREAKDOWN
+    # ============================================================
+
+    print()
+
+    print(
+        "=" * 96
+    )
+
+
+    print(
+        "CROSS-DATASET FEASIBILITY CHECK"
+    )
+
+
+    print(
+        "=" * 96
+    )
+
+
+    by_id = {
+        result[
+            "case_id"
+        ]:
+            result
+
+        for result
+        in report[
+            "results"
+        ]
+    }
+
+
+    important_cases = [
+        (
+            "No join available",
+            "router_md_v0_7_2_train_001",
+        ),
+
+        (
+            "Different grains + no join",
+            "router_md_v0_7_2_train_002",
+        ),
+
+        (
+            "Second dataset irrelevant",
+            "router_md_v0_7_2_train_003",
+        ),
+
+        (
+            "Compatible join available",
+            "router_md_v0_7_2_train_004",
+        ),
+
+        (
+            "Join exists but no semantic link",
+            "router_md_v0_7_2_train_005",
+        ),
+
+        (
+            "Independent analyses",
+            "router_md_v0_7_2_train_006",
+        ),
+    ]
+
+
+    for (
+        label,
+        case_id,
+    ) in important_cases:
+
+        result = (
+            by_id[
+                case_id
+            ]
+        )
+
+
+        candidate = (
+            result.get(
+                "candidate"
+            )
+        )
+
+
+        actual = (
+            candidate[
+                "decision"
+            ]
+
+            if candidate
+            is not None
+
+            else "generation_error"
+        )
+
+
+        expected = (
+            result[
+                "expected_decision"
+            ]
+        )
+
+
+        status = (
+            "PASS"
+            if actual == expected
+            else "FAIL"
+        )
+
+
+        print(
+            f"{label:<34}"
+            f" expected={expected:<20}"
+            f" actual={actual:<20}"
+            f" {status}"
+        )
+
+
     # ========================================================
+    # SAVE
+    # ============================================================
 
     RESULTS_DIR.mkdir(
         parents=True,
@@ -620,7 +753,7 @@ def main() -> None:
     print()
 
     print(
-        "Decision Router Qwen train v0.7.1: PASS"
+        "Qwen multi-dataset train test v0.7.1: PASS"
     )
 
 

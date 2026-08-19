@@ -22,7 +22,7 @@ from app.evals.decision_router_runner_v0_7_1 import (
 
 BASE_DIR = Path(
     __file__,
-).resolve().parent
+).resolve().parents[2]
 
 
 BENCHMARK_PATH = (

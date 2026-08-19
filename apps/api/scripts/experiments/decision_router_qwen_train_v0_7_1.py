@@ -8,11 +8,11 @@ from app.evals.decision_router_benchmark_v0_7 import (
     load_decision_router_benchmark,
 )
 
-from app.evals.decision_router_runner_v0_7_2 import (
-    DECISION_ROUTER_RUNNER_VERSION_V072,
+from app.evals.decision_router_runner_v0_7_1 import (
+    DECISION_ROUTER_RUNNER_VERSION_V071,
     MODEL,
-    PROMPT_VERSION_V072,
-    run_router_cases_v072,
+    PROMPT_VERSION_V071,
+    run_router_train_v071,
 )
 
 
@@ -22,20 +22,13 @@ from app.evals.decision_router_runner_v0_7_2 import (
 
 BASE_DIR = Path(
     __file__,
-).resolve().parent
+).resolve().parents[2]
 
 
-CORE_TRAIN_PATH = (
+BENCHMARK_PATH = (
     BASE_DIR
     / "evals"
     / "decision_router_development_v0_7.jsonl"
-)
-
-
-MULTIDATASET_TRAIN_PATH = (
-    BASE_DIR
-    / "evals"
-    / "decision_router_multidataset_train_v0_7_2.jsonl"
 )
 
 
@@ -43,19 +36,19 @@ RESULTS_DIR = (
     BASE_DIR
     / "evals"
     / "results"
-    / "router_v0_7_2"
+    / "router_v0_7_1"
     / "train"
 )
 
 
 OUTPUT_PATH = (
     RESULTS_DIR
-    / "qwen3_4b_instruct_router_combined_train_v0_7_2.json"
+    / "qwen3_4b_instruct_router_train_v0_7_1.json"
 )
 
 
 # ============================================================
-# DISPLAY
+# CASE DISPLAY
 # ============================================================
 
 def print_case(
@@ -63,7 +56,7 @@ def print_case(
 ) -> None:
 
     print(
-        "-" * 88
+        "-" * 84
     )
 
 
@@ -114,6 +107,17 @@ def print_case(
             ],
         )
 
+        print(
+            "Inference:",
+            round(
+                result[
+                    "inference_ms"
+                ],
+                1,
+            ),
+            "ms",
+        )
+
         return
 
 
@@ -148,6 +152,71 @@ def print_case(
     )
 
 
+    metrics = (
+        score[
+            "metrics"
+        ]
+    )
+
+
+    diagnostics = (
+        score[
+            "diagnostics"
+        ]
+    )
+
+
+    print(
+        "Decision score:",
+        round(
+            metrics[
+                "decision"
+            ],
+            3,
+        ),
+    )
+
+
+    print(
+        "Reason score:",
+        round(
+            metrics[
+                "decision_reason"
+            ],
+            3,
+        ),
+    )
+
+
+    if (
+        metrics[
+            "clarification"
+        ]
+        is not None
+    ):
+
+        print(
+            "Clarification score:",
+            round(
+                metrics[
+                    "clarification"
+                ],
+                3,
+            ),
+        )
+
+
+    print(
+        "Route quality:",
+        round(
+            metrics[
+                "route_quality"
+            ],
+            3,
+        ),
+    )
+
+
     print(
         "Overall:",
         round(
@@ -160,36 +229,8 @@ def print_case(
 
 
     print(
-        "Decision score:",
-        round(
-            score[
-                "metrics"
-            ][
-                "decision"
-            ],
-            3,
-        ),
-    )
-
-
-    print(
-        "Reason score:",
-        round(
-            score[
-                "metrics"
-            ][
-                "decision_reason"
-            ],
-            3,
-        ),
-    )
-
-
-    print(
-        "Unsafe:",
-        score[
-            "diagnostics"
-        ][
+        "Unsafe execution:",
+        diagnostics[
             "unsafe_execution"
         ],
     )
@@ -197,9 +238,7 @@ def print_case(
 
     print(
         "False abstention:",
-        score[
-            "diagnostics"
-        ][
+        diagnostics[
             "false_abstention"
         ],
     )
@@ -207,11 +246,21 @@ def print_case(
 
     print(
         "Wrong abstention type:",
-        score[
-            "diagnostics"
-        ][
+        diagnostics[
             "wrong_abstention_type"
         ],
+    )
+
+
+    print(
+        "Inference:",
+        round(
+            result[
+                "inference_ms"
+            ],
+            1,
+        ),
+        "ms",
     )
 
 
@@ -222,7 +271,7 @@ def print_case(
 def main() -> None:
 
     print(
-        "=== DATALENS DECISION ROUTER COMBINED TRAIN v0.7.2 ==="
+        "=== DATALENS DECISION ROUTER TRAIN v0.7.1 ==="
     )
 
     print()
@@ -230,13 +279,13 @@ def main() -> None:
 
     print(
         "Runner:",
-        DECISION_ROUTER_RUNNER_VERSION_V072,
+        DECISION_ROUTER_RUNNER_VERSION_V071,
     )
 
 
     print(
         "Prompt:",
-        PROMPT_VERSION_V072,
+        PROMPT_VERSION_V071,
     )
 
 
@@ -247,12 +296,35 @@ def main() -> None:
 
 
     print(
-        "Split: train only"
+        "Split: train"
     )
 
 
     print(
-        "Validation: NOT USED"
+        "Temperature: 0"
+    )
+
+
+    print(
+        "Thinking: disabled"
+    )
+
+
+    print()
+
+
+    print(
+        "IMPORTANT:"
+    )
+
+
+    print(
+        "Only TRAIN cases are used in this prompt iteration."
+    )
+
+
+    print(
+        "Validation is NOT executed by this script."
     )
 
 
@@ -260,12 +332,12 @@ def main() -> None:
 
 
     # ========================================================
-    # LOAD ORIGINAL TRAIN
+    # LOAD TRAIN
     # ========================================================
 
-    core_train = (
+    train_cases = (
         load_decision_router_benchmark(
-            CORE_TRAIN_PATH,
+            BENCHMARK_PATH,
             split="train",
         )
     )
@@ -273,99 +345,18 @@ def main() -> None:
 
     assert (
         len(
-            core_train
+            train_cases
         )
         == 9
     )
 
 
-    # ========================================================
-    # LOAD MULTI-DATASET TRAIN
-    # ========================================================
-
-    multidataset_train = (
-        load_decision_router_benchmark(
-            MULTIDATASET_TRAIN_PATH,
-            split="train",
-        )
-    )
-
-
-    assert (
-        len(
-            multidataset_train
-        )
-        == 6
-    )
-
-
-    # ========================================================
-    # COMBINE
-    # ========================================================
-
-    cases = [
-        *core_train,
-        *multidataset_train,
-    ]
-
-
-    assert (
-        len(
-            cases
-        )
-        == 15
-    )
-
-
-    case_ids = [
-        case.case_id
-        for case
-        in cases
-    ]
-
-
-    assert (
-        len(
-            set(
-                case_ids
-            )
-        )
-        == 15
-    )
-
-
-    assert all(
-        not case.frozen
-        for case
-        in cases
-    )
-
-
     print(
-        "Core train:",
+        "Train cases:",
         len(
-            core_train
+            train_cases
         ),
     )
-
-
-    print(
-        "Multi-dataset train:",
-        len(
-            multidataset_train
-        ),
-    )
-
-
-    print(
-        "Combined train:",
-        len(
-            cases
-        ),
-    )
-
-
-    print()
 
 
     # ========================================================
@@ -373,18 +364,21 @@ def main() -> None:
     # ========================================================
 
     report = (
-        run_router_cases_v072(
-            cases,
+        run_router_train_v071(
+            train_cases,
         )
     )
 
+
+    # ========================================================
+    # DISPLAY CASES
+    # ========================================================
 
     for result in (
         report[
             "results"
         ]
     ):
-
         print_case(
             result,
         )
@@ -397,17 +391,17 @@ def main() -> None:
     print()
 
     print(
-        "=" * 100
+        "=" * 92
     )
 
 
     print(
-        "COMBINED TRAIN SUMMARY v0.7.2"
+        "TRAIN SUMMARY v0.7.1"
     )
 
 
     print(
-        "=" * 100
+        "=" * 92
     )
 
 
@@ -570,7 +564,7 @@ def main() -> None:
     print()
 
     print(
-        "=" * 100
+        "=" * 92
     )
 
 
@@ -580,7 +574,7 @@ def main() -> None:
 
 
     print(
-        "=" * 100
+        "=" * 92
     )
 
 
@@ -593,109 +587,6 @@ def main() -> None:
             indent=2,
         )
     )
-
-
-    # ========================================================
-    # MULTI-DATASET DETAIL
-    # ========================================================
-
-    print()
-
-    print(
-        "=" * 100
-    )
-
-
-    print(
-        "MULTI-DATASET DETAIL"
-    )
-
-
-    print(
-        "=" * 100
-    )
-
-
-    for result in report[
-        "results"
-    ]:
-
-        if not (
-            result[
-                "case_id"
-            ]
-            .startswith(
-                "router_md_"
-            )
-        ):
-            continue
-
-
-        candidate = (
-            result.get(
-                "candidate"
-            )
-        )
-
-
-        actual_decision = (
-            candidate[
-                "decision"
-            ]
-
-            if candidate
-
-            else "generation_error"
-        )
-
-
-        actual_reason = (
-            candidate[
-                "decision_reason"
-            ]
-
-            if candidate
-
-            else None
-        )
-
-
-        exact = (
-            actual_decision
-            == result[
-                "expected_decision"
-            ]
-
-            and actual_reason
-            == result[
-                "expected_reason"
-            ]
-        )
-
-
-        print(
-            result[
-                "case_id"
-            ],
-            "| expected:",
-            result[
-                "expected_decision"
-            ],
-            "/",
-            result[
-                "expected_reason"
-            ],
-            "| actual:",
-            actual_decision,
-            "/",
-            actual_reason,
-            "|",
-            (
-                "PASS"
-                if exact
-                else "FAIL"
-            ),
-        )
 
 
     # ========================================================
@@ -729,7 +620,7 @@ def main() -> None:
     print()
 
     print(
-        "Decision Router combined train v0.7.2: PASS"
+        "Decision Router Qwen train v0.7.1: PASS"
     )
 
 
