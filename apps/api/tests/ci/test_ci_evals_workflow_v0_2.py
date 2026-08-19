@@ -12,26 +12,50 @@ CI_PYTHON_VERSION = (
 )
 
 
+# ============================================================
+# REPOSITORY
+# ============================================================
+
+
 def repository_root(
 ) -> Path:
     """
-    test_ci_evals_workflow_v0_2.py lives in:
+    Resolve the DataLens repository root without depending on
+    the physical depth of this test file.
 
-        datalens/apps/api/
-
-    parents[0] -> api
-    parents[1] -> apps
-    parents[2] -> datalens
+    This keeps the CI contract test stable when tests are
+    reorganized under domain-specific directories.
     """
 
-    return (
+    current_file = (
         Path(
             __file__
         )
         .resolve()
-        .parents[
-            2
-        ]
+    )
+
+
+    for parent in current_file.parents:
+
+        candidate = (
+            parent
+            /
+            ".github"
+            /
+            "workflows"
+            /
+            "datalens-evals.yml"
+        )
+
+
+        if candidate.exists():
+
+            return parent
+
+
+    raise AssertionError(
+        "Could not locate the DataLens repository root "
+        "from test_ci_evals_workflow_v0_2.py."
     )
 
 
@@ -66,6 +90,11 @@ def workflow_text(
     )
 
 
+# ============================================================
+# VERSION
+# ============================================================
+
+
 def test_workflow_is_versioned(
 ) -> None:
     text = workflow_text()
@@ -82,6 +111,11 @@ def test_workflow_is_versioned(
     )
 
 
+# ============================================================
+# PERMISSIONS
+# ============================================================
+
+
 def test_workflow_uses_read_only_repository_permission(
 ) -> None:
     text = workflow_text()
@@ -96,6 +130,11 @@ def test_workflow_uses_read_only_repository_permission(
     print(
         "CI eval workflow uses read-only repository permission: PASS"
     )
+
+
+# ============================================================
+# TRIGGERS
+# ============================================================
 
 
 def test_workflow_runs_on_main_push_pull_request_and_manual_dispatch(
@@ -127,6 +166,11 @@ def test_workflow_runs_on_main_push_pull_request_and_manual_dispatch(
     )
 
 
+# ============================================================
+# PYTHON CONTRACT
+# ============================================================
+
+
 def test_workflow_pins_backend_python_contract(
 ) -> None:
     text = workflow_text()
@@ -143,16 +187,55 @@ def test_workflow_pins_backend_python_contract(
     )
 
 
+# ============================================================
+# TEST LAYOUT
+# ============================================================
+
+
+def test_workflow_validates_its_contract(
+) -> None:
+    text = workflow_text()
+
+
+    assert (
+        "python -m tests.ci."
+        "test_ci_evals_workflow_v0_2"
+        in text
+    )
+
+
+    print(
+        "CI eval workflow validates its own contract: PASS"
+    )
+
+
+# ============================================================
+# EVAL LAYERS
+# ============================================================
+
+
 def test_workflow_executes_all_eval_layers(
 ) -> None:
     text = workflow_text()
 
 
     required_commands = [
-        "test_analysis_benchmark_v0_1.py",
-        "test_eval_suite_runner_v0_1.py",
-        "test_eval_coverage_v0_1.py",
-        "test_eval_regression_gate_v0_1.py",
+        (
+            "python -m tests.evals."
+            "test_analysis_benchmark_v0_1"
+        ),
+        (
+            "python -m tests.evals."
+            "test_eval_suite_runner_v0_1"
+        ),
+        (
+            "python -m tests.evals."
+            "test_eval_coverage_v0_1"
+        ),
+        (
+            "python -m tests.evals."
+            "test_eval_regression_gate_v0_1"
+        ),
         "python -m app.evals.suite_runner",
         "python -m app.evals.regression_gate",
     ]
@@ -178,8 +261,14 @@ def test_workflow_executes_all_eval_layers(
 
 
     print(
-        "CI eval workflow executes benchmark, suite, coverage and gate: PASS"
+        "CI eval workflow executes benchmark, suite, "
+        "coverage and gate: PASS"
     )
+
+
+# ============================================================
+# BASELINE
+# ============================================================
 
 
 def test_workflow_enforces_frozen_baseline(
@@ -197,6 +286,11 @@ def test_workflow_enforces_frozen_baseline(
     print(
         "CI eval workflow enforces the frozen regression baseline: PASS"
     )
+
+
+# ============================================================
+# EVIDENCE
+# ============================================================
 
 
 def test_workflow_persists_machine_readable_evidence(
@@ -230,6 +324,11 @@ def test_workflow_persists_machine_readable_evidence(
     )
 
 
+# ============================================================
+# FAILURE SEMANTICS
+# ============================================================
+
+
 def test_workflow_failure_propagates_to_ci(
 ) -> None:
     text = workflow_text()
@@ -246,6 +345,11 @@ def test_workflow_failure_propagates_to_ci(
     )
 
 
+# ============================================================
+# SCOPE
+# ============================================================
+
+
 def test_workflow_scopes_execution_to_backend_changes(
 ) -> None:
     text = workflow_text()
@@ -255,7 +359,6 @@ def test_workflow_scopes_execution_to_backend_changes(
         '- "apps/api/**"'
         in text
     )
-
 
     assert (
         "working-directory: apps/api"
@@ -268,7 +371,13 @@ def test_workflow_scopes_execution_to_backend_changes(
     )
 
 
-def main() -> None:
+# ============================================================
+# MAIN
+# ============================================================
+
+
+def main(
+) -> None:
     print(
         "=== DATALENS CI EVALS GATE v0.2 ==="
     )
@@ -283,6 +392,8 @@ def main() -> None:
     test_workflow_runs_on_main_push_pull_request_and_manual_dispatch()
 
     test_workflow_pins_backend_python_contract()
+
+    test_workflow_validates_its_contract()
 
     test_workflow_executes_all_eval_layers()
 

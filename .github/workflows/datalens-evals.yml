@@ -117,27 +117,36 @@ jobs:
 
 
       # ------------------------------------------------------
+      # CI CONTRACT
+      # ------------------------------------------------------
+
+      - name: Validate CI eval workflow contract
+        run: |
+          python -m tests.ci.test_ci_evals_workflow_v0_2
+
+
+      # ------------------------------------------------------
       # EVAL REGRESSION TESTS
       # ------------------------------------------------------
 
       - name: Run Analysis Benchmark regression
         run: |
-          python ./test_analysis_benchmark_v0_1.py
+          python -m tests.evals.test_analysis_benchmark_v0_1
 
 
       - name: Run Eval Suite core regression
         run: |
-          python ./test_eval_suite_runner_v0_1.py
+          python -m tests.evals.test_eval_suite_runner_v0_1
 
 
       - name: Run Eval Coverage regression
         run: |
-          python ./test_eval_coverage_v0_1.py
+          python -m tests.evals.test_eval_coverage_v0_1
 
 
       - name: Run Regression Gate self-tests
         run: |
-          python ./test_eval_regression_gate_v0_1.py
+          python -m tests.evals.test_eval_regression_gate_v0_1
 
 
       # ------------------------------------------------------
