@@ -16,7 +16,7 @@ from app.evals.dataset_dependency_benchmark_v0_8 import (
 
 BASE_DIR = Path(
     __file__,
-).resolve().parent
+).resolve().parents[2]
 
 
 OUTPUT_PATH = (

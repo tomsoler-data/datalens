@@ -17,7 +17,7 @@ from app.evals.analytical_planner_frozen_benchmark_v1_0 import (
 
 BASE_DIR = Path(
     __file__,
-).resolve().parent
+).resolve().parents[2]
 
 
 OUTPUT_PATH = (
