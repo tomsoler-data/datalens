@@ -26,7 +26,7 @@ from app.evals.analytical_planner_validator_v0_9_1 import (
 
 BASE_DIR = Path(
     __file__,
-).resolve().parent
+).resolve().parents[3]
 
 
 FROZEN_BENCHMARK_PATH = (
