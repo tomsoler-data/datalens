@@ -693,11 +693,29 @@ def test_backend_owned_progression():
 
     assert (
         body[
+            "analysis_output_dataset_ids"
+        ]
+        ==
+        []
+    )
+
+    assert (
+        body[
+            "snapshot"
+        ][
+            "analysis_output_dataset_ids"
+        ]
+        ==
+        []
+    )
+
+    assert (
+        body[
             "snapshot"
         ][
             "ready_for_analysis"
         ]
-        is True
+        is False
     )
 
     assert (
@@ -706,7 +724,8 @@ def test_backend_owned_progression():
         ][
             "next_stage"
         ]
-        is None
+        ==
+        "validate"
     )
 
 

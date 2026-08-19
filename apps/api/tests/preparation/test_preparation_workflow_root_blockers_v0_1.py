@@ -211,7 +211,7 @@ def test_missing_validated_dataset_is_reported_only_after_validation_passes() ->
     )
 
     expected_missing = (
-        "validate: selected analysis datasets "
+        "validate: analysis output datasets "
         "are missing from validated outputs: "
         "['dataset:0002', 'dataset:0003']"
     )

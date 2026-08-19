@@ -18,6 +18,11 @@ from app.preparation.data_quality import (
     QualityIssueKind,
 )
 
+from app.preparation.preparation_artifact_store import (
+    put_preparation_artifact,
+    reset_preparation_artifact_store_for_tests,
+)
+
 from app.preparation.preparation_session import (
     create_preparation_session,
     get_preparation_session,
@@ -63,13 +68,40 @@ client = TestClient(
 # ============================================================
 
 
-def create_semantic_reviewed_session():
+def create_semantic_reviewed_session(
+    *,
+    artifact_frame: pd.DataFrame,
+):
     session = (
         create_preparation_session(
             selected_analysis_dataset_ids=[
                 "dataset:0001"
             ]
         )
+    )
+
+
+    put_preparation_artifact(
+        workflow_id=
+            session.workflow_id,
+
+        dataset_id=
+            "dataset:0001",
+
+        dataset_filename=
+            "orders.csv",
+
+        stage=
+            "source",
+
+        dataframe=
+            artifact_frame,
+
+        parent_dataset_ids=[],
+
+        evidence_refs=[
+            "source:test",
+        ],
     )
 
 
@@ -169,6 +201,33 @@ def clean_stage(
 # ============================================================
 # SYNTHETIC CONTEXT
 # ============================================================
+
+
+def no_change_frame() -> pd.DataFrame:
+    return (
+        pd.DataFrame(
+            {
+                "category": [
+                    "Premium",
+                    "Standard",
+                ]
+            }
+        )
+    )
+
+
+def merge_frame() -> pd.DataFrame:
+    return (
+        pd.DataFrame(
+            {
+                "category": [
+                    "Premium",
+                    "PREMIUM",
+                    "Standard",
+                ]
+            }
+        )
+    )
 
 
 def no_change_decision():
@@ -354,14 +413,7 @@ def fake_no_change_context(
     return (
         {
             "dataset:0001":
-                pd.DataFrame(
-                    {
-                        "category": [
-                            "Premium",
-                            "Standard",
-                        ]
-                    }
-                )
+                no_change_frame()
         },
 
         [
@@ -378,15 +430,7 @@ def fake_merge_context(
     return (
         {
             "dataset:0001":
-                pd.DataFrame(
-                    {
-                        "category": [
-                            "Premium",
-                            "PREMIUM",
-                            "Standard",
-                        ]
-                    }
-                )
+                merge_frame()
         },
 
         [
@@ -404,7 +448,10 @@ def fake_merge_context(
 
 def test_no_change_confirmation_passes_clean():
     session = (
-        create_semantic_reviewed_session()
+        create_semantic_reviewed_session(
+            artifact_frame=
+                no_change_frame()
+        )
     )
 
 
@@ -567,7 +614,10 @@ def test_no_change_confirmation_passes_clean():
 
 def test_merge_without_choice_remains_review_required():
     session = (
-        create_semantic_reviewed_session()
+        create_semantic_reviewed_session(
+            artifact_frame=
+                merge_frame()
+        )
     )
 
 
@@ -689,7 +739,10 @@ def test_merge_without_choice_remains_review_required():
 
 def test_merge_with_choice_passes_clean():
     session = (
-        create_semantic_reviewed_session()
+        create_semantic_reviewed_session(
+            artifact_frame=
+                merge_frame()
+        )
     )
 
 
@@ -999,6 +1052,8 @@ def test_confirmation_route_registered():
 
 def main():
     reset_preparation_session_store_for_tests()
+
+    reset_preparation_artifact_store_for_tests()
 
 
     print(
