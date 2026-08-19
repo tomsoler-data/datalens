@@ -1,7 +1,0 @@
-case_id,runs,pass_rate,planner_family_accuracy,planner_binding_accuracy,planner_first_pass_rate,planner_retry_rate,planner_retry_recovery_rate,planner_normalization_rate,tool_selection_accuracy,tool_argument_accuracy,tool_first_pass_rate,tool_retry_rate,tool_retry_recovery_rate,execution_accuracy,guardrail_accuracy,latency_mean_seconds,latency_median_seconds,planner_statuses,requested_tools,failure_count
-categorical_overtime_left,3,1.0,1.0,1.0,1.0,0.0,,0.0,1.0,1.0,1.0,0.0,,1.0,1.0,3.9239333333333333,3.8818,['validated'],['run_categorical_association'],0
-distribution_salary,3,1.0,1.0,1.0,1.0,0.0,,1.0,1.0,1.0,1.0,0.0,,1.0,1.0,3.8820333333333332,3.8782,['validated'],['run_distribution'],0
-group_salary_department,3,1.0,1.0,1.0,1.0,0.0,,1.0,1.0,1.0,1.0,0.0,,1.0,1.0,3.7368333333333332,3.7408,['validated'],['run_group_comparison'],0
-guardrail_missing_year,3,1.0,1.0,1.0,0.0,1.0,1.0,0.0,1.0,1.0,1.0,0.0,,1.0,1.0,7.845533333333333,7.7547,['blocked'],['none'],0
-quantitative_salary_training,3,1.0,1.0,1.0,1.0,0.0,,0.0,1.0,1.0,1.0,0.0,,1.0,1.0,4.729333333333333,4.0949,['validated'],['run_quantitative_association'],0
-time_salary_snapshot,3,1.0,1.0,1.0,0.0,1.0,1.0,1.0,1.0,1.0,1.0,0.0,,1.0,1.0,8.0272,8.0445,['validated'],['run_time_series'],0

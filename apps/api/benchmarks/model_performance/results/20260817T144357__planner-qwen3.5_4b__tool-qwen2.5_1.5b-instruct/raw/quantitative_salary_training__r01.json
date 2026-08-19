@@ -1,4 +1,0 @@
-{
-  "case_id": "quantitative_salary_training",
-  "error": "HTTPException: 503: Gemma a retourné un plan qui ne respecte pas le protocole structuré du AI Planner v0.15."
-}

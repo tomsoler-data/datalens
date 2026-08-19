@@ -1,7 +1,0 @@
-case_id,runs,pass_rate,planner_family_accuracy,planner_binding_accuracy,planner_first_pass_rate,planner_retry_rate,planner_retry_classes,planner_retry_recovery_rate,planner_normalization_rate,tool_selection_accuracy,tool_argument_accuracy,tool_first_pass_rate,tool_retry_rate,tool_retry_recovery_rate,execution_accuracy,guardrail_accuracy,latency_mean_seconds,latency_median_seconds,planner_statuses,requested_tools,failure_count
-categorical_overtime_left,3,1.0,1.0,1.0,1.0,0.0,none,,0.0,1.0,1.0,1.0,0.0,,1.0,1.0,3.8486333333333334,3.8397,validated,run_categorical_association,0
-distribution_salary,3,1.0,1.0,1.0,1.0,0.0,none,,1.0,1.0,1.0,1.0,0.0,,1.0,1.0,3.8501000000000003,3.8553,validated,run_distribution,0
-group_salary_department,3,1.0,1.0,1.0,1.0,0.0,none,,1.0,1.0,1.0,1.0,0.0,,1.0,1.0,3.6998,3.6974,validated,run_group_comparison,0
-guardrail_missing_year,3,0.0,0.0,1.0,0.0,1.0,guardrail_abstention,0.0,0.0,1.0,1.0,1.0,0.0,,1.0,1.0,7.959533333333333,7.9571,blocked,none,3
-quantitative_salary_training,3,1.0,1.0,1.0,1.0,0.0,none,,0.0,1.0,1.0,1.0,0.0,,1.0,1.0,4.604966666666667,3.8461,validated,run_quantitative_association,0
-time_salary_snapshot,3,1.0,1.0,1.0,1.0,0.0,none,,1.0,1.0,1.0,1.0,0.0,,1.0,1.0,4.150433333333333,4.1422,validated,run_time_series,0
