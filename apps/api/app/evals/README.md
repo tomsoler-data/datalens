@@ -44,7 +44,7 @@ The regression gate returns a non-zero exit code when the frozen quality contrac
 - Eval Suite: `eval_suite_v0.2`
 - Eval Coverage: `eval_coverage_v0.1`
 - Eval Regression Gate: `eval_regression_gate_v0.1`
-- CI Evals Gate: `datalens_ci_evals_gate_v0.1`
+- CI Evals Gate: `datalens_ci_evals_gate_v0.2`
 
 ## CI
 
