@@ -1,0 +1,41 @@
+{
+  "baseline_id": "discovery_prioritization_v0.1",
+  "description": "Frozen regression floor for DataLens Discovery and Prioritization Eval Suite after Eval Coverage v0.1.",
+  "baseline_rule_version": "eval_regression_baseline_v0.1",
+  "required_versions": {
+    "suite_rule_version": "eval_suite_v0.2",
+    "coverage_rule_version": "eval_coverage_v0.1"
+  },
+  "minimum_metrics": {
+    "expectation_accuracy": 1.0,
+    "discovery_recall": 1.0,
+    "selection_recall": 1.0,
+    "guardrail_success_rate": 1.0,
+    "determinism_rate": 1.0,
+    "reason_code_coverage": 1.0
+  },
+  "minimum_counts": {
+    "scenario_count": 12,
+    "expectation_count": 13,
+    "passed_scenario_count": 12,
+    "passed_expectation_count": 13
+  },
+  "maximum_counts": {
+    "failed_scenario_count": 0,
+    "failed_expectation_count": 0
+  },
+  "required_reason_codes": [
+    "selected_by_priority",
+    "quality_guard",
+    "not_executable_now",
+    "identifier_misuse",
+    "record_label_dimension",
+    "fragmented_group_dimension",
+    "sparse_categorical_structure",
+    "priority_below_threshold",
+    "family_budget_exhausted",
+    "variable_budget_exhausted",
+    "global_budget_exhausted"
+  ],
+  "require_suite_pass": true
+}

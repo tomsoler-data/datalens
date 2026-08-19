@@ -1,0 +1,175 @@
+# DataLens CI Evals Gate
+# Contract version: datalens_ci_evals_gate_v0.1
+
+name: DataLens Evals Gate
+
+on:
+  push:
+    paths:
+      - "apps/api/**"
+      - ".github/workflows/datalens-evals.yml"
+
+  pull_request:
+    paths:
+      - "apps/api/**"
+      - ".github/workflows/datalens-evals.yml"
+
+  workflow_dispatch:
+
+
+permissions:
+  contents: read
+
+
+concurrency:
+  group: datalens-evals-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+
+jobs:
+  discovery-prioritization-evals:
+    name: Discovery & Prioritization Evals
+
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 20
+
+    defaults:
+      run:
+        working-directory: apps/api
+
+    steps:
+      # ------------------------------------------------------
+      # REPOSITORY
+      # ------------------------------------------------------
+
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+
+      # ------------------------------------------------------
+      # PYTHON
+      # ------------------------------------------------------
+
+      - name: Set up Python 3.9.13
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.9.13"
+
+
+      - name: Show Python environment
+        run: |
+          python --version
+          python -m pip --version
+
+
+      # ------------------------------------------------------
+      # DEPENDENCIES
+      # ------------------------------------------------------
+
+      - name: Install backend dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python -m pip install --upgrade pip
+
+          if [[ -f requirements-dev.txt ]]; then
+            echo "Installing requirements-dev.txt"
+            python -m pip install -r requirements-dev.txt
+
+          elif [[ -f requirements.txt ]]; then
+            echo "Installing requirements.txt"
+            python -m pip install -r requirements.txt
+
+          elif [[ -f pyproject.toml ]]; then
+            echo "Installing project from pyproject.toml"
+
+            if ! python -m pip install -e ".[dev]"; then
+              echo "No usable [dev] extra found; installing base project."
+              python -m pip install -e .
+            fi
+
+          else
+            echo "::error::No supported Python dependency manifest found in apps/api."
+            echo "Expected requirements-dev.txt, requirements.txt, or pyproject.toml."
+            exit 1
+          fi
+
+
+      # ------------------------------------------------------
+      # STATIC CONTRACT
+      # ------------------------------------------------------
+
+      - name: Compile eval modules
+        run: |
+          python -m py_compile \
+            ./app/evals/analysis_benchmark.py \
+            ./app/evals/suite_runner.py \
+            ./app/evals/regression_gate.py \
+            ./app/evals/scenarios/__init__.py \
+            ./app/evals/scenarios/analysis_scenarios.py \
+            ./app/evals/scenarios/prioritization_guardrails.py
+
+
+      # ------------------------------------------------------
+      # EVAL REGRESSION TESTS
+      # ------------------------------------------------------
+
+      - name: Run Analysis Benchmark regression
+        run: |
+          python ./test_analysis_benchmark_v0_1.py
+
+
+      - name: Run Eval Suite core regression
+        run: |
+          python ./test_eval_suite_runner_v0_1.py
+
+
+      - name: Run Eval Coverage regression
+        run: |
+          python ./test_eval_coverage_v0_1.py
+
+
+      - name: Run Regression Gate self-tests
+        run: |
+          python ./test_eval_regression_gate_v0_1.py
+
+
+      # ------------------------------------------------------
+      # REAL EVAL SUITE
+      # ------------------------------------------------------
+
+      - name: Generate current eval report
+        run: |
+          python -m app.evals.suite_runner \
+            --deterministic-runs 2 \
+            --json-output ./evals_report.json
+
+
+      # ------------------------------------------------------
+      # FROZEN REGRESSION GATE
+      # ------------------------------------------------------
+
+      - name: Enforce frozen eval baseline
+        run: |
+          python -m app.evals.regression_gate \
+            --baseline ./app/evals/baselines/discovery_prioritization_v0_1.json \
+            --report ./evals_report.json \
+            --json-output ./eval_regression_gate_report.json
+
+
+      # ------------------------------------------------------
+      # ARTIFACTS
+      # ------------------------------------------------------
+
+      - name: Upload eval evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: datalens-eval-evidence-${{ github.run_id }}
+          path: |
+            apps/api/evals_report.json
+            apps/api/eval_regression_gate_report.json
+          if-no-files-found: ignore
+          retention-days: 14
