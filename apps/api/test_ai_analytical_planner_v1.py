@@ -23,7 +23,7 @@ from app.planning.analytical_v1.contract import (
     AnalyticalPlannerCandidate,
 )
 
-from test_analytical_v1_production_parity import (
+from tests.analysis.test_analytical_v1_production_parity import (
     build_production_planner_input,
     candidate_from_historical_result,
     get_case_by_id,
