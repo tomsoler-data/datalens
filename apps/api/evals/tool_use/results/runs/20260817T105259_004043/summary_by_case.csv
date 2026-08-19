@@ -1,3 +1,0 @@
-case_id,runs,case_kind,pass_rate,planner_family_accuracy,planner_binding_accuracy,planner_first_pass_rate,planner_retry_rate,planner_retry_classes,planner_retry_recovery_rate,planner_normalization_rate,tool_selection_accuracy,tool_argument_accuracy,tool_first_pass_rate,tool_retry_rate,tool_retry_recovery_rate,execution_accuracy,guardrail_accuracy,latency_mean_seconds,latency_median_seconds,planner_statuses,requested_tools,failure_count
-sales_categorical_channel_returned,3,executable,1.0,1.0,1.0,1.0,0.0,none,,1.0,1.0,1.0,1.0,0.0,,1.0,1.0,4.965066666666667,4.2605,validated,run_categorical_association,0
-sales_guardrail_missing_profit,3,guardrail,1.0,1.0,,0.0,1.0,guardrail_abstention,1.0,0.0,,,,,,1.0,1.0,8.3667,8.3383,rejected,none,0
