@@ -4,28 +4,30 @@ import json
 
 from pathlib import Path
 
+
+from app.evals.benchmark_loader import (
+    load_benchmark,
+)
+
 from app.evals.ollama_baseline import (
     DEFAULT_BASELINE_MODEL,
 )
 
 from app.evals.ollama_baseline_v0_3 import (
-    OLLAMA_BASELINE_RULE_VERSION,
     TYPED_CANDIDATE_CONTRACT_VERSION,
-    TypedAnalyticalCandidate,
     run_typed_ollama_baseline,
-    save_typed_baseline_report,
 )
 
 
 BASE_DIR = Path(
     __file__,
-).resolve().parent
+).resolve().parents[2]
 
 
 BENCHMARK_PATH = (
     BASE_DIR
     / "evals"
-    / "analytical_reasoning_v1.jsonl"
+    / "analytical_reasoning_hard_v0_4.jsonl"
 )
 
 
@@ -36,53 +38,15 @@ RESULTS_DIR = (
 )
 
 
-BASELINE_V0_1_PATH = (
+OUTPUT_PATH = (
     RESULTS_DIR
-    / "gemma3_4b_validation_baseline_v0_1.json"
+    / "gemma3_4b_validation_hard_v0_4.json"
 )
-
-
-BASELINE_V0_2_PATH = (
-    RESULTS_DIR
-    / "gemma3_4b_validation_baseline_v0_2.json"
-)
-
-
-def read_previous_score(
-    path: Path,
-) -> float | None:
-    if not path.exists():
-        return None
-
-
-    payload = json.loads(
-        path.read_text(
-            encoding="utf-8",
-        )
-    )
-
-
-    return float(
-        payload[
-            "average_overall"
-        ]
-    )
 
 
 def main() -> None:
     print(
-        "=== DATALENS AI BASELINE v0.3 ==="
-    )
-
-    print()
-
-    print(
-        "Experiment:"
-    )
-
-    print(
-        "Same model + same prompt + same benchmark + "
-        "closed analytical vocabulary + typed tools"
+        "=== DATALENS AI HARD EVAL v0.4 ==="
     )
 
     print()
@@ -93,98 +57,72 @@ def main() -> None:
     )
 
     print(
-        "Split: validation"
-    )
-
-    print(
-        "Rule:",
-        OLLAMA_BASELINE_RULE_VERSION,
-    )
-
-    print(
         "Contract:",
         TYPED_CANDIDATE_CONTRACT_VERSION,
     )
 
+    print(
+        "Benchmark: hard validation v0.4"
+    )
+
     print()
 
 
     # ========================================================
-    # VERIFY JSON SCHEMA
+    # VERIFY BENCHMARK BEFORE CALLING THE LLM
     # ========================================================
 
-    schema = (
-        TypedAnalyticalCandidate
-        .model_json_schema()
+    cases = load_benchmark(
+        BENCHMARK_PATH,
+        split="validation",
     )
 
 
-    required_fields = set(
-        schema.get(
-            "required",
-            [],
-        )
+    assert len(
+        cases,
+    ) == 6
+
+
+    assert len(
+        {
+            case.case_id
+            for case
+            in cases
+        }
+    ) == 6
+
+
+    assert all(
+        case.split
+        == "validation"
+        for case
+        in cases
     )
 
 
-    expected_required_fields = {
-        "intent",
-        "entity",
-        "current_grain",
-        "target_grain",
-        "relevant_columns",
-        "family",
-        "tool_calls",
-        "assumptions",
-    }
-
-
-    assert (
-        required_fields
-        == expected_required_fields
-    )
-
-
-    intent_schema = (
-        schema[
-            "properties"
-        ][
-            "intent"
-        ]
-    )
-
-
-    family_schema = (
-        schema[
-            "properties"
-        ][
-            "family"
-        ]
+    assert all(
+        case.expected.requires_reasoning
+        for case
+        in cases
     )
 
 
     print(
-        "Required fields:",
-        sorted(
-            required_fields
+        "Benchmark contract: PASS"
+    )
+
+    print(
+        "Validation cases:",
+        len(
+            cases,
         ),
     )
 
-    print(
-        "Intent schema:",
-        intent_schema,
-    )
-
-    print(
-        "Family schema:",
-        family_schema,
-    )
-
     print()
 
 
     # ========================================================
-    # RUN
+    # RUN EXACT SAME v0.3 MODEL CONTRACT
     # ========================================================
 
     report = (
@@ -202,48 +140,21 @@ def main() -> None:
 
     assert (
         report.case_count
-        == 2
+        == 6
     )
 
 
     assert (
-        report.split
-        == "validation"
-    )
-
-
-    assert (
-        report.model
-        == DEFAULT_BASELINE_MODEL
-    )
-
-
-    result_case_ids = {
-        result.case_id
-        for result
-        in report.results
-    }
-
-
-    assert (
-        "ar_v1_006"
-        not in result_case_ids
-    )
-
-
-    assert (
-        report
-        .generation_success_count
-        == 2
+        report.generation_success_count
+        == 6
     ), (
-        "Au moins un cas n'a pas produit "
+        "Au moins un hard case n'a pas produit "
         "un TypedAnalyticalCandidate valide."
     )
 
 
     assert (
-        report
-        .generation_error_count
+        report.generation_error_count
         == 0
     )
 
@@ -254,7 +165,7 @@ def main() -> None:
 
     for result in report.results:
         print(
-            "=" * 72
+            "=" * 76
         )
 
         print(
@@ -266,11 +177,6 @@ def main() -> None:
         print(
             "Question:",
             result.user_request,
-        )
-
-        print(
-            "Status:",
-            result.status,
         )
 
         print(
@@ -387,15 +293,15 @@ def main() -> None:
     # ========================================================
 
     print(
-        "=" * 72
+        "=" * 76
     )
 
     print(
-        "SUMMARY v0.3"
+        "HARD BENCHMARK SUMMARY"
     )
 
     print(
-        "=" * 72
+        "=" * 76
     )
 
 
@@ -475,108 +381,136 @@ def main() -> None:
 
 
     # ========================================================
-    # HISTORY
+    # CAPABILITY GROUPS
     # ========================================================
 
-    score_v0_1 = (
-        read_previous_score(
-            BASELINE_V0_1_PATH
+    comprehension = (
+        (
+            report.average_metrics[
+                "intent"
+            ]
+            + report.average_metrics[
+                "entity"
+            ]
+            + report.average_metrics[
+                "grain"
+            ]
+            + report.average_metrics[
+                "relevant_columns"
+            ]
+            + report.average_metrics[
+                "family"
+            ]
         )
+        / 5
     )
 
 
-    score_v0_2 = (
-        read_previous_score(
-            BASELINE_V0_2_PATH
+    planning = (
+        (
+            report.average_metrics[
+                "tool_selection"
+            ]
+            + report.average_metrics[
+                "tool_arguments"
+            ]
         )
+        / 2
+    )
+
+
+    reliability = (
+        report.average_metrics[
+            "safety"
+        ]
     )
 
 
     print()
 
     print(
-        "=" * 72
+        "=" * 76
     )
 
     print(
-        "EXPERIMENT HISTORY"
+        "CAPABILITY VIEW"
     )
 
     print(
-        "=" * 72
+        "=" * 76
     )
 
 
-    if (
-        score_v0_1
-        is not None
-    ):
-        print(
-            "v0.1 permissive:",
-            round(
-                score_v0_1,
-                3,
-            ),
-        )
-
-
-    if (
-        score_v0_2
-        is not None
-    ):
-        print(
-            "v0.2 strict:",
-            round(
-                score_v0_2,
-                3,
-            ),
-        )
-
-
     print(
-        "v0.3 typed:",
+        "Comprehension:",
         round(
-            report.average_overall,
+            comprehension,
+            3,
+        ),
+    )
+
+    print(
+        "Planning:",
+        round(
+            planning,
+            3,
+        ),
+    )
+
+    print(
+        "Reliability:",
+        round(
+            reliability,
             3,
         ),
     )
 
 
-    if (
-        score_v0_2
-        is not None
-    ):
-        delta = (
-            report.average_overall
-            - score_v0_2
-        )
-
-
-        print(
-            "Delta vs v0.2:",
-            (
-                "+"
-                if delta >= 0
-                else ""
-            )
-            + str(
-                round(
-                    delta,
-                    3,
-                )
-            ),
-        )
-
-
     # ========================================================
-    # SAVE
+    # SAVE WITHOUT OVERWRITING v0.1 / v0.2 / v0.3
     # ========================================================
 
-    output_path = (
-        save_typed_baseline_report(
-            report=report,
-            output_dir=RESULTS_DIR,
+    RESULTS_DIR.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+
+    payload = (
+        report.model_dump(
+            mode="json",
         )
+    )
+
+
+    payload[
+        "evaluation_name"
+    ] = (
+        "hard_validation_v0.4"
+    )
+
+
+    payload[
+        "capability_view"
+    ] = {
+        "comprehension":
+            comprehension,
+
+        "planning":
+            planning,
+
+        "reliability":
+            reliability,
+    }
+
+
+    OUTPUT_PATH.write_text(
+        json.dumps(
+            payload,
+            ensure_ascii=False,
+            indent=2,
+        ),
+        encoding="utf-8",
     )
 
 
@@ -584,14 +518,13 @@ def main() -> None:
 
     print(
         "Saved:",
-        output_path,
+        OUTPUT_PATH,
     )
 
 
-    # ========================================================
-    # NO QUALITY THRESHOLD
-    # ========================================================
-
+    # No quality threshold.
+    #
+    # A low score is useful evidence.
     assert (
         0.0
         <= report.average_overall
@@ -602,7 +535,7 @@ def main() -> None:
     print()
 
     print(
-        "Typed-contract baseline captured: PASS"
+        "Hard-model evaluation captured: PASS"
     )
 
 
