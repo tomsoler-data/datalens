@@ -1,6 +1,12 @@
 import type {
   CreatePreparationSessionRequest,
   PreparationAnalysisOutputCandidatesResponse,
+  PreparationCombineDiscoveryResponse,
+  PreparationCombineExecutionResponse,
+  PreparationIdentityContinueResponse,
+  PreparationIdentityCreateSurrogateResponse,
+  PreparationIdentityInspectResponse,
+  PreparationOutputExplanationResponse,
   PreparationSessionCapabilities,
   PreparationSessionView,
 } from "./preparationTypes";
@@ -540,3 +546,526 @@ export async function validatePreparationSession(
     )
   );
 }
+
+
+// ============================================================
+// CONTROLLED COMBINE WORKFLOW
+// ============================================================
+
+
+function normalizeCombineRequestId(
+  requestId:
+    string
+): string {
+  const normalizedId =
+    requestId.trim();
+
+
+  if (
+    !normalizedId
+  ) {
+    throw (
+      new Error(
+        "request_id de jointure est requis."
+      )
+    );
+  }
+
+
+  return normalizedId;
+}
+
+
+
+
+// ============================================================
+// DATASET IDENTITY
+// ============================================================
+
+
+export async function inspectPreparationIdentity(
+  workflowId:
+    string,
+
+  datasetId:
+    string,
+
+  includeAi:
+    boolean = true,
+
+  signal?:
+    AbortSignal
+): Promise<
+  PreparationIdentityInspectResponse
+> {
+  const normalizedWorkflowId =
+    normalizeWorkflowId(
+      workflowId
+    );
+
+  const normalizedDatasetId =
+    datasetId.trim();
+
+
+  if (
+    !normalizedDatasetId
+  ) {
+    throw (
+      new Error(
+        "dataset_id est requis."
+      )
+    );
+  }
+
+
+  const response =
+    await fetch(
+      `${
+        API_URL
+      }/preparation/identity/inspect`,
+      {
+        method:
+          "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+
+        body:
+          JSON.stringify(
+            {
+              workflow_id:
+                normalizedWorkflowId,
+
+              dataset_id:
+                normalizedDatasetId,
+
+              include_ai:
+                includeAi,
+            }
+          ),
+
+        cache:
+          "no-store",
+
+        signal,
+      }
+    );
+
+
+  return (
+    requireSuccessfulJson<
+      PreparationIdentityInspectResponse
+    >(
+      response
+    )
+  );
+}
+
+
+export async function continuePreparationWithoutSurrogate(
+  workflowId:
+    string,
+
+  datasetId:
+    string,
+
+  requestId:
+    string,
+
+  signal?:
+    AbortSignal
+): Promise<
+  PreparationIdentityContinueResponse
+> {
+  const normalizedWorkflowId =
+    normalizeWorkflowId(
+      workflowId
+    );
+
+  const normalizedDatasetId =
+    datasetId.trim();
+
+  const normalizedRequestId =
+    requestId.trim();
+
+
+  if (
+    !normalizedDatasetId
+  ) {
+    throw (
+      new Error(
+        "dataset_id est requis."
+      )
+    );
+  }
+
+
+  if (
+    !normalizedRequestId
+  ) {
+    throw (
+      new Error(
+        "request_id est requis."
+      )
+    );
+  }
+
+
+  const response =
+    await fetch(
+      `${
+        API_URL
+      }/preparation/identity/continue`,
+      {
+        method:
+          "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+
+        body:
+          JSON.stringify(
+            {
+              workflow_id:
+                normalizedWorkflowId,
+
+              dataset_id:
+                normalizedDatasetId,
+
+              request_id:
+                normalizedRequestId,
+            }
+          ),
+
+        cache:
+          "no-store",
+
+        signal,
+      }
+    );
+
+
+  return (
+    requireSuccessfulJson<
+      PreparationIdentityContinueResponse
+    >(
+      response
+    )
+  );
+}
+
+
+export async function createPreparationSurrogateKey(
+  workflowId:
+    string,
+
+  datasetId:
+    string,
+
+  requestId:
+    string,
+
+  signal?:
+    AbortSignal
+): Promise<
+  PreparationIdentityCreateSurrogateResponse
+> {
+  const normalizedWorkflowId =
+    normalizeWorkflowId(
+      workflowId
+    );
+
+  const normalizedDatasetId =
+    datasetId.trim();
+
+  const normalizedRequestId =
+    requestId.trim();
+
+
+  if (
+    !normalizedDatasetId
+  ) {
+    throw (
+      new Error(
+        "dataset_id est requis."
+      )
+    );
+  }
+
+
+  if (
+    !normalizedRequestId
+  ) {
+    throw (
+      new Error(
+        "request_id est requis."
+      )
+    );
+  }
+
+
+  const response =
+    await fetch(
+      `${
+        API_URL
+      }/preparation/identity/create-surrogate`,
+      {
+        method:
+          "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+
+        body:
+          JSON.stringify(
+            {
+              workflow_id:
+                normalizedWorkflowId,
+
+              dataset_id:
+                normalizedDatasetId,
+
+              request_id:
+                normalizedRequestId,
+            }
+          ),
+
+        cache:
+          "no-store",
+
+        signal,
+      }
+    );
+
+
+  return (
+    requireSuccessfulJson<
+      PreparationIdentityCreateSurrogateResponse
+    >(
+      response
+    )
+  );
+}
+
+
+
+
+// ============================================================
+// ANALYSIS OUTPUT EXPLANATION
+// ============================================================
+
+
+export async function explainPreparationAnalysisOutput(
+  workflowId:
+    string,
+
+  datasetId:
+    string,
+
+  includeAi:
+    boolean = true,
+
+  signal?:
+    AbortSignal
+): Promise<
+  PreparationOutputExplanationResponse
+> {
+  const normalizedWorkflowId =
+    normalizeWorkflowId(
+      workflowId
+    );
+
+  const normalizedDatasetId =
+    datasetId.trim();
+
+
+  if (
+    !normalizedDatasetId
+  ) {
+    throw (
+      new Error(
+        "dataset_id est requis."
+      )
+    );
+  }
+
+
+  const response =
+    await fetch(
+      `${
+        API_URL
+      }/preparation/analysis-output/explain`,
+      {
+        method:
+          "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+
+        body:
+          JSON.stringify(
+            {
+              workflow_id:
+                normalizedWorkflowId,
+
+              dataset_id:
+                normalizedDatasetId,
+
+              include_ai:
+                includeAi,
+            }
+          ),
+
+        cache:
+          "no-store",
+
+        signal,
+      }
+    );
+
+
+  return (
+    requireSuccessfulJson<
+      PreparationOutputExplanationResponse
+    >(
+      response
+    )
+  );
+}
+
+
+export async function discoverPreparationCombine(
+  workflowId:
+    string,
+
+  signal?:
+    AbortSignal
+): Promise<
+  PreparationCombineDiscoveryResponse
+> {
+  const normalizedId =
+    normalizeWorkflowId(
+      workflowId
+    );
+
+
+  const response =
+    await fetch(
+      `${API_URL}/preparation/combine/discover`,
+      {
+        method:
+          "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+
+        body:
+          JSON.stringify(
+            {
+              workflow_id:
+                normalizedId,
+            }
+          ),
+
+        signal,
+      }
+    );
+
+
+  return (
+    requireSuccessfulJson<
+      PreparationCombineDiscoveryResponse
+    >(
+      response
+    )
+  );
+}
+
+
+export async function approvePreparationCombine(
+  workflowId:
+    string,
+
+  requestId:
+    string,
+
+  comment?:
+    string,
+
+  signal?:
+    AbortSignal
+): Promise<
+  PreparationCombineExecutionResponse
+> {
+  const normalizedWorkflowId =
+    normalizeWorkflowId(
+      workflowId
+    );
+
+  const normalizedRequestId =
+    normalizeCombineRequestId(
+      requestId
+    );
+
+  const normalizedComment =
+    comment
+      ?.trim() ??
+    "";
+
+
+  const response =
+    await fetch(
+      `${API_URL}/preparation/combine/approve`,
+      {
+        method:
+          "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+
+        body:
+          JSON.stringify(
+            {
+              workflow_id:
+                normalizedWorkflowId,
+
+              request_id:
+                normalizedRequestId,
+
+              ...(
+                normalizedComment
+                  ? {
+                      comment:
+                        normalizedComment,
+                    }
+                  : {}
+              ),
+            }
+          ),
+
+        signal,
+      }
+    );
+
+
+  return (
+    requireSuccessfulJson<
+      PreparationCombineExecutionResponse
+    >(
+      response
+    )
+  );
+}
+

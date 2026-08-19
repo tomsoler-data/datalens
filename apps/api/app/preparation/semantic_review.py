@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
+import hashlib
 import json
 import re
 from typing import Any
@@ -32,6 +33,11 @@ SEMANTIC_REVIEW_RULE_VERSION = (
 )
 
 
+SEMANTIC_CANONICALIZATION_RULE_VERSION = (
+    "semantic_canonicalization_v0.1"
+)
+
+
 DEFAULT_SEMANTIC_REVIEW_MODEL = (
     "gemma3:4b"
 )
@@ -40,6 +46,15 @@ DEFAULT_SEMANTIC_REVIEW_MODEL = (
 DEFAULT_OLLAMA_CHAT_URL = (
     "http://127.0.0.1:11434/api/chat"
 )
+
+
+SEMANTIC_MERGE_CANDIDATE_KINDS = {
+    QualityIssueKind
+    .CATEGORY_FORMAT_VARIANTS,
+
+    QualityIssueKind
+    .POSSIBLE_SEMANTIC_ALIASES,
+}
 
 
 class SemanticVerdict(
@@ -410,6 +425,24 @@ def _exact_values_for_alias_issue(
         ):
             continue
 
+        # Avoid duplicated groups when multiple deterministic
+        # pairs reconstruct the same exact observed aliases.
+        group_key = frozenset(
+            unique_group
+        )
+
+        if any(
+            frozenset(
+                existing
+            )
+            ==
+            group_key
+
+            for existing
+            in groups
+        ):
+            continue
+
         groups.append(
             unique_group
         )
@@ -426,6 +459,158 @@ def _exact_values_for_alias_issue(
     )
 
 
+def _stable_alias_candidate_id(
+    *,
+    source_issue_id: str,
+    group: list[str],
+    group_index: int,
+) -> str:
+    """
+    Preserve the historical issue_id for the first alias group.
+
+    Additional groups receive deterministic synthetic IDs so
+    one quality issue may safely produce several independent
+    semantic decisions without breaking duplicate-ID guards.
+    """
+
+    if (
+        group_index
+        ==
+        0
+    ):
+        return source_issue_id
+
+    payload = {
+        "source_issue_id":
+            source_issue_id,
+
+        "group":
+            sorted(
+                group
+            ),
+    }
+
+    digest = hashlib.sha256(
+        json.dumps(
+            payload,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(
+                ",",
+                ":",
+            ),
+        ).encode(
+            "utf-8"
+        )
+    ).hexdigest()[
+        :12
+    ]
+
+    return (
+        f"{source_issue_id}:alias:{digest}"
+    )
+
+
+def _candidate_from_issue(
+    *,
+    issue: QualityIssue,
+    dataframe: pd.DataFrame,
+    issue_id: str,
+    candidate_values: list[str],
+    candidate_groups: list[
+        list[
+            str
+        ]
+    ],
+    source_issue_id: str,
+    alias_group_index: int | None,
+) -> SemanticReviewCandidate:
+    context: dict[
+        str,
+        Any,
+    ] = {
+        "column_dtype":
+            _safe_dtype(
+                dataframe,
+                issue.column,
+            ),
+
+        "sample_unique_values":
+            _safe_unique_values(
+                dataframe,
+                issue.column,
+                limit=12,
+            ),
+
+        "deterministic_details":
+            issue.evidence
+            .details,
+
+        "source_quality_issue_id":
+            source_issue_id,
+
+        "alias_group_index":
+            alias_group_index,
+
+        "semantic_canonicalization_rule_version":
+            SEMANTIC_CANONICALIZATION_RULE_VERSION,
+    }
+
+    return (
+        SemanticReviewCandidate(
+            issue_id=
+                issue_id,
+
+            dataset_id=
+                issue.dataset_id,
+
+            dataset_filename=
+                issue
+                .dataset_filename,
+
+            column=
+                issue.column,
+
+            kind=
+                issue.kind,
+
+            severity=
+                issue.severity.value,
+
+            title=
+                issue.title,
+
+            explanation=
+                issue.explanation,
+
+            observed_count=
+                issue.evidence
+                .observed_count,
+
+            affected_ratio=
+                issue.evidence
+                .affected_ratio,
+
+            examples=
+                list(
+                    issue.evidence
+                    .examples[
+                        :8
+                    ]
+                ),
+
+            candidate_values=
+                candidate_values,
+
+            candidate_groups=
+                candidate_groups,
+
+            context=
+                context,
+        )
+    )
+
+
 def build_semantic_review_candidates(
     *,
     quality_report: DataQualityReport,
@@ -437,11 +622,20 @@ def build_semantic_review_candidates(
     SemanticReviewCandidate
 ]:
     """
-    Convert semantic-review quality signals into a minimal,
-    privacy-preserving context for the local LLM.
+    Convert semantic-review quality signals into minimal,
+    privacy-preserving candidates.
 
-    The LLM receives issue metadata and small evidence samples,
-    not arbitrary raw rows.
+    Alias issues are reviewed at GROUP granularity.
+
+    This fixes an important ambiguity in the previous contract:
+    one quality issue may contain several independent alias
+    groups, while one semantic decision can describe only one
+    canonical merge.
+
+    Backward compatibility:
+    - the first alias group keeps the original quality issue_id;
+    - additional groups receive stable derived issue IDs;
+    - non-alias issues keep their historical IDs unchanged.
     """
 
     candidates: list[
@@ -469,21 +663,10 @@ def build_semantic_review_candidates(
                 f"review dataset_id {issue.dataset_id}."
             )
 
-        candidate_values: list[
-            str
-        ] = []
-
-        candidate_groups: list[
-            list[
-                str
-            ]
-        ] = []
-
         if (
             issue.kind
-            ==
-            QualityIssueKind
-            .POSSIBLE_SEMANTIC_ALIASES
+            in
+            SEMANTIC_MERGE_CANDIDATE_KINDS
         ):
             (
                 candidate_values,
@@ -497,87 +680,94 @@ def build_semantic_review_candidates(
                 )
             )
 
-        else:
-            candidate_values = list(
-                issue.evidence
-                .examples[
-                    :8
-                ]
+            if candidate_groups:
+                for (
+                    group_index,
+                    group,
+                ) in enumerate(
+                    candidate_groups
+                ):
+                    candidate_id = (
+                        _stable_alias_candidate_id(
+                            source_issue_id=
+                                issue.issue_id,
+                            group=
+                                group,
+                            group_index=
+                                group_index,
+                        )
+                    )
+
+                    candidates.append(
+                        _candidate_from_issue(
+                            issue=
+                                issue,
+                            dataframe=
+                                dataframe,
+                            issue_id=
+                                candidate_id,
+                            candidate_values=
+                                list(
+                                    group
+                                ),
+                            candidate_groups=[
+                                list(
+                                    group
+                                )
+                            ],
+                            source_issue_id=
+                                issue.issue_id,
+                            alias_group_index=
+                                group_index,
+                        )
+                    )
+
+                continue
+
+            # Safe fallback when the quality signal exists but
+            # no exact observed alias group can be rebuilt.
+            candidates.append(
+                _candidate_from_issue(
+                    issue=
+                        issue,
+                    dataframe=
+                        dataframe,
+                    issue_id=
+                        issue.issue_id,
+                    candidate_values=
+                        candidate_values,
+                    candidate_groups=
+                        candidate_groups,
+                    source_issue_id=
+                        issue.issue_id,
+                    alias_group_index=
+                        None,
+                )
             )
 
-        context: dict[
-            str,
-            Any,
-        ] = {
-            "column_dtype":
-                _safe_dtype(
-                    dataframe,
-                    issue.column,
-                ),
-
-            "sample_unique_values":
-                _safe_unique_values(
-                    dataframe,
-                    issue.column,
-                    limit=12,
-                ),
-
-            "deterministic_details":
-                issue.evidence
-                .details,
-        }
+            continue
 
         candidates.append(
-            SemanticReviewCandidate(
+            _candidate_from_issue(
+                issue=
+                    issue,
+                dataframe=
+                    dataframe,
                 issue_id=
                     issue.issue_id,
-
-                dataset_id=
-                    issue.dataset_id,
-
-                dataset_filename=
-                    issue
-                    .dataset_filename,
-
-                column=
-                    issue.column,
-
-                kind=
-                    issue.kind,
-
-                severity=
-                    issue.severity.value,
-
-                title=
-                    issue.title,
-
-                explanation=
-                    issue.explanation,
-
-                observed_count=
-                    issue.evidence
-                    .observed_count,
-
-                affected_ratio=
-                    issue.evidence
-                    .affected_ratio,
-
-                examples=
+                candidate_values=
                     list(
                         issue.evidence
                         .examples[
                             :8
                         ]
                     ),
-
-                candidate_values=
-                    candidate_values,
-
                 candidate_groups=
-                    candidate_groups,
-
-                context=
-                    context,
+                    [],
+                source_issue_id=
+                    issue.issue_id,
+                alias_group_index=
+                    None,
             )
         )
 
@@ -600,17 +790,15 @@ def _system_prompt(
         "issue_id and nothing else. "
     )
 
-
     if (
         candidate.kind
-        ==
-        QualityIssueKind
-        .POSSIBLE_SEMANTIC_ALIASES
+        in
+        SEMANTIC_MERGE_CANDIDATE_KINDS
     ):
         return (
             base
             +
-            "This candidate is a possible semantic alias. "
+            "This candidate is one possible semantic alias group. "
             "If and only if the supplied exact values clearly "
             "represent the same category, use merge_values. "
             "For merge_values: "
@@ -621,7 +809,6 @@ def _system_prompt(
             "Do not omit source_values. "
             "If the evidence is insufficient, abstain."
         )
-
 
     if (
         candidate.kind
@@ -652,7 +839,6 @@ def _system_prompt(
             "Do not invent a corrected value or business threshold."
         )
 
-
     return (
         base
         +
@@ -671,12 +857,10 @@ def _user_prompt(
         )
     )
 
-
     if (
         candidate.kind
-        ==
-        QualityIssueKind
-        .POSSIBLE_SEMANTIC_ALIASES
+        in
+        SEMANTIC_MERGE_CANDIDATE_KINDS
     ):
         instruction = (
             "Evaluate whether the exact supplied candidate values "
@@ -691,7 +875,6 @@ def _user_prompt(
             "Interpret the quality signal conservatively. "
             "Do not propose a data replacement."
         )
-
 
     return (
         instruction
@@ -760,7 +943,6 @@ def _ollama_chat_one(
         },
     }
 
-
     request = Request(
         ollama_chat_url,
         data=json.dumps(
@@ -776,7 +958,6 @@ def _ollama_chat_one(
         method=
             "POST",
     )
-
 
     try:
         with urlopen(
@@ -824,7 +1005,6 @@ def _ollama_chat_one(
             "Ollama semantic review timed out."
         ) from error
 
-
     message = (
         response_payload
         .get(
@@ -833,13 +1013,11 @@ def _ollama_chat_one(
         )
     )
 
-
     content = (
         message.get(
             "content"
         )
     )
-
 
     if not isinstance(
         content,
@@ -849,7 +1027,6 @@ def _ollama_chat_one(
             "Ollama semantic review returned "
             "no textual JSON content."
         )
-
 
     try:
         parsed_content = json.loads(
@@ -861,7 +1038,6 @@ def _ollama_chat_one(
             "Ollama semantic review returned "
             "invalid JSON content."
         ) from error
-
 
     try:
         decision = (
@@ -877,9 +1053,6 @@ def _ollama_chat_one(
             "respect the single-decision schema."
         ) from error
 
-
-    # The model is not allowed to rebind the decision to
-    # another quality issue.
     if (
         decision.issue_id
         !=
@@ -889,7 +1062,6 @@ def _ollama_chat_one(
             "Ollama semantic review returned "
             "the wrong issue_id for the current candidate."
         )
-
 
     return decision
 
@@ -983,6 +1155,312 @@ def _abstain_decision(
     )
 
 
+def _strict_normalization_group(
+    candidate: SemanticReviewCandidate,
+) -> list[str] | None:
+    """
+    Return the alias group only when every exact observed value
+    collapses to ONE non-empty token under the conservative
+    normalization already used by DataLens:
+
+        trim
+        collapse whitespace
+        Unicode casefold
+
+    No spelling correction or fuzzy semantic inference occurs.
+    """
+
+    if (
+        candidate.kind
+        not in
+        SEMANTIC_MERGE_CANDIDATE_KINDS
+    ):
+        return None
+
+    if (
+        len(
+            candidate.candidate_groups
+        )
+        !=
+        1
+    ):
+        return None
+
+    group = list(
+        dict.fromkeys(
+            candidate.candidate_groups[
+                0
+            ]
+        )
+    )
+
+    if (
+        len(
+            group
+        )
+        <
+        2
+    ):
+        return None
+
+    normalized = {
+        _normalize_token(
+            value
+        )
+        for value in group
+    }
+
+    if (
+        len(
+            normalized
+        )
+        !=
+        1
+    ):
+        return None
+
+    token = next(
+        iter(
+            normalized
+        )
+    )
+
+    if not token:
+        return None
+
+    return group
+
+
+def _canonical_existing_value(
+    *,
+    dataframe: pd.DataFrame,
+    column: str | None,
+    source_values: list[str],
+) -> str | None:
+    """
+    Choose an EXISTING exact value deterministically.
+
+    Order:
+    1. highest exact observed frequency;
+    2. first appearance in the current prepared DataFrame.
+
+    No value is invented and no formatting is synthesized.
+    """
+
+    if (
+        column is None
+        or
+        column not in dataframe.columns
+        or
+        not source_values
+    ):
+        return None
+
+    source_set = set(
+        source_values
+    )
+
+    counts = {
+        value:
+            0
+        for value in
+        source_values
+    }
+
+    first_position = {
+        value:
+            float(
+                "inf"
+            )
+        for value in
+        source_values
+    }
+
+    for (
+        position,
+        cell,
+    ) in enumerate(
+        dataframe[
+            column
+        ].tolist()
+    ):
+        if (
+            not isinstance(
+                cell,
+                str,
+            )
+            or
+            cell
+            not in
+            source_set
+        ):
+            continue
+
+        counts[
+            cell
+        ] += 1
+
+        if (
+            first_position[
+                cell
+            ]
+            ==
+            float(
+                "inf"
+            )
+        ):
+            first_position[
+                cell
+            ] = position
+
+    observed = [
+        value
+        for value in source_values
+        if (
+            counts[
+                value
+            ]
+            >
+            0
+        )
+    ]
+
+    if not observed:
+        return None
+
+    observed.sort(
+        key=lambda value: (
+            -counts[
+                value
+            ],
+            first_position[
+                value
+            ],
+        )
+    )
+
+    return observed[
+        0
+    ]
+
+
+def _deterministic_strict_alias_decision(
+    *,
+    candidate: SemanticReviewCandidate,
+    dataframe: pd.DataFrame,
+) -> ValidatedSemanticDecision | None:
+    """
+    Python may PROPOSE a merge when the only differences are
+    whitespace and/or letter case.
+
+    The proposal remains non-executable and still requires
+    explicit user confirmation before Semantic Cleaning.
+    """
+
+    source_values = (
+        _strict_normalization_group(
+            candidate
+        )
+    )
+
+    if (
+        source_values
+        is None
+    ):
+        return None
+
+    canonical_value = (
+        _canonical_existing_value(
+            dataframe=
+                dataframe,
+
+            column=
+                candidate.column,
+
+            source_values=
+                source_values,
+        )
+    )
+
+    if (
+        canonical_value
+        is None
+    ):
+        return None
+
+    return (
+        ValidatedSemanticDecision(
+            issue_id=
+                candidate.issue_id,
+
+            dataset_id=
+                candidate.dataset_id,
+
+            dataset_filename=
+                candidate.dataset_filename,
+
+            column=
+                candidate.column,
+
+            kind=
+                candidate.kind,
+
+            verdict=
+                SemanticVerdict
+                .MERGE_VALUES,
+
+            confidence=
+                1.0,
+
+            rationale=(
+                "Python detected exact category variants that "
+                "become identical after conservative whitespace "
+                "normalization and Unicode casefold."
+            ),
+
+            source_values=
+                source_values,
+
+            canonical_value=
+                canonical_value,
+
+            user_message=(
+                "Variantes de casse ou d'espacement détectées "
+                "par Python. Vérifiez puis confirmez la fusion."
+            ),
+
+            python_validated=
+                True,
+
+            executable=
+                False,
+
+            requires_user_confirmation=
+                True,
+
+            validation_notes=[
+                (
+                    "Deterministic strict-normalization proposal."
+                ),
+                (
+                    "No spelling correction, fuzzy matching or "
+                    "business inference was used."
+                ),
+                (
+                    "Canonical value is one exact observed value."
+                ),
+                (
+                    "User confirmation remains mandatory."
+                ),
+                (
+                    "Rule: "
+                    f"{SEMANTIC_CANONICALIZATION_RULE_VERSION}."
+                ),
+            ],
+        )
+    )
+
+
 def validate_semantic_review_response(
     *,
     raw_response: RawSemanticReviewResponse,
@@ -997,22 +1475,15 @@ def validate_semantic_review_response(
     ValidatedSemanticDecision
 ]:
     """
-    Validate every LLM decision against deterministic evidence.
+    Validate every semantic decision against deterministic
+    evidence.
 
-    Robustness policy v0.2:
-    - unknown issue IDs still fail the whole response because
-      they break the protocol binding;
-    - duplicate issue IDs still fail the whole response;
-    - malformed semantic proposals for a known issue are NOT
-      executed and do NOT fail the whole endpoint;
-    - instead, Python downgrades the individual decision to
-      ABSTAIN and records the rejected proposal in
-      validation_notes;
-    - omitted candidates are deterministically converted to
-      ABSTAIN so one weak model decision cannot make the whole
-      review unavailable.
+    Unknown and duplicate IDs fail the protocol.
 
-    No semantic decision becomes executable in v0.2.
+    Invalid proposals for known candidates are downgraded to
+    ABSTAIN rather than executed.
+
+    No semantic proposal becomes executable here.
     """
 
     candidate_map = {
@@ -1086,10 +1557,6 @@ def validate_semantic_review_response(
             raw.canonical_value
         )
 
-        # ====================================================
-        # MERGE PROPOSAL — STRICT VALIDATION
-        # ====================================================
-
         if (
             raw.verdict
             ==
@@ -1102,13 +1569,13 @@ def validate_semantic_review_response(
 
             if (
                 candidate.kind
-                !=
-                QualityIssueKind
-                .POSSIBLE_SEMANTIC_ALIASES
+                not in
+                SEMANTIC_MERGE_CANDIDATE_KINDS
             ):
                 rejection_reasons.append(
                     "merge_values is allowed only for "
-                    "possible_semantic_aliases."
+                    "deterministic category-format variants "
+                    "or possible semantic aliases."
                 )
 
             if (
@@ -1266,10 +1733,6 @@ def validate_semantic_review_response(
                 "observed value, not an invention."
             )
 
-        # ====================================================
-        # NON-MERGE PROPOSALS
-        # ====================================================
-
         else:
             rejection_reasons: list[
                 str
@@ -1395,10 +1858,6 @@ def validate_semantic_review_response(
             )
         )
 
-    # ========================================================
-    # OMITTED CANDIDATES — SAFE ABSTENTION
-    # ========================================================
-
     missing_ids = (
         set(
             candidate_map
@@ -1442,7 +1901,6 @@ def validate_semantic_review_response(
             )
         )
 
-    # Preserve deterministic candidate order for the UI.
     decision_map = {
         decision.issue_id:
             decision
@@ -1483,7 +1941,6 @@ def review_quality_semantics(
         )
     )
 
-
     if not candidates:
         return (
             SemanticReviewReport(
@@ -1517,16 +1974,47 @@ def review_quality_semantics(
             )
         )
 
-
     validated_decisions: list[
         ValidatedSemanticDecision
     ] = []
 
-
     llm_failure_count = 0
-
+    deterministic_proposal_count = 0
 
     for candidate in candidates:
+        dataframe = (
+            dataset_frames.get(
+                candidate.dataset_id
+            )
+        )
+
+        if dataframe is None:
+            raise KeyError(
+                "Missing dataframe during semantic "
+                f"review for {candidate.dataset_id}."
+            )
+
+        deterministic_decision = (
+            _deterministic_strict_alias_decision(
+                candidate=
+                    candidate,
+                dataframe=
+                    dataframe,
+            )
+        )
+
+        if (
+            deterministic_decision
+            is not None
+        ):
+            deterministic_proposal_count += 1
+
+            validated_decisions.append(
+                deterministic_decision
+            )
+
+            continue
+
         try:
             raw_decision = (
                 _ollama_chat_one(
@@ -1543,7 +2031,6 @@ def review_quality_semantics(
                         timeout_seconds,
                 )
             )
-
 
             validated = (
                 validate_semantic_review_response(
@@ -1563,18 +2050,15 @@ def review_quality_semantics(
                 )
             )
 
-
             validated_decisions.extend(
                 validated
             )
-
 
         except (
             RuntimeError,
             ValueError,
         ) as error:
             llm_failure_count += 1
-
 
             validated_decisions.append(
                 _abstain_decision(
@@ -1603,7 +2087,6 @@ def review_quality_semantics(
                 )
             )
 
-
     merge_proposal_count = sum(
         decision.verdict
         ==
@@ -1613,7 +2096,6 @@ def review_quality_semantics(
         in validated_decisions
     )
 
-
     abstention_count = sum(
         decision.verdict
         ==
@@ -1622,7 +2104,6 @@ def review_quality_semantics(
         for decision
         in validated_decisions
     )
-
 
     return (
         SemanticReviewReport(
@@ -1653,20 +2134,32 @@ def review_quality_semantics(
 
             notes=[
                 (
-                    "The local LLM received one "
-                    "quality candidate at a time "
+                    "Category-format variants and semantic-alias "
+                    "quality issues are split into independent "
+                    "deterministic groups before semantic review."
+                ),
+                (
+                    f"{deterministic_proposal_count} strict "
+                    "case/whitespace alias group(s) were "
+                    "proposed directly by Python."
+                ),
+                (
+                    "Strict deterministic proposals remain "
+                    "non-executable until user confirmation."
+                ),
+                (
+                    "The local LLM received one remaining "
+                    "ambiguous quality candidate at a time "
                     "with limited evidence."
                 ),
                 (
-                    "Alias candidates receive a "
-                    "specialized prompt requiring "
-                    "exact source_values when "
-                    "merge_values is proposed."
+                    "Alias candidates sent to the model use "
+                    "a specialized prompt requiring exact "
+                    "source_values when merge_values is proposed."
                 ),
                 (
-                    "Every returned decision was "
-                    "validated against deterministic "
-                    "dataset evidence by Python."
+                    "Every model-returned decision was validated "
+                    "against deterministic dataset evidence."
                 ),
                 (
                     f"{llm_failure_count} candidate-level "
@@ -1674,10 +2167,13 @@ def review_quality_semantics(
                     "downgraded to ABSTAIN."
                 ),
                 (
-                    "No semantic proposal is "
-                    "executable in semantic_review_v0.3."
+                    "No semantic proposal is executable in "
+                    f"{SEMANTIC_REVIEW_RULE_VERSION}."
+                ),
+                (
+                    "Canonicalization component: "
+                    f"{SEMANTIC_CANONICALIZATION_RULE_VERSION}."
                 ),
             ],
         )
     )
-

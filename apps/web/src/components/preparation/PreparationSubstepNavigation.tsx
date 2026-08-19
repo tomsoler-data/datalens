@@ -131,6 +131,27 @@ function isResolved(
 }
 
 
+function hasCombineDiscoveryEvidence(
+  stage:
+    PreparationStageRecord |
+    null
+): boolean {
+  return (
+    stage
+      ?.evidence_refs
+      .some(
+        (
+          reference
+        ) =>
+          reference.startsWith(
+            "combine_service:"
+          )
+      ) ??
+    false
+  );
+}
+
+
 function statusLabel(
   status: VisualStatus,
   step: PreparationSubstep
@@ -261,7 +282,38 @@ export default function PreparationSubstepNavigation({
     );
 
 
+  const validationDone =
+    session?.snapshot
+      .ready_for_analysis ===
+      true ||
+    validate?.status ===
+      "passed";
+
+
+  const multipleSourceDatasets =
+    (
+      session
+        ?.selected_analysis_dataset_ids
+        .length ??
+      0
+    ) >
+    1;
+
+
+  const combineDiscoveryRecorded =
+    hasCombineDiscoveryEvidence(
+      combine
+    );
+
+
+  const combineDiscoveryPending =
+    multipleSourceDatasets &&
+    !combineDiscoveryRecorded &&
+    !validationDone;
+
+
   const transformResolved =
+    !combineDiscoveryPending &&
     isResolved(
       transform
     ) &&
@@ -271,18 +323,11 @@ export default function PreparationSubstepNavigation({
 
 
   const transformSkipped =
+    !combineDiscoveryPending &&
     transform?.status ===
       "skipped" &&
     combine?.status ===
       "skipped";
-
-
-  const validationDone =
-    session?.snapshot
-      .ready_for_analysis ===
-      true ||
-    validate?.status ===
-      "passed";
 
 
   const semanticSkipped =
@@ -352,37 +397,44 @@ export default function PreparationSubstepNavigation({
     transform:
       !cleanResolved
         ? "locked"
-        : transformSkipped
-          ? "skipped"
-          : transformResolved
-            ? "done"
-            : (
-                transform?.status ===
-                  "blocked" ||
-                transform?.status ===
-                  "review_required" ||
-                combine?.status ===
-                  "blocked" ||
-                combine?.status ===
-                  "review_required"
-              )
-              ? "attention"
-              : activeStep ===
-                  "transform"
-                ? "current"
-                : "waiting",
+        : combineDiscoveryPending
+          ? activeStep ===
+              "transform"
+            ? "current"
+            : "waiting"
+          : transformSkipped
+            ? "skipped"
+            : transformResolved
+              ? "done"
+              : (
+                  transform?.status ===
+                    "blocked" ||
+                  transform?.status ===
+                    "review_required" ||
+                  combine?.status ===
+                    "blocked" ||
+                  combine?.status ===
+                    "review_required"
+                )
+                ? "attention"
+                : activeStep ===
+                    "transform"
+                  ? "current"
+                  : "waiting",
 
     validation:
       validationDone
         ? "done"
-        : session?.snapshot
-            .next_stage ===
-            "validate"
-          ? activeStep ===
-              "validation"
-            ? "current"
-            : "waiting"
-          : "locked",
+        : combineDiscoveryPending
+          ? "locked"
+          : session?.snapshot
+              .next_stage ===
+              "validate"
+            ? activeStep ===
+                "validation"
+              ? "current"
+              : "waiting"
+            : "locked",
   };
 
 
@@ -404,9 +456,12 @@ export default function PreparationSubstepNavigation({
 
     validation:
       validationDone ||
-      session?.snapshot
-        .next_stage ===
-        "validate",
+      (
+        !combineDiscoveryPending &&
+        session?.snapshot
+          .next_stage ===
+          "validate"
+      ),
   };
 
 

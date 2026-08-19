@@ -21,6 +21,18 @@ from app.api.preparation_combination import (
     router as preparation_combination_router,
 )
 
+from app.api.preparation_combine import (
+    router as preparation_combine_router,
+)
+
+from app.api.preparation_identity import (
+    router as preparation_identity_router,
+)
+
+from app.api.preparation_output_explanation import (
+    router as preparation_output_explanation_router,
+)
+
 from app.api.preparation_quality import (
     router as preparation_quality_router,
 )
@@ -132,7 +144,7 @@ app.include_router(
 
 
 # ============================================================
-# PREPARATION — QUALITY
+# PREPARATION - QUALITY
 # ============================================================
 
 
@@ -142,7 +154,7 @@ app.include_router(
 
 
 # ============================================================
-# PREPARATION — CLEANING
+# PREPARATION - CLEANING
 # ============================================================
 
 
@@ -152,7 +164,7 @@ app.include_router(
 
 
 # ============================================================
-# PREPARATION — SEMANTIC REVIEW
+# PREPARATION - SEMANTIC REVIEW
 # ============================================================
 
 
@@ -162,7 +174,17 @@ app.include_router(
 
 
 # ============================================================
-# PREPARATION — TRANSFORMATION
+# PREPARATION - IDENTITY
+# ============================================================
+
+
+app.include_router(
+    preparation_identity_router
+)
+
+
+# ============================================================
+# PREPARATION - TRANSFORMATION
 # ============================================================
 
 
@@ -172,7 +194,7 @@ app.include_router(
 
 
 # ============================================================
-# PREPARATION — COMBINATION
+# PREPARATION - LEGACY / LOW-LEVEL COMBINATION
 # ============================================================
 
 
@@ -182,7 +204,27 @@ app.include_router(
 
 
 # ============================================================
-# PREPARATION — WORKFLOW
+# PREPARATION - CONTROLLED COMBINE WORKFLOW
+# ============================================================
+
+
+app.include_router(
+    preparation_combine_router
+)
+
+
+# ============================================================
+# PREPARATION - ANALYSIS OUTPUT EXPLANATION
+# ============================================================
+
+
+app.include_router(
+    preparation_output_explanation_router
+)
+
+
+# ============================================================
+# PREPARATION - WORKFLOW
 # ============================================================
 
 
@@ -192,7 +234,7 @@ app.include_router(
 
 
 # ============================================================
-# PREPARATION — SERVER-OWNED SESSION
+# PREPARATION - SERVER-OWNED SESSION
 # ============================================================
 
 
@@ -202,7 +244,7 @@ app.include_router(
 
 
 # ============================================================
-# PREPARATION — FINAL VALIDATION
+# PREPARATION - FINAL VALIDATION
 # ============================================================
 
 
