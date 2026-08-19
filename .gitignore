@@ -41,7 +41,7 @@ out/
 
 
 # ============================================================
-# DataLens â€” generated evaluation outputs
+# DataLens - generated evaluation outputs
 # ============================================================
 
 apps/api/evals/tool_use/results/
@@ -52,17 +52,28 @@ apps/api/eval_regression_gate_report.json
 
 
 # ============================================================
-# DataLens â€” temporary snapshots
+# DataLens - temporary source snapshots
 # ============================================================
 
 *_current.txt
+*_current.py
 
 
 # ============================================================
-# DataLens â€” observability backups
+# DataLens - local observability runtime
 # ============================================================
 
-apps/api/data/observability/*.backup_*.jsonl
+apps/api/data/observability/ai_traces*.jsonl
+
+
+# ============================================================
+# Backup / temporary development files
+# ============================================================
+
+*.bak
+*.old
+*.orig
+*.tmp
 
 
 # ============================================================
@@ -74,8 +85,3 @@ Thumbs.db
 
 .vscode/
 .idea/
-# DataLens — local observability runtime
-apps/api/data/observability/ai_traces*.jsonl
-
-# DataLens — temporary source snapshots
-*_current.py
