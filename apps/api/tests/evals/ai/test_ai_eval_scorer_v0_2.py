@@ -18,7 +18,7 @@ from app.evals.scorer_v0_2 import (
 
 BASE_DIR = Path(
     __file__,
-).resolve().parent
+).resolve().parents[3]
 
 
 BENCHMARK_PATH = (

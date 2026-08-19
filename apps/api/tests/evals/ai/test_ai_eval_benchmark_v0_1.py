@@ -9,7 +9,7 @@ from app.evals import (
 
 BASE_DIR = Path(
     __file__,
-).resolve().parent
+).resolve().parents[3]
 
 
 BENCHMARK_PATH = (

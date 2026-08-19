@@ -23,7 +23,7 @@ from app.evals.routing_relationships_v0_8 import (
 
 BASE_DIR = Path(
     __file__,
-).resolve().parent
+).resolve().parents[3]
 
 
 BENCHMARK_PATH = (

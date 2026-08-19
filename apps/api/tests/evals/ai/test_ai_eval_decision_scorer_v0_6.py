@@ -22,7 +22,7 @@ from app.evals.decision_scorer_v0_6 import (
 
 BASE_DIR = Path(
     __file__,
-).resolve().parent
+).resolve().parents[3]
 
 
 BENCHMARK_PATH = (
