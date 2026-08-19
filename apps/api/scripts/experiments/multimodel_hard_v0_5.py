@@ -46,7 +46,7 @@ MULTIMODEL_EVAL_VERSION = (
 
 BASE_DIR = Path(
     __file__,
-).resolve().parent
+).resolve().parents[2]
 
 
 BENCHMARK_PATH = (
