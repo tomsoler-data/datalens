@@ -22,7 +22,7 @@ from app.evals.frozen_runner_v0_6 import (
 
 BASE_DIR = Path(
     __file__,
-).resolve().parent
+).resolve().parents[2]
 
 
 BENCHMARK_PATH = (

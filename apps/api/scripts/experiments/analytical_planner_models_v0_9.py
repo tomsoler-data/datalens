@@ -25,7 +25,7 @@ from app.evals.analytical_planner_model_runner_v0_9 import (
 
 BASE_DIR = Path(
     __file__,
-).resolve().parent
+).resolve().parents[2]
 
 
 BENCHMARK_PATH = (
