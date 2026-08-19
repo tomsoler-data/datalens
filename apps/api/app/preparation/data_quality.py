@@ -24,6 +24,10 @@ QUALITY_ENGINE_RULE_VERSION = (
     "data_quality_engine_v0.2"
 )
 
+CATEGORY_VARIANT_BRIDGE_RULE_VERSION = (
+    "category_variant_bridge_v0.1"
+)
+
 
 # ============================================================
 # ENUMS
@@ -2569,6 +2573,66 @@ def _detect_category_variants(
                 .sum()
             )
 
+            # ------------------------------------------------
+            # BRIDGE TO SEMANTIC CANONICALIZATION
+            # ------------------------------------------------
+            #
+            # CATEGORY_FORMAT_VARIANTS is still a deterministic
+            # representation-quality issue, not a business alias.
+            #
+            # However, each exact variant group is also valid
+            # input for the guarded semantic canonicalization
+            # workflow because that layer owns:
+            #
+            #   - one proposal per alias/variant group;
+            #   - canonical-value selection;
+            #   - mandatory human approval;
+            #   - execution provenance.
+            #
+            # candidate_pairs are an interoperability format.
+            # For a group with >2 exact spellings, anchoring each
+            # value to the first one is sufficient for the
+            # downstream review layer to reconstruct the complete
+            # normalized group from current observed values.
+            # ------------------------------------------------
+
+            candidate_pairs: list[
+                tuple[
+                    str,
+                    str,
+                ]
+            ] = []
+
+            for group in (
+                variant_groups
+            ):
+                if (
+                    len(
+                        group
+                    )
+                    <
+                    2
+                ):
+                    continue
+
+                anchor = (
+                    group[
+                        0
+                    ]
+                )
+
+                for variant in (
+                    group[
+                        1:
+                    ]
+                ):
+                    candidate_pairs.append(
+                        (
+                            anchor,
+                            variant,
+                        )
+                    )
+
             issues.append(
                 _issue(
                     dataset_id=
@@ -2595,8 +2659,8 @@ def _detect_category_variants(
 
                     explanation=(
                         "Des modalités deviennent identiques "
-                        "après normalisation de la casse et "
-                        "des espaces."
+                        "après normalisation déterministe de la "
+                        "casse et des espaces."
                     ),
 
                     observed_count=
@@ -2620,6 +2684,18 @@ def _detect_category_variants(
                     details={
                         "variant_groups":
                             variant_groups,
+
+                        "candidate_pairs":
+                            candidate_pairs,
+
+                        "normalization":
+                            (
+                                "strip + collapse_whitespace "
+                                "+ unicode_casefold"
+                            ),
+
+                        "bridge_rule_version":
+                            CATEGORY_VARIANT_BRIDGE_RULE_VERSION,
                     },
 
                     proposal=
@@ -2629,17 +2705,21 @@ def _detect_category_variants(
                                 .NORMALIZE_CASE,
 
                             automatic_safe=
-                                True,
+                                False,
 
                             description=(
-                                "Proposer une normalisation de casse "
-                                "et d'espaces pour les variantes "
-                                "déterministes."
+                                "Proposer chaque groupe de variantes "
+                                "à la canonicalisation contrôlée. "
+                                "Aucune fusion n'est exécutée sans "
+                                "confirmation utilisateur."
                             ),
 
                             requires_user_confirmation=
                                 True,
                         ),
+
+                    semantic_review_recommended=
+                        True,
                 )
             )
 
@@ -3346,6 +3426,15 @@ def build_data_quality_report(
                 (
                     "Outliers are signals, not errors. "
                     "DataLens never deletes them automatically."
+                ),
+
+                (
+                    "Category formatting variants are deterministic "
+                    "quality signals. Their exact variant groups are "
+                    "forwarded to guarded semantic canonicalization, "
+                    "where user confirmation remains mandatory. "
+                    "Bridge: "
+                    f"{CATEGORY_VARIANT_BRIDGE_RULE_VERSION}."
                 ),
 
                 (
