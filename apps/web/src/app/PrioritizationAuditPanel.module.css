@@ -1,0 +1,397 @@
+.panel {
+  display: grid;
+  gap: 16px;
+  margin-top: 14px;
+  padding: 18px;
+  border: 1px solid rgba(132, 168, 226, 0.14);
+  border-radius: 14px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(25, 43, 72, 0.18),
+      rgba(8, 15, 28, 0.2)
+    );
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.header > div {
+  min-width: 0;
+}
+
+.eyebrow {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: rgba(156, 195, 255, 0.76);
+}
+
+.header h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1.35;
+  color: rgba(244, 248, 255, 0.96);
+}
+
+.header p {
+  max-width: 760px;
+  margin: 7px 0 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: rgba(184, 198, 219, 0.72);
+}
+
+.pythonBadge {
+  flex: 0 0 auto;
+  padding: 6px 9px;
+  border: 1px solid rgba(106, 177, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(50, 104, 177, 0.1);
+  font-size: 9px;
+  font-weight: 650;
+  letter-spacing: 0.03em;
+  color: rgba(170, 209, 255, 0.8);
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.metrics > div {
+  display: grid;
+  gap: 4px;
+  padding: 11px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.055);
+  border-radius: 10px;
+  background: rgba(3, 9, 18, 0.24);
+}
+
+.metrics span {
+  font-size: 10px;
+  color: rgba(178, 192, 214, 0.64);
+}
+
+.metrics strong {
+  font-size: 19px;
+  font-weight: 620;
+  color: rgba(244, 248, 255, 0.94);
+}
+
+.reasonSection {
+  display: grid;
+  gap: 10px;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sectionTitle strong {
+  font-size: 11px;
+  color: rgba(226, 235, 249, 0.86);
+}
+
+.sectionTitle span {
+  font-size: 10px;
+  color: rgba(164, 180, 203, 0.56);
+}
+
+.reasonGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.reasonItem {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 9px;
+  background: rgba(3, 9, 18, 0.22);
+}
+
+.reasonCount {
+  display: grid;
+  place-items: center;
+  min-height: 28px;
+  border-radius: 7px;
+  background: rgba(83, 142, 220, 0.1);
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(170, 209, 255, 0.82);
+}
+
+.reasonItem strong,
+.reasonItem small {
+  display: block;
+}
+
+.reasonItem strong {
+  margin-bottom: 3px;
+  font-size: 10px;
+  color: rgba(226, 235, 249, 0.86);
+}
+
+.reasonItem small {
+  font-size: 9px;
+  line-height: 1.5;
+  color: rgba(164, 180, 203, 0.62);
+}
+
+.auditLists {
+  display: grid;
+  gap: 8px;
+}
+
+.decisionGroup {
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.055);
+  border-radius: 10px;
+  background: rgba(3, 9, 18, 0.2);
+}
+
+.decisionGroupSummary,
+.decisionSummary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.decisionGroupSummary::-webkit-details-marker,
+.decisionSummary::-webkit-details-marker {
+  display: none;
+}
+
+.decisionGroupSummary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 12px;
+  font-size: 11px;
+  font-weight: 620;
+  color: rgba(226, 235, 249, 0.84);
+}
+
+.groupCount {
+  display: inline-flex;
+  min-width: 24px;
+  justify-content: center;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.045);
+  font-size: 9px;
+  color: rgba(178, 192, 214, 0.66);
+}
+
+.decisionList {
+  display: grid;
+  gap: 1px;
+  border-top: 1px solid rgba(255, 255, 255, 0.045);
+}
+
+.decisionCard {
+  background: rgba(5, 11, 21, 0.23);
+}
+
+.decisionCard + .decisionCard {
+  border-top: 1px solid rgba(255, 255, 255, 0.035);
+}
+
+.decisionSummary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 12px;
+}
+
+.decisionMain {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.decisionMain > div {
+  min-width: 0;
+}
+
+.decisionMain strong,
+.decisionMain small {
+  display: block;
+}
+
+.decisionMain strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  color: rgba(229, 237, 250, 0.88);
+}
+
+.decisionMain small {
+  margin-top: 3px;
+  font-size: 9px;
+  color: rgba(159, 176, 201, 0.56);
+}
+
+.decisionBadge {
+  flex: 0 0 auto;
+  padding: 4px 6px;
+  border-radius: 6px;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.selected {
+  background: rgba(80, 177, 126, 0.09);
+  color: rgba(140, 221, 177, 0.78);
+}
+
+.deferred {
+  background: rgba(197, 160, 74, 0.09);
+  color: rgba(226, 196, 119, 0.8);
+}
+
+.rejected {
+  background: rgba(194, 91, 105, 0.09);
+  color: rgba(231, 145, 157, 0.8);
+}
+
+.reasonLabel {
+  flex: 0 1 auto;
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 9px;
+  color: rgba(174, 190, 213, 0.62);
+}
+
+.decisionBody {
+  display: grid;
+  gap: 9px;
+  padding: 0 12px 12px 52px;
+  font-size: 10px;
+  line-height: 1.55;
+  color: rgba(174, 190, 213, 0.7);
+}
+
+.decisionBody p,
+.decisionBody ul {
+  margin: 0;
+}
+
+.decisionBody ul {
+  padding-left: 16px;
+}
+
+.variableKeys {
+  display: grid;
+  gap: 4px;
+}
+
+.variableKeys span {
+  font-size: 8px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(150, 170, 198, 0.52);
+}
+
+.variableKeys code {
+  overflow-wrap: anywhere;
+  font-size: 9px;
+  color: rgba(177, 205, 240, 0.72);
+}
+
+.scoreRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  font-size: 9px;
+  color: rgba(150, 170, 198, 0.56);
+}
+
+.scoreRow strong {
+  color: rgba(204, 219, 239, 0.74);
+}
+
+.footerNote {
+  padding-top: 2px;
+}
+
+.footerNote p {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.55;
+  color: rgba(165, 182, 206, 0.62);
+}
+
+.footerNote small {
+  display: block;
+  margin-top: 7px;
+  font-size: 8px;
+  color: rgba(133, 151, 177, 0.42);
+}
+
+@media (max-width: 760px) {
+  .header,
+  .sectionTitle {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .metrics,
+  .reasonGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pythonBadge {
+    align-self: flex-start;
+  }
+
+  .decisionSummary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .reasonLabel {
+    max-width: 100%;
+    padding-left: 42px;
+  }
+
+  .decisionBody {
+    padding-left: 12px;
+  }
+}
+
+@media (max-width: 440px) {
+  .panel {
+    padding: 14px;
+  }
+
+  .metrics,
+  .reasonGrid {
+    grid-template-columns: 1fr;
+  }
+}

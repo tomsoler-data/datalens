@@ -20,6 +20,12 @@ import PreparationSubstepNavigation from "../components/preparation/PreparationS
 import PreparationTransformPanel from "../components/preparation/PreparationTransformPanel";
 import SemanticConfirmationPanel from "../components/preparation/SemanticConfirmationPanel";
 
+import PrioritizationAuditPanel from "./PrioritizationAuditPanel";
+
+import type {
+  PrioritizationAuditView,
+} from "./PrioritizationAuditPanel";
+
 import type {
   PreparationSubstep,
 } from "../components/preparation/PreparationSubstepNavigation";
@@ -63,6 +69,67 @@ import type {
 const API_URL =
   process.env.NEXT_PUBLIC_DATALENS_API_URL ??
   "http://127.0.0.1:8000";
+
+
+function hasCombineDiscoveryEvidence(
+  session:
+    PreparationSessionView |
+    null
+): boolean {
+  if (
+    session ===
+    null
+  ) {
+    return false;
+  }
+
+
+  const combine =
+    session
+      .snapshot
+      .stages
+      .find(
+        (
+          stage
+        ) =>
+          stage.stage ===
+          "combine"
+      );
+
+
+  return (
+    combine
+      ?.evidence_refs
+      .some(
+        (
+          reference
+        ) =>
+          reference.startsWith(
+            "combine_service:"
+          )
+      ) ??
+    false
+  );
+}
+
+
+function requiresCombineDiscoveryBeforeValidation(
+  session:
+    PreparationSessionView |
+    null
+): boolean {
+  return (
+    session !==
+      null &&
+    session
+      .selected_analysis_dataset_ids
+      .length >
+      1 &&
+    !hasCombineDiscoveryEvidence(
+      session
+    )
+  );
+}
 
 
 type ChartPoint = {
@@ -850,6 +917,10 @@ type RoutedUnifiedAnalysisReportView =
   UnifiedAnalysisReport & {
     entity_outlier_finding?:
       EntityOutlierFindingView |
+      null;
+
+    prioritization_audit?:
+      PrioritizationAuditView |
       null;
   };
 
@@ -22477,6 +22548,14 @@ export default function WorkspaceClient() {
     );
 
 
+  const preparationReadyForAnalysis =
+    Boolean(
+      preparationSession
+        ?.snapshot
+        .ready_for_analysis
+    );
+
+
   const submitDisabled =
     Boolean(
       analysisLoading ||
@@ -22485,9 +22564,7 @@ export default function WorkspaceClient() {
       cleaningApplyLoading ||
       datasetFiles.length ===
         0 ||
-      !preparationSession
-        ?.snapshot
-        .ready_for_analysis
+      !preparationReadyForAnalysis
     );
 
 
@@ -22507,10 +22584,12 @@ export default function WorkspaceClient() {
       aiNativeLoading ||
       aiPlanLoading ||
       ingestionLoading ||
+      preparationSessionLoading ||
       cleaningApplyLoading ||
       datasetFiles.length ===
         0 ||
-      !objective.trim()
+      !objective.trim() ||
+      !preparationReadyForAnalysis
     );
 
 
@@ -22940,7 +23019,11 @@ export default function WorkspaceClient() {
           "validate"
       ) {
         setActivePreparationStep(
-          "validation"
+          requiresCombineDiscoveryBeforeValidation(
+            synchronizedSession
+          )
+            ? "transform"
+            : "validation"
         );
       }
 
@@ -24044,7 +24127,11 @@ export default function WorkspaceClient() {
           "validate"
       ) {
         setActivePreparationStep(
-          "validation"
+          requiresCombineDiscoveryBeforeValidation(
+            synchronizedSession
+          )
+            ? "transform"
+            : "validation"
         );
       }
     } catch (
@@ -25038,6 +25125,42 @@ export default function WorkspaceClient() {
     }
 
 
+    if (
+      !preparationSession
+    ) {
+      setAiNativeError(
+        "La session de préparation est indisponible. Rechargez les données avant de poursuivre."
+      );
+
+      setActiveStep(
+        "preparation"
+      );
+
+      return;
+    }
+
+
+    if (
+      !preparationSession
+        .snapshot
+        .ready_for_analysis
+    ) {
+      setAiNativeError(
+        "L’exécution analytique est verrouillée jusqu’à la validation finale de la préparation."
+      );
+
+      setActiveStep(
+        "preparation"
+      );
+
+      setActivePreparationStep(
+        "validation"
+      );
+
+      return;
+    }
+
+
     const normalizedObjective =
       objective.trim();
 
@@ -25312,42 +25435,14 @@ export default function WorkspaceClient() {
       }
 
 
-      if (
-        appliedCleaningActionIds.length >
-        0
-      ) {
-        formData.append(
-          "approved_action_ids_json",
-          JSON.stringify(
-            appliedCleaningActionIds
-          )
-        );
-      }
-
-
-
-      if (
-        semanticCleaningExecution &&
-        semanticReview &&
-        appliedSemanticChoices.length >
-        0
-      ) {
-        formData.append(
-          "semantic_decisions_json",
-          JSON.stringify(
-            semanticReview.decisions
-          )
-        );
-
-        formData.append(
-          "approved_semantic_choices_json",
-          JSON.stringify(
-            appliedSemanticChoices
-          )
-        );
-      }
-
-
+      /*
+       * Preparation has already crossed VALIDATE here.
+       *
+       * Analysis must not receive cleaning or semantic-cleaning
+       * overrides. The backend Analysis Input Handoff loads the
+       * exact server-owned artifacts selected and certified during
+       * Preparation.
+       */
       const contextualized =
         documents.length >
         0;
@@ -26943,7 +27038,11 @@ export default function WorkspaceClient() {
                                     "validate"
                                   ) {
                                     setActivePreparationStep(
-                                      "validation"
+                                      requiresCombineDiscoveryBeforeValidation(
+                                        preparationSession
+                                      )
+                                        ? "transform"
+                                        : "validation"
                                     );
 
                                     return;
@@ -27087,6 +27186,15 @@ export default function WorkspaceClient() {
                             <PreparationTransformPanel
                               session={
                                 preparationSession
+                              }
+                              onSessionChange={
+                                (
+                                  updatedSession
+                                ) => {
+                                  setPreparationSession(
+                                    updatedSession
+                                  );
+                                }
                               }
                             />
                           )
@@ -27437,9 +27545,11 @@ export default function WorkspaceClient() {
                             {
                               aiNativeLoading
                                 ? "Analyse en cours…"
-                                : aiNativeReport
-                                  ? "Relancer l’analyse"
-                                  : "Exécuter l’analyse"
+                                : !preparationReadyForAnalysis
+                                  ? "Validation requise"
+                                  : aiNativeReport
+                                    ? "Relancer l’analyse"
+                                    : "Exécuter l’analyse"
                             }
                           </button>
                         </div>
@@ -27464,6 +27574,36 @@ export default function WorkspaceClient() {
                                 Ajoutez une demande d’analyse dans
                                 l’étape Documents pour préparer
                                 le plan analytique.
+                              </p>
+                            )
+                          : null
+                      }
+
+
+                      {
+                        objective.trim() &&
+                        !preparationReadyForAnalysis
+                          ? (
+                              <p
+                                style={{
+                                  margin:
+                                    "16px 0 0",
+
+                                  fontSize:
+                                    "0.78rem",
+
+                                  lineHeight:
+                                    1.55,
+
+                                  opacity:
+                                    0.66,
+                                }}
+                              >
+                                Le plan peut être préparé maintenant,
+                                mais son exécution reste verrouillée
+                                tant que l’étape Validation n’a pas
+                                autorisé l’entrée dans le moteur
+                                analytique.
                               </p>
                             )
                           : null
@@ -30037,6 +30177,18 @@ export default function WorkspaceClient() {
                                   styles.analysisDisclosureBody
                                 }
                               >
+                                {
+                                  report.prioritization_audit
+                                    ? (
+                                        <PrioritizationAuditPanel
+                                          audit={
+                                            report.prioritization_audit
+                                          }
+                                        />
+                                      )
+                                    : null
+                                }
+
                                 <CompactFindingList
                                   title="Analyses complémentaires"
                                   findings={

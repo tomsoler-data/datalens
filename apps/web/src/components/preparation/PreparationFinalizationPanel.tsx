@@ -7,6 +7,7 @@ import {
 } from "react";
 
 import {
+  explainPreparationAnalysisOutput,
   getPreparationAnalysisOutputCandidates,
   selectPreparationAnalysisOutput,
 } from "./preparationApi";
@@ -14,6 +15,7 @@ import {
 import type {
   PreparationAnalysisOutputCandidate,
   PreparationAnalysisOutputCandidatesResponse,
+  PreparationOutputExplanationResponse,
   PreparationSessionView,
   PreparationStageRecord,
   PreparationStageStatus,
@@ -151,6 +153,180 @@ function sameDatasetSelection(
 }
 
 
+function terminalCandidateDatasetIds(
+  candidates:
+    PreparationAnalysisOutputCandidate[]
+): string[] {
+  const usedAsParent =
+    new Set(
+      candidates.flatMap(
+        (
+          candidate
+        ) =>
+          candidate
+            .parent_dataset_ids
+            .filter(
+              (
+                parentDatasetId
+              ) =>
+                parentDatasetId !==
+                candidate.dataset_id
+            )
+      )
+    );
+
+
+  return candidates
+    .filter(
+      (
+        candidate
+      ) =>
+        !usedAsParent.has(
+          candidate.dataset_id
+        )
+    )
+    .map(
+      (
+        candidate
+      ) =>
+        candidate.dataset_id
+    );
+}
+
+
+function collectAncestorDatasetIds(
+  datasetId:
+    string,
+
+  candidates:
+    PreparationAnalysisOutputCandidate[]
+): Set<
+  string
+> {
+  const candidateById =
+    new Map(
+      candidates.map(
+        (
+          candidate
+        ) => [
+          candidate.dataset_id,
+          candidate,
+        ]
+      )
+    );
+
+
+  const ancestors =
+    new Set<
+      string
+    >();
+
+
+  const visit =
+    (
+      currentId:
+        string
+    ) => {
+      const candidate =
+        candidateById.get(
+          currentId
+        );
+
+
+      if (
+        !candidate
+      ) {
+        return;
+      }
+
+
+      for (
+        const parentId
+        of candidate
+          .parent_dataset_ids
+      ) {
+        if (
+          parentId ===
+            currentId ||
+          ancestors.has(
+            parentId
+          )
+        ) {
+          continue;
+        }
+
+
+        ancestors.add(
+          parentId
+        );
+
+        visit(
+          parentId
+        );
+      }
+    };
+
+
+  visit(
+    datasetId
+  );
+
+
+  return ancestors;
+}
+
+
+function lineageRelatedDatasetIds(
+  datasetId:
+    string,
+
+  candidates:
+    PreparationAnalysisOutputCandidate[]
+): Set<
+  string
+> {
+  const related =
+    collectAncestorDatasetIds(
+      datasetId,
+      candidates
+    );
+
+
+  for (
+    const candidate
+    of candidates
+  ) {
+    if (
+      candidate.dataset_id ===
+      datasetId
+    ) {
+      continue;
+    }
+
+
+    const candidateAncestors =
+      collectAncestorDatasetIds(
+        candidate.dataset_id,
+        candidates
+      );
+
+
+    if (
+      candidateAncestors.has(
+        datasetId
+      )
+    ) {
+      related.add(
+        candidate.dataset_id
+      );
+    }
+  }
+
+
+  return related;
+}
+
+
 export default function PreparationFinalizationPanel({
   session,
   loading,
@@ -229,6 +405,29 @@ export default function PreparationFinalizationPanel({
   );
 
 
+  const [
+    outputExplanations,
+    setOutputExplanations,
+  ] = useState<
+    Record<
+      string,
+      PreparationOutputExplanationResponse
+    >
+  >(
+    {}
+  );
+
+
+  const [
+    outputExplanationLoadingIds,
+    setOutputExplanationLoadingIds,
+  ] = useState<
+    string[]
+  >(
+    []
+  );
+
+
   useEffect(
     () => {
       setLocalSession(
@@ -239,6 +438,16 @@ export default function PreparationFinalizationPanel({
       setDraftDatasetIds(
         session
           ?.analysis_output_dataset_ids ??
+        []
+      );
+
+
+      setOutputExplanations(
+        {}
+      );
+
+
+      setOutputExplanationLoadingIds(
         []
       );
     },
@@ -301,10 +510,106 @@ export default function PreparationFinalizationPanel({
           );
 
 
-          setDraftDatasetIds(
+          const committedOutputIds =
             response
-              .analysis_output_dataset_ids
+              .analysis_output_dataset_ids;
+
+
+          const terminalIds =
+            terminalCandidateDatasetIds(
+              response.candidates
+            );
+
+
+          setDraftDatasetIds(
+            committedOutputIds.length >
+              0
+              ? committedOutputIds
+              : terminalIds
           );
+
+
+          setOutputExplanationLoadingIds(
+            terminalIds
+          );
+
+
+          for (
+            const datasetId
+            of terminalIds
+          ) {
+            void explainPreparationAnalysisOutput(
+              workflowId,
+              datasetId,
+              true,
+              controller.signal
+            )
+              .then(
+                (
+                  explanationResponse
+                ) => {
+                  if (
+                    controller.signal.aborted
+                  ) {
+                    return;
+                  }
+
+
+                  setOutputExplanations(
+                    (
+                      current
+                    ) => ({
+                      ...current,
+
+                      [
+                        datasetId
+                      ]:
+                        explanationResponse,
+                    })
+                  );
+                }
+              )
+              .catch(
+                (
+                  caughtError
+                ) => {
+                  if (
+                    controller.signal.aborted
+                  ) {
+                    return;
+                  }
+
+
+                  console.error(
+                    "Preparation output explanation failed:",
+                    caughtError
+                  );
+                }
+              )
+              .finally(
+                () => {
+                  if (
+                    controller.signal.aborted
+                  ) {
+                    return;
+                  }
+
+
+                  setOutputExplanationLoadingIds(
+                    (
+                      current
+                    ) =>
+                      current.filter(
+                        (
+                          currentId
+                        ) =>
+                          currentId !==
+                          datasetId
+                      )
+                  );
+                }
+              );
+          }
         } catch (
           caughtError
         ) {
@@ -454,6 +759,66 @@ export default function PreparationFinalizationPanel({
     [];
 
 
+  const terminalDatasetIds =
+    useMemo(
+      () =>
+        terminalCandidateDatasetIds(
+          candidates
+        ),
+      [
+        candidates,
+      ]
+    );
+
+
+  const terminalDatasetIdSet =
+    useMemo(
+      () =>
+        new Set(
+          terminalDatasetIds
+        ),
+      [
+        terminalDatasetIds,
+      ]
+    );
+
+
+  const supersededDatasetIdSet =
+    useMemo(
+      () => {
+        const terminalAncestors =
+          new Set<
+            string
+          >();
+
+
+        for (
+          const terminalDatasetId
+          of terminalDatasetIds
+        ) {
+          for (
+            const ancestorId
+            of collectAncestorDatasetIds(
+              terminalDatasetId,
+              candidates
+            )
+          ) {
+            terminalAncestors.add(
+              ancestorId
+            );
+          }
+        }
+
+
+        return terminalAncestors;
+      },
+      [
+        candidates,
+        terminalDatasetIds,
+      ]
+    );
+
+
   const draftChanged =
     !sameDatasetSelection(
       draftDatasetIds,
@@ -522,21 +887,42 @@ export default function PreparationFinalizationPanel({
     setDraftDatasetIds(
       (
         current
-      ) =>
-        current.includes(
-          datasetId
-        )
-          ? current.filter(
-              (
+      ) => {
+        if (
+          current.includes(
+            datasetId
+          )
+        ) {
+          return current.filter(
+            (
+              currentId
+            ) =>
+              currentId !==
+              datasetId
+          );
+        }
+
+
+        const relatedDatasetIds =
+          lineageRelatedDatasetIds(
+            datasetId,
+            candidates
+          );
+
+
+        return [
+          ...current.filter(
+            (
+              currentId
+            ) =>
+              !relatedDatasetIds.has(
                 currentId
-              ) =>
-                currentId !==
-                datasetId
-            )
-          : [
-              ...current,
-              datasetId,
-            ]
+              )
+          ),
+
+          datasetId,
+        ];
+      }
     );
   }
 
@@ -715,9 +1101,10 @@ export default function PreparationFinalizationPanel({
             </h4>
 
             <p>
-              Sélectionnez uniquement les datasets réellement
-              nécessaires à l’analyse. Une sortie issue de COMBINE,
-              TRANSFORM ou CLEAN peut remplacer ses datasets source.
+              DataLens présélectionne les artefacts terminaux de la
+              lineage. Une sortie issue de COMBINE, TRANSFORM ou CLEAN
+              remplace automatiquement ses ancêtres pour éviter
+              d’analyser plusieurs fois la même information.
             </p>
           </div>
 
@@ -793,8 +1180,7 @@ export default function PreparationFinalizationPanel({
                   {
                     candidates.map(
                       (
-                        candidate,
-                        index
+                        candidate
                       ) => {
                         const checked =
                           draftDatasetIds.includes(
@@ -802,8 +1188,24 @@ export default function PreparationFinalizationPanel({
                           );
 
                         const recommended =
-                          index ===
-                          0;
+                          terminalDatasetIdSet.has(
+                            candidate.dataset_id
+                          );
+
+                        const superseded =
+                          supersededDatasetIdSet.has(
+                            candidate.dataset_id
+                          );
+
+                        const outputExplanation =
+                          outputExplanations[
+                            candidate.dataset_id
+                          ];
+
+                        const outputExplanationLoading =
+                          outputExplanationLoadingIds.includes(
+                            candidate.dataset_id
+                          );
 
                         return (
                           <label
@@ -878,10 +1280,16 @@ export default function PreparationFinalizationPanel({
                                     recommended
                                       ? (
                                           <span>
-                                            Prioritaire
+                                            Sortie finale
                                           </span>
                                         )
-                                      : null
+                                      : superseded
+                                        ? (
+                                            <span>
+                                              Intermédiaire
+                                            </span>
+                                          )
+                                        : null
                                   }
 
                                   {
@@ -974,6 +1382,155 @@ export default function PreparationFinalizationPanel({
                                       </p>
                                     )
                               }
+
+
+                              {
+                                recommended
+                                  ? (
+                                      <div
+                                        className={
+                                          styles.outputExplanation
+                                        }
+                                      >
+                                        <div
+                                          className={
+                                            styles.outputExplanationHead
+                                          }
+                                        >
+                                          <span>
+                                            Pourquoi cette sortie ?
+                                          </span>
+
+                                          <strong>
+                                            {
+                                              outputExplanation
+                                                ?.explanation
+                                                ?.python_validated
+                                                ? "Explication validée par Python"
+                                                : outputExplanationLoading
+                                                  ? "Gemma prépare l’explication…"
+                                                  : "Preuves Python"
+                                            }
+                                          </strong>
+                                        </div>
+
+
+                                        {
+                                          outputExplanation
+                                            ?.explanation
+                                            ? (
+                                                <>
+                                                  <h5>
+                                                    {
+                                                      outputExplanation
+                                                        .explanation
+                                                        .title
+                                                    }
+                                                  </h5>
+
+                                                  <p>
+                                                    {
+                                                      outputExplanation
+                                                        .explanation
+                                                        .explanation
+                                                    }
+                                                  </p>
+
+                                                  <p
+                                                    className={
+                                                      styles.outputExplanationMessage
+                                                    }
+                                                  >
+                                                    {
+                                                      outputExplanation
+                                                        .explanation
+                                                        .user_message
+                                                    }
+                                                  </p>
+
+
+                                                  {
+                                                    outputExplanation
+                                                      .explanation
+                                                      .cautions
+                                                      .length >
+                                                    0
+                                                      ? (
+                                                          <div
+                                                            className={
+                                                              styles.outputExplanationCautions
+                                                            }
+                                                          >
+                                                            {
+                                                              outputExplanation
+                                                                .explanation
+                                                                .cautions
+                                                                .map(
+                                                                  (
+                                                                    caution
+                                                                  ) => (
+                                                                    <span
+                                                                      key={
+                                                                        caution
+                                                                      }
+                                                                    >
+                                                                      {
+                                                                        caution
+                                                                      }
+                                                                    </span>
+                                                                  )
+                                                                )
+                                                            }
+                                                          </div>
+                                                        )
+                                                      : null
+                                                  }
+                                                </>
+                                              )
+                                            : outputExplanation
+                                                ?.ai_error
+                                              ? (
+                                                  <>
+                                                    <p>
+                                                      {
+                                                        outputExplanation
+                                                          .facts
+                                                          .deterministic_reasons[
+                                                            0
+                                                          ] ??
+                                                        "Cette sortie est terminale dans la lineage courante."
+                                                      }
+                                                    </p>
+
+                                                    <small
+                                                      className={
+                                                        styles.outputExplanationFallback
+                                                      }
+                                                    >
+                                                      Explication IA indisponible. La recommandation Python reste valide.
+                                                    </small>
+                                                  </>
+                                                )
+                                              : outputExplanationLoading
+                                                ? (
+                                                    <p>
+                                                      La recommandation est déjà déterminée par Python.
+                                                      Le modèle local transforme maintenant ces preuves
+                                                      en une explication courte pour l’analyste.
+                                                    </p>
+                                                  )
+                                                : (
+                                                    <p>
+                                                      Cette sortie est terminale dans la lineage
+                                                      et remplace ses artefacts ancêtres dans le
+                                                      scope analytique final.
+                                                    </p>
+                                                  )
+                                        }
+                                      </div>
+                                    )
+                                  : null
+                              }
                             </div>
 
                             <span
@@ -1060,7 +1617,18 @@ export default function PreparationFinalizationPanel({
                     )
                   : (
                       <p>
-                        Aucune sortie finale n’est encore committée.
+                        {
+                          draftDatasetIds.length >
+                          0
+                            ? (
+                                "DataLens a présélectionné la frontière " +
+                                "finale de la lineage. Confirmez-la pour " +
+                                "l’enregistrer côté serveur."
+                              )
+                            : (
+                                "Aucune sortie finale n’est encore committée."
+                              )
+                        }
                       </p>
                     )
             }
