@@ -14,6 +14,11 @@ from fastapi.testclient import (
 )
 
 
+from starlette.datastructures import (
+    UploadFile,
+)
+
+
 from main import (
     app,
 )
@@ -24,8 +29,21 @@ from app.api.analysis_run import (
 )
 
 
+from app.api.routes import (
+    load_uploaded_dataset_bundle,
+)
+
+
+from app.preparation.preparation_artifact_store import (
+    put_preparation_artifact,
+    reset_preparation_artifact_store_for_tests,
+)
+
+
 from app.preparation.preparation_session import (
     create_preparation_session,
+    get_preparation_session,
+    record_analysis_output_selection,
     record_required_stage_signal,
     record_validation_stage_signal,
     reset_preparation_session_store_for_tests,
@@ -147,6 +165,10 @@ def make_ready_session():
     )
 
 
+    # ========================================================
+    # REQUIRED PREPARATION STAGES
+    # ========================================================
+
     for (
         stage,
         evidence_ref,
@@ -185,6 +207,124 @@ def make_ready_session():
         )
 
 
+    # ========================================================
+    # SERVER-OWNED SOURCE ARTIFACTS
+    # ========================================================
+
+    uploads = [
+        UploadFile(
+            file=(
+                DATA_DIR
+                /
+                filename
+            ).open(
+                "rb"
+            ),
+
+            filename=
+                filename,
+        )
+
+        for filename
+        in DATASET_FILENAMES
+    ]
+
+
+    (
+        _,
+        source_records,
+    ) = (
+        load_uploaded_dataset_bundle(
+            uploads
+        )
+    )
+
+
+    actual_dataset_ids = [
+        str(
+            record[
+                "dataset_id"
+            ]
+        )
+
+        for record
+        in source_records
+    ]
+
+
+    assert (
+        actual_dataset_ids
+        ==
+        DATASET_IDS
+    )
+
+
+    for record in (
+        source_records
+    ):
+        put_preparation_artifact(
+            workflow_id=
+                session.workflow_id,
+
+            dataset_id=
+                str(
+                    record[
+                        "dataset_id"
+                    ]
+                ),
+
+            dataset_filename=
+                str(
+                    record[
+                        "filename"
+                    ]
+                ),
+
+            stage=
+                "source",
+
+            dataframe=
+                record[
+                    "dataframe"
+                ],
+
+            parent_dataset_ids=[],
+
+            evidence_refs=[
+                "test:lapage-production-ingestion"
+            ],
+        )
+
+
+    # ========================================================
+    # FINAL ANALYSIS OUTPUT SELECTION
+    # ========================================================
+
+    before_selection = (
+        get_preparation_session(
+            session.workflow_id
+        )
+    )
+
+
+    selected = (
+        record_analysis_output_selection(
+            workflow_id=
+                session.workflow_id,
+
+            analysis_output_dataset_ids=
+                DATASET_IDS,
+
+            expected_revision=
+                before_selection.revision,
+        )
+    )
+
+
+    # ========================================================
+    # VALIDATE
+    # ========================================================
+
     ready = (
         record_validation_stage_signal(
             workflow_id=
@@ -204,6 +344,9 @@ def make_ready_session():
             ],
 
             blocking_reasons=[],
+
+            expected_revision=
+                selected.revision,
         )
     )
 
@@ -732,6 +875,8 @@ def main() -> None:
 
     reset_preparation_session_store_for_tests()
 
+    reset_preparation_artifact_store_for_tests()
+
 
     print()
     print(
@@ -749,6 +894,8 @@ def main() -> None:
 
 
     reset_preparation_session_store_for_tests()
+
+    reset_preparation_artifact_store_for_tests()
 
 
     test_explicit_customer_outliers_are_attached_to_analysis_report()
