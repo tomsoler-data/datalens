@@ -23,7 +23,7 @@ from app.evals.decision_router_runner_v0_7 import (
 
 BASE_DIR = Path(
     __file__,
-).resolve().parent
+).resolve().parents[2]
 
 
 BENCHMARK_PATH = (
@@ -38,13 +38,12 @@ RESULTS_DIR = (
     / "evals"
     / "results"
     / "router_v0_7"
-    / "train_baseline"
 )
 
 
 COMBINED_OUTPUT_PATH = (
     RESULTS_DIR
-    / "decision_router_train_baseline_v0_7.json"
+    / "decision_router_validation_baseline_v0_7.json"
 )
 
 
@@ -264,7 +263,7 @@ def print_case_result(
 
 
 # ============================================================
-# MODEL SUMMARY
+# DISPLAY MODEL SUMMARY
 # ============================================================
 
 def print_model_summary(
@@ -346,14 +345,35 @@ def print_model_summary(
     )
 
 
+    print(
+        "Average inference:",
+        round(
+            report[
+                "average_inference_ms"
+            ],
+            1,
+        ),
+        "ms",
+    )
+
+
+    print(
+        "Generation errors:",
+        report[
+            "generation_error_count"
+        ],
+    )
+
+
+    print()
+
+
     accuracy = (
         report[
             "accuracy_by_expected"
         ]
     )
 
-
-    print()
 
     print(
         "Analyze accuracy:",
@@ -388,14 +408,15 @@ def print_model_summary(
     )
 
 
+    print()
+
+
     diagnostics = (
         report[
             "diagnostics"
         ]
     )
 
-
-    print()
 
     print(
         "Unsafe executions:",
@@ -421,26 +442,6 @@ def print_model_summary(
     )
 
 
-    print(
-        "Generation errors:",
-        report[
-            "generation_error_count"
-        ],
-    )
-
-
-    print(
-        "Average inference:",
-        round(
-            report[
-                "average_inference_ms"
-            ],
-            1,
-        ),
-        "ms",
-    )
-
-
 # ============================================================
 # MAIN
 # ============================================================
@@ -448,7 +449,7 @@ def print_model_summary(
 def main() -> None:
 
     print(
-        "=== DATALENS DECISION ROUTER TRAIN BASELINE v0.7 ==="
+        "=== DATALENS DECISION ROUTER BASELINE v0.7 ==="
     )
 
     print()
@@ -473,7 +474,7 @@ def main() -> None:
 
 
     print(
-        "Split: train"
+        "Split: validation"
     )
 
 
@@ -491,13 +492,22 @@ def main() -> None:
 
 
     print(
-        "Purpose:"
+        "IMPORTANT:"
     )
 
 
     print(
-        "Establish the baseline on TRAIN cases before "
-        "changing the router prompt."
+        "Only the development VALIDATION split is used."
+    )
+
+
+    print(
+        "The 9 training cases are not sent to the models."
+    )
+
+
+    print(
+        "The frozen v0.6 benchmark is not used."
     )
 
 
@@ -505,20 +515,20 @@ def main() -> None:
 
 
     # ========================================================
-    # LOAD TRAIN ONLY
+    # LOAD VALIDATION ONLY
     # ========================================================
 
-    train_cases = (
+    validation_cases = (
         load_decision_router_benchmark(
             BENCHMARK_PATH,
-            split="train",
+            split="validation",
         )
     )
 
 
     assert (
         len(
-            train_cases
+            validation_cases
         )
         == 9
     )
@@ -527,14 +537,14 @@ def main() -> None:
     assert all(
         not case.frozen
         for case
-        in train_cases
+        in validation_cases
     )
 
 
     print(
-        "Train cases:",
+        "Validation cases:",
         len(
-            train_cases
+            validation_cases
         ),
     )
 
@@ -572,10 +582,13 @@ def main() -> None:
         )
 
 
+        print()
+
+
         report = (
             run_router_model(
                 model=model,
-                cases=train_cases,
+                cases=validation_cases,
             )
         )
 
@@ -634,7 +647,7 @@ def main() -> None:
 
 
     # ========================================================
-    # TABLE
+    # FINAL TABLE
     # ========================================================
 
     print()
@@ -645,7 +658,7 @@ def main() -> None:
 
 
     print(
-        "DECISION ROUTER TRAIN BASELINE"
+        "DECISION ROUTER VALIDATION RANKING"
     )
 
 
@@ -751,7 +764,7 @@ def main() -> None:
 
 
     # ========================================================
-    # SAVE
+    # SAVE COMBINED RESULT
     # ========================================================
 
     RESULTS_DIR.mkdir(
@@ -760,7 +773,7 @@ def main() -> None:
     )
 
 
-    payload = {
+    combined_payload = {
         "evaluation":
             DECISION_ROUTER_RUNNER_VERSION,
 
@@ -773,7 +786,7 @@ def main() -> None:
             ),
 
         "split":
-            "train",
+            "validation",
 
         "frozen":
             False,
@@ -784,10 +797,13 @@ def main() -> None:
         "thinking":
             False,
 
+        "models":
+            MODELS,
+
         "ranking": [
             {
                 "rank":
-                    rank,
+                    index,
 
                 "model":
                     report[
@@ -840,7 +856,7 @@ def main() -> None:
                     ],
             }
 
-            for rank, report
+            for index, report
             in enumerate(
                 ranking,
                 start=1,
@@ -854,7 +870,7 @@ def main() -> None:
 
     COMBINED_OUTPUT_PATH.write_text(
         json.dumps(
-            payload,
+            combined_payload,
             ensure_ascii=False,
             indent=2,
         ),
@@ -873,7 +889,7 @@ def main() -> None:
     print()
 
     print(
-        "Decision Router train baseline v0.7: PASS"
+        "Decision Router baseline v0.7: PASS"
     )
 
 
