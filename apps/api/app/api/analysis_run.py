@@ -69,6 +69,15 @@ from app.discovery.schemas import (
     AnalysisDiscoveryReport,
 )
 
+from app.analysis_prioritization import (
+    ANALYSIS_PRIORITIZATION_RULE_VERSION,
+    ANALYTICAL_VALUE_GUARD_RULE_VERSION,
+    AnalysisPrioritizationAudit,
+    build_analysis_prioritization_audit,
+    build_prioritized_execution_discovery,
+    prioritize_analysis_discovery,
+)
+
 from app.document_summary import (
     DocumentSummaryReport,
     summarize_document_ingestion,
@@ -248,6 +257,11 @@ class RoutedUnifiedAnalysisReport(
 
     entity_outlier_finding: (
         EntityOutlierFinding
+        | None
+    ) = None
+
+    prioritization_audit: (
+        AnalysisPrioritizationAudit
         | None
     ) = None
 
@@ -463,6 +477,11 @@ def build_routed_unified_analysis_report(
         EntityOutlierFinding
         | None
     ),
+
+    prioritization_audit: (
+        AnalysisPrioritizationAudit
+        | None
+    ) = None,
 ) -> RoutedUnifiedAnalysisReport:
     """
     Preserve the existing UnifiedAnalysisReport wire contract
@@ -483,6 +502,13 @@ def build_routed_unified_analysis_report(
         "entity_outlier_finding"
     ] = (
         entity_outlier_finding
+    )
+
+
+    payload[
+        "prioritization_audit"
+    ] = (
+        prioritization_audit
     )
 
 
@@ -2186,24 +2212,52 @@ def run_unified_analysis_from_prepared_records(
     ],
 ) -> UnifiedAnalysisReport:
     """
-    Execute the deterministic unified-analysis
-    pipeline from already prepared datasets.
+    Execute the deterministic unified-analysis pipeline from
+    already prepared datasets.
 
-    Analytical views are not rebuilt here.
+    Discovery remains broad and auditable.
 
-    This allows the requested-analysis executor
-    and the exploratory pipeline to consume the
-    exact same deterministic analytical datasets.
+    Only the deterministic prioritization shortlist is sent to
+    exploratory executors and ranking.
+
+    Explicit Requested Analysis is intentionally outside this
+    function and therefore remains unaffected by exploratory
+    prioritization.
     """
 
     # ========================================================
-    # 1. SINGLE EXECUTION
+    # 1. EXPLORATORY PRIORITIZATION
+    # ========================================================
+
+    prioritization = (
+        prioritize_analysis_discovery(
+            discovery,
+
+            datasets=
+                analysis_datasets,
+        )
+    )
+
+
+    execution_discovery = (
+        build_prioritized_execution_discovery(
+            source_discovery=
+                discovery,
+
+            prioritization=
+                prioritization,
+        )
+    )
+
+
+    # ========================================================
+    # 2. SINGLE EXECUTION — SHORTLIST ONLY
     # ========================================================
 
     single_execution = (
         execute_single_dataset_discovery(
             discovery=
-                discovery,
+                execution_discovery,
 
             datasets=
                 analysis_datasets,
@@ -2212,7 +2266,7 @@ def run_unified_analysis_from_prepared_records(
 
 
     # ========================================================
-    # 2. AGGREGATE BREAKDOWN EXECUTION
+    # 3. AGGREGATE BREAKDOWN EXECUTION — SHORTLIST ONLY
     # ========================================================
 
     single_execution = (
@@ -2220,7 +2274,7 @@ def run_unified_analysis_from_prepared_records(
             single_execution,
 
             discovery=
-                discovery,
+                execution_discovery,
 
             datasets=
                 analysis_datasets,
@@ -2229,13 +2283,13 @@ def run_unified_analysis_from_prepared_records(
 
 
     # ========================================================
-    # 3. CROSS EXECUTION
+    # 4. CROSS EXECUTION — SHORTLIST ONLY
     # ========================================================
 
     cross_execution = (
         execute_cross_dataset_discovery(
             discovery=
-                discovery,
+                execution_discovery,
 
             datasets=
                 analysis_datasets,
@@ -2244,13 +2298,13 @@ def run_unified_analysis_from_prepared_records(
 
 
     # ========================================================
-    # 4. NORMAL UNIFIED RANKING
+    # 5. NORMAL UNIFIED RANKING — SHORTLIST ONLY
     # ========================================================
 
     ranking = (
         rank_unified_analysis(
             discovery=
-                discovery,
+                execution_discovery,
 
             single_execution=
                 single_execution,
@@ -2265,7 +2319,7 @@ def run_unified_analysis_from_prepared_records(
 
 
     # ========================================================
-    # 5. AGGREGATE BREAKDOWN RANKING
+    # 6. AGGREGATE BREAKDOWN RANKING — SHORTLIST ONLY
     # ========================================================
 
     ranking = (
@@ -2273,13 +2327,13 @@ def run_unified_analysis_from_prepared_records(
             ranking,
 
             discovery=
-                discovery,
+                execution_discovery,
         )
     )
 
 
     # ========================================================
-    # 6. FEATURE LINEAGE RANKING
+    # 7. FEATURE LINEAGE RANKING — SHORTLIST ONLY
     # ========================================================
 
     ranking = (
@@ -2287,19 +2341,24 @@ def run_unified_analysis_from_prepared_records(
             ranking,
 
             discovery=
-                discovery,
+                execution_discovery,
         )
     )
 
 
     # ========================================================
-    # 7. USER-FACING REPORT
+    # 8. USER-FACING REPORT — EXECUTED SHORTLIST
+    # ========================================================
+    #
+    # Deferred candidates must not be represented as execution
+    # failures merely because they were not selected by the
+    # exploratory execution budget.
     # ========================================================
 
     report = (
         compose_unified_report(
             discovery=
-                discovery,
+                execution_discovery,
 
             single_execution=
                 single_execution,
@@ -2320,7 +2379,16 @@ def run_unified_analysis_from_prepared_records(
 
 
     # ========================================================
-    # 8. FINAL FAMILY NORMALIZATION
+    # 9. RESTORE BROAD DISCOVERY INVENTORY
+    # ========================================================
+
+    report.inventory.discovered_analysis_count = (
+        discovery.candidate_count
+    )
+
+
+    # ========================================================
+    # 10. FINAL FAMILY NORMALIZATION — SHORTLIST ONLY
     # ========================================================
 
     report = (
@@ -2328,13 +2396,43 @@ def run_unified_analysis_from_prepared_records(
             report,
 
             discovery=
-                discovery,
+                execution_discovery,
         )
     )
 
 
     # ========================================================
-    # 9. TRACEABILITY NOTE
+    # 11. PRIORITIZATION TRACEABILITY
+    # ========================================================
+
+    prioritization_note = (
+        "Priorisation exploratoire avant exécution : "
+        f"{prioritization.selected_count} analyse(s) retenue(s) "
+        f"sur {prioritization.discovered_count} découverte(s), "
+        f"{prioritization.deferred_count} différée(s) et "
+        f"{prioritization.rejected_count} rejetée(s). "
+        "La Discovery complète reste comptabilisée dans "
+        "l'inventaire public. Les analyses explicitement "
+        "demandées sont exécutées séparément par le flux "
+        "Requested Analysis et ne sont pas limitées par ce "
+        "budget exploratoire. "
+        "Règles : "
+        f"{ANALYSIS_PRIORITIZATION_RULE_VERSION} + "
+        f"{ANALYTICAL_VALUE_GUARD_RULE_VERSION}."
+    )
+
+
+    if (
+        prioritization_note
+        not in report.methodology_notes
+    ):
+        report.methodology_notes.append(
+            prioritization_note
+        )
+
+
+    # ========================================================
+    # 12. INTERNAL VIEW TRACEABILITY
     # ========================================================
 
     internal_view_count = (
@@ -2424,6 +2522,88 @@ def run_unified_analysis_from_records(
             analysis_datasets=
                 analysis_datasets,
         )
+    )
+
+
+def run_unified_analysis_from_records_with_prioritization_audit(
+    *,
+    source_dataset_records: list[
+        dict[
+            str,
+            Any,
+        ]
+    ],
+
+    objective: (
+        str
+        | None
+    ),
+) -> tuple[
+    UnifiedAnalysisReport,
+    AnalysisPrioritizationAudit,
+]:
+    """
+    Execute the deterministic analysis and expose the exact
+    prioritization decisions as a compact public audit view.
+
+    The audit recomputes only the deterministic prioritization
+    decision layer from the same Discovery + prepared datasets.
+    Statistical execution is not repeated.
+    """
+
+    normalized_objective = (
+        normalize_objective(
+            objective
+        )
+    )
+
+
+    (
+        discovery,
+        analysis_datasets,
+    ) = prepare_analysis_datasets(
+        source_datasets=
+            source_dataset_records,
+
+        objective=
+            normalized_objective,
+    )
+
+
+    report = (
+        run_unified_analysis_from_prepared_records(
+            source_dataset_records=
+                source_dataset_records,
+
+            discovery=
+                discovery,
+
+            analysis_datasets=
+                analysis_datasets,
+        )
+    )
+
+
+    prioritization = (
+        prioritize_analysis_discovery(
+            discovery,
+
+            datasets=
+                analysis_datasets,
+        )
+    )
+
+
+    audit = (
+        build_analysis_prioritization_audit(
+            prioritization
+        )
+    )
+
+
+    return (
+        report,
+        audit,
     )
 
 
@@ -2617,8 +2797,11 @@ def run_unified_analysis_from_uploads(
     )
 
 
-    report = (
-        run_unified_analysis_from_records(
+    (
+        report,
+        prioritization_audit,
+    ) = (
+        run_unified_analysis_from_records_with_prioritization_audit(
             source_dataset_records=
                 analysis_source_records,
 
@@ -2657,6 +2840,9 @@ def run_unified_analysis_from_uploads(
 
             entity_outlier_finding=
                 entity_outlier_finding,
+
+            prioritization_audit=
+                prioritization_audit,
         )
     )
 
@@ -3929,6 +4115,18 @@ def run_contextualized_dataset_analysis(
     )
 
 
+    prioritization_audit = (
+        build_analysis_prioritization_audit(
+            prioritize_analysis_discovery(
+                discovery,
+
+                datasets=
+                    analysis_datasets,
+            )
+        )
+    )
+
+
     # ========================================================
     # 8. ATTACH REQUESTED FINDINGS
     # ========================================================
@@ -3976,6 +4174,9 @@ def run_contextualized_dataset_analysis(
 
             entity_outlier_finding=
                 entity_outlier_finding,
+
+            prioritization_audit=
+                prioritization_audit,
         )
     )
 

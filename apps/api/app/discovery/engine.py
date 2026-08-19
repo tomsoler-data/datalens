@@ -57,6 +57,11 @@ MIN_ENTITY_LEVELS = 3
 MAX_ENTITY_LEVELS = 1000
 
 
+DISCOVERY_CANDIDATE_IDENTITY_RULE_VERSION = (
+    "discovery_candidate_identity_v0.1"
+)
+
+
 # ============================================================
 # SEMANTIC SIGNALS
 # ============================================================
@@ -1704,6 +1709,40 @@ def discover_distributions(
 # TIME SERIES
 # ============================================================
 
+def build_time_series_analysis_id(
+    *,
+    dataset_id: str,
+    time_column: str,
+    value_column: str,
+) -> str:
+    """
+    Build the canonical identity of a time-series candidate.
+
+    A time-series analysis is defined by three structural parts:
+
+        dataset
+        temporal axis
+        value measure
+
+    The previous contract omitted ``time_column`` and could
+    therefore generate the same public analysis_id for two
+    distinct analyses such as:
+
+        quantity by order_date
+        quantity by signup_date
+
+    The readable normalized components are deterministic and
+    aligned with the existing DataLens ID conventions.
+    """
+
+    return (
+        f"{dataset_id}:"
+        f"time:"
+        f"{normalize_text(time_column)}:"
+        f"{normalize_text(value_column)}"
+    )
+
+
 def discover_time_series(
     profile: DatasetProfile,
     *,
@@ -1859,9 +1898,16 @@ def discover_time_series(
             results.append(
                 DiscoveredAnalysis(
                     analysis_id=(
-                        f"{profile.dataset_id}:"
-                        f"time:"
-                        f"{normalize_text(value_column)}"
+                        build_time_series_analysis_id(
+                            dataset_id=
+                                profile.dataset_id,
+
+                            time_column=
+                                time_column,
+
+                            value_column=
+                                value_column,
+                        )
                     ),
 
                     scope=
@@ -4087,6 +4133,15 @@ def discover_analyses(
             "exécution à partir de l'importance "
             "réelle des résultats et de leur "
             "redondance."
+        ),
+
+        (
+            "L'identité des candidats de séries temporelles "
+            "inclut explicitement le dataset, la colonne "
+            "temporelle et la mesure afin d'éviter les "
+            "collisions entre analyses distinctes. "
+            "Règle : "
+            f"{DISCOVERY_CANDIDATE_IDENTITY_RULE_VERSION}."
         ),
     ]
 
