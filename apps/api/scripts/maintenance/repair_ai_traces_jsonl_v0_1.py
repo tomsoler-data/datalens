@@ -17,7 +17,7 @@ from typing import Any
 DEFAULT_TRACE_PATH = (
     Path(__file__)
     .resolve()
-    .parent
+    .parents[2]
     /
     "data"
     /
