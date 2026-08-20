@@ -10,7 +10,7 @@ from pathlib import Path
 # ============================================================
 
 PROMOTION_VERSION = (
-    "dataset_dependency_prompt_production_promotion_v1.0"
+    "analytical_planner_prompt_production_promotion_v1.0"
 )
 
 
@@ -23,7 +23,7 @@ BASE_DIR = (
         __file__
     )
     .resolve()
-    .parent
+    .parents[2]
 )
 
 
@@ -31,7 +31,7 @@ SOURCE_PATH = (
     BASE_DIR
     / "app"
     / "evals"
-    / "dataset_dependency_extractor_v0_8.py"
+    / "analytical_planner_model_runner_v0_9.py"
 )
 
 
@@ -39,36 +39,26 @@ TARGET_PATH = (
     BASE_DIR
     / "app"
     / "ai"
-    / "dataset_dependency_prompt_v1.py"
+    / "analytical_planner_prompt_v1.py"
 )
 
 
 # ============================================================
-# HISTORICAL CONSTANT NAMES
+# SOURCE CONSTANTS
 # ============================================================
 
 SOURCE_PROMPT_NAME = (
-    "SYSTEM_PROMPT_V0_8"
+    "SYSTEM_PROMPT_V0_9"
 )
 
 
 SOURCE_VERSION_NAME = (
-    "DATASET_DEPENDENCY_PROMPT_VERSION"
-)
-
-
-SOURCE_MODEL_NAME = (
-    "MODEL"
+    "ANALYTICAL_PLANNER_PROMPT_VERSION"
 )
 
 
 EXPECTED_PROMPT_VERSION = (
-    "dataset_dependency_prompt_v0.8_baseline"
-)
-
-
-EXPECTED_MODEL = (
-    "qwen3:4b-instruct"
+    "analytical_planner_prompt_v0.9_baseline"
 )
 
 
@@ -80,13 +70,14 @@ def _safe_eval_string_expression(
     node: ast.AST,
 ) -> str:
     """
-    Evaluate only a deliberately restricted subset of
-    expressions capable of constructing a static string.
+    Resolve only a deliberately tiny subset of Python
+    expressions that can safely construct a static string.
 
-    Supported:
-    - string literals;
+    Supported forms include:
+    - a string literal;
     - static string concatenation with +;
-    - zero-argument strip(), lstrip() and rstrip().
+    - zero-argument strip(), lstrip() or rstrip() applied
+      to another supported static string expression.
 
     No arbitrary Python code is executed.
     """
@@ -117,7 +108,7 @@ def _safe_eval_string_expression(
 
 
     # ========================================================
-    # STATIC CONCATENATION
+    # STATIC STRING CONCATENATION
     # ========================================================
 
     if (
@@ -152,7 +143,7 @@ def _safe_eval_string_expression(
 
 
     # ========================================================
-    # SAFE STATIC STRING METHODS
+    # SAFE STRING METHODS
     # ========================================================
 
     if isinstance(
@@ -187,7 +178,7 @@ def _safe_eval_string_expression(
 
             raise ValueError(
                 "Unsupported string method in static "
-                "expression: "
+                "prompt expression: "
                 f"{method_name}"
             )
 
@@ -198,8 +189,8 @@ def _safe_eval_string_expression(
         ):
 
             raise ValueError(
-                "Static string method must not receive "
-                "arguments."
+                "Static prompt string methods must have "
+                "no arguments."
             )
 
 
@@ -236,18 +227,18 @@ def _safe_eval_string_expression(
 
 
     # ========================================================
-    # UNSUPPORTED EXPRESSION
+    # EVERYTHING ELSE IS REJECTED
     # ========================================================
 
     raise ValueError(
         "Unsupported AST expression while extracting "
-        "historical dependency prompt: "
+        "static planner prompt: "
         f"{ast.dump(node, include_attributes=False)}"
     )
 
 
 # ============================================================
-# STRING CONSTANT EXTRACTION
+# CONSTANT EXTRACTION
 # ============================================================
 
 def extract_string_constant(
@@ -256,9 +247,9 @@ def extract_string_constant(
     name: str,
 ) -> str:
     """
-    Extract one module-level static string constant.
+    Extract one module-level static string assignment.
 
-    The historical module is parsed but never imported or
+    The source module is parsed but never imported or
     executed.
     """
 
@@ -371,28 +362,27 @@ def extract_string_constant(
 
 
 # ============================================================
-# TARGET MODULE
+# TARGET CONTENT
 # ============================================================
 
 def build_target_content(
     *,
     prompt_version: str,
-    model: str,
     system_prompt: str,
 ) -> str:
     """
-    Build the autonomous production prompt module.
+    Create a standalone production prompt module.
 
-    repr() preserves the exact historical string value.
+    repr() preserves the exact string value without
+    reconstructing the historical quoting style.
     """
 
     lines = [
         '"""',
-        "Production prompt configuration for the DataLens",
-        "Dataset Dependency Extractor v1.",
+        "Production prompt for the DataLens Analytical Planner v1.",
         "",
-        "Values in this module were promoted mechanically",
-        "from the development-selected historical extractor.",
+        "This prompt was promoted mechanically from the",
+        "development-selected planner prompt.",
         "",
         "Runtime production code has no dependency on the",
         "evaluation package.",
@@ -404,18 +394,8 @@ def build_target_content(
         "# ============================================================",
         "",
         (
-            "DATASET_DEPENDENCY_PROMPT_VERSION = "
+            "ANALYTICAL_PLANNER_PROMPT_VERSION = "
             f"{prompt_version!r}"
-        ),
-        "",
-        "",
-        "# ============================================================",
-        "# MODEL",
-        "# ============================================================",
-        "",
-        (
-            "DATASET_DEPENDENCY_MODEL = "
-            f"{model!r}"
         ),
         "",
         "",
@@ -424,7 +404,7 @@ def build_target_content(
         "# ============================================================",
         "",
         (
-            "DATASET_DEPENDENCY_SYSTEM_PROMPT = "
+            "ANALYTICAL_PLANNER_SYSTEM_PROMPT = "
             f"{system_prompt!r}"
         ),
         "",
@@ -439,19 +419,17 @@ def build_target_content(
 
 
 # ============================================================
-# GENERATED MODULE VERIFICATION
+# TARGET VERIFICATION
 # ============================================================
 
 def verify_target_content(
     *,
     content: str,
     prompt_version: str,
-    model: str,
     system_prompt: str,
 ) -> None:
     """
-    Verify exact value parity before writing the production
-    module.
+    Validate the generated module before writing it.
     """
 
     if (
@@ -460,14 +438,10 @@ def verify_target_content(
     ):
 
         raise ValueError(
-            "Generated production dependency prompt "
-            "contains an evaluation-package dependency."
+            "Generated production planner prompt contains "
+            "an evaluation-package dependency."
         )
 
-
-    # ========================================================
-    # PYTHON COMPILE
-    # ========================================================
 
     compile(
         content,
@@ -478,11 +452,7 @@ def verify_target_content(
     )
 
 
-    # ========================================================
-    # PARSE GENERATED CONSTANTS BACK
-    # ========================================================
-
-    tree = (
+    target_tree = (
         ast.parse(
             content,
             filename=str(
@@ -492,21 +462,14 @@ def verify_target_content(
     )
 
 
-    values: dict[
+    extracted: dict[
         str,
         str,
     ] = {}
 
 
-    expected_names = {
-        "DATASET_DEPENDENCY_PROMPT_VERSION",
-        "DATASET_DEPENDENCY_MODEL",
-        "DATASET_DEPENDENCY_SYSTEM_PROMPT",
-    }
-
-
     for node in (
-        tree.body
+        target_tree.body
     ):
 
         if not isinstance(
@@ -544,7 +507,10 @@ def verify_target_content(
 
         if (
             target.id
-            not in expected_names
+            not in {
+                "ANALYTICAL_PLANNER_PROMPT_VERSION",
+                "ANALYTICAL_PLANNER_SYSTEM_PROMPT",
+            }
         ):
 
             continue
@@ -557,18 +523,7 @@ def verify_target_content(
         )
 
 
-        if not isinstance(
-            value,
-            str,
-        ):
-
-            raise TypeError(
-                "Generated production constant "
-                f"{target.id} is not a string."
-            )
-
-
-        values[
+        extracted[
             target.id
         ] = (
             value
@@ -576,41 +531,28 @@ def verify_target_content(
 
 
     if (
-        values.get(
-            "DATASET_DEPENDENCY_PROMPT_VERSION"
+        extracted.get(
+            "ANALYTICAL_PLANNER_PROMPT_VERSION"
         )
         != prompt_version
     ):
 
         raise ValueError(
-            "Generated dependency prompt version differs "
+            "Generated production prompt version differs "
             "from the historical value."
         )
 
 
     if (
-        values.get(
-            "DATASET_DEPENDENCY_MODEL"
-        )
-        != model
-    ):
-
-        raise ValueError(
-            "Generated dependency model differs from "
-            "the historical value."
-        )
-
-
-    if (
-        values.get(
-            "DATASET_DEPENDENCY_SYSTEM_PROMPT"
+        extracted.get(
+            "ANALYTICAL_PLANNER_SYSTEM_PROMPT"
         )
         != system_prompt
     ):
 
         raise ValueError(
-            "Generated dependency system prompt differs "
-            "from the historical value."
+            "Generated production system prompt differs "
+            "from the historical prompt value."
         )
 
 
@@ -621,8 +563,7 @@ def verify_target_content(
 def main() -> None:
 
     print(
-        "=== DATALENS DATASET DEPENDENCY PROMPT "
-        "PROMOTION v1.0 ==="
+        "=== DATALENS ANALYTICAL PLANNER PROMPT PROMOTION v1.0 ==="
     )
 
 
@@ -635,31 +576,23 @@ def main() -> None:
     print()
 
 
-    # ========================================================
-    # SOURCE GUARD
-    # ========================================================
-
     if not (
         SOURCE_PATH.exists()
     ):
 
         raise FileNotFoundError(
-            "Historical Dataset Dependency Extractor "
+            "Historical analytical planner model runner "
             "was not found:\n"
             f"{SOURCE_PATH}"
         )
 
-
-    # ========================================================
-    # NO SILENT OVERWRITE
-    # ========================================================
 
     if (
         TARGET_PATH.exists()
     ):
 
         raise FileExistsError(
-            "Production Dataset Dependency prompt already "
+            "Production analytical planner prompt already "
             "exists. Refusing to overwrite it:\n"
             f"{TARGET_PATH}"
         )
@@ -672,10 +605,6 @@ def main() -> None:
     )
 
 
-    # ========================================================
-    # EXTRACT HISTORICAL VALUES
-    # ========================================================
-
     prompt_version = (
         extract_string_constant(
             source=(
@@ -684,19 +613,6 @@ def main() -> None:
 
             name=(
                 SOURCE_VERSION_NAME
-            ),
-        )
-    )
-
-
-    model = (
-        extract_string_constant(
-            source=(
-                source
-            ),
-
-            name=(
-                SOURCE_MODEL_NAME
             ),
         )
     )
@@ -715,47 +631,24 @@ def main() -> None:
     )
 
 
-    # ========================================================
-    # LOCK DEVELOPMENT-SELECTED CONFIGURATION
-    # ========================================================
-
     if (
         prompt_version
         != EXPECTED_PROMPT_VERSION
     ):
 
         raise ValueError(
-            "Unexpected historical dependency prompt "
-            "version.\n"
+            "Unexpected historical analytical planner "
+            "prompt version.\n"
             f"Expected: {EXPECTED_PROMPT_VERSION}\n"
             f"Actual:   {prompt_version}"
         )
 
 
-    if (
-        model
-        != EXPECTED_MODEL
-    ):
-
-        raise ValueError(
-            "Unexpected historical dependency model.\n"
-            f"Expected: {EXPECTED_MODEL}\n"
-            f"Actual:   {model}"
-        )
-
-
-    # ========================================================
-    # CONTENT GUARDS
-    # ========================================================
-
     required_fragments = [
-        (
-            "Tu es le Dataset Dependency "
-            "Extractor de DataLens."
-        ),
-        "ANALYTICAL REQUIREMENT",
-        "déterminer si une jointure est possible",
-        "dataset_id",
+        "Tu es l'Analytical Planner de DataLens.",
+        "join_datasets",
+        "qualified_name",
+        "allowed_analytical_tools",
     ]
 
 
@@ -772,13 +665,11 @@ def main() -> None:
     ]
 
 
-    if (
-        missing_fragments
-    ):
+    if missing_fragments:
 
         raise ValueError(
-            "Historical dependency prompt is missing "
-            "expected locked content: "
+            "Historical analytical planner prompt is "
+            "missing required locked content: "
             f"{missing_fragments}"
         )
 
@@ -791,23 +682,15 @@ def main() -> None:
     ):
 
         raise ValueError(
-            "Historical dependency prompt is unexpectedly "
+            "Historical planner prompt is unexpectedly "
             "short and may have been extracted incorrectly."
         )
 
-
-    # ========================================================
-    # BUILD TARGET
-    # ========================================================
 
     target_content = (
         build_target_content(
             prompt_version=(
                 prompt_version
-            ),
-
-            model=(
-                model
             ),
 
             system_prompt=(
@@ -816,10 +699,6 @@ def main() -> None:
         )
     )
 
-
-    # ========================================================
-    # VERIFY BEFORE WRITE
-    # ========================================================
 
     verify_target_content(
         content=(
@@ -830,19 +709,11 @@ def main() -> None:
             prompt_version
         ),
 
-        model=(
-            model
-        ),
-
         system_prompt=(
             system_prompt
         ),
     )
 
-
-    # ========================================================
-    # WRITE
-    # ========================================================
 
     TARGET_PATH.parent.mkdir(
         parents=True,
@@ -855,10 +726,6 @@ def main() -> None:
         encoding="utf-8",
     )
 
-
-    # ========================================================
-    # REPORT
-    # ========================================================
 
     print(
         "Source:",
@@ -879,12 +746,6 @@ def main() -> None:
 
 
     print(
-        "Model:",
-        model,
-    )
-
-
-    print(
         "Prompt characters:",
         len(
             system_prompt
@@ -897,11 +758,6 @@ def main() -> None:
 
     print(
         "Historical prompt value parity: PASS"
-    )
-
-
-    print(
-        "Historical model value parity: PASS"
     )
 
 
@@ -919,7 +775,7 @@ def main() -> None:
 
 
     print(
-        "Dataset Dependency prompt promotion v1.0: COMPLETE"
+        "Analytical Planner prompt promotion v1.0: COMPLETE"
     )
 
 
