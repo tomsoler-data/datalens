@@ -37,7 +37,7 @@ BASE_DIR = (
         __file__
     )
     .resolve()
-    .parent
+    .parents[2]
 )
 
 
