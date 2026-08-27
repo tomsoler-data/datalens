@@ -13,6 +13,10 @@ services:
     volumes:
       - datalens-api-var:/app/var
 
+    environment:
+      DATALENS_LLM_DOCKER_BRIDGE_ENABLED: "1"
+      DATALENS_OLLAMA_HOST: "http://host.docker.internal:11434"
+
     init: true
 
 
