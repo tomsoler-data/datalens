@@ -1,0 +1,656 @@
+# DataLens Runtime CI Gate
+# Contract version: datalens_ci_runtime_gate_v0.1
+
+name: DataLens Runtime Gate
+
+
+on:
+
+  push:
+    branches:
+      - main
+      - chore/organize-artifact-store-wiring
+
+    paths:
+      - "apps/api/**"
+      - "apps/web/**"
+      - "compose.yaml"
+      - ".github/workflows/datalens-runtime.yml"
+
+
+  pull_request:
+    branches:
+      - main
+      - chore/organize-artifact-store-wiring
+
+    paths:
+      - "apps/api/**"
+      - "apps/web/**"
+      - "compose.yaml"
+      - ".github/workflows/datalens-runtime.yml"
+
+
+  workflow_dispatch:
+
+
+permissions:
+  contents: read
+
+
+concurrency:
+  group: datalens-runtime-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+
+jobs:
+
+  runtime-gate:
+
+    name: Docker Runtime Gate
+
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 35
+
+    env:
+      COMPOSE_PROJECT_NAME: datalens-runtime-ci
+
+
+    steps:
+
+      # ------------------------------------------------------
+      # REPOSITORY
+      # ------------------------------------------------------
+
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+
+      # ------------------------------------------------------
+      # PYTHON
+      # ------------------------------------------------------
+
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+
+      # ------------------------------------------------------
+      # NODE
+      # ------------------------------------------------------
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+
+      # ------------------------------------------------------
+      # ENVIRONMENT
+      # ------------------------------------------------------
+
+      - name: Show runtime environment
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python --version
+          node --version
+          npm --version
+          docker version
+          docker compose version
+
+
+      # ------------------------------------------------------
+      # BACKEND DEPENDENCIES
+      # ------------------------------------------------------
+
+      - name: Install backend dependencies
+        working-directory: apps/api
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+
+      # ------------------------------------------------------
+      # FRONTEND DEPENDENCIES
+      # ------------------------------------------------------
+
+      - name: Install frontend dependencies
+        working-directory: apps/web
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          npm ci
+
+
+      # ------------------------------------------------------
+      # CI CONTRACT SELF-TEST
+      # ------------------------------------------------------
+
+      - name: Validate Runtime CI workflow contract
+        working-directory: apps/api
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python -m tests.ci.test_ci_runtime_workflow_v0_1
+
+
+      # ------------------------------------------------------
+      # PYTHON STATIC CONTRACT
+      # ------------------------------------------------------
+
+      - name: Compile runtime security modules
+        working-directory: apps/api
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python -m py_compile \
+            ./app/security/llm_egress.py \
+            ./app/security/llm_payload.py \
+            ./app/ai/ollama_runtime.py \
+            ./app/ai/provider.py
+
+
+      # ------------------------------------------------------
+      # SECURITY REGRESSIONS
+      # ------------------------------------------------------
+
+      - name: Run security regression suite
+        working-directory: apps/api
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          test_count=0
+
+          for test_file in tests/security/test_*.py
+          do
+            echo
+            echo "========================================"
+            echo "RUN ${test_file}"
+            echo "========================================"
+
+            python "${test_file}"
+
+            test_count=$((test_count + 1))
+          done
+
+          if [[ "${test_count}" -eq 0 ]]
+          then
+            echo "::error::No security tests were discovered."
+            exit 1
+          fi
+
+          echo
+          echo "Security scripts executed: ${test_count}"
+
+
+      # ------------------------------------------------------
+      # TYPESCRIPT
+      # ------------------------------------------------------
+
+      - name: Validate frontend TypeScript
+        working-directory: apps/web
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          npx tsc --noEmit
+
+
+      # ------------------------------------------------------
+      # COMPOSE STATIC CONTRACT
+      # ------------------------------------------------------
+
+      - name: Validate Docker Compose configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          docker compose \
+            -f ./compose.yaml \
+            config \
+            --quiet
+
+
+      # ------------------------------------------------------
+      # IMAGE BUILD
+      # ------------------------------------------------------
+
+      - name: Build DataLens runtime images
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          docker compose \
+            -f ./compose.yaml \
+            build \
+            --pull
+
+
+      # ------------------------------------------------------
+      # START RUNTIME
+      # ------------------------------------------------------
+
+      - name: Start DataLens runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          docker compose \
+            -f ./compose.yaml \
+            up \
+            --detach
+
+
+      # ------------------------------------------------------
+      # HEALTH
+      # ------------------------------------------------------
+
+      - name: Wait for API and Web health
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          wait_for_healthy() {
+            local service="$1"
+
+            for attempt in $(seq 1 30)
+            do
+              container_id="$(
+                docker compose \
+                  -f ./compose.yaml \
+                  ps \
+                  --quiet \
+                  "${service}"
+              )"
+
+              health=""
+
+              if [[ -n "${container_id}" ]]
+              then
+                health="$(
+                  docker inspect \
+                    --format '{{.State.Health.Status}}' \
+                    "${container_id}" \
+                    2>/dev/null \
+                    || true
+                )"
+              fi
+
+              echo \
+                "Attempt ${attempt}: ${service}=${health}"
+
+              if [[ "${health}" == "healthy" ]]
+              then
+                return 0
+              fi
+
+              sleep 2
+            done
+
+            echo
+            echo "::error::${service} did not become healthy."
+
+            docker compose \
+              -f ./compose.yaml \
+              logs \
+              --no-color \
+              --tail 200
+
+            return 1
+          }
+
+          wait_for_healthy api
+          wait_for_healthy web
+
+
+      # ------------------------------------------------------
+      # HTTP SMOKE TESTS
+      # ------------------------------------------------------
+
+      - name: Validate HTTP contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            http://127.0.0.1:3000 \
+            > /dev/null
+
+          api_health="$(
+            curl \
+              --fail \
+              --silent \
+              --show-error \
+              http://127.0.0.1:8000/health
+          )"
+
+          echo "API health: ${api_health}"
+
+          python - "${api_health}" <<'PY'
+          import json
+          import sys
+
+          payload = json.loads(
+              sys.argv[1]
+          )
+
+          assert payload == {
+              "status": "ok",
+              "service": "datalens-api",
+          }
+
+          print(
+              "[PASS] API health contract."
+          )
+          PY
+
+          echo \
+            "[PASS] Frontend HTTP contract."
+
+
+      # ------------------------------------------------------
+      # NON-ROOT RUNTIME
+      # ------------------------------------------------------
+
+      - name: Validate non-root containers
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          api_uid="$(
+            docker compose \
+              -f ./compose.yaml \
+              exec \
+              -T \
+              api \
+              id -u
+          )"
+
+          web_uid="$(
+            docker compose \
+              -f ./compose.yaml \
+              exec \
+              -T \
+              web \
+              id -u
+          )"
+
+          echo "API uid=${api_uid}"
+          echo "WEB uid=${web_uid}"
+
+          test "${api_uid}" = "10001"
+          test "${web_uid}" = "10001"
+
+          echo \
+            "[PASS] API and Web run as uid 10001."
+
+
+      # ------------------------------------------------------
+      # OLLAMA CONFIG CONTRACT
+      #
+      # No real Ollama model is required in hosted CI.
+      # ------------------------------------------------------
+
+      - name: Validate Ollama bridge configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          bridge_enabled="$(
+            docker compose \
+              -f ./compose.yaml \
+              exec \
+              -T \
+              api \
+              printenv \
+              DATALENS_LLM_DOCKER_BRIDGE_ENABLED
+          )"
+
+          ollama_host="$(
+            docker compose \
+              -f ./compose.yaml \
+              exec \
+              -T \
+              api \
+              printenv \
+              DATALENS_OLLAMA_HOST
+          )"
+
+          echo "Bridge=${bridge_enabled}"
+          echo "Host=${ollama_host}"
+
+          test "${bridge_enabled}" = "1"
+
+          test \
+            "${ollama_host}" \
+            = \
+            "http://host.docker.internal:11434"
+
+          echo \
+            "[PASS] Docker Ollama bridge configuration exact."
+
+
+      # ------------------------------------------------------
+      # PERSISTENCE
+      # ------------------------------------------------------
+
+      - name: Validate persistent API volume
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sentinel_path="$(
+            printf '%s' \
+              '/app/var/ci-runtime-persistence-sentinel.txt'
+          )"
+
+          docker compose \
+            -f ./compose.yaml \
+            exec \
+            -T \
+            api \
+            python -c \
+            "from pathlib import Path; Path('${sentinel_path}').write_text('DATALENS_RUNTIME_CI_V0_1\n', encoding='utf-8')"
+
+          before_hash="$(
+            docker compose \
+              -f ./compose.yaml \
+              exec \
+              -T \
+              api \
+              python -c \
+              "from pathlib import Path; import hashlib; print(hashlib.sha256(Path('${sentinel_path}').read_bytes()).hexdigest())"
+          )"
+
+          echo "Before=${before_hash}"
+
+          docker compose \
+            -f ./compose.yaml \
+            down
+
+          docker volume inspect \
+            datalens-api-var-v0-1 \
+            > /dev/null
+
+          echo \
+            "[PASS] Persistent volume survived Compose down."
+
+          docker compose \
+            -f ./compose.yaml \
+            up \
+            --detach
+
+          wait_for_healthy() {
+            local service="$1"
+
+            for attempt in $(seq 1 30)
+            do
+              container_id="$(
+                docker compose \
+                  -f ./compose.yaml \
+                  ps \
+                  --quiet \
+                  "${service}"
+              )"
+
+              health=""
+
+              if [[ -n "${container_id}" ]]
+              then
+                health="$(
+                  docker inspect \
+                    --format '{{.State.Health.Status}}' \
+                    "${container_id}" \
+                    2>/dev/null \
+                    || true
+                )"
+              fi
+
+              echo \
+                "Attempt ${attempt}: ${service}=${health}"
+
+              if [[ "${health}" == "healthy" ]]
+              then
+                return 0
+              fi
+
+              sleep 2
+            done
+
+            docker compose \
+              -f ./compose.yaml \
+              logs \
+              --no-color \
+              --tail 200
+
+            return 1
+          }
+
+          wait_for_healthy api
+          wait_for_healthy web
+
+          after_hash="$(
+            docker compose \
+              -f ./compose.yaml \
+              exec \
+              -T \
+              api \
+              python -c \
+              "from pathlib import Path; import hashlib; print(hashlib.sha256(Path('${sentinel_path}').read_bytes()).hexdigest())"
+          )"
+
+          echo "After=${after_hash}"
+
+          test \
+            "${before_hash}" \
+            = \
+            "${after_hash}"
+
+          persisted_content="$(
+            docker compose \
+              -f ./compose.yaml \
+              exec \
+              -T \
+              api \
+              python -c \
+              "from pathlib import Path; print(Path('${sentinel_path}').read_text(encoding='utf-8').strip())"
+          )"
+
+          test \
+            "${persisted_content}" \
+            = \
+            "DATALENS_RUNTIME_CI_V0_1"
+
+          docker compose \
+            -f ./compose.yaml \
+            exec \
+            -T \
+            api \
+            python -c \
+            "from pathlib import Path; Path('${sentinel_path}').unlink(missing_ok=True)"
+
+          echo \
+            "[PASS] Persistent content survived Compose down/up unchanged."
+
+
+      # ------------------------------------------------------
+      # FINAL RUNTIME STATE
+      # ------------------------------------------------------
+
+      - name: Validate final runtime state
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          docker compose \
+            -f ./compose.yaml \
+            ps
+
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            http://127.0.0.1:3000 \
+            > /dev/null
+
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            http://127.0.0.1:8000/health \
+            > /dev/null
+
+          echo \
+            "[PASS] Final DataLens runtime healthy."
+
+
+      # ------------------------------------------------------
+      # DIAGNOSTICS
+      # ------------------------------------------------------
+
+      - name: Show runtime diagnostics on failure
+        if: ${{ failure() }}
+        shell: bash
+        run: |
+          docker compose \
+            -f ./compose.yaml \
+            ps \
+            || true
+
+          docker compose \
+            -f ./compose.yaml \
+            logs \
+            --no-color \
+            --tail 250 \
+            || true
+
+
+      # ------------------------------------------------------
+      # CLEANUP
+      # ------------------------------------------------------
+
+      - name: Clean Docker runtime
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          docker compose \
+            -f ./compose.yaml \
+            down \
+            --volumes \
+            --remove-orphans \
+            || true
