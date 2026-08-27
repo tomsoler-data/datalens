@@ -1,9 +1,17 @@
 from __future__ import annotations
 
 
+from io import (
+    StringIO,
+)
+
+
 from unittest.mock import (
     patch,
 )
+
+
+import pandas as pd
 
 
 from fastapi.testclient import (
@@ -13,6 +21,27 @@ from fastapi.testclient import (
 
 from main import (
     app,
+)
+
+
+from app.preparation.preparation_artifact_store import (
+    put_preparation_artifact,
+    reset_preparation_artifact_store_for_tests,
+)
+
+
+from app.preparation.preparation_session import (
+    create_preparation_session,
+    get_preparation_session,
+    record_analysis_output_selection,
+    record_required_stage_signal,
+    record_validation_stage_signal,
+    reset_preparation_session_store_for_tests,
+)
+
+
+from app.preparation.preparation_workflow import (
+    PreparationStage,
 )
 
 
@@ -125,6 +154,175 @@ def build_employees_csv(
     )
 
 
+
+# ============================================================
+# SERVER-OWNED PREPARATION FIXTURE
+# ============================================================
+
+
+def prepare_validated_workflow(
+    *,
+    csv_content: str,
+    dataset_filename: str,
+) -> str:
+
+    reset_preparation_session_store_for_tests()
+    reset_preparation_artifact_store_for_tests()
+
+
+    dataset_id = (
+        "dataset:0001"
+    )
+
+
+    session = (
+        create_preparation_session(
+            selected_analysis_dataset_ids=[
+                dataset_id
+            ]
+        )
+    )
+
+
+    workflow_id = (
+        session.workflow_id
+    )
+
+
+    for (
+        stage,
+        evidence_ref,
+    ) in (
+        (
+            PreparationStage.IMPORT,
+            "csv_ingestion",
+        ),
+        (
+            PreparationStage.UNDERSTAND,
+            "dataset_profile",
+        ),
+        (
+            PreparationStage.QUALITY,
+            "data_quality_engine_v0.2",
+        ),
+    ):
+        record_required_stage_signal(
+            workflow_id=
+                workflow_id,
+
+            stage=
+                stage,
+
+            completed=
+                True,
+
+            dataset_ids=[
+                dataset_id
+            ],
+
+            evidence_refs=[
+                evidence_ref
+            ],
+
+            blocking_reasons=[],
+        )
+
+
+    dataframe = (
+        pd.read_csv(
+            StringIO(
+                csv_content
+            )
+        )
+    )
+
+
+    put_preparation_artifact(
+        workflow_id=
+            workflow_id,
+
+        dataset_id=
+            dataset_id,
+
+        dataset_filename=
+            dataset_filename,
+
+        stage=
+            "source",
+
+        dataframe=
+            dataframe,
+
+        parent_dataset_ids=[],
+
+        evidence_refs=[
+            "test:server-owned-planning-fixture"
+        ],
+    )
+
+
+    before_selection = (
+        get_preparation_session(
+            workflow_id
+        )
+    )
+
+
+    selected = (
+        record_analysis_output_selection(
+            workflow_id=
+                workflow_id,
+
+            analysis_output_dataset_ids=[
+                dataset_id
+            ],
+
+            expected_revision=
+                before_selection.revision,
+        )
+    )
+
+
+    ready = (
+        record_validation_stage_signal(
+            workflow_id=
+                workflow_id,
+
+            completed=
+                True,
+
+            passed=
+                True,
+
+            dataset_ids=[
+                dataset_id
+            ],
+
+            evidence_refs=[
+                "final_validation"
+            ],
+
+            blocking_reasons=[],
+
+            expected_revision=
+                selected.revision,
+        )
+    )
+
+
+    assert (
+        ready
+        .snapshot
+        .ready_for_analysis
+        is True
+    )
+
+
+    return (
+        workflow_id
+    )
+
+
 # ============================================================
 # GEMMA MUST NEVER RUN
 # ============================================================
@@ -158,6 +356,17 @@ def test_generic_outlier_preview_uses_python_router(
     )
 
 
+    workflow_id = (
+        prepare_validated_workflow(
+            csv_content=
+                csv_content,
+
+            dataset_filename=
+                "employees.csv",
+        )
+    )
+
+
     with patch(
         (
             "app.planning."
@@ -173,6 +382,9 @@ def test_generic_outlier_preview_uses_python_router(
                 "/planning/ai-preview",
 
                 data={
+                    "workflow_id":
+                        workflow_id,
+
                     "objective":
                         "Détecte les outliers.",
 
@@ -180,17 +392,6 @@ def test_generic_outlier_preview_uses_python_router(
                         "gemma3:4b",
                 },
 
-                files=[
-                    (
-                        "dataset_files",
-
-                        (
-                            "employees.csv",
-                            csv_content,
-                            "text/csv",
-                        ),
-                    )
-                ],
             )
         )
 
