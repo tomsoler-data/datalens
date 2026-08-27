@@ -18,6 +18,7 @@ on:
       - "compose.registry.yaml"
       - ".github/workflows/datalens-runtime.yml"
       - ".github/workflows/datalens-publish.yml"
+      - ".github/workflows/datalens-release.yml"
 
 
   pull_request:
@@ -32,6 +33,7 @@ on:
       - "compose.registry.yaml"
       - ".github/workflows/datalens-runtime.yml"
       - ".github/workflows/datalens-publish.yml"
+      - ".github/workflows/datalens-release.yml"
 
 
   workflow_dispatch:
@@ -148,6 +150,7 @@ jobs:
           python -m tests.ci.test_ci_runtime_workflow_v0_1
           python -m tests.ci.test_ci_publish_workflow_v0_1
           python -m tests.ci.test_ci_registry_runtime_v0_1
+          python -m tests.ci.test_ci_release_workflow_v0_1
 
 
       # ------------------------------------------------------
