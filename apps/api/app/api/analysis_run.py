@@ -3503,6 +3503,207 @@ def run_ai_native_pipeline(
     )
 
 
+    # Failure-safe observability state.
+    #
+    # These values intentionally exist before any runtime stage
+    # starts so an early failure can still produce a valid
+    # AITraceRecord without masking the original exception.
+    catalog = None
+    planner_report = None
+    pipeline_report = None
+
+    ingestion_ms = 0.0
+    planner_ms = 0.0
+    native_pipeline_ms = 0.0
+
+    ingestion_started_at = None
+    planner_started_at = None
+    native_started_at = None
+
+    failure_stage = (
+        "preparation_handoff"
+    )
+
+
+    def write_failed_ai_trace_best_effort(
+        error: Exception,
+    ) -> None:
+        """
+        Persist a structured failed AI trace without ever
+        changing the functional outcome of the endpoint.
+
+        Observability is strictly best-effort:
+        any failure while building or writing the trace is
+        swallowed so the original application exception keeps
+        its HTTP/error semantics.
+        """
+
+        try:
+            failure_observed_at = (
+                perf_counter()
+            )
+
+
+            failed_ingestion_ms = (
+                ingestion_ms
+            )
+
+            failed_planner_ms = (
+                planner_ms
+            )
+
+            failed_native_pipeline_ms = (
+                native_pipeline_ms
+            )
+
+
+            # Preserve useful partial latency when a stage fails
+            # before its normal timing assignment executes.
+            if (
+                failure_stage
+                in {
+                    "preparation_handoff",
+                    "catalog",
+                }
+                and
+                ingestion_started_at
+                is not None
+                and
+                failed_ingestion_ms
+                <= 0.0
+            ):
+                failed_ingestion_ms = (
+                    (
+                        failure_observed_at
+                        -
+                        ingestion_started_at
+                    )
+                    *
+                    1000.0
+                )
+
+
+            if (
+                failure_stage
+                ==
+                "planner"
+                and
+                planner_started_at
+                is not None
+                and
+                failed_planner_ms
+                <= 0.0
+            ):
+                failed_planner_ms = (
+                    (
+                        failure_observed_at
+                        -
+                        planner_started_at
+                    )
+                    *
+                    1000.0
+                )
+
+
+            if (
+                failure_stage
+                ==
+                "native_pipeline"
+                and
+                native_started_at
+                is not None
+                and
+                failed_native_pipeline_ms
+                <= 0.0
+            ):
+                failed_native_pipeline_ms = (
+                    (
+                        failure_observed_at
+                        -
+                        native_started_at
+                    )
+                    *
+                    1000.0
+                )
+
+
+            failed_trace = (
+                build_ai_trace(
+                    trace_id=
+                        trace_id,
+
+                    workflow_id=
+                        workflow_id,
+
+                    objective=
+                        normalized_objective,
+
+                    catalog=
+                        catalog,
+
+                    planner_report=
+                        planner_report,
+
+                    pipeline_report=
+                        pipeline_report,
+
+                    ingestion_ms=
+                        failed_ingestion_ms,
+
+                    planner_ms=
+                        failed_planner_ms,
+
+                    native_pipeline_ms=
+                        failed_native_pipeline_ms,
+
+                    total_ms=(
+                        (
+                            failure_observed_at
+                            -
+                            total_started_at
+                        )
+                        *
+                        1000.0
+                    ),
+
+                    run_status=
+                        "failed",
+
+                    failure={
+                        "stage":
+                            failure_stage,
+
+                        "error_type":
+                            type(
+                                error
+                            ).__name__,
+
+                        "message_safe":
+                            (
+                                "DataLens AI execution "
+                                "failed before completion."
+                            ),
+                    },
+                )
+            )
+
+
+            # write_ai_trace() already reports persistence
+            # failures through AITraceWriteResult. For a failed
+            # application run there is deliberately no attempt
+            # to alter the original response based on that
+            # secondary observability result.
+            write_ai_trace(
+                failed_trace
+            )
+
+
+        except Exception:
+            # Observability must never mask or replace the
+            # original application error.
+            return
+
+
     try:
         ingestion_started_at = (
             perf_counter()
@@ -3574,6 +3775,11 @@ def run_ai_native_pipeline(
         )
 
 
+        failure_stage = (
+            "catalog"
+        )
+
+
         (
             analysis_datasets,
             catalog,
@@ -3599,6 +3805,11 @@ def run_ai_native_pipeline(
 
         planner_started_at = (
             perf_counter()
+        )
+
+
+        failure_stage = (
+            "planner"
         )
 
 
@@ -3632,6 +3843,11 @@ def run_ai_native_pipeline(
         )
 
 
+        failure_stage = (
+            "native_pipeline"
+        )
+
+
         pipeline_report = (
             execute_native_ai_pipeline(
                 planner_report=
@@ -3657,6 +3873,11 @@ def run_ai_native_pipeline(
             )
             *
             1000.0
+        )
+
+
+        failure_stage = (
+            "post_pipeline"
         )
 
 
@@ -3697,10 +3918,18 @@ def run_ai_native_pipeline(
         )
 
 
+        failure_stage = (
+            "observability"
+        )
+
+
         trace = (
             build_ai_trace(
                 trace_id=
                     trace_id,
+
+                workflow_id=
+                    workflow_id,
 
                 objective=
                     normalized_objective,
@@ -3757,7 +3986,21 @@ def run_ai_native_pipeline(
         )
 
 
+    except HTTPException as error:
+        write_failed_ai_trace_best_effort(
+            error
+        )
+
+        # Preserve the exact existing HTTPException, including
+        # status code and structured detail.
+        raise
+
+
     except ValueError as error:
+        write_failed_ai_trace_best_effort(
+            error
+        )
+
         raise HTTPException(
             status_code=422,
             detail=str(
@@ -3767,12 +4010,25 @@ def run_ai_native_pipeline(
 
 
     except RuntimeError as error:
+        write_failed_ai_trace_best_effort(
+            error
+        )
+
         raise HTTPException(
             status_code=503,
             detail=str(
                 error
             ),
         ) from error
+
+
+    except Exception as error:
+        write_failed_ai_trace_best_effort(
+            error
+        )
+
+        # Unexpected errors keep their original server behavior.
+        raise
 
 
 # ============================================================

@@ -18,6 +18,7 @@ from pathlib import (
 
 from typing import (
     Any,
+    Literal,
 )
 
 
@@ -33,7 +34,7 @@ from pydantic import (
 # ============================================================
 
 AI_TRACE_RULE_VERSION = (
-    "ai_trace_v0.3"
+    "ai_trace_v0.4"
 )
 
 
@@ -93,6 +94,41 @@ class AITracePrivacy(
         "DataLens observability stores local analytical "
         "metadata and AI decision traces. It does not "
         "persist raw uploaded dataset rows in this trace."
+    )
+
+
+AITraceAnalysisSourceType = Literal[
+    "initial_request",
+    "follow_up_prompt",
+    "document_request",
+    "automatic",
+]
+
+
+AITraceRunStatus = Literal[
+    "completed",
+    "failed",
+]
+
+
+class AITraceFailure(
+    BaseModel
+):
+    model_config = ConfigDict(
+        extra="forbid"
+    )
+
+
+    stage: str = Field(
+        min_length=1
+    )
+
+    error_type: str = Field(
+        min_length=1
+    )
+
+    message_safe: str = Field(
+        min_length=1
     )
 
 
@@ -186,6 +222,30 @@ class AITraceRecord(
     trace_rule_version: str = (
         AI_TRACE_RULE_VERSION
     )
+
+    workflow_id: (
+        str
+        | None
+    ) = None
+
+    analysis_id: (
+        str
+        | None
+    ) = None
+
+    analysis_source_type: (
+        AITraceAnalysisSourceType
+        | None
+    ) = None
+
+    run_status: AITraceRunStatus = (
+        "completed"
+    )
+
+    failure: (
+        AITraceFailure
+        | None
+    ) = None
 
     objective: str
 
@@ -1074,6 +1134,9 @@ def build_ai_trace(
     planner_ms: float,
     native_pipeline_ms: float,
     total_ms: float,
+    workflow_id: str | None = None,
+    run_status: str = "completed",
+    failure: Any = None,
 ) -> AITraceRecord:
     planner_plain = (
         to_plain_data(
@@ -1151,6 +1214,27 @@ def build_ai_trace(
                     timezone.utc
                 )
                 .isoformat()
+            ),
+
+            workflow_id=
+                workflow_id,
+
+            run_status=
+                run_status,
+
+            failure=
+                failure,
+
+            analysis_id=(
+                pipeline_plain.get(
+                    "analysis_id"
+                )
+            ),
+
+            analysis_source_type=(
+                pipeline_plain.get(
+                    "analysis_source_type"
+                )
             ),
 
             objective=
