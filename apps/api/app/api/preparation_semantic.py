@@ -28,6 +28,10 @@ from app.preparation.data_quality import (
     build_data_quality_report,
 )
 
+from app.preparation.preparation_artifact_store import (
+    get_preparation_artifact,
+)
+
 from app.preparation.semantic_review import (
     DEFAULT_SEMANTIC_REVIEW_MODEL,
     RawSemanticDecision,
@@ -57,6 +61,10 @@ from app.preparation.semantic_confirmation import (
     SemanticConfirmationReport,
     SemanticManualResolution,
     require_semantic_confirmation,
+)
+
+from app.preparation.preparation_ui_state import (
+    update_preparation_ui_state,
 )
 
 from app.preparation.preparation_session import (
@@ -1358,6 +1366,270 @@ def _parse_manual_resolutions(
 
 
 # ============================================================
+# SERVER-OWNED SEMANTIC INPUT
+# ============================================================
+
+
+def _load_server_owned_semantic_input(
+    *,
+    workflow_id: str,
+
+    dataset_files: list[
+        UploadFile
+    ],
+
+    approved_action_ids_json: (
+        str
+        | None
+    ),
+) -> tuple[
+    list[
+        str
+    ],
+
+    list[
+        dict[
+            str,
+            Any,
+        ]
+    ],
+
+    dict[
+        str,
+        pd.DataFrame,
+    ],
+
+    CleaningPlan,
+]:
+    """
+    Resolve Semantic Review input exclusively from the current
+    server-owned Preparation artifacts.
+
+    The multipart dataset_files field and
+    approved_action_ids_json are retained temporarily for HTTP
+    compatibility with the existing frontend.
+
+    Their uploaded bytes are deliberately not used to rebuild
+    analytical DataFrames.
+
+    Once IMPORT/CLEAN has materialized a dataset, the
+    Preparation Artifact Store is the single source of truth.
+
+    Security / integrity:
+
+    - dataset identity comes from PreparationSession;
+    - DataFrames come from PreparationArtifactStore;
+    - browser-side uploads cannot replace materialized state;
+    - only SOURCE/CLEAN artifacts may enter semantic cleaning;
+    - deterministic-cleaning workflow preconditions remain
+      enforced;
+    - returned frames are deep server-owned copies.
+    """
+
+    session = (
+        get_preparation_session(
+            workflow_id
+        )
+    )
+
+
+    dataset_ids = list(
+        session
+        .selected_analysis_dataset_ids
+    )
+
+
+    if not dataset_ids:
+        raise RuntimeError(
+            (
+                "Preparation session exposes no dataset "
+                "for semantic review."
+            )
+        )
+
+
+    # --------------------------------------------------------
+    # BACKWARD-COMPATIBLE REQUEST VALIDATION
+    # --------------------------------------------------------
+    #
+    # approved_action_ids_json remains part of the current HTTP
+    # contract. Parse it so malformed browser payloads are still
+    # rejected, but never replay deterministic cleaning here.
+    #
+    # Deterministic cleaning has already been executed and
+    # materialized by the CLEAN pipeline.
+    # --------------------------------------------------------
+
+    _parse_approved_action_ids(
+        approved_action_ids_json
+    )
+
+
+    # --------------------------------------------------------
+    # FRONTEND COMPATIBILITY
+    # --------------------------------------------------------
+    #
+    # dataset_files also remains in the multipart contract for
+    # the moment so the Next.js frontend does not have to change
+    # in the same migration.
+    #
+    # IMPORTANT:
+    # We intentionally never read the uploaded file bytes here.
+    # --------------------------------------------------------
+
+    _ = (
+        dataset_files
+    )
+
+
+    records: list[
+        dict[
+            str,
+            Any,
+        ]
+    ] = []
+
+
+    frames: dict[
+        str,
+        pd.DataFrame,
+    ] = {}
+
+
+    for dataset_id in (
+        dataset_ids
+    ):
+        artifact = (
+            get_preparation_artifact(
+                workflow_id=
+                    workflow_id,
+
+                dataset_id=
+                    dataset_id,
+            )
+        )
+
+
+        if (
+            artifact.stage
+            not in {
+                "source",
+                "clean",
+            }
+        ):
+            raise HTTPException(
+                status_code=409,
+
+                detail={
+                    "error": (
+                        "semantic_preparation_stage_conflict"
+                    ),
+
+                    "message": (
+                        "Semantic review can only consume "
+                        "current SOURCE or CLEAN Preparation "
+                        "artifacts."
+                    ),
+
+                    "workflow_id": (
+                        workflow_id
+                    ),
+
+                    "dataset_id": (
+                        dataset_id
+                    ),
+
+                    "artifact_stage": (
+                        artifact.stage
+                    ),
+                },
+            )
+
+
+        dataframe = (
+            artifact
+            .dataframe
+            .copy(
+                deep=True
+            )
+        )
+
+
+        frames[
+            dataset_id
+        ] = (
+            dataframe
+        )
+
+
+        records.append(
+            {
+                "dataset_id": (
+                    dataset_id
+                ),
+
+                "filename": (
+                    artifact
+                    .dataset_filename
+                ),
+
+                "dataframe": (
+                    dataframe
+                ),
+            }
+        )
+
+
+    # --------------------------------------------------------
+    # CURRENT SERVER-OWNED QUALITY SNAPSHOT
+    # --------------------------------------------------------
+
+    current_quality = (
+        build_data_quality_report(
+            records
+        )
+    )
+
+
+    current_plan = (
+        build_cleaning_plan(
+            current_quality,
+            frames,
+        )
+    )
+
+
+    # --------------------------------------------------------
+    # DETERMINISTIC CLEANING PRECONDITION
+    # --------------------------------------------------------
+    #
+    # If the current materialized artifact still exposes
+    # deterministic actions, CLEAN execution evidence must
+    # already exist.
+    #
+    # If deterministic cleaning has already transformed the
+    # artifact and no deterministic action remains, the current
+    # server-owned CLEAN artifact is already authoritative.
+    # --------------------------------------------------------
+
+    _require_deterministic_cleaning_precondition(
+        workflow_id=
+            workflow_id,
+
+        deterministic_plan=
+            current_plan,
+    )
+
+
+    return (
+        dataset_ids,
+        records,
+        frames,
+        current_plan,
+    )
+
+
+# ============================================================
 # SEMANTIC CLEANING CONTEXT
 # ============================================================
 
@@ -1388,92 +1660,49 @@ def _rebuild_semantic_cleaning_context(
 
     SemanticCleaningPlan,
 ]:
+    """
+    Rebuild the semantic validation context from the current
+    server-owned Preparation state.
+
+    IMPORTANT:
+
+    Earlier versions rebuilt deterministic cleaning from the
+    browser-uploaded files. That created two competing sources
+    of truth:
+
+        browser upload
+            vs
+        PreparationArtifactStore
+
+    v0.2 consumes only the current server-owned SOURCE/CLEAN
+    artifacts.
+
+    dataset_files remains in the function signature only for
+    temporary API compatibility.
+    """
+
     (
         _,
         records,
-    ) = (
-        load_uploaded_dataset_bundle(
-            dataset_files
-        )
-    )
-
-
-    _validate_session_dataset_scope(
-        workflow_id=
-            workflow_id,
-
-        records=
-            records,
-    )
-
-
-    source_frames = (
-        _frames_from_records(
-            records
-        )
-    )
-
-
-    source_quality = (
-        build_data_quality_report(
-            records
-        )
-    )
-
-
-    deterministic_plan = (
-        build_cleaning_plan(
-            source_quality,
-            source_frames,
-        )
-    )
-
-
-    _require_deterministic_cleaning_precondition(
-        workflow_id=
-            workflow_id,
-
-        deterministic_plan=
-            deterministic_plan,
-    )
-
-
-    approved_ids = (
-        _parse_approved_action_ids(
-            approved_action_ids_json
-        )
-    )
-
-
-    (
         deterministic_frames,
         _,
-    ) = execute_cleaning_plan(
-        plan=
-            deterministic_plan,
+    ) = (
+        _load_server_owned_semantic_input(
+            workflow_id=
+                workflow_id,
 
-        dataset_frames=
-            source_frames,
+            dataset_files=
+                dataset_files,
 
-        approved_action_ids=
-            approved_ids,
-    )
-
-
-    derived_records = (
-        _records_with_derived_frames(
-            records=
-                records,
-
-            derived_frames=
-                deterministic_frames,
+            approved_action_ids_json=
+                approved_action_ids_json,
         )
     )
 
 
     derived_quality = (
         build_data_quality_report(
-            derived_records
+            records
         )
     )
 
@@ -1567,97 +1796,36 @@ def review_uploaded_dataset_semantics(
     Proposal-only:
     - no semantic merge is executed;
     - CLEAN is never promoted to PASSED here.
+
+    Data source:
+    - Preparation Artifact Store is authoritative;
+    - browser-uploaded file bytes are not used to rebuild the
+      analytical DataFrames.
     """
 
     try:
         (
-            _,
+            dataset_ids,
             records,
+            derived_frames,
+            cleaning_plan,
         ) = (
-            load_uploaded_dataset_bundle(
-                dataset_files
-            )
-        )
-
-
-        dataset_ids = (
-            _validate_session_dataset_scope(
+            _load_server_owned_semantic_input(
                 workflow_id=
                     workflow_id,
 
-                records=
-                    records,
-            )
-        )
+                dataset_files=
+                    dataset_files,
 
-
-        source_frames = (
-            _frames_from_records(
-                records
-            )
-        )
-
-
-        source_quality = (
-            build_data_quality_report(
-                records
-            )
-        )
-
-
-        cleaning_plan = (
-            build_cleaning_plan(
-                source_quality,
-                source_frames,
-            )
-        )
-
-
-        _require_deterministic_cleaning_precondition(
-            workflow_id=
-                workflow_id,
-
-            deterministic_plan=
-                cleaning_plan,
-        )
-
-
-        approved_ids = (
-            _parse_approved_action_ids(
-                approved_action_ids_json
-            )
-        )
-
-
-        (
-            derived_frames,
-            _,
-        ) = execute_cleaning_plan(
-            plan=
-                cleaning_plan,
-
-            dataset_frames=
-                source_frames,
-
-            approved_action_ids=
-                approved_ids,
-        )
-
-
-        derived_records = (
-            _records_with_derived_frames(
-                records=
-                    records,
-
-                derived_frames=
-                    derived_frames,
+                approved_action_ids_json=
+                    approved_action_ids_json,
             )
         )
 
 
         derived_quality = (
             build_data_quality_report(
-                derived_records
+                records
             )
         )
 
@@ -1688,6 +1856,29 @@ def review_uploaded_dataset_semantics(
 
             report=
                 report,
+        )
+
+
+        # PREPARATION_UI_STATE_WRITE_V0_1:SEMANTIC_REVIEW
+        update_preparation_ui_state(
+            workflow_id=
+                workflow_id,
+
+            semantic_review=(
+                report.model_dump(
+                    mode="json"
+                )
+            ),
+
+            semantic_cleaning_plan=None,
+            semantic_cleaning_execution=None,
+            semantic_confirmation=None,
+
+            applied_semantic_choices=[],
+
+            confirmed_semantic_issue_ids=[],
+
+            semantic_manual_resolutions=[],
         )
 
 
@@ -1793,6 +1984,9 @@ def build_uploaded_semantic_cleaning_plan(
 
     No LLM call.
     No DataFrame mutation.
+
+    Current SOURCE/CLEAN artifacts are loaded from the
+    server-owned Preparation Artifact Store.
     """
 
     try:
@@ -1814,6 +2008,28 @@ def build_uploaded_semantic_cleaning_plan(
                 semantic_decisions_json=
                     semantic_decisions_json,
             )
+        )
+
+
+        # PREPARATION_UI_STATE_WRITE_V0_1:SEMANTIC_PLAN
+        update_preparation_ui_state(
+            workflow_id=
+                workflow_id,
+
+            semantic_cleaning_plan=(
+                semantic_plan.model_dump(
+                    mode="json"
+                )
+            ),
+
+            semantic_cleaning_execution=None,
+            semantic_confirmation=None,
+
+            applied_semantic_choices=[],
+
+            confirmed_semantic_issue_ids=[],
+
+            semantic_manual_resolutions=[],
         )
 
 
@@ -1924,6 +2140,9 @@ def apply_uploaded_semantic_cleaning(
 
     Successful merge execution alone does not resolve the
     complete semantic review.
+
+    Execution consumes the current server-owned Preparation
+    DataFrames.
     """
 
     try:
@@ -1969,6 +2188,40 @@ def apply_uploaded_semantic_cleaning(
                 approved_choices=
                     choices,
             )
+        )
+
+
+        # PREPARATION_UI_STATE_WRITE_V0_1:SEMANTIC_APPLY
+        update_preparation_ui_state(
+            workflow_id=
+                workflow_id,
+
+            semantic_cleaning_plan=(
+                semantic_plan.model_dump(
+                    mode="json"
+                )
+            ),
+
+            semantic_cleaning_execution=(
+                execution.model_dump(
+                    mode="json"
+                )
+            ),
+
+            semantic_confirmation=None,
+
+            applied_semantic_choices=[
+                choice.model_dump(
+                    mode="json"
+                )
+
+                for choice
+                in choices
+            ],
+
+            confirmed_semantic_issue_ids=[],
+
+            semantic_manual_resolutions=[],
         )
 
 
@@ -2102,6 +2355,8 @@ def confirm_uploaded_semantic_review(
     - semantic cleaning plan is rebuilt server-side;
     - approved semantic choices are executed again server-side;
     - the browser cannot submit an execution result;
+    - browser-uploaded dataset bytes are not authoritative;
+    - PreparationArtifactStore is the DataFrame source of truth;
     - ABSTAIN and FLAG_FOR_REVIEW need explicit analyst notes;
     - CLEAN becomes PASSED only when every semantic decision
       is fully resolved.
@@ -2220,6 +2475,53 @@ def confirm_uploaded_semantic_review(
             )
 
 
+            # PREPARATION_UI_STATE_WRITE_V0_1:SEMANTIC_CONFIRM_BLOCKED
+            update_preparation_ui_state(
+                workflow_id=
+                    workflow_id,
+
+                semantic_cleaning_plan=(
+                    semantic_plan.model_dump(
+                        mode="json"
+                    )
+                ),
+
+                semantic_cleaning_execution=(
+                    execution.model_dump(
+                        mode="json"
+                    )
+                ),
+
+                semantic_confirmation=(
+                    error.report.model_dump(
+                        mode="json"
+                    )
+                ),
+
+                applied_semantic_choices=[
+                    choice.model_dump(
+                        mode="json"
+                    )
+
+                    for choice
+                    in choices
+                ],
+
+                confirmed_semantic_issue_ids=list(
+                    confirmed_issue_ids
+                ),
+
+                semantic_manual_resolutions=[
+                    resolution.model_dump(
+                        mode="json"
+                    )
+
+                    for resolution
+                    in manual_resolutions
+                ],
+            )
+
+
             raise HTTPException(
                 status_code=409,
 
@@ -2251,6 +2553,8 @@ def confirm_uploaded_semantic_review(
         #
         # Trust boundary:
         #
+        #   Preparation Artifact Store
+        #       ↓
         #   semantic execution
         #       ↓
         #   Python confirmation
@@ -2262,6 +2566,13 @@ def confirm_uploaded_semantic_review(
         # The PreparationSession must never mark CLEAN as
         # completed before the exact confirmed DataFrames
         # exist in the server-owned Artifact Store.
+        #
+        # materialize_semantic_cleaning_artifacts() retains its
+        # strict DataFrame.equals() trust anchor. Because the
+        # deterministic frames now originate from the Artifact
+        # Store itself, that guard protects against concurrent
+        # or unexpected server-side drift rather than comparing
+        # against a browser-rebuilt duplicate.
         # ====================================================
 
         materialize_semantic_cleaning_artifacts(
@@ -2294,6 +2605,53 @@ def confirm_uploaded_semantic_review(
 
             execution=
                 execution,
+        )
+
+
+        # PREPARATION_UI_STATE_WRITE_V0_1:SEMANTIC_CONFIRM_PASSED
+        update_preparation_ui_state(
+            workflow_id=
+                workflow_id,
+
+            semantic_cleaning_plan=(
+                semantic_plan.model_dump(
+                    mode="json"
+                )
+            ),
+
+            semantic_cleaning_execution=(
+                execution.model_dump(
+                    mode="json"
+                )
+            ),
+
+            semantic_confirmation=(
+                confirmation.model_dump(
+                    mode="json"
+                )
+            ),
+
+            applied_semantic_choices=[
+                choice.model_dump(
+                    mode="json"
+                )
+
+                for choice
+                in choices
+            ],
+
+            confirmed_semantic_issue_ids=list(
+                confirmed_issue_ids
+            ),
+
+            semantic_manual_resolutions=[
+                resolution.model_dump(
+                    mode="json"
+                )
+
+                for resolution
+                in manual_resolutions
+            ],
         )
 
 

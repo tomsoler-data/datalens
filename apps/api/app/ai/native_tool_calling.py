@@ -18,6 +18,11 @@ from pydantic import (
 )
 
 
+from app.security.llm_payload import (
+    LLMPayloadClass,
+    classified_llm_chat,
+)
+
 from app.ai.provider import (
     client,
 )
@@ -37,7 +42,7 @@ from app.planning.analytical_contract import (
 # ============================================================
 
 NATIVE_TOOL_CALLING_RULE_VERSION = (
-    "native_tool_calling_v0.7"
+    "native_tool_calling_v0.9"
 )
 
 
@@ -132,6 +137,97 @@ class TimeSeriesToolArgs(
         min_length=1
     )
 
+    # The default keeps deterministic compatibility with
+    # historical median-only validation fixtures. The native
+    # JSON schema below still requires the field from the tool
+    # model, so new live calls must copy the canonical
+    # AggregationSpec explicitly.
+    aggregation_function: Literal[
+        "sum",
+        "mean",
+        "median",
+        "min",
+        "max",
+        "count",
+        "distinct_count",
+    ] = "median"
+
+
+class AggregationToolArgs(
+    BaseModel
+):
+    model_config = ConfigDict(
+        extra="forbid"
+    )
+
+
+    dataset_id: str = Field(
+        min_length=1
+    )
+
+    aggregation_function: Literal[
+        "sum",
+        "mean",
+        "median",
+        "min",
+        "max",
+        "count",
+        "distinct_count",
+    ]
+
+    source_column: (
+        str
+        | None
+    ) = None
+
+    group_by_columns: list[
+        str
+    ] = Field(
+        default_factory=list
+    )
+
+
+class RankingToolArgs(
+    BaseModel
+):
+    model_config = ConfigDict(
+        extra="forbid"
+    )
+
+
+    dataset_id: str = Field(
+        min_length=1
+    )
+
+    dimension_column: str = Field(
+        min_length=1
+    )
+
+    aggregation_function: Literal[
+        "sum",
+        "mean",
+        "median",
+        "min",
+        "max",
+        "count",
+        "distinct_count",
+    ]
+
+    source_column: (
+        str
+        | None
+    ) = None
+
+    order: Literal[
+        "ascending",
+        "descending",
+    ]
+
+    limit: int = Field(
+        ge=1,
+        le=100,
+    )
+
 
 # Backward-compatible alias for previous imports/tests.
 QuantitativeAssociationToolArgs = (
@@ -160,6 +256,8 @@ class NativeToolSpec(
         "group_value",
         "value",
         "time_value",
+        "aggregation",
+        "ranking",
     ]
 
     description: str
@@ -257,12 +355,49 @@ NATIVE_TOOL_SPECS: dict[
                 "time_value"
             ),
             description=(
-                "Execute a validated descriptive temporal "
-                "profile for one temporal column and one "
-                "quantitative value column from one "
-                "DataLens dataset. The current deterministic "
-                "native scope uses median and interquartile "
-                "range by period."
+                "Execute a validated deterministic temporal "
+                "aggregation for one temporal column and one "
+                "value column from one DataLens dataset. "
+                "The aggregation function is copied exactly "
+                "from the canonical DataLens contract. Median "
+                "retains the deterministic Q1/Q3 profile."
+            ),
+        ),
+
+    "aggregation":
+        NativeToolSpec(
+            family=(
+                "aggregation"
+            ),
+            tool_name=(
+                "run_aggregation"
+            ),
+            argument_shape=(
+                "aggregation"
+            ),
+            description=(
+                "Execute a validated deterministic aggregation "
+                "using the exact aggregation function, source "
+                "column and grouping columns from the canonical "
+                "DataLens contract."
+            ),
+        ),
+
+    "ranking":
+        NativeToolSpec(
+            family=(
+                "ranking"
+            ),
+            tool_name=(
+                "run_ranking"
+            ),
+            argument_shape=(
+                "ranking"
+            ),
+            description=(
+                "Execute a validated deterministic ranking after "
+                "the exact canonical aggregation, sort direction "
+                "and top-K limit from the DataLens contract."
             ),
         ),
 }
@@ -788,8 +923,9 @@ def build_time_series_tool_schema(
                         spec.description
                         +
                         " Only use the exact dataset, "
-                        "time column and value column from "
-                        "the validated analytical contract."
+                        "time column, value column and "
+                        "aggregation function from the "
+                        "validated analytical contract."
                     ),
 
                 "parameters":
@@ -802,6 +938,7 @@ def build_time_series_tool_schema(
                                 "dataset_id",
                                 "time_column",
                                 "value_column",
+                                "aggregation_function",
                             ],
 
                         "properties":
@@ -839,10 +976,34 @@ def build_time_series_tool_schema(
 
                                         "description":
                                             (
-                                                "Exact quantitative "
-                                                "value column from "
-                                                "the validated "
+                                                "Exact value column "
+                                                "from the validated "
                                                 "contract."
+                                            ),
+                                    },
+
+                                "aggregation_function":
+                                    {
+                                        "type":
+                                            "string",
+
+                                        "enum":
+                                            [
+                                                "sum",
+                                                "mean",
+                                                "median",
+                                                "min",
+                                                "max",
+                                                "count",
+                                                "distinct_count",
+                                            ],
+
+                                        "description":
+                                            (
+                                                "Exact aggregation "
+                                                "function from the "
+                                                "validated canonical "
+                                                "AggregationSpec."
                                             ),
                                     },
                             },
@@ -851,6 +1012,134 @@ def build_time_series_tool_schema(
                             False,
                     },
             },
+    }
+
+def build_aggregation_tool_schema(
+    spec: NativeToolSpec,
+) -> dict[
+    str,
+    Any,
+]:
+    return {
+        "type": "function",
+        "function": {
+            "name": spec.tool_name,
+            "description": (
+                spec.description
+                +
+                " Copy the validated arguments exactly. "
+                "source_column may be null only when the "
+                "validated aggregation has no source role."
+            ),
+            "parameters": {
+                "type": "object",
+                "required": [
+                    "dataset_id",
+                    "aggregation_function",
+                    "source_column",
+                    "group_by_columns",
+                ],
+                "properties": {
+                    "dataset_id": {
+                        "type": "string",
+                    },
+                    "aggregation_function": {
+                        "type": "string",
+                        "enum": [
+                            "sum",
+                            "mean",
+                            "median",
+                            "min",
+                            "max",
+                            "count",
+                            "distinct_count",
+                        ],
+                    },
+                    "source_column": {
+                        "anyOf": [
+                            {"type": "string"},
+                            {"type": "null"},
+                        ],
+                    },
+                    "group_by_columns": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                        },
+                    },
+                },
+                "additionalProperties": False,
+            },
+        },
+    }
+
+
+def build_ranking_tool_schema(
+    spec: NativeToolSpec,
+) -> dict[
+    str,
+    Any,
+]:
+    return {
+        "type": "function",
+        "function": {
+            "name": spec.tool_name,
+            "description": (
+                spec.description
+                +
+                " Copy every validated argument exactly."
+            ),
+            "parameters": {
+                "type": "object",
+                "required": [
+                    "dataset_id",
+                    "dimension_column",
+                    "aggregation_function",
+                    "source_column",
+                    "order",
+                    "limit",
+                ],
+                "properties": {
+                    "dataset_id": {
+                        "type": "string",
+                    },
+                    "dimension_column": {
+                        "type": "string",
+                    },
+                    "aggregation_function": {
+                        "type": "string",
+                        "enum": [
+                            "sum",
+                            "mean",
+                            "median",
+                            "min",
+                            "max",
+                            "count",
+                            "distinct_count",
+                        ],
+                    },
+                    "source_column": {
+                        "anyOf": [
+                            {"type": "string"},
+                            {"type": "null"},
+                        ],
+                    },
+                    "order": {
+                        "type": "string",
+                        "enum": [
+                            "ascending",
+                            "descending",
+                        ],
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 100,
+                    },
+                },
+                "additionalProperties": False,
+            },
+        },
     }
 
 
@@ -899,6 +1188,28 @@ def build_native_tool_schema(
     ):
         return (
             build_time_series_tool_schema(
+                spec
+            )
+        )
+
+
+    if (
+        spec.argument_shape ==
+        "aggregation"
+    ):
+        return (
+            build_aggregation_tool_schema(
+                spec
+            )
+        )
+
+
+    if (
+        spec.argument_shape ==
+        "ranking"
+    ):
+        return (
+            build_ranking_tool_schema(
                 spec
             )
         )
@@ -955,7 +1266,7 @@ def native_tool_spec_for_contract(
     ):
         raise ValueError(
             (
-                "Native tool calling v0.6 does not "
+                "Native tool calling v0.9 does not "
                 "support analytical family "
                 f"`{contract.family}`."
             )
@@ -1011,7 +1322,7 @@ def expected_two_variable_tool_args(
     ):
         raise ValueError(
             (
-                "Native tool calling v0.6 requires "
+                "Native tool calling v0.9 requires "
                 "exactly one dataset."
             )
         )
@@ -1111,7 +1422,7 @@ def expected_group_comparison_tool_args(
     ):
         raise ValueError(
             (
-                "Native tool calling v0.6 requires "
+                "Native tool calling v0.9 requires "
                 "exactly one dataset."
             )
         )
@@ -1211,7 +1522,7 @@ def expected_distribution_tool_args(
     ):
         raise ValueError(
             (
-                "Native tool calling v0.6 requires "
+                "Native tool calling v0.9 requires "
                 "exactly one dataset."
             )
         )
@@ -1300,7 +1611,7 @@ def expected_time_series_tool_args(
     ):
         raise ValueError(
             (
-                "Native tool calling v0.6 requires "
+                "Native tool calling v0.9 requires "
                 "exactly one dataset."
             )
         )
@@ -1311,21 +1622,42 @@ def expected_time_series_tool_args(
     )
 
 
+    supported_functions = {
+        "sum",
+        "mean",
+        "median",
+        "min",
+        "max",
+        "count",
+        "distinct_count",
+    }
+
+
     if (
         aggregation is None
         or
         aggregation.function
+        not in supported_functions
+        or
+        aggregation.source_role
         !=
-        "median"
+        "value"
+        or
+        list(
+            aggregation.group_by_roles
+        )
+        !=
+        [
+            "time",
+        ]
     ):
         raise ValueError(
             (
-                "Native time_series v0.6 is intentionally "
-                "restricted to the deterministic median/IQR "
-                "temporal profile already implemented by the "
-                "current executor. The validated contract "
-                "must therefore use aggregation.function="
-                "`median`."
+                "Native time_series v0.9 requires a "
+                "validated canonical AggregationSpec with "
+                "source_role=`value`, "
+                "group_by_roles=[`time`] and one supported "
+                "aggregation function."
             )
         )
 
@@ -1378,7 +1710,195 @@ def expected_time_series_tool_args(
             value_column=(
                 value_column
             ),
+            aggregation_function=(
+                aggregation.function
+            ),
         )
+    )
+
+def expected_aggregation_tool_args(
+    contract: AnalyticalContract,
+) -> AggregationToolArgs:
+    if (
+        contract.status !=
+        "validated"
+    ):
+        raise ValueError(
+            "Native tool calling requires a contract already "
+            "promoted to `validated` by Python."
+        )
+
+
+    if contract.family != "aggregation":
+        raise ValueError(
+            "Expected an aggregation contract."
+        )
+
+
+    native_tool_spec_for_contract(
+        contract
+    )
+
+
+    if len(contract.required_dataset_ids) != 1:
+        raise ValueError(
+            "Native aggregation requires exactly one dataset."
+        )
+
+
+    aggregation = contract.aggregation
+
+
+    if aggregation is None:
+        raise ValueError(
+            "A validated aggregation contract requires AggregationSpec."
+        )
+
+
+    bindings = contract_binding_map(
+        contract
+    )
+
+
+    source_column = (
+        bindings.get(
+            aggregation.source_role
+        )
+        if aggregation.source_role is not None
+        else None
+    )
+
+
+    if (
+        aggregation.source_role is not None
+        and
+        source_column is None
+    ):
+        raise ValueError(
+            "The validated aggregation source role has no column binding."
+        )
+
+
+    group_by_columns: list[str] = []
+
+
+    for role in aggregation.group_by_roles:
+        column = bindings.get(
+            role
+        )
+
+
+        if column is None:
+            raise ValueError(
+                "The validated aggregation group role has no "
+                f"column binding: {role}."
+            )
+
+
+        group_by_columns.append(
+            column
+        )
+
+
+    return AggregationToolArgs(
+        dataset_id=contract.required_dataset_ids[0],
+        aggregation_function=aggregation.function,
+        source_column=source_column,
+        group_by_columns=group_by_columns,
+    )
+
+
+def expected_ranking_tool_args(
+    contract: AnalyticalContract,
+) -> RankingToolArgs:
+    if (
+        contract.status !=
+        "validated"
+    ):
+        raise ValueError(
+            "Native tool calling requires a contract already "
+            "promoted to `validated` by Python."
+        )
+
+
+    if contract.family != "ranking":
+        raise ValueError(
+            "Expected a ranking contract."
+        )
+
+
+    native_tool_spec_for_contract(
+        contract
+    )
+
+
+    if len(contract.required_dataset_ids) != 1:
+        raise ValueError(
+            "Native ranking requires exactly one dataset."
+        )
+
+
+    aggregation = contract.aggregation
+    ranking = contract.ranking
+
+
+    if aggregation is None or ranking is None:
+        raise ValueError(
+            "A validated ranking contract requires both "
+            "AggregationSpec and RankingSpec."
+        )
+
+
+    bindings = contract_binding_map(
+        contract
+    )
+
+
+    dimension_column = (
+        bindings.get(
+            "dimension"
+        )
+        or
+        bindings.get(
+            "group"
+        )
+    )
+
+
+    if dimension_column is None:
+        raise ValueError(
+            "The validated ranking contract requires a "
+            "dimension or group binding."
+        )
+
+
+    source_column = (
+        bindings.get(
+            aggregation.source_role
+        )
+        if aggregation.source_role is not None
+        else None
+    )
+
+
+    if (
+        aggregation.source_role is not None
+        and
+        source_column is None
+    ):
+        raise ValueError(
+            "The validated ranking aggregation source role "
+            "has no column binding."
+        )
+
+
+    return RankingToolArgs(
+        dataset_id=contract.required_dataset_ids[0],
+        dimension_column=dimension_column,
+        aggregation_function=aggregation.function,
+        source_column=source_column,
+        order=ranking.order,
+        limit=ranking.limit,
     )
 
 
@@ -1389,6 +1909,8 @@ def expected_tool_arguments(
     | GroupComparisonToolArgs
     | DistributionToolArgs
     | TimeSeriesToolArgs
+    | AggregationToolArgs
+    | RankingToolArgs
 ):
     spec = (
         native_tool_spec_for_contract(
@@ -1436,6 +1958,28 @@ def expected_tool_arguments(
     ):
         return (
             expected_time_series_tool_args(
+                contract
+            )
+        )
+
+
+    if (
+        spec.argument_shape ==
+        "aggregation"
+    ):
+        return (
+            expected_aggregation_tool_args(
+                contract
+            )
+        )
+
+
+    if (
+        spec.argument_shape ==
+        "ranking"
+    ):
+        return (
+            expected_ranking_tool_args(
                 contract
             )
         )
@@ -1494,7 +2038,7 @@ Rules:
 
 1. Select the tool whose analytical family EXACTLY matches the
    validated contract family.
-2. Copy dataset_id, x_column and y_column EXACTLY.
+2. Copy every argument from the validated contract EXACTLY.
 3. Do not swap, rename, infer or transform arguments.
 4. Do not return prose instead of the function call.
 5. Do not calculate or summarize any statistical result.
@@ -1654,7 +2198,12 @@ def make_native_tool_request(
 ) -> Any:
     try:
         return (
-            client.chat(
+            classified_llm_chat(
+                client,
+                payload_class=(
+                    LLMPayloadClass
+                    .METADATA_ONLY
+                ),
                 model=(
                     model
                 ),
@@ -2091,6 +2640,56 @@ def validate_native_tool_call(
 
 
     if isinstance(
+        expected,
+        AggregationToolArgs,
+    ):
+        try:
+            received = (
+                AggregationToolArgs
+                .model_validate(
+                    proposal.arguments
+                )
+            )
+
+
+        except Exception as error:
+            errors.append(
+                (
+                    "Native aggregation arguments do not "
+                    "match the required schema: "
+                    f"{error}"
+                )
+            )
+
+            return errors
+
+
+    elif isinstance(
+        expected,
+        RankingToolArgs,
+    ):
+        try:
+            received = (
+                RankingToolArgs
+                .model_validate(
+                    proposal.arguments
+                )
+            )
+
+
+        except Exception as error:
+            errors.append(
+                (
+                    "Native ranking arguments do not match "
+                    "the required schema: "
+                    f"{error}"
+                )
+            )
+
+            return errors
+
+
+    elif isinstance(
         expected,
         GroupComparisonToolArgs,
     ):

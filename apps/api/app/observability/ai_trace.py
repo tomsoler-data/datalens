@@ -18,6 +18,7 @@ from pathlib import (
 
 from typing import (
     Any,
+    Literal,
 )
 
 
@@ -33,7 +34,12 @@ from pydantic import (
 # ============================================================
 
 AI_TRACE_RULE_VERSION = (
-    "ai_trace_v0.3"
+    "ai_trace_v0.4"
+)
+
+
+AI_TRACE_PRIVACY_RULE_VERSION = (
+    "ai_trace_privacy_v0.1"
 )
 
 
@@ -69,6 +75,10 @@ class AITracePrivacy(
     )
 
 
+    privacy_rule_version: str = (
+        AI_TRACE_PRIVACY_RULE_VERSION
+    )
+
     storage_scope: str = (
         "local_jsonl"
     )
@@ -89,10 +99,64 @@ class AITracePrivacy(
         True
     )
 
+    contains_model_raw_output: bool = (
+        False
+    )
+
+    contains_model_arguments: bool = (
+        False
+    )
+
+    contains_internal_error_details: bool = (
+        False
+    )
+
+    contains_trace_storage_path: bool = (
+        False
+    )
+
     note: str = (
         "DataLens observability stores local analytical "
-        "metadata and AI decision traces. It does not "
-        "persist raw uploaded dataset rows in this trace."
+        "metadata, validated decision metadata and "
+        "timings. Raw dataset rows, uploaded contents, "
+        "document chunks, raw model output, model "
+        "arguments, internal error details and local "
+        "trace storage filesystem paths are not persisted ""in traces."
+    )
+
+
+AITraceAnalysisSourceType = Literal[
+    "initial_request",
+    "follow_up_prompt",
+    "document_request",
+    "automatic",
+]
+
+
+AITraceRunStatus = Literal[
+    "completed",
+    "failed",
+]
+
+
+class AITraceFailure(
+    BaseModel
+):
+    model_config = ConfigDict(
+        extra="forbid"
+    )
+
+
+    stage: str = Field(
+        min_length=1
+    )
+
+    error_type: str = Field(
+        min_length=1
+    )
+
+    message_safe: str = Field(
+        min_length=1
     )
 
 
@@ -186,6 +250,30 @@ class AITraceRecord(
     trace_rule_version: str = (
         AI_TRACE_RULE_VERSION
     )
+
+    workflow_id: (
+        str
+        | None
+    ) = None
+
+    analysis_id: (
+        str
+        | None
+    ) = None
+
+    analysis_source_type: (
+        AITraceAnalysisSourceType
+        | None
+    ) = None
+
+    run_status: AITraceRunStatus = (
+        "completed"
+    )
+
+    failure: (
+        AITraceFailure
+        | None
+    ) = None
 
     objective: str
 
@@ -366,6 +454,223 @@ def objective_sha256(
 
 
 # ============================================================
+# PRIVACY-SAFE TRACE METADATA
+# ============================================================
+
+
+def _trace_collection_count(
+    value: Any,
+) -> int:
+
+    if isinstance(
+        value,
+        (
+            dict,
+            list,
+            tuple,
+            set,
+        ),
+    ):
+        return len(
+            value
+        )
+
+
+    return 0
+
+
+def _trace_metadata_string(
+    value: Any,
+) -> (
+    str
+    | None
+):
+
+    if value is None:
+        return None
+
+
+    if isinstance(
+        value,
+        (
+            str,
+            int,
+            float,
+            bool,
+        ),
+    ):
+        return str(
+            value
+        )
+
+
+    return None
+
+
+def _trace_filename(
+    value: Any,
+) -> (
+    str
+    | None
+):
+
+    normalized = (
+        _trace_metadata_string(
+            value
+        )
+    )
+
+
+    if not normalized:
+        return None
+
+
+    # Support both Windows and POSIX separators even when
+    # tests run on a different operating system.
+    safe = (
+        normalized
+        .replace(
+            "\\",
+            "/",
+        )
+        .rsplit(
+            "/",
+            1,
+        )[
+            -1
+        ]
+    )
+
+
+    return (
+        safe
+        or
+        None
+    )
+
+
+def _trace_string_list(
+    value: Any,
+    *,
+    filenames: bool = False,
+) -> list[
+    str
+]:
+
+    if not isinstance(
+        value,
+        (
+            list,
+            tuple,
+            set,
+        ),
+    ):
+        return []
+
+
+    result: list[
+        str
+    ] = []
+
+
+    for item in value:
+
+        normalized = (
+            _trace_filename(
+                item
+            )
+            if filenames
+            else
+            _trace_metadata_string(
+                item
+            )
+        )
+
+
+        if normalized:
+            result.append(
+                normalized
+            )
+
+
+        if len(
+            result
+        ) >= 100:
+            break
+
+
+    return result
+
+
+def _trace_binding_metadata(
+    binding: Any,
+) -> (
+    dict[
+        str,
+        Any,
+    ]
+    | None
+):
+
+    if not isinstance(
+        binding,
+        dict,
+    ):
+        return None
+
+
+    safe = {
+        "role":
+            _trace_metadata_string(
+                binding.get(
+                    "role"
+                )
+            ),
+
+        "dataset_id":
+            _trace_metadata_string(
+                binding.get(
+                    "dataset_id"
+                )
+            ),
+
+        "dataset_filename":
+            _trace_filename(
+                binding.get(
+                    "dataset_filename"
+                )
+            ),
+
+        "column":
+            _trace_metadata_string(
+                binding.get(
+                    "column"
+                )
+            ),
+
+        "analysis_kind":
+            _trace_metadata_string(
+                binding.get(
+                    "analysis_kind"
+                )
+            ),
+    }
+
+
+    return {
+        key:
+            value
+
+        for (
+            key,
+            value,
+        ) in safe.items()
+
+        if value is not None
+    }
+
+
+# ============================================================
 # DATASET TRACE
 # ============================================================
 
@@ -418,12 +723,16 @@ def build_dataset_trace(
                     ),
 
                 "filename":
-                    str(
-                        read_value(
-                            dataset,
-                            "filename",
-                            "",
+                    (
+                        _trace_filename(
+                            read_value(
+                                dataset,
+                                "filename",
+                                "",
+                            )
                         )
+                        or
+                        ""
                     ),
 
                 "row_count":
@@ -492,6 +801,7 @@ def build_planner_trace(
     str,
     Any,
 ]:
+
     planner = (
         to_plain_data(
             planner_report
@@ -515,12 +825,136 @@ def build_planner_trace(
         )
         or []
     ):
+
+        if not isinstance(
+            item,
+            dict,
+        ):
+            continue
+
+
         contract = (
             item.get(
                 "contract"
             )
             or {}
         )
+
+
+        if not isinstance(
+            contract,
+            dict,
+        ):
+            contract = {}
+
+
+        required_dataset_ids = (
+            _trace_string_list(
+                contract.get(
+                    "required_dataset_ids",
+                    [],
+                )
+            )
+        )
+
+
+        required_dataset_filenames = (
+            _trace_string_list(
+                contract.get(
+                    "required_dataset_filenames",
+                    [],
+                ),
+                filenames=True,
+            )
+        )
+
+
+        bindings: list[
+            dict[
+                str,
+                Any,
+            ]
+        ] = []
+
+
+        raw_bindings = (
+            contract.get(
+                "bindings",
+                [],
+            )
+            or []
+        )
+
+
+        if isinstance(
+            raw_bindings,
+            (
+                list,
+                tuple,
+            ),
+        ):
+
+            for binding in raw_bindings:
+
+                safe_binding = (
+                    _trace_binding_metadata(
+                        binding
+                    )
+                )
+
+
+                if safe_binding:
+                    bindings.append(
+                        safe_binding
+                    )
+
+
+                if len(
+                    bindings
+                ) >= 100:
+                    break
+
+
+        canonical_proposal = (
+            {
+                "family":
+                    _trace_metadata_string(
+                        contract.get(
+                            "family"
+                        )
+                    ),
+
+                "dataset_id":
+                    (
+                        required_dataset_ids[
+                            0
+                        ]
+                        if required_dataset_ids
+                        else None
+                    ),
+            }
+
+            if contract
+            else None
+        )
+
+
+        if canonical_proposal is not None:
+
+            canonical_proposal = {
+                key:
+                    value
+
+                for (
+                    key,
+                    value,
+                ) in (
+                    canonical_proposal
+                    .items()
+                )
+
+                if value is not None
+            }
 
 
         items.append(
@@ -531,108 +965,89 @@ def build_planner_trace(
                     ),
 
                 "validation_status":
-                    item.get(
-                        "validation_status"
+                    _trace_metadata_string(
+                        item.get(
+                            "validation_status"
+                        )
                     ),
 
-                "raw_proposal":
-                    item.get(
-                        "raw_proposal"
-                    ),
-
+                # Deliberately derived from the validated
+                # AnalyticalContract rather than copied from
+                # raw or model-produced proposal payloads.
                 "canonical_proposal":
-                    item.get(
-                        "proposal"
+                    canonical_proposal,
+
+                "error_count":
+                    _trace_collection_count(
+                        item.get(
+                            "errors"
+                        )
                     ),
 
-                "errors":
-                    list(
+                "warning_count":
+                    _trace_collection_count(
                         item.get(
-                            "errors",
-                            [],
+                            "warnings"
                         )
-                        or []
                     ),
 
-                "warnings":
-                    list(
+                "normalization_count":
+                    _trace_collection_count(
                         item.get(
-                            "warnings",
-                            [],
+                            "normalizations"
                         )
-                        or []
-                    ),
-
-                "normalizations":
-                    list(
-                        item.get(
-                            "normalizations",
-                            [],
-                        )
-                        or []
                     ),
 
                 "contract":
                     (
                         {
                             "contract_id":
-                                contract.get(
-                                    "contract_id"
+                                _trace_metadata_string(
+                                    contract.get(
+                                        "contract_id"
+                                    )
                                 ),
 
                             "status":
-                                contract.get(
-                                    "status"
+                                _trace_metadata_string(
+                                    contract.get(
+                                        "status"
+                                    )
                                 ),
 
                             "family":
-                                contract.get(
-                                    "family"
+                                _trace_metadata_string(
+                                    contract.get(
+                                        "family"
+                                    )
                                 ),
 
                             "required_dataset_ids":
-                                contract.get(
-                                    "required_dataset_ids",
-                                    [],
-                                ),
+                                required_dataset_ids,
 
                             "required_dataset_filenames":
-                                contract.get(
-                                    "required_dataset_filenames",
-                                    [],
-                                ),
+                                required_dataset_filenames,
 
                             "bindings":
-                                contract.get(
-                                    "bindings",
-                                    [],
+                                bindings,
+
+                            "binding_count":
+                                len(
+                                    bindings
                                 ),
 
-                            "aggregation":
-                                contract.get(
-                                    "aggregation"
+                            "blocker_count":
+                                _trace_collection_count(
+                                    contract.get(
+                                        "blockers"
+                                    )
                                 ),
 
-                            "ranking":
-                                contract.get(
-                                    "ranking"
-                                ),
-
-                            "window":
-                                contract.get(
-                                    "window"
-                                ),
-
-                            "blockers":
-                                contract.get(
-                                    "blockers",
-                                    [],
-                                ),
-
-                            "reasons":
-                                contract.get(
-                                    "reasons",
-                                    [],
+                            "reason_count":
+                                _trace_collection_count(
+                                    contract.get(
+                                        "reasons"
+                                    )
                                 ),
                         }
 
@@ -645,18 +1060,24 @@ def build_planner_trace(
 
     return {
         "status":
-            planner.get(
-                "status"
+            _trace_metadata_string(
+                planner.get(
+                    "status"
+                )
             ),
 
         "model":
-            planner.get(
-                "model"
+            _trace_metadata_string(
+                planner.get(
+                    "model"
+                )
             ),
 
         "planner_rule_version":
-            planner.get(
-                "planner_rule_version"
+            _trace_metadata_string(
+                planner.get(
+                    "planner_rule_version"
+                )
             ),
 
         "proposal_count":
@@ -699,10 +1120,11 @@ def build_planner_trace(
                 "retry_triggered"
             ),
 
-        "retry_feedback":
-            planner.get(
-                "retry_feedback",
-                [],
+        "retry_feedback_count":
+            _trace_collection_count(
+                planner.get(
+                    "retry_feedback"
+                )
             ),
 
         "normalization_count":
@@ -716,9 +1138,19 @@ def build_planner_trace(
             ),
 
         "timing":
-            planner.get(
-                "timing",
-                {},
+            (
+                planner.get(
+                    "timing",
+                    {},
+                )
+                if isinstance(
+                    planner.get(
+                        "timing",
+                        {},
+                    ),
+                    dict,
+                )
+                else {}
             ),
 
         "items":
@@ -736,6 +1168,7 @@ def build_native_pipeline_trace(
     str,
     Any,
 ]:
+
     pipeline = (
         to_plain_data(
             pipeline_report
@@ -759,12 +1192,27 @@ def build_native_pipeline_trace(
         )
         or []
     ):
+
+        if not isinstance(
+            item,
+            dict,
+        ):
+            continue
+
+
         native = (
             item.get(
                 "native_tool"
             )
             or {}
         )
+
+
+        if not isinstance(
+            native,
+            dict,
+        ):
+            native = {}
 
 
         execution = (
@@ -775,6 +1223,13 @@ def build_native_pipeline_trace(
         )
 
 
+        if not isinstance(
+            execution,
+            dict,
+        ):
+            execution = {}
+
+
         result = (
             execution.get(
                 "result"
@@ -783,115 +1238,165 @@ def build_native_pipeline_trace(
         )
 
 
-        attempts = [
-            {
-                "attempt_index":
-                    attempt.get(
-                        "attempt_index"
-                    ),
+        if not isinstance(
+            result,
+            dict,
+        ):
+            result = {}
 
-                "prompt_variant":
-                    attempt.get(
-                        "prompt_variant"
-                    ),
 
-                "tool_call_count":
-                    attempt.get(
-                        "tool_call_count"
-                    ),
+        attempts: list[
+            dict[
+                str,
+                Any,
+            ]
+        ] = []
 
-                "selected_tool_name":
-                    attempt.get(
-                        "selected_tool_name"
-                    ),
 
-                "errors":
-                    attempt.get(
-                        "errors",
-                        [],
-                    ),
-
-                "prompt_construction_ms":
-                    attempt.get(
-                        "prompt_construction_ms",
-                        0.0,
-                    ),
-
-                "model_inference_ms":
-                    attempt.get(
-                        "model_inference_ms",
-                        0.0,
-                    ),
-
-                "response_parse_ms":
-                    attempt.get(
-                        "response_parse_ms",
-                        0.0,
-                    ),
-
-                "total_ms":
-                    attempt.get(
-                        "total_ms",
-                        0.0,
-                    ),
-            }
-
-            for attempt
-            in (
-                native.get(
-                    "attempts",
-                    [],
-                )
-                or []
+        raw_attempts = (
+            native.get(
+                "attempts",
+                [],
             )
-        ]
+            or []
+        )
+
+
+        if isinstance(
+            raw_attempts,
+            (
+                list,
+                tuple,
+            ),
+        ):
+
+            for attempt in raw_attempts:
+
+                if not isinstance(
+                    attempt,
+                    dict,
+                ):
+                    continue
+
+
+                attempts.append(
+                    {
+                        "attempt_index":
+                            attempt.get(
+                                "attempt_index"
+                            ),
+
+                        "tool_call_count":
+                            attempt.get(
+                                "tool_call_count"
+                            ),
+
+                        "selected_tool_name":
+                            _trace_metadata_string(
+                                attempt.get(
+                                    "selected_tool_name"
+                                )
+                            ),
+
+                        "error_count":
+                            _trace_collection_count(
+                                attempt.get(
+                                    "errors"
+                                )
+                            ),
+
+                        "prompt_construction_ms":
+                            attempt.get(
+                                "prompt_construction_ms",
+                                0.0,
+                            ),
+
+                        "model_inference_ms":
+                            attempt.get(
+                                "model_inference_ms",
+                                0.0,
+                            ),
+
+                        "response_parse_ms":
+                            attempt.get(
+                                "response_parse_ms",
+                                0.0,
+                            ),
+
+                        "total_ms":
+                            attempt.get(
+                                "total_ms",
+                                0.0,
+                            ),
+                    }
+                )
+
+
+                if len(
+                    attempts
+                ) >= 20:
+                    break
 
 
         items.append(
             {
                 "contract_id":
-                    item.get(
-                        "contract_id"
+                    _trace_metadata_string(
+                        item.get(
+                            "contract_id"
+                        )
                     ),
 
                 "family":
-                    item.get(
-                        "family"
+                    _trace_metadata_string(
+                        item.get(
+                            "family"
+                        )
                     ),
 
                 "pipeline_status":
-                    item.get(
-                        "pipeline_status"
+                    _trace_metadata_string(
+                        item.get(
+                            "pipeline_status"
+                        )
                     ),
 
-                "pipeline_errors":
-                    item.get(
-                        "errors",
-                        [],
+                "pipeline_error_count":
+                    _trace_collection_count(
+                        item.get(
+                            "errors"
+                        )
                     ),
 
-                "pipeline_warnings":
-                    item.get(
-                        "warnings",
-                        [],
+                "pipeline_warning_count":
+                    _trace_collection_count(
+                        item.get(
+                            "warnings"
+                        )
                     ),
 
                 "tool_call":
                     (
                         {
                             "model":
-                                native.get(
-                                    "model"
+                                _trace_metadata_string(
+                                    native.get(
+                                        "model"
+                                    )
                                 ),
 
                             "native_tool_rule_version":
-                                native.get(
-                                    "native_tool_rule_version"
+                                _trace_metadata_string(
+                                    native.get(
+                                        "native_tool_rule_version"
+                                    )
                                 ),
 
                             "expected_tool":
-                                native.get(
-                                    "expected_tool"
+                                _trace_metadata_string(
+                                    native.get(
+                                        "expected_tool"
+                                    )
                                 ),
 
                             "tool_call_received":
@@ -900,25 +1405,24 @@ def build_native_pipeline_trace(
                                 ),
 
                             "requested_tool":
-                                native.get(
-                                    "requested_tool"
-                                ),
-
-                            "requested_arguments":
-                                native.get(
-                                    "requested_arguments",
-                                    {},
+                                _trace_metadata_string(
+                                    native.get(
+                                        "requested_tool"
+                                    )
                                 ),
 
                             "validation_status":
-                                native.get(
-                                    "validation_status"
+                                _trace_metadata_string(
+                                    native.get(
+                                        "validation_status"
+                                    )
                                 ),
 
-                            "validation_errors":
-                                native.get(
-                                    "validation_errors",
-                                    [],
+                            "validation_error_count":
+                                _trace_collection_count(
+                                    native.get(
+                                        "validation_errors"
+                                    )
                                 ),
 
                             "attempt_count":
@@ -935,9 +1439,19 @@ def build_native_pipeline_trace(
                                 attempts,
 
                             "timing":
-                                native.get(
-                                    "timing",
-                                    {},
+                                (
+                                    native.get(
+                                        "timing",
+                                        {},
+                                    )
+                                    if isinstance(
+                                        native.get(
+                                            "timing",
+                                            {},
+                                        ),
+                                        dict,
+                                    )
+                                    else {}
                                 ),
                         }
 
@@ -949,44 +1463,52 @@ def build_native_pipeline_trace(
                     (
                         {
                             "execution_status":
-                                execution.get(
-                                    "execution_status"
+                                _trace_metadata_string(
+                                    execution.get(
+                                        "execution_status"
+                                    )
                                 ),
 
                             "tool_name":
-                                execution.get(
-                                    "tool_name"
+                                _trace_metadata_string(
+                                    execution.get(
+                                        "tool_name"
+                                    )
                                 ),
 
                             "dataset_id":
-                                execution.get(
-                                    "dataset_id"
+                                _trace_metadata_string(
+                                    execution.get(
+                                        "dataset_id"
+                                    )
                                 ),
 
                             "dataset_filename":
-                                execution.get(
-                                    "dataset_filename"
-                                ),
-
-                            "arguments":
-                                execution.get(
-                                    "arguments",
-                                    {},
+                                _trace_filename(
+                                    execution.get(
+                                        "dataset_filename"
+                                    )
                                 ),
 
                             "result_status":
-                                result.get(
-                                    "execution_status"
+                                _trace_metadata_string(
+                                    result.get(
+                                        "execution_status"
+                                    )
                                 ),
 
                             "chart_type":
-                                result.get(
-                                    "chart_type"
+                                _trace_metadata_string(
+                                    result.get(
+                                        "chart_type"
+                                    )
                                 ),
 
                             "execution_rule_version":
-                                result.get(
-                                    "execution_rule_version"
+                                _trace_metadata_string(
+                                    result.get(
+                                        "execution_rule_version"
+                                    )
                                 ),
                         }
 
@@ -999,34 +1521,54 @@ def build_native_pipeline_trace(
 
     return {
         "trace_id":
-            pipeline.get(
-                "trace_id"
+            _trace_metadata_string(
+                pipeline.get(
+                    "trace_id"
+                )
             ),
 
         "status":
-            pipeline.get(
-                "status"
+            _trace_metadata_string(
+                pipeline.get(
+                    "status"
+                )
             ),
 
         "planner_model":
-            pipeline.get(
-                "planner_model"
+            _trace_metadata_string(
+                pipeline.get(
+                    "planner_model"
+                )
             ),
 
         "tool_model":
-            pipeline.get(
-                "tool_model"
+            _trace_metadata_string(
+                pipeline.get(
+                    "tool_model"
+                )
             ),
 
         "pipeline_rule_version":
-            pipeline.get(
-                "pipeline_rule_version"
+            _trace_metadata_string(
+                pipeline.get(
+                    "pipeline_rule_version"
+                )
             ),
 
         "timing":
-            pipeline.get(
-                "timing",
-                {},
+            (
+                pipeline.get(
+                    "timing",
+                    {},
+                )
+                if isinstance(
+                    pipeline.get(
+                        "timing",
+                        {},
+                    ),
+                    dict,
+                )
+                else {}
             ),
 
         "validated_contract_count":
@@ -1074,6 +1616,9 @@ def build_ai_trace(
     planner_ms: float,
     native_pipeline_ms: float,
     total_ms: float,
+    workflow_id: str | None = None,
+    run_status: str = "completed",
+    failure: Any = None,
 ) -> AITraceRecord:
     planner_plain = (
         to_plain_data(
@@ -1151,6 +1696,27 @@ def build_ai_trace(
                     timezone.utc
                 )
                 .isoformat()
+            ),
+
+            workflow_id=
+                workflow_id,
+
+            run_status=
+                run_status,
+
+            failure=
+                failure,
+
+            analysis_id=(
+                pipeline_plain.get(
+                    "analysis_id"
+                )
+            ),
+
+            analysis_source_type=(
+                pipeline_plain.get(
+                    "analysis_source_type"
+                )
             ),
 
             objective=

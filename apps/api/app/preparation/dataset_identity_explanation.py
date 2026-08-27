@@ -3,7 +3,19 @@ from __future__ import annotations
 import json
 from typing import Literal
 from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
+from urllib.request import Request
+
+from app.ai.ollama_runtime import (
+    resolve_ollama_chat_url,
+)
+
+from app.security.llm_egress import (
+    open_local_llm_request,
+)
+
+from app.security.llm_payload import (
+    LLMPayloadClass,
+)
 
 from pydantic import (
     BaseModel,
@@ -29,7 +41,7 @@ DATASET_IDENTITY_EXPLANATION_RULE_VERSION = (
 DEFAULT_DATASET_IDENTITY_MODEL = "gemma3:4b"
 
 DEFAULT_OLLAMA_CHAT_URL = (
-    "http://127.0.0.1:11434/api/chat"
+    resolve_ollama_chat_url()
 )
 
 
@@ -527,8 +539,12 @@ def _ollama_identity_explanation(
     )
 
     try:
-        with urlopen(
+        with open_local_llm_request(
             request,
+            payload_class=(
+                LLMPayloadClass
+                .DETERMINISTIC_EVIDENCE
+            ),
             timeout=timeout_seconds,
         ) as response:
             payload = json.loads(
@@ -540,26 +556,10 @@ def _ollama_identity_explanation(
             )
 
     except HTTPError as error:
-        body = ""
-
-        try:
-            body = (
-                error
-                .read()
-                .decode(
-                    "utf-8",
-                    errors=
-                        "replace",
-                )
-            )
-
-        except Exception:
-            pass
-
         raise RuntimeError(
             (
-                "Ollama dataset-identity explanation failed "
-                f"with HTTP {error.code}: {body}"
+                "Local model dataset-identity explanation "
+                "request failed."
             )
         ) from error
 

@@ -53,7 +53,7 @@ def test_version() -> None:
 
     assert (
         PREPARATION_ARTIFACT_STORE_VERSION
-        == "preparation_artifact_store_v0.1"
+        == "preparation_artifact_store_v0.4"
     )
 
 

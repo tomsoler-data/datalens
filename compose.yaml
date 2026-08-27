@@ -1,0 +1,46 @@
+services:
+
+  api:
+    image: datalens-api:v0.1
+
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+
+    ports:
+      - "127.0.0.1:8000:8000"
+
+    volumes:
+      - datalens-api-var:/app/var
+
+    environment:
+      DATALENS_LLM_DOCKER_BRIDGE_ENABLED: "1"
+      DATALENS_OLLAMA_HOST: "http://host.docker.internal:11434"
+
+    init: true
+
+
+  web:
+    image: datalens-web:v0.1
+
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+
+      args:
+        NEXT_PUBLIC_DATALENS_API_URL: "http://127.0.0.1:8000"
+
+    ports:
+      - "127.0.0.1:3000:3000"
+
+    depends_on:
+      api:
+        condition: service_healthy
+
+    init: true
+
+
+volumes:
+
+  datalens-api-var:
+    name: datalens-api-var-v0-1

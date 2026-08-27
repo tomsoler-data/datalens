@@ -19,6 +19,11 @@ from app.ai.provider import (
     client,
 )
 
+from app.security.llm_payload import (
+    LLMPayloadClass,
+    classified_llm_chat,
+)
+
 from app.rag_relevance import (
     build_evidence_units,
     filter_candidate_evidence_units,
@@ -659,7 +664,12 @@ def generate_raw_explanation(
 
 
     try:
-        response = client.chat(
+        response = classified_llm_chat(
+            client,
+            payload_class=(
+                LLMPayloadClass
+                .DOCUMENT_CONTENT
+            ),
             model=
                 model,
 

@@ -131,9 +131,10 @@ def explain_preparation_analysis_output(
                     facts=facts
                 )
 
-            except Exception as error:
-                ai_error = str(
-                    error
+            except Exception:
+                ai_error = (
+                    "Local model analysis-output explanation "
+                    "is unavailable."
                 )
 
         return PreparationOutputExplanationResponse(

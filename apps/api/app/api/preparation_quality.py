@@ -25,6 +25,10 @@ from app.preparation.preparation_session import (
     record_required_stage_signal,
 )
 
+from app.preparation.preparation_ui_state import (
+    update_preparation_ui_state,
+)
+
 from app.preparation.preparation_workflow import (
     PreparationStage,
 )
@@ -340,6 +344,33 @@ def analyze_uploaded_dataset_quality(
             ],
 
             blocking_reasons=[],
+        )
+
+
+        # PREPARATION_UI_STATE_WRITE_V0_1:QUALITY
+        update_preparation_ui_state(
+            workflow_id=
+                workflow_id,
+
+            quality_report=(
+                quality_report.model_dump(
+                    mode="json"
+                )
+            ),
+
+            cleaning_plan=None,
+            cleaning_execution=None,
+
+            semantic_review=None,
+            semantic_cleaning_plan=None,
+            semantic_cleaning_execution=None,
+            semantic_confirmation=None,
+
+            applied_semantic_choices=[],
+
+            confirmed_semantic_issue_ids=[],
+
+            semantic_manual_resolutions=[],
         )
 
 

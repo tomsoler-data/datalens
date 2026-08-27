@@ -17,6 +17,11 @@ from app.ai.provider import (
     client,
 )
 
+from app.security.llm_payload import (
+    LLMPayloadClass,
+    classified_llm_embed,
+)
+
 from app.rag import (
     DocumentChunk,
     DocumentIngestionReport,
@@ -363,7 +368,12 @@ def embed_text_batch(
 
 
     try:
-        response = client.embed(
+        response = classified_llm_embed(
+            client,
+            payload_class=(
+                LLMPayloadClass
+                .DOCUMENT_CONTENT
+            ),
             model=
                 model,
 

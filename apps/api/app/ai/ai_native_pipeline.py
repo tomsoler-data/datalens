@@ -29,13 +29,18 @@ from app.planning.ai_analytical_planner import (
     AIPlannerReport,
 )
 
+from app.reporting.analysis_artifact_store import (
+    AnalysisSourceType,
+    register_native_pipeline_result,
+)
+
 
 # ============================================================
 # VERSION
 # ============================================================
 
 AI_NATIVE_PIPELINE_RULE_VERSION = (
-    "ai_native_pipeline_v0.4"
+    "ai_native_pipeline_v0.6"
 )
 
 
@@ -137,6 +142,16 @@ class AINativePipelineReport(
 
     trace_id: (
         str
+        | None
+    ) = None
+
+    analysis_id: (
+        str
+        | None
+    ) = None
+
+    analysis_source_type: (
+        AnalysisSourceType
         | None
     ) = None
 
@@ -428,7 +443,7 @@ def execute_native_ai_pipeline(
     )
 
 
-    return (
+    report = (
         AINativePipelineReport(
             trace_id=(
                 trace_id
@@ -516,6 +531,59 @@ def execute_native_ai_pipeline(
                     "Stage 5: the deterministic DataLens "
                     "executor computes the result."
                 ),
+                (
+                    "Aggregation and ranking contracts are now "
+                    "native capabilities: Python executes the "
+                    "validated aggregation, ordering and top-K "
+                    "limit directly from the canonical contract."
+                ),
+                (
+                    "Successful and rejected native analysis "
+                    "requests are registered server-side by "
+                    "workflow and stable analysis_id so report "
+                    "selection never depends on browser-owned "
+                    "result payloads."
+                ),
             ],
         )
     )
+
+
+    try:
+        artifact = (
+            register_native_pipeline_result(
+                datasets=
+                    datasets,
+
+                pipeline_report=
+                    report,
+            )
+        )
+
+
+        if (
+            artifact is not None
+        ):
+            report.analysis_id = (
+                artifact.analysis_id
+            )
+
+            report.analysis_source_type = (
+                artifact.source_type
+            )
+
+
+    except Exception as error:
+        # Analytical execution must not be invalidated solely
+        # because report-selection persistence failed.
+        report.notes.append(
+            (
+                "Server-owned analysis artifact persistence "
+                "failed; report selection is unavailable for "
+                "this result: "
+                f"{type(error).__name__}: {error}"
+            )
+        )
+
+
+    return report

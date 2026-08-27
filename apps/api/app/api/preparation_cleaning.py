@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import json
 from io import BytesIO
@@ -52,6 +52,10 @@ from app.preparation.preparation_session import (
     PreparationSessionNotFoundError,
     get_preparation_session,
     record_optional_stage_signal,
+)
+
+from app.preparation.preparation_ui_state import (
+    update_preparation_ui_state,
 )
 
 from app.preparation.preparation_workflow import (
@@ -557,8 +561,9 @@ def _record_cleaning_execution_stage(
         -> PASSED.
 
     skipped_action_count does not automatically block the
-    stage: actions omitted from an explicit approval request
-    remain recorded in provenance as skipped.
+    stage because /cleaning-apply reaches this function only
+    after every skipped plan action was explicitly rejected
+    by the analyst. Skipped actions remain in provenance.
     """
 
     evidence_refs = [
@@ -1192,6 +1197,205 @@ def _build_prepared_export_response(
     )
 
 
+
+# ============================================================
+# EXPLICIT CLEANING DECISIONS
+# CLEAN_DECISION_CONTRACT_V0_1
+# ============================================================
+
+
+def _parse_rejected_action_ids(
+    raw_value: str | None,
+) -> set[
+    str
+]:
+    if raw_value is None:
+        return set()
+
+
+    normalized = (
+        raw_value.strip()
+    )
+
+
+    if not normalized:
+        return set()
+
+
+    try:
+        parsed = json.loads(
+            normalized
+        )
+
+    except json.JSONDecodeError as error:
+        raise ValueError(
+            "rejected_action_ids_json "
+            "must be a valid JSON array."
+        ) from error
+
+
+    if not isinstance(
+        parsed,
+        list,
+    ):
+        raise ValueError(
+            "rejected_action_ids_json "
+            "must contain a JSON array."
+        )
+
+
+    action_ids: set[
+        str
+    ] = set()
+
+
+    for value in parsed:
+        if not isinstance(
+            value,
+            str,
+        ):
+            raise ValueError(
+                "Every rejected cleaning "
+                "action id must be a string."
+            )
+
+
+        action_id = (
+            value.strip()
+        )
+
+
+        if not action_id:
+            raise ValueError(
+                "Rejected cleaning action "
+                "ids cannot be empty."
+            )
+
+
+        action_ids.add(
+            action_id
+        )
+
+
+    return action_ids
+
+
+def _require_complete_cleaning_decision(
+    *,
+    cleaning_plan: CleaningPlan,
+
+    approved_action_ids: set[
+        str
+    ],
+
+    rejected_action_ids: set[
+        str
+    ],
+) -> None:
+    """
+    Every deterministic cleaning action must receive one
+    and only one explicit analyst decision.
+
+    An action may be:
+    - approved;
+    - rejected.
+
+    Missing decisions cannot resolve CLEAN.
+    """
+
+    plan_action_ids = {
+        action.action_id
+
+        for action
+        in cleaning_plan.actions
+    }
+
+
+    if (
+        len(
+            plan_action_ids
+        )
+        !=
+        cleaning_plan.action_count
+    ):
+        raise ValueError(
+            "Cleaning plan contains duplicate "
+            "or inconsistent action identifiers."
+        )
+
+
+    unknown_approved = (
+        approved_action_ids
+        -
+        plan_action_ids
+    )
+
+    unknown_rejected = (
+        rejected_action_ids
+        -
+        plan_action_ids
+    )
+
+    overlapping = (
+        approved_action_ids
+        &
+        rejected_action_ids
+    )
+
+    decided_action_ids = (
+        approved_action_ids
+        |
+        rejected_action_ids
+    )
+
+    missing_action_ids = (
+        plan_action_ids
+        -
+        decided_action_ids
+    )
+
+
+    if unknown_approved:
+        raise ValueError(
+            (
+                "Unknown approved cleaning "
+                "action id(s): "
+                f"{sorted(unknown_approved)}."
+            )
+        )
+
+
+    if unknown_rejected:
+        raise ValueError(
+            (
+                "Unknown rejected cleaning "
+                "action id(s): "
+                f"{sorted(unknown_rejected)}."
+            )
+        )
+
+
+    if overlapping:
+        raise ValueError(
+            (
+                "Cleaning action id(s) cannot "
+                "be both approved and rejected: "
+                f"{sorted(overlapping)}."
+            )
+        )
+
+
+    if missing_action_ids:
+        raise ValueError(
+            (
+                "Every cleaning action requires "
+                "an explicit analyst decision. "
+                "Missing decision(s): "
+                f"{sorted(missing_action_ids)}."
+            )
+        )
+
+
 # ============================================================
 # CLEANING PLAN
 # ============================================================
@@ -1286,6 +1490,32 @@ def build_uploaded_cleaning_plan(
         )
 
 
+        # PREPARATION_UI_STATE_WRITE_V0_1:CLEAN_PLAN
+        update_preparation_ui_state(
+            workflow_id=
+                workflow_id,
+
+            cleaning_plan=(
+                cleaning_plan.model_dump(
+                    mode="json"
+                )
+            ),
+
+            cleaning_execution=None,
+
+            semantic_review=None,
+            semantic_cleaning_plan=None,
+            semantic_cleaning_execution=None,
+            semantic_confirmation=None,
+
+            applied_semantic_choices=[],
+
+            confirmed_semantic_issue_ids=[],
+
+            semantic_manual_resolutions=[],
+        )
+
+
         return (
             cleaning_plan
         )
@@ -1370,6 +1600,11 @@ def apply_uploaded_cleaning_plan(
         ...,
     ),
 
+    # CLEAN_DECISION_APPLY_FORM_V0_1
+    rejected_action_ids_json: str = Form(
+        default="[]",
+    ),
+
     workflow_id: str = Form(
         ...,
         min_length=1,
@@ -1413,19 +1648,24 @@ def apply_uploaded_cleaning_plan(
         )
 
 
-        if (
-            cleaning_plan.action_count >
-            0
-            and
-            not approved_action_ids
-        ):
-            raise ValueError(
-                (
-                    "At least one cleaning action "
-                    "must be explicitly approved "
-                    "before cleaning execution."
-                )
+        rejected_action_ids = (
+            _parse_rejected_action_ids(
+                rejected_action_ids_json
             )
+        )
+
+
+        # CLEAN_DECISION_APPLY_VALIDATE_V0_1
+        _require_complete_cleaning_decision(
+            cleaning_plan=
+                cleaning_plan,
+
+            approved_action_ids=
+                approved_action_ids,
+
+            rejected_action_ids=
+                rejected_action_ids,
+        )
 
 
         (
@@ -1580,6 +1820,42 @@ def apply_uploaded_cleaning_plan(
                         ),
                 )
             )
+
+
+        # PREPARATION_UI_STATE_WRITE_V0_1:CLEAN_APPLY
+        update_preparation_ui_state(
+            workflow_id=
+                workflow_id,
+
+            quality_report=(
+                quality_report.model_dump(
+                    mode="json"
+                )
+            ),
+
+            cleaning_plan=(
+                cleaning_plan.model_dump(
+                    mode="json"
+                )
+            ),
+
+            cleaning_execution=(
+                execution.model_dump(
+                    mode="json"
+                )
+            ),
+
+            semantic_review=None,
+            semantic_cleaning_plan=None,
+            semantic_cleaning_execution=None,
+            semantic_confirmation=None,
+
+            applied_semantic_choices=[],
+
+            confirmed_semantic_issue_ids=[],
+
+            semantic_manual_resolutions=[],
+        )
 
 
         return (

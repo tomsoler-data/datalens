@@ -1,28 +1,17 @@
+import type {
+  SemanticConfirmationReportView,
+} from "./preparationTypes";
+
+export type {
+  SemanticConfirmationReportView,
+} from "./preparationTypes";
+
 export type SemanticManualResolutionView = {
   issue_id: string;
   note: string;
 };
 
 
-export type SemanticConfirmationReportView = {
-  confirmed: boolean;
-
-  decision_count: number;
-  confirmed_issue_count: number;
-  manual_resolution_count: number;
-
-  merge_action_count: number;
-  applied_merge_action_count: number;
-  skipped_merge_action_count: number;
-
-  confirmed_issue_ids: string[];
-  manually_resolved_issue_ids: string[];
-  unresolved_issue_ids: string[];
-  unresolved_reasons: string[];
-
-  notes: string[];
-  rule_version: string;
-};
 
 
 export type SemanticReviewConfirmationResponseView = {
@@ -38,9 +27,76 @@ const API_URL =
   "http://127.0.0.1:8000";
 
 
+function semanticConfirmationFromPayload(
+  payload: unknown
+): SemanticConfirmationReportView |
+  null {
+  if (
+    !payload ||
+    typeof payload !==
+      "object"
+  ) {
+    return null;
+  }
+
+
+  const outer =
+    payload as Record<
+      string,
+      unknown
+    >;
+
+
+  const detail =
+    outer.detail;
+
+
+  if (
+    !detail ||
+    typeof detail !==
+      "object" ||
+    Array.isArray(
+      detail
+    )
+  ) {
+    return null;
+  }
+
+
+  const detailRecord =
+    detail as Record<
+      string,
+      unknown
+    >;
+
+
+  const confirmation =
+    detailRecord.confirmation;
+
+
+  if (
+    confirmation &&
+    typeof confirmation ===
+      "object"
+  ) {
+    return (
+      confirmation as
+        SemanticConfirmationReportView
+    );
+  }
+
+
+  return null;
+}
+
+
 export class SemanticConfirmationApiError extends Error {
   readonly status: number;
   readonly detail: unknown;
+  readonly confirmation:
+    SemanticConfirmationReportView |
+    null;
+
 
 
   constructor(
@@ -58,6 +114,11 @@ export class SemanticConfirmationApiError extends Error {
 
     this.detail =
       detail;
+
+    this.confirmation =
+      semanticConfirmationFromPayload(
+        detail
+      );
   }
 }
 

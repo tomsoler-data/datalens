@@ -61,6 +61,10 @@ from app.api.routes import (
     load_uploaded_dataset_bundle,
 )
 
+from app.api.request_coverage_guard import (
+    require_analysis_request_coverage_for_http,
+)
+
 from app.discovery import (
     discover_analyses,
 )
@@ -95,9 +99,14 @@ from app.planning import (
     build_requested_analysis_plan,
 )
 
+from app.planning.request_coverage import (
+    AnalysisRequestCoverageReport,
+)
+
 from app.planning.ai_analytical_planner import (
     AIPlannerReport,
     DEFAULT_AI_PLANNER_MODEL,
+    PlannerCatalog,
 )
 
 from app.planning.analytical_request_router import (
@@ -179,6 +188,11 @@ from app.reporting.unified_composer import (
 
 from app.reporting.unified_schemas import (
     UnifiedAnalysisReport,
+)
+
+from app.reporting.unified_report_artifacts import (
+    register_unresolved_requested_analysis_artifacts,
+    register_unified_report_artifacts,
 )
 
 from app.preparation.cleaning_engine import (
@@ -279,6 +293,10 @@ class ContextualizedAnalysisResponse(
 
     requested_analysis_plan: (
         RequestedAnalysisPlanReport
+    )
+
+    request_coverage: (
+        AnalysisRequestCoverageReport
     )
 
     requested_analysis_execution: (
@@ -2001,21 +2019,12 @@ def prepare_analysis_datasets(
         )
 
 
-    except Exception as error:
+    except Exception:
         source_discovery.discovery_notes.append(
             (
                 "Analytical View Builder was "
                 "disabled because its controlled "
                 "construction failed."
-            )
-        )
-
-
-        source_discovery.discovery_notes.append(
-            (
-                "Analytical View Builder error — "
-                f"{type(error).__name__}: "
-                f"{error}"
             )
         )
 
@@ -2186,6 +2195,98 @@ def prepare_analysis_datasets(
     return (
         discovery,
         analysis_datasets,
+    )
+
+
+# ============================================================
+# AI PLANNER ANALYTICAL DATASET UNIVERSE
+# ============================================================
+
+def prepare_ai_planner_dataset_universe(
+    *,
+    source_dataset_records: list[
+        dict[
+            str,
+            Any,
+        ]
+    ],
+
+    objective: (
+        str
+        | None
+    ),
+) -> tuple[
+    list[
+        dict[
+            str,
+            Any,
+        ]
+    ],
+
+    PlannerCatalog,
+]:
+    """
+    Build the exact internal dataset universe shared by the AI
+    planner and its deterministic executor.
+
+    Architecture invariant:
+
+        validated Preparation output
+            -> source_dataset_records
+            -> prepare_analysis_datasets(...)
+            -> analysis_datasets
+            -> planner catalog
+            -> validated AI contract
+            -> deterministic execution on analysis_datasets
+
+    The browser never supplies authoritative analytical views.
+
+    Analytical views remain server-owned, deterministic internal
+    derivatives of the validated Preparation output.
+
+    Requested-only document context is deliberately excluded
+    from this direct AI planning path. The contextualized
+    document workflow prepares that context separately with
+    include_requested_context=True.
+
+    Returning the same analysis_datasets used to build the
+    catalog is important: a validated contract may target a
+    derived analytical view, so the executor must receive that
+    exact same allowed dataset universe.
+    """
+
+    normalized_objective = (
+        normalize_objective(
+            objective
+        )
+    )
+
+
+    (
+        _,
+        analysis_datasets,
+    ) = prepare_analysis_datasets(
+        source_datasets=
+            source_dataset_records,
+
+        objective=
+            normalized_objective,
+
+        include_requested_context=
+            False,
+    )
+
+
+    catalog = (
+        planner_catalog_from_dataset_records(
+            analysis_datasets
+        )
+    )
+
+
+    return (
+        analysis_datasets,
+        catalog,
     )
 
 
@@ -2858,10 +2959,18 @@ def run_unified_analysis_from_uploads(
         AIPlannerReport,
 )
 def preview_ai_analytical_plan(
-    dataset_files: list[
-        UploadFile
-    ] = File(
+    dataset_files: (
+        list[
+            UploadFile
+        ]
+        | None
+    ) = File(
+        default=None,
+    ),
+
+    workflow_id: str = Form(
         ...,
+        min_length=1,
     ),
 
     objective: str = Form(
@@ -2877,7 +2986,9 @@ def preview_ai_analytical_plan(
     ),
 ) -> AIPlannerReport:
     """
-    Route the analytical request through DataLens.
+    Route the analytical request through DataLens from the
+    exact server-owned Preparation output authorized for
+    Analysis.
 
     Generic supported intents may be expanded deterministically
     by Python from the centrally typed dataset catalog.
@@ -2888,6 +2999,10 @@ def preview_ai_analytical_plan(
 
     It does not execute an analysis and it does not allow the
     LLM to modify data, invent joins or create derived variables.
+
+    The multipart dataset_files field remains optional for
+    backward compatibility. Its bytes are never read after
+    VALIDATE; workflow_id resolves the server-owned input.
     """
 
     normalized_objective = (
@@ -2911,18 +3026,53 @@ def preview_ai_analytical_plan(
 
 
     try:
-        (
-            _,
-            source_dataset_records,
-        ) = load_uploaded_dataset_bundle(
+        # ====================================================
+        # SERVER-OWNED PREPARATION HANDOFF
+        # ====================================================
+
+        handoff = (
+            load_validated_analysis_input_for_http(
+                workflow_id=
+                    workflow_id
+            )
+        )
+
+
+        source_dataset_records = [
+            dict(
+                record
+            )
+
+            for record
+            in handoff.dataset_records
+        ]
+
+
+        # Optional multipart compatibility only. Browser
+        # dataset bytes are not authoritative after
+        # Preparation VALIDATE.
+        _ = (
             dataset_files
         )
 
 
-        catalog = (
-            planner_catalog_from_dataset_records(
-                source_dataset_records
-            )
+        (
+            analysis_datasets,
+            catalog,
+        ) = prepare_ai_planner_dataset_universe(
+            source_dataset_records=
+                source_dataset_records,
+
+            objective=
+                normalized_objective,
+        )
+
+
+        # Preview does not execute, but the catalog must be
+        # built from the same analytical universe that execution
+        # would receive.
+        _ = (
+            analysis_datasets
         )
 
 
@@ -2952,8 +3102,8 @@ def preview_ai_analytical_plan(
     except RuntimeError as error:
         raise HTTPException(
             status_code=503,
-            detail=str(
-                error
+            detail=(
+                "Local AI processing is unavailable or returned an invalid response."
             ),
         ) from error
 
@@ -2968,10 +3118,18 @@ def preview_ai_analytical_plan(
         AIToolOrchestrationReport,
 )
 def run_ai_analytical_tool(
-    dataset_files: list[
-        UploadFile
-    ] = File(
+    dataset_files: (
+        list[
+            UploadFile
+        ]
+        | None
+    ) = File(
+        default=None,
+    ),
+
+    workflow_id: str = Form(
         ...,
+        min_length=1,
     ),
 
     objective: str = Form(
@@ -3008,11 +3166,12 @@ def run_ai_analytical_tool(
     ),
 ) -> AIToolOrchestrationReport:
     """
-    Experimental AI-tool orchestration endpoint.
+    Experimental AI-tool orchestration endpoint operating on
+    the exact validated Preparation output.
 
     Flow:
 
-    1. ingest and prepare datasets;
+    1. load the server-owned validated analysis artifact(s);
     2. build the centrally typed planner catalog from the exact
        DataFrames that will be analyzed;
     3. route generic intents through deterministic Python or
@@ -3023,7 +3182,14 @@ def run_ai_analytical_tool(
     6. execute the selected Python tool.
 
     The LLM never receives arbitrary Python execution rights.
-    Joins and derived variables remain forbidden in v0.1.
+
+    Cleaning, semantic cleaning, transformation and combination
+    must already have been completed inside Preparation before
+    VALIDATE. Post-validation Preparation overrides are refused.
+
+    The multipart dataset_files field remains optional for
+    backward compatibility. Its bytes are never read after
+    VALIDATE; workflow_id resolves the server-owned input.
     """
 
     normalized_objective = (
@@ -3047,69 +3213,81 @@ def run_ai_analytical_tool(
 
 
     try:
-        (
-            dataset_ingestion,
-            source_dataset_records,
-        ) = load_uploaded_dataset_bundle(
+        # ====================================================
+        # SERVER-OWNED PREPARATION HANDOFF
+        # ====================================================
+
+        handoff = (
+            load_validated_analysis_input_for_http(
+                workflow_id=
+                    workflow_id
+            )
+        )
+
+
+        reject_post_validation_preparation_overrides(
+            approved_action_ids_json=
+                approved_action_ids_json,
+
+            semantic_decisions_json=
+                semantic_decisions_json,
+
+            approved_semantic_choices_json=
+                approved_semantic_choices_json,
+        )
+
+
+        dataset_ingestion = (
+            handoff.ingestion
+        )
+
+
+        source_dataset_records = [
+            dict(
+                record
+            )
+
+            for record
+            in handoff.dataset_records
+        ]
+
+
+        # The ingestion read model is intentionally retained
+        # because it belongs to the authoritative handoff.
+        # Planning below uses the deterministic analytical
+        # universe derived from dataset_records.
+        _ = (
+            dataset_ingestion
+        )
+
+
+        # Optional multipart compatibility only. Browser
+        # dataset bytes are not authoritative after
+        # Preparation VALIDATE.
+        _ = (
             dataset_files
         )
 
 
-        approved_action_ids = (
-            parse_approved_cleaning_action_ids(
-                approved_action_ids_json
-            )
+        cleaning_execution = (
+            None
+        )
+
+
+        semantic_execution = (
+            None
         )
 
 
         (
-            source_dataset_records,
-            _,
-            _,
-            cleaning_execution,
-        ) = apply_approved_cleaning_to_records(
+            analysis_datasets,
+            catalog,
+        ) = prepare_ai_planner_dataset_universe(
             source_dataset_records=
                 source_dataset_records,
 
-            approved_action_ids=
-                approved_action_ids,
-        )
-
-
-        semantic_decisions = (
-            parse_semantic_decisions_json(
-                semantic_decisions_json
-            )
-        )
-
-
-        semantic_choices = (
-            parse_approved_semantic_choices_json(
-                approved_semantic_choices_json
-            )
-        )
-
-
-        (
-            source_dataset_records,
-            _,
-            semantic_execution,
-        ) = apply_approved_semantic_cleaning_to_records(
-            prepared_dataset_records=
-                source_dataset_records,
-
-            semantic_decisions=
-                semantic_decisions,
-
-            approved_semantic_choices=
-                semantic_choices,
-        )
-
-
-        catalog = (
-            planner_catalog_from_dataset_records(
-                source_dataset_records
-            )
+            objective=
+                normalized_objective,
         )
 
 
@@ -3133,7 +3311,7 @@ def run_ai_analytical_tool(
                     planner_report,
 
                 datasets=
-                    source_dataset_records,
+                    analysis_datasets,
             )
         )
 
@@ -3148,6 +3326,18 @@ def run_ai_analytical_tool(
                     f"{cleaning_execution.applied_action_count} "
                     "deterministic action(s) applied. "
                     f"Engine: {cleaning_execution.rule_version}."
+                )
+            )
+
+
+        if (
+            semantic_execution
+            is not None
+        ):
+            orchestration_report.notes.append(
+                (
+                    "Controlled semantic cleaning before tool "
+                    "execution was applied inside this endpoint."
                 )
             )
 
@@ -3169,8 +3359,8 @@ def run_ai_analytical_tool(
     except RuntimeError as error:
         raise HTTPException(
             status_code=503,
-            detail=str(
-                error
+            detail=(
+                "Local AI processing is unavailable or returned an invalid response."
             ),
         ) from error
 
@@ -3185,10 +3375,18 @@ def run_ai_analytical_tool(
         AINativePipelineReport,
 )
 def run_ai_native_pipeline(
-    dataset_files: list[
-        UploadFile
-    ] = File(
+    dataset_files: (
+        list[
+            UploadFile
+        ]
+        | None
+    ) = File(
+        default=None,
+    ),
+
+    workflow_id: str = Form(
         ...,
+        min_length=1,
     ),
 
     objective: str = Form(
@@ -3232,9 +3430,11 @@ def run_ai_native_pipeline(
     ),
 ) -> AINativePipelineReport:
     """
-    Full experimental local AI execution pipeline.
+    Full experimental local AI execution pipeline operating on
+    the exact validated Preparation output.
 
-    1. DataLens ingests and prepares the uploaded datasets.
+    1. DataLens loads the server-owned validated analysis
+       artifact(s).
     2. DataLens builds a centrally typed planner catalog from
        the exact DataFrames that will be analyzed.
     3. Generic supported intents are expanded by Python;
@@ -3247,6 +3447,10 @@ def run_ai_native_pipeline(
     7. The deterministic DataLens executor computes
        the statistical result.
 
+    Cleaning, semantic cleaning, transformation and combination
+    must already have been completed inside Preparation before
+    VALIDATE. Post-validation Preparation overrides are refused.
+
     The native analytical family registry is validated
     deterministically before any execution.
 
@@ -3254,6 +3458,10 @@ def run_ai_native_pipeline(
     containing schema metadata, planner decisions, tool calls
     and stage latencies. Raw dataset rows are not persisted
     in the trace.
+
+    The multipart dataset_files field remains optional for
+    backward compatibility. Its bytes are never read after
+    VALIDATE; workflow_id resolves the server-owned input.
     """
 
     normalized_objective = (
@@ -3286,75 +3494,292 @@ def run_ai_native_pipeline(
     )
 
 
+    # Failure-safe observability state.
+    #
+    # These values intentionally exist before any runtime stage
+    # starts so an early failure can still produce a valid
+    # AITraceRecord without masking the original exception.
+    catalog = None
+    planner_report = None
+    pipeline_report = None
+
+    ingestion_ms = 0.0
+    planner_ms = 0.0
+    native_pipeline_ms = 0.0
+
+    ingestion_started_at = None
+    planner_started_at = None
+    native_started_at = None
+
+    failure_stage = (
+        "preparation_handoff"
+    )
+
+
+    def write_failed_ai_trace_best_effort(
+        error: Exception,
+    ) -> None:
+        """
+        Persist a structured failed AI trace without ever
+        changing the functional outcome of the endpoint.
+
+        Observability is strictly best-effort:
+        any failure while building or writing the trace is
+        swallowed so the original application exception keeps
+        its HTTP/error semantics.
+        """
+
+        try:
+            failure_observed_at = (
+                perf_counter()
+            )
+
+
+            failed_ingestion_ms = (
+                ingestion_ms
+            )
+
+            failed_planner_ms = (
+                planner_ms
+            )
+
+            failed_native_pipeline_ms = (
+                native_pipeline_ms
+            )
+
+
+            # Preserve useful partial latency when a stage fails
+            # before its normal timing assignment executes.
+            if (
+                failure_stage
+                in {
+                    "preparation_handoff",
+                    "catalog",
+                }
+                and
+                ingestion_started_at
+                is not None
+                and
+                failed_ingestion_ms
+                <= 0.0
+            ):
+                failed_ingestion_ms = (
+                    (
+                        failure_observed_at
+                        -
+                        ingestion_started_at
+                    )
+                    *
+                    1000.0
+                )
+
+
+            if (
+                failure_stage
+                ==
+                "planner"
+                and
+                planner_started_at
+                is not None
+                and
+                failed_planner_ms
+                <= 0.0
+            ):
+                failed_planner_ms = (
+                    (
+                        failure_observed_at
+                        -
+                        planner_started_at
+                    )
+                    *
+                    1000.0
+                )
+
+
+            if (
+                failure_stage
+                ==
+                "native_pipeline"
+                and
+                native_started_at
+                is not None
+                and
+                failed_native_pipeline_ms
+                <= 0.0
+            ):
+                failed_native_pipeline_ms = (
+                    (
+                        failure_observed_at
+                        -
+                        native_started_at
+                    )
+                    *
+                    1000.0
+                )
+
+
+            failed_trace = (
+                build_ai_trace(
+                    trace_id=
+                        trace_id,
+
+                    workflow_id=
+                        workflow_id,
+
+                    objective=
+                        normalized_objective,
+
+                    catalog=
+                        catalog,
+
+                    planner_report=
+                        planner_report,
+
+                    pipeline_report=
+                        pipeline_report,
+
+                    ingestion_ms=
+                        failed_ingestion_ms,
+
+                    planner_ms=
+                        failed_planner_ms,
+
+                    native_pipeline_ms=
+                        failed_native_pipeline_ms,
+
+                    total_ms=(
+                        (
+                            failure_observed_at
+                            -
+                            total_started_at
+                        )
+                        *
+                        1000.0
+                    ),
+
+                    run_status=
+                        "failed",
+
+                    failure={
+                        "stage":
+                            failure_stage,
+
+                        "error_type":
+                            type(
+                                error
+                            ).__name__,
+
+                        "message_safe":
+                            (
+                                "DataLens AI execution "
+                                "failed before completion."
+                            ),
+                    },
+                )
+            )
+
+
+            # write_ai_trace() already reports persistence
+            # failures through AITraceWriteResult. For a failed
+            # application run there is deliberately no attempt
+            # to alter the original response based on that
+            # secondary observability result.
+            write_ai_trace(
+                failed_trace
+            )
+
+
+        except Exception:
+            # Observability must never mask or replace the
+            # original application error.
+            return
+
+
     try:
         ingestion_started_at = (
             perf_counter()
         )
 
 
-        (
-            dataset_ingestion,
-            source_dataset_records,
-        ) = load_uploaded_dataset_bundle(
+        # ====================================================
+        # SERVER-OWNED PREPARATION HANDOFF
+        # ====================================================
+
+        handoff = (
+            load_validated_analysis_input_for_http(
+                workflow_id=
+                    workflow_id
+            )
+        )
+
+
+        reject_post_validation_preparation_overrides(
+            approved_action_ids_json=
+                approved_action_ids_json,
+
+            semantic_decisions_json=
+                semantic_decisions_json,
+
+            approved_semantic_choices_json=
+                approved_semantic_choices_json,
+        )
+
+
+        dataset_ingestion = (
+            handoff.ingestion
+        )
+
+
+        source_dataset_records = [
+            dict(
+                record
+            )
+
+            for record
+            in handoff.dataset_records
+        ]
+
+
+        # The ingestion read model remains part of the exact
+        # authoritative handoff. Internal analytical views are
+        # derived deterministically from dataset_records below.
+        _ = (
+            dataset_ingestion
+        )
+
+
+        # Optional multipart compatibility only. Browser
+        # dataset bytes are not authoritative after
+        # Preparation VALIDATE.
+        _ = (
             dataset_files
         )
 
 
-        approved_action_ids = (
-            parse_approved_cleaning_action_ids(
-                approved_action_ids_json
-            )
+        cleaning_execution = (
+            None
+        )
+
+
+        semantic_execution = (
+            None
+        )
+
+
+        failure_stage = (
+            "catalog"
         )
 
 
         (
-            source_dataset_records,
-            _,
-            _,
-            cleaning_execution,
-        ) = apply_approved_cleaning_to_records(
+            analysis_datasets,
+            catalog,
+        ) = prepare_ai_planner_dataset_universe(
             source_dataset_records=
                 source_dataset_records,
 
-            approved_action_ids=
-                approved_action_ids,
-        )
-
-
-        semantic_decisions = (
-            parse_semantic_decisions_json(
-                semantic_decisions_json
-            )
-        )
-
-
-        semantic_choices = (
-            parse_approved_semantic_choices_json(
-                approved_semantic_choices_json
-            )
-        )
-
-
-        (
-            source_dataset_records,
-            _,
-            semantic_execution,
-        ) = apply_approved_semantic_cleaning_to_records(
-            prepared_dataset_records=
-                source_dataset_records,
-
-            semantic_decisions=
-                semantic_decisions,
-
-            approved_semantic_choices=
-                semantic_choices,
-        )
-
-
-        catalog = (
-            planner_catalog_from_dataset_records(
-                source_dataset_records
-            )
+            objective=
+                normalized_objective,
         )
 
 
@@ -3371,6 +3796,11 @@ def run_ai_native_pipeline(
 
         planner_started_at = (
             perf_counter()
+        )
+
+
+        failure_stage = (
+            "planner"
         )
 
 
@@ -3404,13 +3834,18 @@ def run_ai_native_pipeline(
         )
 
 
+        failure_stage = (
+            "native_pipeline"
+        )
+
+
         pipeline_report = (
             execute_native_ai_pipeline(
                 planner_report=
                     planner_report,
 
                 datasets=
-                    source_dataset_records,
+                    analysis_datasets,
 
                 tool_model=
                     tool_model,
@@ -3432,6 +3867,11 @@ def run_ai_native_pipeline(
         )
 
 
+        failure_stage = (
+            "post_pipeline"
+        )
+
+
         if (
             cleaning_execution
             is not None
@@ -3442,6 +3882,18 @@ def run_ai_native_pipeline(
                     f"{cleaning_execution.applied_action_count} "
                     "deterministic action(s) applied. "
                     f"Engine: {cleaning_execution.rule_version}."
+                )
+            )
+
+
+        if (
+            semantic_execution
+            is not None
+        ):
+            pipeline_report.notes.append(
+                (
+                    "Controlled semantic cleaning before native "
+                    "AI execution was applied inside this endpoint."
                 )
             )
 
@@ -3457,10 +3909,18 @@ def run_ai_native_pipeline(
         )
 
 
+        failure_stage = (
+            "observability"
+        )
+
+
         trace = (
             build_ai_trace(
                 trace_id=
                     trace_id,
+
+                workflow_id=
+                    workflow_id,
 
                 objective=
                     normalized_objective,
@@ -3500,14 +3960,11 @@ def run_ai_native_pipeline(
             trace_write.enabled
             and
             not trace_write.written
-            and
-            trace_write.error
         ):
             pipeline_report.notes.append(
                 (
                     "Local AI observability trace "
-                    "could not be persisted: "
-                    f"{trace_write.error}"
+                    "could not be persisted."
                 )
             )
 
@@ -3517,7 +3974,21 @@ def run_ai_native_pipeline(
         )
 
 
+    except HTTPException as error:
+        write_failed_ai_trace_best_effort(
+            error
+        )
+
+        # Preserve the exact existing HTTPException, including
+        # status code and structured detail.
+        raise
+
+
     except ValueError as error:
+        write_failed_ai_trace_best_effort(
+            error
+        )
+
         raise HTTPException(
             status_code=422,
             detail=str(
@@ -3527,12 +3998,25 @@ def run_ai_native_pipeline(
 
 
     except RuntimeError as error:
+        write_failed_ai_trace_best_effort(
+            error
+        )
+
         raise HTTPException(
             status_code=503,
-            detail=str(
-                error
+            detail=(
+                "Local AI processing is unavailable or returned an invalid response."
             ),
         ) from error
+
+
+    except Exception as error:
+        write_failed_ai_trace_best_effort(
+            error
+        )
+
+        # Unexpected errors keep their original server behavior.
+        raise
 
 
 # ============================================================
@@ -3739,8 +4223,7 @@ def export_analysis_pdf(
         raise HTTPException(
             status_code=500,
             detail=(
-                "La génération locale du PDF a échoué : "
-                f"{type(error).__name__}: {error}"
+                "La génération locale du PDF a échoué."
             ),
         ) from error
 
@@ -3779,10 +4262,13 @@ def export_analysis_pdf(
         RoutedUnifiedAnalysisReport,
 )
 def run_dataset_analysis(
-    dataset_files: list[
-        UploadFile
-    ] = File(
-        ...,
+    dataset_files: (
+        list[
+            UploadFile
+        ]
+        | None
+    ) = File(
+        default=None,
     ),
 
     workflow_id: str = Form(
@@ -3816,10 +4302,10 @@ def run_dataset_analysis(
     ),
 ) -> RoutedUnifiedAnalysisReport:
     try:
-        return (
+        report = (
             run_unified_analysis_from_uploads(
                 dataset_files=
-                    dataset_files,
+                    dataset_files or [],
 
                 objective=
                     objective,
@@ -3837,6 +4323,18 @@ def run_dataset_analysis(
                     approved_semantic_choices_json,
             )
         )
+
+
+        register_unified_report_artifacts(
+            workflow_id=
+                workflow_id,
+
+            report=
+                report,
+        )
+
+
+        return report
 
 
     except ValueError as error:
@@ -3858,10 +4356,13 @@ def run_dataset_analysis(
         ContextualizedAnalysisResponse,
 )
 def run_contextualized_dataset_analysis(
-    dataset_files: list[
-        UploadFile
-    ] = File(
-        ...,
+    dataset_files: (
+        list[
+            UploadFile
+        ]
+        | None
+    ) = File(
+        default=None,
     ),
 
     workflow_id: str = Form(
@@ -3970,10 +4471,8 @@ def run_contextualized_dataset_analysis(
     ]
 
 
-    # dataset_files remains part of the multipart contract
-    # temporarily for frontend compatibility.
-    #
-    # The uploaded bytes are intentionally ignored after
+    # dataset_files remains an optional multipart compatibility
+    # field. The uploaded bytes are intentionally ignored after
     # VALIDATE; server-owned Preparation artifacts are the only
     # analytical source of truth.
     _ = (
@@ -4041,8 +4540,8 @@ def run_contextualized_dataset_analysis(
     except RuntimeError as error:
         raise HTTPException(
             status_code=503,
-            detail=str(
-                error
+            detail=(
+                "Local AI processing is unavailable or returned an invalid response."
             ),
         ) from error
 
@@ -4059,6 +4558,31 @@ def run_contextualized_dataset_analysis(
             analytical_requests=
                 document_summary
                 .analytical_requests,
+        )
+    )
+
+
+    # ========================================================
+    # 5. ANALYTICAL REQUEST COVERAGE
+    # ========================================================
+    #
+    # Every verified documentary analytical request must
+    # remain accounted for before Requested Analysis execution.
+    #
+    # ready / blocked / ambiguous are all preserved states.
+    #
+    # Missing, duplicated, orphaned or provenance-inconsistent
+    # requests fail closed.
+    # ========================================================
+
+    request_coverage = (
+        require_analysis_request_coverage_for_http(
+            analytical_requests=
+                document_summary
+                .analytical_requests,
+
+            plan=
+                requested_analysis_plan,
         )
     )
 
@@ -4182,6 +4706,31 @@ def run_contextualized_dataset_analysis(
 
 
     # ========================================================
+    # 8B. SERVER-OWNED REPORT ARTIFACTS
+    # ========================================================
+
+    register_unresolved_requested_analysis_artifacts(
+        workflow_id=
+            workflow_id,
+
+        execution_report=
+            requested_analysis_execution,
+
+        plan_report=
+            requested_analysis_plan,
+    )
+
+
+    register_unified_report_artifacts(
+        workflow_id=
+            workflow_id,
+
+        report=
+            analysis,
+    )
+
+
+    # ========================================================
     # 9. REQUESTED-FIRST RAG INPUT
     # ========================================================
 
@@ -4230,8 +4779,8 @@ def run_contextualized_dataset_analysis(
     except RuntimeError as error:
         raise HTTPException(
             status_code=503,
-            detail=str(
-                error
+            detail=(
+                "Local AI processing is unavailable or returned an invalid response."
             ),
         ) from error
 
@@ -4250,6 +4799,9 @@ def run_contextualized_dataset_analysis(
 
             requested_analysis_plan=
                 requested_analysis_plan,
+
+            request_coverage=
+                request_coverage,
 
             requested_analysis_execution=
                 requested_analysis_execution,

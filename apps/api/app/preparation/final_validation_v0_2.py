@@ -1,22 +1,27 @@
 from __future__ import annotations
 
+
 from typing import (
     List,
 )
+
 
 from pydantic import (
     BaseModel,
     Field,
 )
 
+
 from app.preparation.analysis_output_selection import (
     AnalysisOutputSelectionReport,
     evaluate_analysis_output_selection,
 )
 
+
 from app.preparation.final_validation import (
     evaluate_final_preparation_validation as evaluate_final_preparation_validation_v0_1,
 )
+
 
 from app.preparation.preparation_session import (
     PreparationSessionView,
@@ -269,6 +274,90 @@ def _legacy_preparation_checks(
 
 
 # ============================================================
+# SUPERSEDED OUTPUT DETECTION
+# ============================================================
+
+
+def _superseded_selected_output_ids(
+    *,
+    selection_report:
+        AnalysisOutputSelectionReport,
+
+    selected_output_ids:
+        List[
+            str
+        ],
+) -> List[
+    str
+]:
+    """
+    Return selected analytical outputs that are no longer
+    terminal in the current server-owned artifact graph.
+
+    An artifact is superseded when another current artifact
+    names it as a parent.
+
+    CLEAN / TRANSFORM may materialize in place:
+
+        dataset_id = "orders"
+        parent_dataset_ids = ["orders"]
+
+    That self-parent is provenance evidence and MUST NOT make
+    the artifact superseded.
+
+    Example:
+
+        customers
+            \
+        transactions
+              \
+               combined_sales
+
+    Once combined_sales exists, transactions and customers
+    cannot be certified as final outputs if they are direct
+    ancestors of a newer materialized artifact.
+
+    This check intentionally uses the complete current
+    server-owned candidate graph, not browser state.
+    """
+
+    used_as_parent = set()
+
+
+    for candidate in (
+        selection_report.candidates
+    ):
+        for parent_dataset_id in (
+            candidate.parent_dataset_ids
+        ):
+            if (
+                parent_dataset_id
+                ==
+                candidate.dataset_id
+            ):
+                continue
+
+
+            used_as_parent.add(
+                parent_dataset_id
+            )
+
+
+    return sorted(
+        dataset_id
+
+        for dataset_id
+        in selected_output_ids
+
+        if (
+            dataset_id
+            in
+            used_as_parent
+        )
+    )
+
+
+# ============================================================
 # EVALUATE
 # ============================================================
 
@@ -289,6 +378,11 @@ def evaluate_final_preparation_validation_v0_2(
 
     Final outputs are independently revalidated against the
     current Preparation Artifact Store and lineage.
+
+    Final outputs must also belong to the current terminal
+    materialized frontier. An artifact superseded by a newer
+    descendant cannot be certified as a final analytical
+    output.
 
     This function NEVER:
 
@@ -430,6 +524,86 @@ def evaluate_final_preparation_validation_v0_2(
 
             source=
                 "analysis_output_selection_v0.1",
+        )
+    )
+
+
+    # ========================================================
+    # TERMINAL OUTPUT FRONTIER
+    # ========================================================
+    #
+    # Existing lineage validation answers:
+    #
+    #     "Is this artifact legitimate?"
+    #
+    # It does NOT answer:
+    #
+    #     "Is this still the latest materialized artifact?"
+    #
+    # Therefore a valid root / CLEAN / TRANSFORM artifact can
+    # remain lineage-valid after COMBINE created a descendant.
+    #
+    # Final VALIDATE must fail closed in that situation.
+    # ========================================================
+
+
+    superseded_output_ids = (
+        _superseded_selected_output_ids(
+            selection_report=
+                selection_report,
+
+            selected_output_ids=
+                analysis_output_ids,
+        )
+    )
+
+
+    outputs_are_terminal = (
+        outputs_still_authorized
+        and
+        not superseded_output_ids
+    )
+
+
+    terminal_failure_message = (
+        (
+            "One or more selected analytical outputs have "
+            "been superseded by newer materialized "
+            "Preparation artifacts."
+        )
+
+        if not superseded_output_ids
+
+        else
+        (
+            "One or more selected analytical outputs have "
+            "been superseded by newer materialized "
+            "Preparation artifacts. "
+            "superseded_dataset_ids="
+            f"{superseded_output_ids}"
+        )
+    )
+
+
+    checks.append(
+        _check(
+            code=
+                "analysis_outputs_terminal",
+
+            passed=
+                outputs_are_terminal,
+
+            success_message=(
+                "Every selected analytical output is "
+                "terminal in the current server-owned "
+                "Preparation artifact graph."
+            ),
+
+            failure_message=
+                terminal_failure_message,
+
+            source=
+                "final_preparation_validation_v0.2",
         )
     )
 
@@ -664,6 +838,20 @@ def evaluate_final_preparation_validation_v0_2(
                     "revalidated at validation time rather "
                     "than trusting an earlier selection "
                     "decision."
+                ),
+
+                (
+                    "A selected analytical output must still "
+                    "be terminal in the current materialized "
+                    "artifact graph. A superseded ancestor "
+                    "cannot pass VALIDATE."
+                ),
+
+                (
+                    "Self-parent lineage produced by "
+                    "in-place CLEAN or TRANSFORM "
+                    "materialization does not supersede the "
+                    "current artifact."
                 ),
 
                 (

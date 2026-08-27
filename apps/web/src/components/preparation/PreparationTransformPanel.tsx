@@ -2,28 +2,37 @@
 
 import {
   useEffect,
-  useRef,
+  useMemo,
   useState,
 } from "react";
 
 import {
-  approvePreparationCombine,
-  continuePreparationWithoutSurrogate,
-  createPreparationSurrogateKey,
-  discoverPreparationCombine,
   getPreparationAnalysisOutputCandidates,
-  inspectPreparationIdentity,
+  getPreparationSession,
 } from "./preparationApi";
+
+import {
+  applyPreparationTransformation,
+  buildPreparationTransformationPlan,
+} from "./transformationApi";
 
 import type {
   PreparationAnalysisOutputCandidate,
-  PreparationCombineDiscoveryView,
-  PreparationCombineExecutionResponse,
-  PreparationCombineIntent,
-  PreparationIdentityInspectResponse,
   PreparationSessionView,
   PreparationStageRecord,
 } from "./preparationTypes";
+
+import type {
+  PreparationTransformationApprovalCommand,
+  PreparationTransformationIntent,
+  PreparationTransformationPlan,
+  TransformationAggregationFunction,
+  TransformationArithmeticOperator,
+  TransformationCastTargetType,
+  TransformationDatePart,
+  TransformationOperandKind,
+  TransformationOperation,
+} from "./transformationTypes";
 
 import styles from "./PreparationTransformPanel.module.css";
 
@@ -41,33 +50,99 @@ type PreparationTransformPanelProps = {
 };
 
 
-type IdentityInspectionItem = {
-  response:
-    PreparationIdentityInspectResponse;
+type ApprovalChoice =
+  | "approve"
+  | "reject"
+  | "defer";
 
-  aiLoading:
-    boolean;
+
+type ArithmeticDraft = {
+  outputColumn:
+    string;
+
+  leftKind:
+    TransformationOperandKind;
+
+  leftValue:
+    string;
+
+  operator:
+    TransformationArithmeticOperator;
+
+  rightKind:
+    TransformationOperandKind;
+
+  rightValue:
+    string;
+};
+
+
+type CastDraft = {
+  sourceColumn:
+    string;
+
+  outputColumn:
+    string;
+
+  targetType:
+    TransformationCastTargetType;
+};
+
+
+type BinDraft = {
+  sourceColumn:
+    string;
+
+  outputColumn:
+    string;
+
+  bins:
+    string;
+
+  labels:
+    string;
+};
+
+
+type DateDraft = {
+  sourceColumn:
+    string;
+
+  outputColumn:
+    string;
+
+  part:
+    TransformationDatePart;
+};
+
+
+type AggregateDraft = {
+  groupBy:
+    string;
+
+  sourceColumn:
+    string;
+
+  function:
+    TransformationAggregationFunction;
+
+  outputColumn:
+    string;
+
+  outputFilename:
+    string;
 };
 
 
 function findStage(
   session:
-    PreparationSessionView |
-    null,
+    PreparationSessionView,
 
   stageName:
     PreparationStageRecord[
       "stage"
     ]
 ): PreparationStageRecord | null {
-  if (
-    session ===
-    null
-  ) {
-    return null;
-  }
-
-
   return (
     session
       .snapshot
@@ -84,44 +159,10 @@ function findStage(
 }
 
 
-function hasCombineDiscoveryEvidence(
-  stage:
-    PreparationStageRecord |
-    null
-): boolean {
-  return (
-    stage
-      ?.evidence_refs
-      .some(
-        (
-          reference
-        ) =>
-          reference.startsWith(
-            "combine_service:"
-          )
-      ) ??
-    false
-  );
-}
-
-
 function terminalCandidateDatasetIds(
   candidates:
     PreparationAnalysisOutputCandidate[]
-): string[] {
-  /*
-   * Return the terminal materialized frontier.
-   *
-   * Important:
-   * CLEAN / TRANSFORM can materialize an artifact in-place:
-   *
-   *   dataset_id = "orders"
-   *   parent_dataset_ids = ["orders"]
-   *
-   * That self-parent is lineage evidence, not proof that the
-   * current artifact has been superseded. It must therefore be
-   * ignored, exactly like the backend COMBINE frontier does.
-   */
+): Set<string> {
   const usedAsParent =
     new Set(
       candidates.flatMap(
@@ -141,334 +182,348 @@ function terminalCandidateDatasetIds(
     );
 
 
-  return candidates
-    .filter(
-      (
-        candidate
-      ) =>
-        !usedAsParent.has(
+  return new Set(
+    candidates
+      .filter(
+        (
+          candidate
+        ) =>
+          !usedAsParent.has(
+            candidate.dataset_id
+          )
+      )
+      .map(
+        (
+          candidate
+        ) =>
           candidate.dataset_id
-        )
-    )
-    .map(
-      (
-        candidate
-      ) =>
-        candidate.dataset_id
-    );
-}
-
-
-function identityStatusLabel(
-  response:
-    PreparationIdentityInspectResponse
-): string {
-  switch (
-    response.report.status
-  ) {
-    case "single_key":
-      return "Clé simple détectée";
-
-    case "composite_key":
-      return "Clé composite détectée";
-
-    default:
-      return "Clé technique suggérée";
-  }
-}
-
-
-function identityCandidateLabel(
-  response:
-    PreparationIdentityInspectResponse
-): string {
-  const candidate =
-    response
-      .report
-      .preferred_candidate;
-
-
-  if (
-    candidate !==
-    null
-  ) {
-    return candidate.columns.join(
-      " + "
-    );
-  }
-
-
-  return (
-    response
-      .report
-      .suggested_surrogate_column ??
-    "Aucune"
-  );
-}
-
-
-function statusLabel(
-  stage:
-    PreparationStageRecord |
-    null
-): string {
-  switch (
-    stage?.status
-  ) {
-    case "passed":
-      return "Validé";
-
-    case "skipped":
-      return "Non requis";
-
-    case "review_required":
-      return "Revue requise";
-
-    case "blocked":
-      return "Bloqué";
-
-    default:
-      return "À faire";
-  }
-}
-
-
-function statusClass(
-  stage:
-    PreparationStageRecord |
-    null
-): string {
-  switch (
-    stage?.status
-  ) {
-    case "passed":
-      return styles.success;
-
-    case "review_required":
-    case "blocked":
-      return styles.attention;
-
-    case "skipped":
-      return styles.skipped;
-
-    default:
-      return styles.pending;
-  }
-}
-
-
-function joinTypeLabel(
-  value:
-    string
-): string {
-  switch (
-    value.toLowerCase()
-  ) {
-    case "left":
-      return "LEFT JOIN";
-
-    case "inner":
-      return "INNER JOIN";
-
-    case "right":
-      return "RIGHT JOIN";
-
-    case "outer":
-      return "FULL OUTER JOIN";
-
-    default:
-      return value;
-  }
-}
-
-
-function cardinalityLabel(
-  value:
-    string
-): string {
-  switch (
-    value.toLowerCase()
-  ) {
-    case "many_to_one":
-      return "Plusieurs vers un";
-
-    case "one_to_one":
-      return "Un vers un";
-
-    case "one_to_many":
-      return "Un vers plusieurs";
-
-    case "many_to_many":
-      return "Plusieurs vers plusieurs";
-
-    default:
-      return value;
-  }
-}
-
-
-function joinKeyLabel(
-  intent:
-    PreparationCombineIntent
-): string {
-  if (
-    intent.keys.length ===
-    0
-  ) {
-    return "Clé non disponible";
-  }
-
-
-  return intent.keys
-    .map(
-      (
-        key
-      ) =>
-        key.left_column ===
-          key.right_column
-          ? key.left_column
-          : `${
-              key.left_column
-            } = ${
-              key.right_column
-            }`
-    )
-    .join(
-      " + "
-    );
-}
-
-
-function recordString(
-  value:
-    unknown
-): string | null {
-  return (
-    typeof value ===
-      "string" &&
-    value.trim()
-  )
-    ? value
-    : null;
-}
-
-
-function recordStringArray(
-  value:
-    unknown
-): string[] {
-  if (
-    !Array.isArray(
-      value
-    )
-  ) {
-    return [];
-  }
-
-
-  return value.filter(
-    (
-      item
-    ): item is string =>
-      typeof item ===
-      "string" &&
-      Boolean(
-        item.trim()
       )
   );
 }
 
 
-function planWarnings(
-  discovery:
-    PreparationCombineDiscoveryView |
-    null
-): string[] {
-  const joins =
-    discovery
-      ?.plan
-      ?.joins;
-
-
-  if (
-    !Array.isArray(
-      joins
-    ) ||
-    joins.length ===
-      0
+function operationLabel(
+  operation:
+    TransformationOperation
+): string {
+  switch (
+    operation
   ) {
-    return [];
+    case "derive_arithmetic":
+      return "Créer une variable";
+
+    case "cast":
+      return "Convertir un type";
+
+    case "bin_numeric":
+      return "Créer des classes";
+
+    case "extract_date_part":
+      return "Extraire une date";
+
+    case "aggregate":
+      return "Agréger";
+
+    default:
+      return operation;
   }
-
-
-  const first =
-    joins[
-      0
-    ];
-
-
-  if (
-    !first ||
-    typeof first !==
-      "object" ||
-    Array.isArray(
-      first
-    )
-  ) {
-    return [];
-  }
-
-
-  const record =
-    first as
-      Record<
-        string,
-        unknown
-      >;
-
-
-  const rationale =
-    recordString(
-      record.rationale
-    );
-
-
-  return [
-    ...(
-      rationale
-        ? [
-            rationale,
-          ]
-        : []
-    ),
-
-    ...recordStringArray(
-      record.warnings
-    ),
-  ];
 }
 
 
-function validationPassed(
-  execution:
-    PreparationCombineExecutionResponse |
-    null
-): boolean {
-  if (
-    execution ===
-    null
+function riskLabel(
+  risk:
+    string
+): string {
+  switch (
+    risk
   ) {
-    return false;
+    case "low":
+      return "Faible";
+
+    case "medium":
+      return "Modéré";
+
+    case "high":
+      return "Élevé";
+
+    default:
+      return risk;
   }
+}
+
+
+function plannerStatusLabel(
+  status:
+    string
+): string {
+  switch (
+    status
+  ) {
+    case "validated":
+      return "Validée";
+
+    case "review_required":
+      return "Approbation requise";
+
+    default:
+      return status;
+  }
+}
+
+
+function artifactStageLabel(
+  stage:
+    string
+): string {
+  switch (
+    stage
+  ) {
+    case "source":
+      return "Source";
+
+    case "clean":
+      return "Nettoyé";
+
+    case "transform":
+      return "Transformé";
+
+    case "combine":
+      return "Combiné";
+
+    default:
+      return stage;
+  }
+}
+
+
+function newRequestId(
+  operation:
+    TransformationOperation
+): string {
+  const suffix =
+    typeof crypto !==
+      "undefined" &&
+    typeof crypto.randomUUID ===
+      "function"
+      ? crypto.randomUUID()
+      : `${
+          Date.now()
+        }-${
+          Math.random()
+            .toString(
+              36
+            )
+            .slice(
+              2
+            )
+        }`;
 
 
   return (
-    execution
-      .validation[
-        "valid_for_downstream"
-      ] ===
-    true
+    `transform-ui:${operation}:${suffix}`
   );
+}
+
+
+function parseNumericLiteral(
+  value:
+    string,
+
+  fieldName:
+    string
+): number {
+  const normalized =
+    value
+      .trim()
+      .replace(
+        ",",
+        "."
+      );
+
+
+  const parsed =
+    Number(
+      normalized
+    );
+
+
+  if (
+    !normalized ||
+    !Number.isFinite(
+      parsed
+    )
+  ) {
+    throw new Error(
+      `${fieldName} doit être un nombre valide.`
+    );
+  }
+
+
+  return parsed;
+}
+
+
+function operandFromDraft(
+  kind:
+    TransformationOperandKind,
+
+  raw:
+    string,
+
+  fieldName:
+    string
+) {
+  const normalized =
+    raw.trim();
+
+
+  if (
+    !normalized
+  ) {
+    throw new Error(
+      `${fieldName} est requis.`
+    );
+  }
+
+
+  if (
+    kind ===
+    "column"
+  ) {
+    return {
+      kind:
+        "column" as const,
+
+      column:
+        normalized,
+
+      value:
+        null,
+    };
+  }
+
+
+  return {
+    kind:
+      "literal" as const,
+
+    column:
+      null,
+
+    value:
+      parseNumericLiteral(
+        normalized,
+        fieldName
+      ),
+  };
+}
+
+
+function commaSeparatedValues(
+  value:
+    string
+): string[] {
+  return value
+    .split(
+      ","
+    )
+    .map(
+      (
+        item
+      ) =>
+        item.trim()
+    )
+    .filter(
+      Boolean
+    );
+}
+
+
+function transformationSummary(
+  intent:
+    PreparationTransformationIntent
+): string {
+  switch (
+    intent.operation
+  ) {
+    case "derive_arithmetic": {
+      const left =
+        intent.left.kind ===
+          "column"
+          ? intent.left.column
+          : String(
+              intent.left.value
+            );
+
+      const right =
+        intent.right.kind ===
+          "column"
+          ? intent.right.column
+          : String(
+              intent.right.value
+            );
+
+
+      return (
+        `${intent.output_column} = ${
+          left
+        } ${
+          intent.operator
+        } ${
+          right
+        }`
+      );
+    }
+
+
+    case "cast":
+      return (
+        `${intent.source_column} → ${
+          intent.output_column
+        } · ${
+          intent.target_type
+        }`
+      );
+
+
+    case "bin_numeric":
+      return (
+        `${intent.source_column} → ${
+          intent.output_column
+        } · ${
+          intent.bins.length
+        } bornes`
+      );
+
+
+    case "extract_date_part":
+      return (
+        `${intent.source_column} → ${
+          intent.output_column
+        } · ${
+          intent.part
+        }`
+      );
+
+
+    case "aggregate":
+      return (
+        `${
+          intent.group_by.join(
+            " + "
+          )
+        } · ${
+          intent.metrics[
+            0
+          ]?.function ??
+          "agrégation"
+        }`
+      );
+
+
+    default:
+      return "Transformation";
+  }
 }
 
 
@@ -477,57 +532,26 @@ export default function PreparationTransformPanel({
   onSessionChange,
 }: PreparationTransformPanelProps) {
   const [
-    localSession,
-    setLocalSession,
+    candidates,
+    setCandidates,
   ] = useState<
-    PreparationSessionView |
-    null
+    PreparationAnalysisOutputCandidate[]
   >(
-    session
+    []
   );
 
 
   const [
-    discovery,
-    setDiscovery,
-  ] = useState<
-    PreparationCombineDiscoveryView |
-    null
-  >(
-    null
-  );
-
-
-  const [
-    lastExecution,
-    setLastExecution,
-  ] = useState<
-    PreparationCombineExecutionResponse |
-    null
-  >(
-    null
-  );
-
-
-  const [
-    discovering,
-    setDiscovering,
+    candidatesLoading,
+    setCandidatesLoading,
   ] = useState(
     false
   );
 
 
   const [
-    approving,
-    setApproving,
-  ] = useState(
-    false
-  );
-
-
-  const [
-    error,
-    setError,
+    candidatesError,
+    setCandidatesError,
   ] = useState<
     string |
     null
@@ -537,12 +561,154 @@ export default function PreparationTransformPanel({
 
 
   const [
-    identityItems,
-    setIdentityItems,
+    selectedDatasetId,
+    setSelectedDatasetId,
+  ] = useState(
+    ""
+  );
+
+
+  const [
+    operation,
+    setOperation,
+  ] = useState<
+    TransformationOperation
+  >(
+    "derive_arithmetic"
+  );
+
+
+  const [
+    arithmeticDraft,
+    setArithmeticDraft,
+  ] = useState<
+    ArithmeticDraft
+  >({
+    outputColumn:
+      "",
+
+    leftKind:
+      "column",
+
+    leftValue:
+      "",
+
+    operator:
+      "multiply",
+
+    rightKind:
+      "column",
+
+    rightValue:
+      "",
+  });
+
+
+  const [
+    castDraft,
+    setCastDraft,
+  ] = useState<
+    CastDraft
+  >({
+    sourceColumn:
+      "",
+
+    outputColumn:
+      "",
+
+    targetType:
+      "float",
+  });
+
+
+  const [
+    binDraft,
+    setBinDraft,
+  ] = useState<
+    BinDraft
+  >({
+    sourceColumn:
+      "",
+
+    outputColumn:
+      "",
+
+    bins:
+      "",
+
+    labels:
+      "",
+  });
+
+
+  const [
+    dateDraft,
+    setDateDraft,
+  ] = useState<
+    DateDraft
+  >({
+    sourceColumn:
+      "",
+
+    outputColumn:
+      "",
+
+    part:
+      "month",
+  });
+
+
+  const [
+    aggregateDraft,
+    setAggregateDraft,
+  ] = useState<
+    AggregateDraft
+  >({
+    groupBy:
+      "",
+
+    sourceColumn:
+      "",
+
+    function:
+      "sum",
+
+    outputColumn:
+      "",
+
+    outputFilename:
+      "",
+  });
+
+
+  const [
+    intents,
+    setIntents,
+  ] = useState<
+    PreparationTransformationIntent[]
+  >(
+    []
+  );
+
+
+  const [
+    plan,
+    setPlan,
+  ] = useState<
+    PreparationTransformationPlan |
+    null
+  >(
+    null
+  );
+
+
+  const [
+    approvals,
+    setApprovals,
   ] = useState<
     Record<
       string,
-      IdentityInspectionItem
+      ApprovalChoice
     >
   >(
     {}
@@ -550,16 +716,24 @@ export default function PreparationTransformPanel({
 
 
   const [
-    identityLoading,
-    setIdentityLoading,
+    planning,
+    setPlanning,
   ] = useState(
     false
   );
 
 
   const [
-    identityError,
-    setIdentityError,
+    applying,
+    setApplying,
+  ] = useState(
+    false
+  );
+
+
+  const [
+    draftError,
+    setDraftError,
   ] = useState<
     string |
     null
@@ -569,8 +743,8 @@ export default function PreparationTransformPanel({
 
 
   const [
-    creatingSurrogateDatasetId,
-    setCreatingSurrogateDatasetId,
+    workflowError,
+    setWorkflowError,
   ] = useState<
     string |
     null
@@ -579,111 +753,55 @@ export default function PreparationTransformPanel({
   );
 
 
-  const [
-    continuingIdentityDatasetId,
-    setContinuingIdentityDatasetId,
-  ] = useState<
-    string |
-    null
-  >(
-    null
-  );
+  const transform =
+    session !==
+      null
+      ? findStage(
+          session,
+          "transform"
+        )
+      : null;
 
 
-  const identityInspectionKeyRef =
-    useRef<
-      string |
-      null
-    >(
-      null
-    );
-
-
-  const automaticDiscoveryKeyRef =
-    useRef<
-      string |
-      null
-    >(
-      null
-    );
+  const transformResolved =
+    transform?.status ===
+      "passed" ||
+    transform?.status ===
+      "skipped";
 
 
   useEffect(
     () => {
-      setLocalSession(
-        session
+      setCandidates(
+        []
       );
 
+      setSelectedDatasetId(
+        ""
+      );
 
-      setDiscovery(
+      setIntents(
+        []
+      );
+
+      setPlan(
         null
       );
 
-
-      setLastExecution(
-        null
-      );
-
-
-      setError(
-        null
-      );
-
-
-      setIdentityItems(
+      setApprovals(
         {}
       );
 
-
-      setIdentityLoading(
-        false
-      );
-
-
-      setIdentityError(
+      setDraftError(
         null
       );
 
-
-      setCreatingSurrogateDatasetId(
+      setWorkflowError(
         null
       );
-
-
-      setContinuingIdentityDatasetId(
-        null
-      );
-
-
-      identityInspectionKeyRef
-        .current =
-          null;
-
-
-      automaticDiscoveryKeyRef
-        .current =
-          null;
     },
     [
-      session
-        ?.workflow_id,
-    ]
-  );
-
-
-  useEffect(
-    () => {
-      if (
-        session !==
-        null
-      ) {
-        setLocalSession(
-          session
-        );
-      }
-    },
-    [
-      session,
+      session?.workflow_id,
     ]
   );
 
@@ -696,911 +814,985 @@ export default function PreparationTransformPanel({
 
       if (
         currentSession ===
-        null
+          null ||
+        transformResolved
       ) {
         return;
       }
 
 
-      const currentTransform =
-        findStage(
-          currentSession,
-          "transform"
+      /*
+       * On extrait immédiatement workflow_id.
+       *
+       * La valeur devient une string non nullable et peut être
+       * utilisée sans ambiguïté à l'intérieur de la fonction async.
+       */
+      const workflowId =
+        currentSession.workflow_id;
+
+
+      const controller =
+        new AbortController();
+
+
+      async function loadCandidates() {
+        setCandidatesLoading(
+          true
         );
 
-      const currentCombine =
-        findStage(
-          currentSession,
-          "combine"
-        );
-
-      const currentValidate =
-        findStage(
-          currentSession,
-          "validate"
-        );
-
-
-      const transformIsResolved =
-        currentTransform?.status ===
-          "passed" ||
-        currentTransform?.status ===
-          "skipped";
-
-
-      const validationLocksPreparation =
-        currentValidate?.status ===
-          "passed" ||
-        currentSession
-          .snapshot
-          .ready_for_analysis;
-
-
-      const combineAlreadyStarted =
-        hasCombineDiscoveryEvidence(
-          currentCombine
+        setCandidatesError(
+          null
         );
 
 
-      if (
-        !transformIsResolved ||
-        validationLocksPreparation ||
-        combineAlreadyStarted
-      ) {
-        return;
-      }
-
-
-      const orchestrationKey =
-        `${
-          currentSession.workflow_id
-        }:${
-          currentSession.revision
-        }`;
-
-
-      if (
-        identityInspectionKeyRef
-          .current ===
-        orchestrationKey
-      ) {
-        return;
-      }
-
-
-      identityInspectionKeyRef
-        .current =
-          orchestrationKey;
-
-
-      setIdentityLoading(
-        true
-      );
-
-      setIdentityError(
-        null
-      );
-
-
-      void (
-        async () => {
-          try {
-            const candidatesResponse =
-              await getPreparationAnalysisOutputCandidates(
-                currentSession
-                  .workflow_id
-              );
-
-
-            const terminalIds =
-              new Set(
-                terminalCandidateDatasetIds(
-                  candidatesResponse
-                    .candidates
-                )
-              );
-
-
-            const targets =
-              candidatesResponse
-                .candidates
-                .filter(
-                  (
-                    candidate
-                  ) =>
-                    terminalIds.has(
-                      candidate.dataset_id
-                    ) &&
-                    candidate.stage !==
-                      "combine"
-                );
-
-
-            if (
-              candidatesResponse
-                .candidates
-                .length >
-                0 &&
-              targets.length ===
-                0 &&
-              !candidatesResponse
-                .candidates
-                .every(
-                  (
-                    candidate
-                  ) =>
-                    candidate.stage ===
-                    "combine"
-                )
-            ) {
-              throw (
-                new Error(
-                  "DataLens n’a trouvé aucun artefact terminal à inspecter pour l’identité des lignes."
-                )
-              );
-            }
-
-
-            const deterministicResponses =
-              await Promise.all(
-                targets.map(
-                  (
-                    candidate
-                  ) =>
-                    inspectPreparationIdentity(
-                      currentSession
-                        .workflow_id,
-
-                      candidate
-                        .dataset_id,
-
-                      false
-                    )
-                )
-              );
-
-
-            setIdentityItems(
-              Object.fromEntries(
-                deterministicResponses.map(
-                  (
-                    response
-                  ) => [
-                    response.dataset_id,
-                    {
-                      response,
-                      aiLoading:
-                        true,
-                    },
-                  ]
-                )
-              )
+        try {
+          const response =
+            await getPreparationAnalysisOutputCandidates(
+              workflowId,
+              controller.signal
             );
 
 
-            setIdentityLoading(
-              false
+          const terminalIds =
+            terminalCandidateDatasetIds(
+              response.candidates
             );
 
 
-            const unresolvedRecommendations =
-              deterministicResponses.filter(
+          const activeCandidates =
+            response
+              .candidates
+              .filter(
                 (
-                  response
+                  candidate
                 ) =>
-                  !response
-                    .identity_resolved
+                  terminalIds.has(
+                    candidate.dataset_id
+                  ) &&
+                  candidate.stage !==
+                    "combine"
               );
 
 
-            if (
-              deterministicResponses.length >
-                0 &&
-              unresolvedRecommendations.length ===
-                0
-            ) {
-              void startAutomaticCombine(
-                currentSession
-              );
-            }
+          setCandidates(
+            activeCandidates
+          );
 
 
-            for (
-              const deterministicResponse
-              of deterministicResponses
-            ) {
-              void inspectPreparationIdentity(
-                currentSession
-                  .workflow_id,
-
-                deterministicResponse
-                  .dataset_id,
-
-                true
-              )
-                .then(
+          setSelectedDatasetId(
+            (
+              current
+            ) => {
+              if (
+                activeCandidates.some(
                   (
-                    response
-                  ) => {
-                    setIdentityItems(
-                      (
-                        current
-                      ) => ({
-                        ...current,
-
-                        [
-                          response.dataset_id
-                        ]: {
-                          response,
-                          aiLoading:
-                            false,
-                        },
-                      })
-                    );
-                  }
+                    candidate
+                  ) =>
+                    candidate.dataset_id ===
+                    current
                 )
-                .catch(
-                  (
-                    caughtError
-                  ) => {
-                    setIdentityItems(
-                      (
-                        current
-                      ) => {
-                        const existing =
-                          current[
-                            deterministicResponse
-                              .dataset_id
-                          ];
+              ) {
+                return current;
+              }
 
 
-                        if (
-                          !existing
-                        ) {
-                          return current;
-                        }
-
-
-                        return {
-                          ...current,
-
-                          [
-                            deterministicResponse
-                              .dataset_id
-                          ]: {
-                            ...existing,
-                            aiLoading:
-                              false,
-
-                            response: {
-                              ...existing.response,
-
-                              ai_error:
-                                caughtError
-                                  instanceof Error
-                                  ? caughtError.message
-                                  : "Explication du modèle local indisponible.",
-                            },
-                          },
-                        };
-                      }
-                    );
-                  }
-                );
+              return (
+                activeCandidates[
+                  0
+                ]?.dataset_id ??
+                ""
+              );
             }
-          } catch (
-            caughtError
+          );
+        } catch (
+          caughtError
+        ) {
+          if (
+            controller.signal.aborted
           ) {
-            identityInspectionKeyRef
-              .current =
-                null;
+            return;
+          }
 
-            setIdentityLoading(
+
+          setCandidatesError(
+            caughtError
+              instanceof Error
+              ? caughtError.message
+              : "Impossible de charger les datasets transformables."
+          );
+        } finally {
+          if (
+            !controller.signal.aborted
+          ) {
+            setCandidatesLoading(
               false
-            );
-
-            setIdentityError(
-              caughtError
-                instanceof Error
-                ? caughtError.message
-                : "L’inspection de l’identité des lignes a échoué."
             );
           }
         }
-      )();
+      }
+
+
+      void loadCandidates();
+
+
+      return () => {
+        controller.abort();
+      };
     },
     [
       session,
+      transformResolved,
     ]
   );
 
 
+  const selectedDataset =
+    useMemo(
+      () =>
+        candidates.find(
+          (
+            candidate
+          ) =>
+            candidate.dataset_id ===
+            selectedDatasetId
+        ) ??
+        null,
+      [
+        candidates,
+        selectedDatasetId,
+      ]
+    );
+
+
+  const reviewRequiredSteps =
+    plan
+      ?.steps
+      .filter(
+        (
+          step
+        ) =>
+          step.requires_human_approval ||
+          step.status ===
+            "review_required"
+      ) ??
+    [];
+
+
+  const unresolvedApprovalCount =
+    reviewRequiredSteps.filter(
+      (
+        step
+      ) =>
+        !approvals[
+          step.request_id
+        ]
+    ).length;
+
+
+  const canApplyPlan =
+    plan !==
+      null &&
+    plan.ready_for_approval &&
+    unresolvedApprovalCount ===
+      0 &&
+    !applying;
+
+
+  /*
+   * Tous les hooks React ont maintenant été exécutés.
+   *
+   * À partir d'ici, les retours conditionnels sont sûrs.
+   */
+  const activeSession =
+    session;
+
+
   if (
-    session ===
+    activeSession ===
     null
   ) {
     return null;
   }
 
 
-  const effectiveSession =
-    localSession ??
-    session;
-
-
-  const transform =
-    findStage(
-      effectiveSession,
-      "transform"
-    );
-
-  const combine =
-    findStage(
-      effectiveSession,
-      "combine"
-    );
-
-  const validate =
-    findStage(
-      effectiveSession,
-      "validate"
-    );
-
-
-  const transformResolved =
-    transform?.status ===
-      "passed" ||
-    transform?.status ===
-      "skipped";
-
-
-  const combineResolved =
-    combine?.status ===
-      "passed" ||
-    combine?.status ===
-      "skipped";
-
-
-  const multipleSourceDatasets =
-    effectiveSession
-      .selected_analysis_dataset_ids
-      .length >
-    1;
-
-
-  const combineDiscoveryRecorded =
-    hasCombineDiscoveryEvidence(
-      combine
-    );
-
-
-  const combineDiscoveryPending =
-    multipleSourceDatasets &&
-    !combineDiscoveryRecorded;
-
-
-  const combineLocked =
-    validate?.status ===
-      "passed" ||
-    effectiveSession
-      .snapshot
-      .ready_for_analysis;
-
-
-  const allSkipped =
-    transform?.status ===
-      "skipped" &&
-    combine?.status ===
-      "skipped" &&
-    !combineDiscoveryPending;
-
-
-  const currentIntent =
-    discovery
-      ?.intent ??
-    null;
-
-
-  const warnings =
-    planWarnings(
-      discovery
-    );
-
-
-  const identityInspectionItems =
-    Object.values(
-      identityItems
-    );
-
-
-  const unresolvedIdentityItems =
-    identityInspectionItems.filter(
-      (
-        item
-      ) =>
-        !item.response
-          .identity_resolved
-    );
-
-
-  const identityReadyForCombine =
-    !identityLoading &&
-    identityError ===
-      null &&
-    identityInspectionItems.length >
-      0 &&
-    unresolvedIdentityItems.length ===
-      0;
-
-
-  const canDiscover =
-    transformResolved &&
-    identityReadyForCombine &&
-    !combineLocked &&
-    !discovering &&
-    !approving;
-
-
-  const canApprove =
-    !combineLocked &&
-    !discovering &&
-    !approving &&
-    discovery
-      ?.has_candidate ===
-      true &&
-    discovery
-      .ready_for_approval ===
-      true &&
-    currentIntent !==
-      null;
+  /*
+   * À partir de ce point, workflowId est définitivement
+   * une string non nullable.
+   *
+   * Les handlers async n'accèdent donc plus directement
+   * à session.workflow_id.
+   */
+  const workflowId =
+    activeSession.workflow_id;
 
 
   function synchronizeSession(
     nextSession:
       PreparationSessionView
   ) {
-    setLocalSession(
-      nextSession
-    );
-
-
     onSessionChange?.(
       nextSession
     );
   }
 
 
-  async function startAutomaticCombine(
-    currentSession:
-      PreparationSessionView
-  ) {
-    const currentCombine =
-      findStage(
-        currentSession,
-        "combine"
-      );
-
-
-    if (
-      hasCombineDiscoveryEvidence(
-        currentCombine
-      ) ||
-      currentSession
-        .selected_analysis_dataset_ids
-        .length <=
-        1
-    ) {
-      return;
-    }
-
-
-    const discoveryKey =
-      `${
-        currentSession.workflow_id
-      }:${
-        currentSession.revision
-      }`;
-
-
-    if (
-      automaticDiscoveryKeyRef
-        .current ===
-      discoveryKey
-    ) {
-      return;
-    }
-
-
-    automaticDiscoveryKeyRef
-      .current =
-        discoveryKey;
-
-
-    setDiscovering(
-      true
-    );
-
-    setError(
+  function clearPlan() {
+    setPlan(
       null
     );
 
-    setLastExecution(
+    setApprovals(
+      {}
+    );
+
+    setWorkflowError(
+      null
+    );
+  }
+
+
+  function resetOperationForm() {
+    setArithmeticDraft(
+      {
+        outputColumn:
+          "",
+
+        leftKind:
+          "column",
+
+        leftValue:
+          "",
+
+        operator:
+          "multiply",
+
+        rightKind:
+          "column",
+
+        rightValue:
+          "",
+      }
+    );
+
+
+    setCastDraft(
+      {
+        sourceColumn:
+          "",
+
+        outputColumn:
+          "",
+
+        targetType:
+          "float",
+      }
+    );
+
+
+    setBinDraft(
+      {
+        sourceColumn:
+          "",
+
+        outputColumn:
+          "",
+
+        bins:
+          "",
+
+        labels:
+          "",
+      }
+    );
+
+
+    setDateDraft(
+      {
+        sourceColumn:
+          "",
+
+        outputColumn:
+          "",
+
+        part:
+          "month",
+      }
+    );
+
+
+    setAggregateDraft(
+      {
+        groupBy:
+          "",
+
+        sourceColumn:
+          "",
+
+        function:
+          "sum",
+
+        outputColumn:
+          "",
+
+        outputFilename:
+          "",
+      }
+    );
+  }
+
+
+  function handleAddTransformation() {
+    setDraftError(
+      null
+    );
+
+
+    if (
+      selectedDataset ===
+      null
+    ) {
+      setDraftError(
+        "Sélectionnez d’abord un dataset."
+      );
+
+      return;
+    }
+
+
+    try {
+      let intent:
+        PreparationTransformationIntent;
+
+
+      switch (
+        operation
+      ) {
+        case "derive_arithmetic": {
+          const outputColumn =
+            arithmeticDraft
+              .outputColumn
+              .trim();
+
+
+          if (
+            !outputColumn
+          ) {
+            throw new Error(
+              "La colonne de sortie est requise."
+            );
+          }
+
+
+          intent = {
+            request_id:
+              newRequestId(
+                operation
+              ),
+
+            dataset_id:
+              selectedDataset
+                .dataset_id,
+
+            dataset_filename:
+              selectedDataset
+                .dataset_filename,
+
+            operation:
+              "derive_arithmetic",
+
+            output_column:
+              outputColumn,
+
+            left:
+              operandFromDraft(
+                arithmeticDraft
+                  .leftKind,
+
+                arithmeticDraft
+                  .leftValue,
+
+                "L’opérande gauche"
+              ),
+
+            operator:
+              arithmeticDraft
+                .operator,
+
+            right:
+              operandFromDraft(
+                arithmeticDraft
+                  .rightKind,
+
+                arithmeticDraft
+                  .rightValue,
+
+                "L’opérande droit"
+              ),
+          };
+
+          break;
+        }
+
+
+        case "cast": {
+          const sourceColumn =
+            castDraft
+              .sourceColumn
+              .trim();
+
+          const outputColumn =
+            castDraft
+              .outputColumn
+              .trim();
+
+
+          if (
+            !sourceColumn ||
+            !outputColumn
+          ) {
+            throw new Error(
+              "Les colonnes source et de sortie sont requises."
+            );
+          }
+
+
+          intent = {
+            request_id:
+              newRequestId(
+                operation
+              ),
+
+            dataset_id:
+              selectedDataset
+                .dataset_id,
+
+            dataset_filename:
+              selectedDataset
+                .dataset_filename,
+
+            operation:
+              "cast",
+
+            source_column:
+              sourceColumn,
+
+            output_column:
+              outputColumn,
+
+            target_type:
+              castDraft
+                .targetType,
+          };
+
+          break;
+        }
+
+
+        case "bin_numeric": {
+          const sourceColumn =
+            binDraft
+              .sourceColumn
+              .trim();
+
+          const outputColumn =
+            binDraft
+              .outputColumn
+              .trim();
+
+          const rawBins =
+            commaSeparatedValues(
+              binDraft.bins
+            );
+
+
+          const bins =
+            rawBins.map(
+              (
+                item
+              ) =>
+                parseNumericLiteral(
+                  item,
+                  "Chaque borne"
+                )
+            );
+
+
+          if (
+            !sourceColumn ||
+            !outputColumn
+          ) {
+            throw new Error(
+              "Les colonnes source et de sortie sont requises."
+            );
+          }
+
+
+          if (
+            bins.length <
+            2
+          ) {
+            throw new Error(
+              "Indiquez au moins deux bornes numériques."
+            );
+          }
+
+
+          const labels =
+            commaSeparatedValues(
+              binDraft.labels
+            );
+
+
+          intent = {
+            request_id:
+              newRequestId(
+                operation
+              ),
+
+            dataset_id:
+              selectedDataset
+                .dataset_id,
+
+            dataset_filename:
+              selectedDataset
+                .dataset_filename,
+
+            operation:
+              "bin_numeric",
+
+            source_column:
+              sourceColumn,
+
+            output_column:
+              outputColumn,
+
+            bins,
+
+            labels:
+              labels.length >
+                0
+                ? labels
+                : null,
+
+            include_lowest:
+              true,
+
+            right:
+              true,
+          };
+
+          break;
+        }
+
+
+        case "extract_date_part": {
+          const sourceColumn =
+            dateDraft
+              .sourceColumn
+              .trim();
+
+          const outputColumn =
+            dateDraft
+              .outputColumn
+              .trim();
+
+
+          if (
+            !sourceColumn ||
+            !outputColumn
+          ) {
+            throw new Error(
+              "Les colonnes source et de sortie sont requises."
+            );
+          }
+
+
+          intent = {
+            request_id:
+              newRequestId(
+                operation
+              ),
+
+            dataset_id:
+              selectedDataset
+                .dataset_id,
+
+            dataset_filename:
+              selectedDataset
+                .dataset_filename,
+
+            operation:
+              "extract_date_part",
+
+            source_column:
+              sourceColumn,
+
+            output_column:
+              outputColumn,
+
+            part:
+              dateDraft.part,
+          };
+
+          break;
+        }
+
+
+        case "aggregate": {
+          const groupBy =
+            commaSeparatedValues(
+              aggregateDraft
+                .groupBy
+            );
+
+          const sourceColumn =
+            aggregateDraft
+              .sourceColumn
+              .trim();
+
+          const outputColumn =
+            aggregateDraft
+              .outputColumn
+              .trim();
+
+
+          if (
+            groupBy.length ===
+              0
+          ) {
+            throw new Error(
+              "Indiquez au moins une colonne de regroupement."
+            );
+          }
+
+
+          if (
+            !sourceColumn ||
+            !outputColumn
+          ) {
+            throw new Error(
+              "La mesure source et sa colonne de sortie sont requises."
+            );
+          }
+
+
+          const outputFilename =
+            aggregateDraft
+              .outputFilename
+              .trim() ||
+            `${
+              selectedDataset
+                .dataset_filename
+                .replace(
+                  /\.[^.]+$/,
+                  ""
+                )
+            }__aggregate.csv`;
+
+
+          const outputDatasetId =
+            `${
+              selectedDataset.dataset_id
+            }:aggregate:${
+              Date.now()
+            }`;
+
+
+          intent = {
+            request_id:
+              newRequestId(
+                operation
+              ),
+
+            dataset_id:
+              selectedDataset
+                .dataset_id,
+
+            dataset_filename:
+              selectedDataset
+                .dataset_filename,
+
+            operation:
+              "aggregate",
+
+            group_by:
+              groupBy,
+
+            metrics: [
+              {
+                source_column:
+                  sourceColumn,
+
+                function:
+                  aggregateDraft
+                    .function,
+
+                output_column:
+                  outputColumn,
+              },
+            ],
+
+            output_dataset_id:
+              outputDatasetId,
+
+            output_dataset_filename:
+              outputFilename,
+          };
+
+          break;
+        }
+      }
+
+
+      setIntents(
+        (
+          current
+        ) => [
+          ...current,
+          intent,
+        ]
+      );
+
+
+      clearPlan();
+
+      resetOperationForm();
+    } catch (
+      caughtError
+    ) {
+      setDraftError(
+        caughtError
+          instanceof Error
+          ? caughtError.message
+          : "La transformation n’est pas valide."
+      );
+    }
+  }
+
+
+  function handleRemoveIntent(
+    requestId:
+      string
+  ) {
+    setIntents(
+      (
+        current
+      ) =>
+        current.filter(
+          (
+            intent
+          ) =>
+            intent.request_id !==
+            requestId
+        )
+    );
+
+
+    clearPlan();
+  }
+
+
+  async function refreshSession() {
+    const refreshed =
+      await getPreparationSession(
+        workflowId
+      );
+
+
+    synchronizeSession(
+      refreshed
+    );
+
+
+    return refreshed;
+  }
+
+
+  async function handleBuildPlan() {
+    if (
+      !selectedDatasetId ||
+      intents.length ===
+        0
+    ) {
+      return;
+    }
+
+
+    setPlanning(
+      true
+    );
+
+    setWorkflowError(
+      null
+    );
+
+    setDraftError(
       null
     );
 
 
     try {
       const response =
-        await discoverPreparationCombine(
-          currentSession
-            .workflow_id
+        await buildPreparationTransformationPlan(
+          workflowId,
+          selectedDatasetId,
+          intents
         );
 
 
-      setDiscovery(
-        response.discovery
+      setPlan(
+        response
       );
 
 
-      synchronizeSession(
-        response.session
-      );
-    } catch (
-      caughtError
-    ) {
-      automaticDiscoveryKeyRef
-        .current =
-          null;
-
-      setError(
-        caughtError
-          instanceof Error
-          ? caughtError.message
-          : "La détection automatique des relations entre datasets a échoué."
-      );
-    } finally {
-      setDiscovering(
-        false
-      );
-    }
-  }
-
-
-  async function handleCreateSurrogate(
-    response:
-      PreparationIdentityInspectResponse
-  ) {
-    const requestId =
-      response
-        .surrogate_request_id;
-
-
-    if (
-      !requestId ||
-      !response
-        .can_create_surrogate
-    ) {
-      return;
-    }
-
-
-    setCreatingSurrogateDatasetId(
-      response.dataset_id
-    );
-
-    setIdentityError(
-      null
-    );
-
-
-    try {
-      const creation =
-        await createPreparationSurrogateKey(
-          effectiveSession
-            .workflow_id,
-
-          response
-            .dataset_id,
-
-          requestId
-        );
-
-
-      setIdentityItems(
+      setApprovals(
         {}
       );
 
 
-      identityInspectionKeyRef
-        .current =
-          null;
-
-      automaticDiscoveryKeyRef
-        .current =
-          null;
-
-
-      synchronizeSession(
-        creation.session
-      );
+      await refreshSession();
     } catch (
       caughtError
     ) {
-      setIdentityError(
+      setWorkflowError(
         caughtError
           instanceof Error
           ? caughtError.message
-          : "La création de la clé technique a échoué."
+          : "La construction du plan de transformation a échoué."
       );
     } finally {
-      setCreatingSurrogateDatasetId(
-        null
+      setPlanning(
+        false
       );
     }
   }
 
 
-  async function handleContinueWithoutSurrogate(
-    response:
-      PreparationIdentityInspectResponse
-  ) {
-    const requestId =
-      response
-        .surrogate_request_id;
-
-
+  async function handleApplyPlan() {
     if (
-      !requestId ||
-      !response
-        .can_continue_without_surrogate
+      !selectedDatasetId ||
+      plan ===
+        null ||
+      !canApplyPlan
     ) {
       return;
     }
 
 
-    setContinuingIdentityDatasetId(
-      response.dataset_id
+    const approvalCommands:
+      PreparationTransformationApprovalCommand[] =
+        reviewRequiredSteps.map(
+          (
+            step
+          ) => ({
+            request_id:
+              step.request_id,
+
+            decision:
+              approvals[
+                step.request_id
+              ],
+
+            actor:
+              "user",
+
+            comment:
+              "Décision enregistrée depuis l’interface Preparation de DataLens.",
+          })
+        );
+
+
+    setApplying(
+      true
     );
 
-    setIdentityError(
+    setWorkflowError(
       null
     );
 
 
     try {
-      await continuePreparationWithoutSurrogate(
-        effectiveSession
-          .workflow_id,
-
-        response
-          .dataset_id,
-
-        requestId
-      );
-
-
-      const refreshed =
-        await inspectPreparationIdentity(
-          effectiveSession
-            .workflow_id,
-
-          response
-            .dataset_id,
-
-          true
-        );
-
-
-      setIdentityItems(
-        (
-          current
-        ) => ({
-          ...current,
-
-          [
-            refreshed.dataset_id
-          ]: {
-            response:
-              refreshed,
-
-            aiLoading:
-              false,
-          },
-        })
-      );
-
-
-      const remainingUnresolved =
-        unresolvedIdentityItems.filter(
-          (
-            item
-          ) =>
-            item.response
-              .dataset_id !==
-            response.dataset_id
+      const response =
+        await applyPreparationTransformation(
+          workflowId,
+          selectedDatasetId,
+          intents,
+          approvalCommands
         );
 
 
       if (
-        remainingUnresolved.length ===
-          0
+        response.status ===
+          "validation_failed"
       ) {
-        void startAutomaticCombine(
-          effectiveSession
+        setWorkflowError(
+          "La post-validation a rejeté le résultat. Aucun artifact transformé n’a été matérialisé."
         );
+
+        return;
       }
+
+
+      await refreshSession();
     } catch (
       caughtError
     ) {
-      setIdentityError(
+      setWorkflowError(
         caughtError
           instanceof Error
           ? caughtError.message
-          : "La décision de continuer sans clé technique a échoué."
+          : "L’exécution des transformations a échoué."
       );
     } finally {
-      setContinuingIdentityDatasetId(
-        null
-      );
-    }
-  }
-
-
-  async function handleDiscover() {
-    if (
-      !canDiscover
-    ) {
-      return;
-    }
-
-
-    setDiscovering(
-      true
-    );
-
-    setError(
-      null
-    );
-
-    setLastExecution(
-      null
-    );
-
-
-    try {
-      const response =
-        await discoverPreparationCombine(
-          effectiveSession
-            .workflow_id
-        );
-
-
-      setDiscovery(
-        response.discovery
-      );
-
-
-      synchronizeSession(
-        response.session
-      );
-    } catch (
-      caughtError
-    ) {
-      setError(
-        caughtError
-          instanceof Error
-          ? caughtError.message
-          : "La détection des relations entre datasets a échoué."
-      );
-    } finally {
-      setDiscovering(
+      setApplying(
         false
       );
     }
   }
 
 
-  async function handleApprove() {
-    /*
-     * Approval intentionally does not depend on canDiscover.
-     *
-     * A COMBINE discovery changes the server-owned Preparation
-     * revision. That revision change must not invalidate the
-     * already-issued join proposal in the UI.
-     *
-     * Security remains server-owned:
-     * approvePreparationCombine() rediscoveres the current
-     * candidate, re-runs the Identity gate and verifies the
-     * exact request_id before executing anything.
-     */
+  async function handleSkipTransform() {
     if (
-      !canApprove ||
-      currentIntent ===
-        null
+      !selectedDatasetId
     ) {
       return;
     }
 
 
-    setApproving(
+    setApplying(
       true
     );
 
-    setError(
+    setWorkflowError(
       null
     );
 
 
     try {
-      const response =
-        await approvePreparationCombine(
-          effectiveSession
-            .workflow_id,
-
-          currentIntent
-            .request_id,
-
-          "Jointure approuvée depuis l’étape Preparation de DataLens."
-        );
-
-
-      setLastExecution(
-        response
+      await applyPreparationTransformation(
+        workflowId,
+        selectedDatasetId,
+        [],
+        []
       );
 
 
-      setDiscovery(
-        response.next_discovery
-      );
-
-
-      synchronizeSession(
-        response.session
-      );
+      await refreshSession();
     } catch (
       caughtError
     ) {
-      setError(
+      setWorkflowError(
         caughtError
           instanceof Error
           ? caughtError.message
-          : "La jointure contrôlée a échoué."
+          : "Impossible de terminer l’étape sans transformation."
       );
     } finally {
-      setApproving(
+      setApplying(
         false
       );
     }
   }
-
-
-  const headline =
-    unresolvedIdentityItems.length >
-      0
-      ? "Résolvez d’abord l’identité des lignes"
-      : identityLoading
-        ? "Vérification de l’identité des lignes"
-        : combineLocked
-      ? "Combinaison verrouillée après validation"
-      : discovery
-          ?.has_candidate ===
-          true
-        ? discovery
-            .ready_for_approval
-          ? "Une relation sûre attend votre approbation"
-          : "Une relation a été détectée mais reste bloquée"
-        : discovery
-            ?.has_candidate ===
-            false
-          ? combine?.status ===
-              "passed"
-            ? "Les combinaisons nécessaires sont terminées"
-            : "Aucune combinaison supplémentaire n’est requise"
-          : combineDiscoveryPending
-            ? discovering
-              ? "Recherche automatique des relations"
-              : "Vérification des relations à effectuer"
-            : "Rechercher les relations entre datasets";
 
 
   return (
@@ -1610,7 +1802,7 @@ export default function PreparationTransformPanel({
       }
       aria-labelledby="preparation-transform-title"
     >
-      <div
+      <header
         className={
           styles.header
         }
@@ -1627,215 +1819,34 @@ export default function PreparationTransformPanel({
           <h3
             id="preparation-transform-title"
           >
-            Transformer et combiner
+            Transformer les données
           </h3>
 
           <p>
-            DataLens vérifie d’abord l’identité des lignes, puis
-            sépare les transformations des jointures. Python produit
-            les preuves, le modèle local les explique et toute mutation
-            reste sous contrôle de l’analyste.
+            Créez uniquement les variables et structures nécessaires
+            à l’analyse. DataLens reconstruit et contrôle le plan côté
+            serveur avant toute modification des données.
           </p>
         </div>
 
         <span
           className={
-            `${styles.badge} ${
-              combine?.status ===
-                "passed"
-                ? styles.success
-                : combine?.status ===
-                    "review_required" ||
-                  combine?.status ===
-                    "blocked"
-                  ? styles.attention
-                  : allSkipped
-                    ? styles.skipped
-                    : ""
-            }`
+            styles.headerBadge
           }
         >
-          {
-            combineLocked
-              ? "VERROUILLÉ"
-              : combine?.status ===
-                  "review_required"
-                ? "APPROBATION REQUISE"
-                : combine?.status ===
-                    "passed"
-                  ? "COMBINAISON VALIDÉE"
-                  : allSkipped
-                    ? "À VÉRIFIER"
-                    : "CONTRÔLÉ"
-          }
+          PYTHON DÉTERMINISTE
         </span>
-      </div>
+      </header>
 
 
-      <div
+      <section
         className={
-          styles.grid
-        }
-      >
-        <article
-          className={
-            styles.card
-          }
-        >
-          <div
-            className={
-              styles.cardTop
-            }
-          >
-            <strong>
-              Transformations
-            </strong>
-
-            <span
-              className={
-                `${styles.state} ${
-                  statusClass(
-                    transform
-                  )
-                }`
-              }
-            >
-              {
-                statusLabel(
-                  transform
-                )
-              }
-            </span>
-          </div>
-
-          <p>
-            Typage, variables dérivées, agrégations et autres opérations
-            structurelles restent exécutés par les moteurs Python
-            déterministes.
-          </p>
-
-          {
-            transform
-              ?.blocking_reasons
-              .length
-              ? (
-                  <div
-                    className={
-                      styles.reasons
-                    }
-                  >
-                    {
-                      transform
-                        .blocking_reasons
-                        .map(
-                          (
-                            reason
-                          ) => (
-                            <span
-                              key={
-                                reason
-                              }
-                            >
-                              {
-                                reason
-                              }
-                            </span>
-                          )
-                        )
-                    }
-                  </div>
-                )
-              : null
-          }
-        </article>
-
-
-        <article
-          className={
-            styles.card
-          }
-        >
-          <div
-            className={
-              styles.cardTop
-            }
-          >
-            <strong>
-              Combinaison
-            </strong>
-
-            <span
-              className={
-                `${styles.state} ${
-                  statusClass(
-                    combine
-                  )
-                }`
-              }
-            >
-              {
-                combineDiscoveryPending
-                  ? discovering
-                    ? "Vérification…"
-                    : "À vérifier"
-                  : statusLabel(
-                      combine
-                    )
-              }
-            </span>
-          </div>
-
-          <p>
-            Les clés, le type de jointure et la cardinalité ne sont
-            jamais envoyés par le navigateur. Ils sont dérivés et
-            validés côté serveur.
-          </p>
-
-          {
-            combine
-              ?.blocking_reasons
-              .length
-              ? (
-                  <div
-                    className={
-                      styles.reasons
-                    }
-                  >
-                    {
-                      combine
-                        .blocking_reasons
-                        .map(
-                          (
-                            reason
-                          ) => (
-                            <span
-                              key={
-                                reason
-                              }
-                            >
-                              {
-                                reason
-                              }
-                            </span>
-                          )
-                        )
-                    }
-                  </div>
-                )
-              : null
-          }
-        </article>
-      </div>
-
-
-      <div
-        className={
-          styles.identityWorkspace
+          styles.datasetSection
         }
       >
         <div
           className={
-            styles.identityWorkspaceHead
+            styles.sectionHeading
           }
         >
           <div>
@@ -1844,1013 +1855,32 @@ export default function PreparationTransformPanel({
                 styles.eyebrow
               }
             >
-              Identité des lignes
+              01 · Périmètre
             </span>
 
             <strong>
-              {
-                identityLoading
-                  ? "Analyse déterministe en cours"
-                  : unresolvedIdentityItems.length >
-                      0
-                    ? `${
-                        unresolvedIdentityItems.length
-                      } recommandation${
-                        unresolvedIdentityItems.length >
-                          1
-                          ? "s"
-                          : ""
-                      } à examiner`
-                    : identityInspectionItems.length >
-                        0
-                      ? "Identité contrôlée"
-                      : "Contrôle en attente"
-              }
+              Dataset à transformer
             </strong>
-
-            <p>
-              Python vérifie l’unicité et les clés candidates.
-              Gemma reçoit uniquement ces faits structurés pour
-              les expliquer. Toute décision ambiguë est enregistrée
-              côté serveur avant que COMBINE puisse démarrer.
-            </p>
           </div>
 
-          <span
-            className={
-              `${styles.identityGate} ${
-                unresolvedIdentityItems.length >
-                  0
-                  ? styles.attention
-                  : identityInspectionItems.length >
-                      0 &&
-                    !identityLoading
-                    ? styles.success
-                    : styles.pending
-              }`
-            }
-          >
-            {
-              identityLoading
-                ? "VÉRIFICATION"
-                : unresolvedIdentityItems.length >
-                    0
-                  ? "DÉCISION REQUISE"
-                  : identityInspectionItems.length >
-                      0
-                    ? "IDENTITÉ RÉSOLUE"
-                    : "EN ATTENTE"
-            }
-          </span>
-        </div>
-
-
-        {
-          identityLoading &&
-          identityInspectionItems.length ===
-            0
-            ? (
-                <div
-                  className={
-                    styles.identityLoading
-                  }
-                >
-                  <strong>
-                    Inspection des artefacts actifs…
-                  </strong>
-
-                  <span>
-                    DataLens calcule d’abord les preuves
-                    d’unicité côté Python avant tout appel
-                    au modèle local.
-                  </span>
-                </div>
-              )
-            : null
-        }
-
-
-        {
-          identityInspectionItems.length >
-            0
-            ? (
-                <div
-                  className={
-                    styles.identityGrid
-                  }
-                >
-                  {
-                    identityInspectionItems.map(
-                      (
-                        item
-                      ) => {
-                        const response =
-                          item.response;
-
-                        const continuedWithoutSurrogate =
-                          response.resolution_kind ===
-                          "continued_without_surrogate";
-
-                        const creating =
-                          creatingSurrogateDatasetId ===
-                          response.dataset_id;
-
-                        const continuing =
-                          continuingIdentityDatasetId ===
-                          response.dataset_id;
-
-                        const preferred =
-                          response
-                            .report
-                            .preferred_candidate;
-
-                        const ai =
-                          response.explanation;
-
-
-                        return (
-                          <article
-                            key={
-                              response.dataset_id
-                            }
-                            className={
-                              `${styles.identityCard} ${
-                                !response
-                                  .identity_resolved
-                                  ? styles.identityCardAttention
-                                  : styles.identityCardResolved
-                              }`
-                            }
-                          >
-                            <div
-                              className={
-                                styles.identityCardHead
-                              }
-                            >
-                              <div>
-                                <span>
-                                  {
-                                    response.artifact_stage
-                                      .toUpperCase()
-                                  }
-                                </span>
-
-                                <strong
-                                  title={
-                                    response.dataset_id
-                                  }
-                                >
-                                  {
-                                    response
-                                      .dataset_filename
-                                  }
-                                </strong>
-                              </div>
-
-                              <span
-                                className={
-                                  `${styles.identityStatus} ${
-                                    !response
-                                      .identity_resolved
-                                      ? styles.attention
-                                      : styles.success
-                                  }`
-                                }
-                              >
-                                {
-                                  continuedWithoutSurrogate
-                                    ? "CONTINUÉ SANS CLÉ"
-                                    : response
-                                        .identity_resolved
-                                      ? identityStatusLabel(
-                                          response
-                                        )
-                                      : "DÉCISION REQUISE"
-                                }
-                              </span>
-                            </div>
-
-
-                            <div
-                              className={
-                                styles.identityEvidence
-                              }
-                            >
-                              <div>
-                                <span>
-                                  Clé / suggestion
-                                </span>
-
-                                <strong>
-                                  {
-                                    identityCandidateLabel(
-                                      response
-                                    )
-                                  }
-                                </strong>
-                              </div>
-
-                              <div>
-                                <span>
-                                  Unicité
-                                </span>
-
-                                <strong>
-                                  {
-                                    preferred
-                                      ? `${
-                                          preferred.unique_count
-                                        } / ${
-                                          preferred.row_count
-                                        }`
-                                      : "Aucune clé fiable"
-                                  }
-                                </strong>
-                              </div>
-
-                              <div>
-                                <span>
-                                  Valeurs manquantes
-                                </span>
-
-                                <strong>
-                                  {
-                                    preferred
-                                      ? preferred
-                                          .missing_row_count
-                                      : "—"
-                                  }
-                                </strong>
-                              </div>
-                            </div>
-
-
-                            <div
-                              className={
-                                styles.identityNarrative
-                              }
-                            >
-                              <div
-                                className={
-                                  styles.identityNarrativeHead
-                                }
-                              >
-                                <span>
-                                  Modèle local
-                                </span>
-
-                                <strong>
-                                  {
-                                    item.aiLoading
-                                      ? "Génération de l’explication…"
-                                      : ai
-                                        ? "Explication validée par Python"
-                                        : "Preuves Python disponibles"
-                                  }
-                                </strong>
-                              </div>
-
-                              {
-                                ai
-                                  ? (
-                                      <>
-                                        <h4>
-                                          {
-                                            ai.title
-                                          }
-                                        </h4>
-
-                                        <p>
-                                          {
-                                            ai.explanation
-                                          }
-                                        </p>
-
-                                        <p
-                                          className={
-                                            styles.identityUserMessage
-                                          }
-                                        >
-                                          {
-                                            ai.user_message
-                                          }
-                                        </p>
-                                      </>
-                                    )
-                                  : (
-                                      <p>
-                                        {
-                                          response
-                                            .report
-                                            .reasons[
-                                              0
-                                            ] ??
-                                          "Le contrôle déterministe est disponible."
-                                        }
-                                      </p>
-                                    )
-                              }
-
-                              {
-                                response.ai_error
-                                  ? (
-                                      <span
-                                        className={
-                                          styles.aiFallback
-                                        }
-                                      >
-                                        Explication IA indisponible :
-                                        {" "}
-                                        {
-                                          response.ai_error
-                                        }
-                                        {" "}
-                                        La décision Python reste utilisable.
-                                      </span>
-                                    )
-                                  : null
-                              }
-
-                              {
-                                ai
-                                  ?.cautions
-                                  .length
-                                  ? (
-                                      <div
-                                        className={
-                                          styles.identityCautions
-                                        }
-                                      >
-                                        {
-                                          ai.cautions.map(
-                                            (
-                                              caution
-                                            ) => (
-                                              <span
-                                                key={
-                                                  caution
-                                                }
-                                              >
-                                                {
-                                                  caution
-                                                }
-                                              </span>
-                                            )
-                                          )
-                                        }
-                                      </div>
-                                    )
-                                  : null
-                              }
-                            </div>
-
-
-                            {
-                              response
-                                .can_create_surrogate &&
-                              !response
-                                .identity_resolved
-                                ? (
-                                    <div
-                                      className={
-                                        styles.identityActions
-                                      }
-                                    >
-                                      <p>
-                                        Une clé technique améliore la traçabilité
-                                        des lignes mais ne devient jamais une clé
-                                        de jointure entre datasets.
-                                      </p>
-
-                                      <div
-                                        className={
-                                          styles.identityActionButtons
-                                        }
-                                      >
-                                        <button
-                                          type="button"
-                                          className={
-                                            styles.secondaryButton
-                                          }
-                                          onClick={
-                                            () =>
-                                              handleContinueWithoutSurrogate(
-                                                response
-                                              )
-                                          }
-                                          disabled={
-                                            creating ||
-                                            continuing ||
-                                            discovering ||
-                                            approving
-                                          }
-                                        >
-                                          {
-                                            continuing
-                                              ? "Enregistrement…"
-                                              : "Continuer sans créer"
-                                          }
-                                        </button>
-
-                                        <button
-                                          type="button"
-                                          className={
-                                            styles.primaryButton
-                                          }
-                                          onClick={
-                                            () =>
-                                              handleCreateSurrogate(
-                                                response
-                                              )
-                                          }
-                                          disabled={
-                                            creating ||
-                                            continuing ||
-                                            discovering ||
-                                            approving
-                                          }
-                                        >
-                                          {
-                                            creating
-                                              ? "Création…"
-                                              : `Créer ${
-                                                  response
-                                                    .report
-                                                    .suggested_surrogate_column ??
-                                                  "la clé technique"
-                                                }`
-                                          }
-                                        </button>
-                                      </div>
-                                    </div>
-                                  )
-                                : continuedWithoutSurrogate
-                                  ? (
-                                      <div
-                                        className={
-                                          styles.identityResolutionNotice
-                                        }
-                                      >
-                                        <strong>
-                                          Décision analyste enregistrée
-                                        </strong>
-
-                                        <span>
-                                          DataLens peut poursuivre vers COMBINE
-                                          sans créer de clé technique pour cet
-                                          artefact. Cette décision est liée au
-                                          rapport déterministe courant et deviendra
-                                          caduque si le dataset change.
-                                        </span>
-                                      </div>
-                                    )
-                                  : null
-                            }
-
-
-                            {
-                              response.mutation_locked
-                                ? (
-                                    <div
-                                      className={
-                                        styles.identityLock
-                                      }
-                                    >
-                                      {
-                                        response
-                                          .mutation_lock_reason ??
-                                        "Mutation verrouillée."
-                                      }
-                                    </div>
-                                  )
-                                : null
-                            }
-                          </article>
-                        );
-                      }
-                    )
-                  }
-                </div>
-              )
-            : null
-        }
-
-
-        {
-          identityError
-            ? (
-                <div
-                  className={
-                    styles.error
-                  }
-                >
-                  <strong>
-                    Inspection d’identité impossible
-                  </strong>
-
-                  <span>
-                    {
-                      identityError
-                    }
-                  </span>
-                </div>
-              )
-            : null
-        }
-
-
-        <div
-          className={
-            styles.identityRule
-          }
-        >
-          <strong>
-            Règle de sécurité
-          </strong>
-
-          <span>
-            Une clé technique identifie une ligne. Elle ne crée jamais
-            artificiellement une relation entre deux fichiers. COMBINE
-            reste verrouillé côté serveur tant que l’identité des artefacts
-            actifs n’est pas résolue.
-          </span>
-        </div>
-      </div>
-
-
-      <div
-        className={
-          styles.combineWorkspace
-        }
-      >
-        <div
-          className={
-            styles.combineWorkspaceHead
-          }
-        >
-          <div>
-            <span
-              className={
-                styles.eyebrow
-              }
-            >
-              Jointures contrôlées
-            </span>
-
-            <strong>
-              {
-                headline
-              }
-            </strong>
-
-            <p>
-              {
-                discovery
-                  ?.reason ??
-                (
-                  combineDiscoveryPending
-                    ? identityReadyForCombine
-                      ? "L’identité des lignes est résolue. DataLens vérifie maintenant automatiquement si les datasets actifs partagent une relation déterministe sûre avant d’autoriser la Validation."
-                      : "La recherche de relations commencera automatiquement après la résolution des recommandations d’identité de ligne."
-                    : "Relancez la détection pour vérifier si les datasets actifs partagent encore une relation déterministe sûre."
-                )
-              }
-            </p>
-          </div>
-
-          <button
-            type="button"
-            className={
-              styles.secondaryButton
-            }
-            onClick={
-              handleDiscover
-            }
-            disabled={
-              !canDiscover
-            }
-          >
-            {
-              discovering
-                ? "Détection automatique…"
-                : !identityReadyForCombine
-                  ? "Identité à résoudre"
-                  : discovery ===
-                      null &&
-                    combineDiscoveryPending
-                    ? "Vérification automatique"
-                  : discovery ===
-                      null
-                    ? "Rechercher les relations"
-                    : "Actualiser la proposition"
-            }
-          </button>
-        </div>
-
-
-        {
-          lastExecution
-            ? (
-                <div
-                  className={
-                    `${styles.executionNotice} ${
-                      validationPassed(
-                        lastExecution
-                      )
-                        ? styles.executionNoticeSuccess
-                        : ""
-                    }`
-                  }
-                >
-                  <div>
-                    <span>
-                      Dernière jointure matérialisée
-                    </span>
-
-                    <strong>
-                      {
-                        lastExecution
-                          .output_dataset_filename
-                      }
-                    </strong>
-                  </div>
-
-                  <div
-                    className={
-                      styles.executionMetrics
-                    }
-                  >
-                    <span>
-                      {
-                        lastExecution.rows
-                      }
-                      {" lignes"}
-                    </span>
-
-                    <span>
-                      {
-                        lastExecution.columns
-                      }
-                      {" colonnes"}
-                    </span>
-
-                    <span>
-                      {
-                        validationPassed(
-                          lastExecution
-                        )
-                          ? "Validation post-jointure OK"
-                          : "Validation à contrôler"
-                      }
-                    </span>
-                  </div>
-                </div>
-              )
-            : null
-        }
-
-
-        {
-          currentIntent
-            ? (
-                <article
-                  className={
-                    `${styles.joinProposal} ${
-                      discovery
-                        ?.ready_for_approval
-                        ? styles.joinProposalReady
-                        : styles.joinProposalBlocked
-                    }`
-                  }
-                >
-                  <div
-                    className={
-                      styles.joinProposalHead
-                    }
-                  >
-                    <div>
-                      <span
-                        className={
-                          styles.eyebrow
-                        }
-                      >
-                        Proposition serveur
-                      </span>
-
-                      <strong>
-                        {
-                          currentIntent
-                            .left_dataset_filename
-                        }
-                        {" + "}
-                        {
-                          currentIntent
-                            .right_dataset_filename
-                        }
-                      </strong>
-                    </div>
-
-                    <span
-                      className={
-                        discovery
-                          ?.ready_for_approval
-                          ? styles.proposalReady
-                          : styles.proposalBlocked
-                      }
-                    >
-                      {
-                        discovery
-                          ?.ready_for_approval
-                          ? "PRÊTE À APPROUVER"
-                          : "BLOQUÉE"
-                      }
-                    </span>
-                  </div>
-
-
-                  <div
-                    className={
-                      styles.joinFlow
-                    }
-                  >
-                    <div
-                      className={
-                        styles.datasetNode
-                      }
-                    >
-                      <span>
-                        Dataset gauche
-                      </span>
-
-                      <strong
-                        title={
-                          currentIntent
-                            .left_dataset_id
-                        }
-                      >
-                        {
-                          currentIntent
-                            .left_dataset_filename
-                        }
-                      </strong>
-
-                      <code>
-                        {
-                          currentIntent
-                            .keys[
-                              0
-                            ]
-                            ?.left_column ??
-                          "—"
-                        }
-                      </code>
-                    </div>
-
-
-                    <div
-                      className={
-                        styles.joinOperator
-                      }
-                      aria-hidden="true"
-                    >
-                      <span>
-                        {
-                          joinTypeLabel(
-                            currentIntent
-                              .join_type
-                          )
-                        }
-                      </span>
-
-                      <strong>
-                        =
-                      </strong>
-                    </div>
-
-
-                    <div
-                      className={
-                        styles.datasetNode
-                      }
-                    >
-                      <span>
-                        Dataset droit
-                      </span>
-
-                      <strong
-                        title={
-                          currentIntent
-                            .right_dataset_id
-                        }
-                      >
-                        {
-                          currentIntent
-                            .right_dataset_filename
-                        }
-                      </strong>
-
-                      <code>
-                        {
-                          currentIntent
-                            .keys[
-                              0
-                            ]
-                            ?.right_column ??
-                          "—"
-                        }
-                      </code>
-                    </div>
-                  </div>
-
-
-                  <div
-                    className={
-                      styles.joinMetaGrid
-                    }
-                  >
-                    <div>
-                      <span>
-                        Clé
-                      </span>
-
-                      <strong>
-                        {
-                          joinKeyLabel(
-                            currentIntent
-                          )
-                        }
-                      </strong>
-                    </div>
-
-                    <div>
-                      <span>
-                        Jointure
-                      </span>
-
-                      <strong>
-                        {
-                          joinTypeLabel(
-                            currentIntent
-                              .join_type
-                          )
-                        }
-                      </strong>
-                    </div>
-
-                    <div>
-                      <span>
-                        Cardinalité attendue
-                      </span>
-
-                      <strong>
-                        {
-                          cardinalityLabel(
-                            currentIntent
-                              .expected_cardinality
-                          )
-                        }
-                      </strong>
-                    </div>
-
-                    <div>
-                      <span>
-                        Sortie prévue
-                      </span>
-
-                      <strong
-                        title={
-                          currentIntent
-                            .output_dataset_id
-                        }
-                      >
-                        {
-                          currentIntent
-                            .output_dataset_filename
-                        }
-                      </strong>
-                    </div>
-                  </div>
-
-
-                  {
-                    warnings.length >
-                    0
-                      ? (
-                          <div
-                            className={
-                              styles.planEvidence
-                            }
-                          >
-                            <strong>
-                              Contrôles du Join Planner
-                            </strong>
-
-                            {
-                              warnings.map(
-                                (
-                                  warning,
-                                  index
-                                ) => (
-                                  <p
-                                    key={
-                                      `${index}-${warning}`
-                                    }
-                                  >
-                                    {
-                                      warning
-                                    }
-                                  </p>
-                                )
-                              )
-                            }
-                          </div>
-                        )
-                      : null
-                  }
-
-
-                  <div
-                    className={
-                      styles.approvalFooter
-                    }
-                  >
-                    <p>
-                      L’approbation autorise uniquement cette proposition
-                      exacte. Si le plan serveur change, son
-                      <code>
-                        request_id
-                      </code>
-                      devient périmé et l’exécution est refusée.
-                    </p>
-
-                    <button
-                      type="button"
-                      className={
-                        styles.primaryButton
-                      }
-                      onClick={
-                        handleApprove
-                      }
-                      disabled={
-                        !canApprove
-                      }
-                    >
-                      {
-                        approving
-                          ? "Jointure en cours…"
-                          : discovery
-                              ?.ready_for_approval
-                            ? "Approuver la jointure"
-                            : "Jointure non approuvable"
-                      }
-                    </button>
-                  </div>
-                </article>
-              )
-            : discovery
-                ?.has_candidate ===
-                false
+          {
+            candidatesLoading
               ? (
-                  <div
+                  <span
                     className={
-                      styles.noCandidate
+                      styles.subtleStatus
                     }
                   >
-                    <strong>
-                      {
-                        combine?.status ===
-                          "passed"
-                          ? "Combinaison terminée"
-                          : "Aucune relation sûre à combiner"
-                      }
-                    </strong>
-
-                    <p>
-                      {
-                        discovery.reason
-                      }
-                    </p>
-
-                    {
-                      combine?.status ===
-                        "passed"
-                        ? (
-                            <span>
-                              Le ou les artefacts combinés sont maintenant
-                              disponibles dans l’étape Validation pour
-                              sélectionner la sortie analytique finale.
-                            </span>
-                          )
-                        : null
-                    }
-                  </div>
+                    Chargement…
+                  </span>
                 )
               : null
-        }
+          }
+        </div>
 
 
         {
-          error
+          candidatesError
             ? (
                 <div
                   className={
@@ -2858,38 +1888,1753 @@ export default function PreparationTransformPanel({
                   }
                   role="alert"
                 >
-                  <strong>
-                    Combinaison indisponible
-                  </strong>
-
-                  <span>
-                    {
-                      error
-                    }
-                  </span>
+                  {
+                    candidatesError
+                  }
                 </div>
               )
             : null
         }
-      </div>
 
 
-      <div
+        {
+          candidates.length >
+            0
+            ? (
+                <div
+                  className={
+                    styles.datasetGrid
+                  }
+                >
+                  {
+                    candidates.map(
+                      (
+                        candidate
+                      ) => {
+                        const selected =
+                          candidate.dataset_id ===
+                          selectedDatasetId;
+
+
+                        return (
+                          <button
+                            key={
+                              candidate.dataset_id
+                            }
+                            type="button"
+                            className={
+                              `${styles.datasetCard} ${
+                                selected
+                                  ? styles.datasetCardSelected
+                                  : ""
+                              }`
+                            }
+                            onClick={
+                              () => {
+                                if (
+                                  candidate.dataset_id ===
+                                  selectedDatasetId
+                                ) {
+                                  return;
+                                }
+
+
+                                setSelectedDatasetId(
+                                  candidate.dataset_id
+                                );
+
+                                setIntents(
+                                  []
+                                );
+
+                                clearPlan();
+                              }
+                            }
+                          >
+                            <span
+                              className={
+                                styles.datasetStage
+                              }
+                            >
+                              {
+                                artifactStageLabel(
+                                  candidate.stage
+                                )
+                              }
+                            </span>
+
+                            <strong
+                              title={
+                                candidate.dataset_filename
+                              }
+                            >
+                              {
+                                candidate.dataset_filename
+                              }
+                            </strong>
+
+                            <span
+                              className={
+                                styles.datasetMeta
+                              }
+                            >
+                              {
+                                candidate.rows
+                              }
+                              {" lignes · "}
+                              {
+                                candidate.columns
+                              }
+                              {" colonnes"}
+                            </span>
+                          </button>
+                        );
+                      }
+                    )
+                  }
+                </div>
+              )
+            : (
+                !candidatesLoading
+                  ? (
+                      <div
+                        className={
+                          styles.empty
+                        }
+                      >
+                        Aucun artifact transformable n’est disponible.
+                      </div>
+                    )
+                  : null
+              )
+        }
+      </section>
+
+
+      <section
         className={
-          styles.note
+          styles.builder
         }
       >
-        <strong>
-          Pourquoi DataLens demande une approbation ?
-        </strong>
+        <div
+          className={
+            styles.sectionHeading
+          }
+        >
+          <div>
+            <span
+              className={
+                styles.eyebrow
+              }
+            >
+              02 · Transformation
+            </span>
 
-        <span>
-          Une clé commune ne suffit pas à garantir qu’une jointure
-          est correcte. Le moteur vérifie notamment la cardinalité
-          et les garde-fous avant de proposer l’opération ; l’analyste
-          reste responsable de son approbation.
-        </span>
-      </div>
+            <strong>
+              Ajouter une opération
+            </strong>
+          </div>
+        </div>
+
+
+        <div
+          className={
+            styles.operationPicker
+          }
+        >
+          {
+            (
+              [
+                "derive_arithmetic",
+                "cast",
+                "bin_numeric",
+                "extract_date_part",
+                "aggregate",
+              ] as TransformationOperation[]
+            ).map(
+              (
+                item
+              ) => (
+                <button
+                  key={
+                    item
+                  }
+                  type="button"
+                  className={
+                    `${styles.operationButton} ${
+                      operation ===
+                        item
+                        ? styles.operationButtonActive
+                        : ""
+                    }`
+                  }
+                  onClick={
+                    () =>
+                      setOperation(
+                        item
+                      )
+                  }
+                >
+                  {
+                    operationLabel(
+                      item
+                    )
+                  }
+                </button>
+              )
+            )
+          }
+        </div>
+
+
+        <div
+          className={
+            styles.formCard
+          }
+        >
+          {
+            operation ===
+              "derive_arithmetic"
+              ? (
+                  <>
+                    <div
+                      className={
+                        styles.formIntro
+                      }
+                    >
+                      <strong>
+                        Créer une variable calculée
+                      </strong>
+
+                      <p>
+                        Exemple : revenue = price × quantity.
+                      </p>
+                    </div>
+
+                    <div
+                      className={
+                        styles.formGrid
+                      }
+                    >
+                      <label>
+                        <span>
+                          Colonne de sortie
+                        </span>
+
+                        <input
+                          value={
+                            arithmeticDraft.outputColumn
+                          }
+                          onChange={
+                            (
+                              event
+                            ) =>
+                              setArithmeticDraft(
+                                (
+                                  current
+                                ) => ({
+                                  ...current,
+
+                                  outputColumn:
+                                    event.target.value,
+                                })
+                              )
+                          }
+                          placeholder="revenue"
+                        />
+                      </label>
+
+
+                      <label>
+                        <span>
+                          Opérande gauche
+                        </span>
+
+                        <div
+                          className={
+                            styles.compoundField
+                          }
+                        >
+                          <select
+                            value={
+                              arithmeticDraft.leftKind
+                            }
+                            onChange={
+                              (
+                                event
+                              ) =>
+                                setArithmeticDraft(
+                                  (
+                                    current
+                                  ) => ({
+                                    ...current,
+
+                                    leftKind:
+                                      event.target.value as TransformationOperandKind,
+                                  })
+                                )
+                            }
+                          >
+                            <option value="column">
+                              Colonne
+                            </option>
+
+                            <option value="literal">
+                              Nombre
+                            </option>
+                          </select>
+
+                          <input
+                            value={
+                              arithmeticDraft.leftValue
+                            }
+                            onChange={
+                              (
+                                event
+                              ) =>
+                                setArithmeticDraft(
+                                  (
+                                    current
+                                  ) => ({
+                                    ...current,
+
+                                    leftValue:
+                                      event.target.value,
+                                  })
+                                )
+                            }
+                            placeholder={
+                              arithmeticDraft.leftKind ===
+                                "column"
+                                ? "price"
+                                : "1.2"
+                            }
+                          />
+                        </div>
+                      </label>
+
+
+                      <label>
+                        <span>
+                          Opérateur
+                        </span>
+
+                        <select
+                          value={
+                            arithmeticDraft.operator
+                          }
+                          onChange={
+                            (
+                              event
+                            ) =>
+                              setArithmeticDraft(
+                                (
+                                  current
+                                ) => ({
+                                  ...current,
+
+                                  operator:
+                                    event.target.value as TransformationArithmeticOperator,
+                                })
+                              )
+                          }
+                        >
+                          <option value="add">
+                            Addition
+                          </option>
+
+                          <option value="subtract">
+                            Soustraction
+                          </option>
+
+                          <option value="multiply">
+                            Multiplication
+                          </option>
+
+                          <option value="divide">
+                            Division
+                          </option>
+                        </select>
+                      </label>
+
+
+                      <label>
+                        <span>
+                          Opérande droit
+                        </span>
+
+                        <div
+                          className={
+                            styles.compoundField
+                          }
+                        >
+                          <select
+                            value={
+                              arithmeticDraft.rightKind
+                            }
+                            onChange={
+                              (
+                                event
+                              ) =>
+                                setArithmeticDraft(
+                                  (
+                                    current
+                                  ) => ({
+                                    ...current,
+
+                                    rightKind:
+                                      event.target.value as TransformationOperandKind,
+                                  })
+                                )
+                            }
+                          >
+                            <option value="column">
+                              Colonne
+                            </option>
+
+                            <option value="literal">
+                              Nombre
+                            </option>
+                          </select>
+
+                          <input
+                            value={
+                              arithmeticDraft.rightValue
+                            }
+                            onChange={
+                              (
+                                event
+                              ) =>
+                                setArithmeticDraft(
+                                  (
+                                    current
+                                  ) => ({
+                                    ...current,
+
+                                    rightValue:
+                                      event.target.value,
+                                  })
+                                )
+                            }
+                            placeholder={
+                              arithmeticDraft.rightKind ===
+                                "column"
+                                ? "quantity"
+                                : "100"
+                            }
+                          />
+                        </div>
+                      </label>
+                    </div>
+                  </>
+                )
+              : null
+          }
+
+
+          {
+            operation ===
+              "cast"
+              ? (
+                  <>
+                    <div
+                      className={
+                        styles.formIntro
+                      }
+                    >
+                      <strong>
+                        Convertir un type
+                      </strong>
+
+                      <p>
+                        La conversion est contrôlée par Python avant exécution.
+                      </p>
+                    </div>
+
+                    <div
+                      className={
+                        styles.formGrid
+                      }
+                    >
+                      <label>
+                        <span>
+                          Colonne source
+                        </span>
+
+                        <input
+                          value={
+                            castDraft.sourceColumn
+                          }
+                          onChange={
+                            (
+                              event
+                            ) =>
+                              setCastDraft(
+                                (
+                                  current
+                                ) => ({
+                                  ...current,
+
+                                  sourceColumn:
+                                    event.target.value,
+                                })
+                              )
+                          }
+                          placeholder="amount"
+                        />
+                      </label>
+
+                      <label>
+                        <span>
+                          Colonne de sortie
+                        </span>
+
+                        <input
+                          value={
+                            castDraft.outputColumn
+                          }
+                          onChange={
+                            (
+                              event
+                            ) =>
+                              setCastDraft(
+                                (
+                                  current
+                                ) => ({
+                                  ...current,
+
+                                  outputColumn:
+                                    event.target.value,
+                                })
+                              )
+                          }
+                          placeholder="amount_numeric"
+                        />
+                      </label>
+
+                      <label>
+                        <span>
+                          Type cible
+                        </span>
+
+                        <select
+                          value={
+                            castDraft.targetType
+                          }
+                          onChange={
+                            (
+                              event
+                            ) =>
+                              setCastDraft(
+                                (
+                                  current
+                                ) => ({
+                                  ...current,
+
+                                  targetType:
+                                    event.target.value as TransformationCastTargetType,
+                                })
+                              )
+                          }
+                        >
+                          <option value="string">
+                            Texte
+                          </option>
+
+                          <option value="integer">
+                            Entier
+                          </option>
+
+                          <option value="float">
+                            Décimal
+                          </option>
+
+                          <option value="boolean">
+                            Booléen
+                          </option>
+
+                          <option value="datetime">
+                            Date / heure
+                          </option>
+                        </select>
+                      </label>
+                    </div>
+                  </>
+                )
+              : null
+          }
+
+
+          {
+            operation ===
+              "bin_numeric"
+              ? (
+                  <>
+                    <div
+                      className={
+                        styles.formIntro
+                      }
+                    >
+                      <strong>
+                        Créer des classes numériques
+                      </strong>
+
+                      <p>
+                        Exemple : transformer un âge en tranches d’âge.
+                      </p>
+                    </div>
+
+                    <div
+                      className={
+                        styles.formGrid
+                      }
+                    >
+                      <label>
+                        <span>
+                          Colonne source
+                        </span>
+
+                        <input
+                          value={
+                            binDraft.sourceColumn
+                          }
+                          onChange={
+                            (
+                              event
+                            ) =>
+                              setBinDraft(
+                                (
+                                  current
+                                ) => ({
+                                  ...current,
+
+                                  sourceColumn:
+                                    event.target.value,
+                                })
+                              )
+                          }
+                          placeholder="age"
+                        />
+                      </label>
+
+                      <label>
+                        <span>
+                          Colonne de sortie
+                        </span>
+
+                        <input
+                          value={
+                            binDraft.outputColumn
+                          }
+                          onChange={
+                            (
+                              event
+                            ) =>
+                              setBinDraft(
+                                (
+                                  current
+                                ) => ({
+                                  ...current,
+
+                                  outputColumn:
+                                    event.target.value,
+                                })
+                              )
+                          }
+                          placeholder="age_band"
+                        />
+                      </label>
+
+                      <label
+                        className={
+                          styles.fullWidth
+                        }
+                      >
+                        <span>
+                          Bornes séparées par des virgules
+                        </span>
+
+                        <input
+                          value={
+                            binDraft.bins
+                          }
+                          onChange={
+                            (
+                              event
+                            ) =>
+                              setBinDraft(
+                                (
+                                  current
+                                ) => ({
+                                  ...current,
+
+                                  bins:
+                                    event.target.value,
+                                })
+                              )
+                          }
+                          placeholder="0, 18, 30, 45, 65, 120"
+                        />
+                      </label>
+
+                      <label
+                        className={
+                          styles.fullWidth
+                        }
+                      >
+                        <span>
+                          Libellés facultatifs
+                        </span>
+
+                        <input
+                          value={
+                            binDraft.labels
+                          }
+                          onChange={
+                            (
+                              event
+                            ) =>
+                              setBinDraft(
+                                (
+                                  current
+                                ) => ({
+                                  ...current,
+
+                                  labels:
+                                    event.target.value,
+                                })
+                              )
+                          }
+                          placeholder="0-17, 18-29, 30-44, 45-64, 65+"
+                        />
+                      </label>
+                    </div>
+                  </>
+                )
+              : null
+          }
+
+
+          {
+            operation ===
+              "extract_date_part"
+              ? (
+                  <>
+                    <div
+                      className={
+                        styles.formIntro
+                      }
+                    >
+                      <strong>
+                        Extraire une composante temporelle
+                      </strong>
+
+                      <p>
+                        Créez une année, un mois, un trimestre ou une autre
+                        composante à partir d’une date.
+                      </p>
+                    </div>
+
+                    <div
+                      className={
+                        styles.formGrid
+                      }
+                    >
+                      <label>
+                        <span>
+                          Colonne date
+                        </span>
+
+                        <input
+                          value={
+                            dateDraft.sourceColumn
+                          }
+                          onChange={
+                            (
+                              event
+                            ) =>
+                              setDateDraft(
+                                (
+                                  current
+                                ) => ({
+                                  ...current,
+
+                                  sourceColumn:
+                                    event.target.value,
+                                })
+                              )
+                          }
+                          placeholder="order_date"
+                        />
+                      </label>
+
+                      <label>
+                        <span>
+                          Colonne de sortie
+                        </span>
+
+                        <input
+                          value={
+                            dateDraft.outputColumn
+                          }
+                          onChange={
+                            (
+                              event
+                            ) =>
+                              setDateDraft(
+                                (
+                                  current
+                                ) => ({
+                                  ...current,
+
+                                  outputColumn:
+                                    event.target.value,
+                                })
+                              )
+                          }
+                          placeholder="order_month"
+                        />
+                      </label>
+
+                      <label>
+                        <span>
+                          Composante
+                        </span>
+
+                        <select
+                          value={
+                            dateDraft.part
+                          }
+                          onChange={
+                            (
+                              event
+                            ) =>
+                              setDateDraft(
+                                (
+                                  current
+                                ) => ({
+                                  ...current,
+
+                                  part:
+                                    event.target.value as TransformationDatePart,
+                                })
+                              )
+                          }
+                        >
+                          <option value="year">
+                            Année
+                          </option>
+
+                          <option value="month">
+                            Mois
+                          </option>
+
+                          <option value="day">
+                            Jour
+                          </option>
+
+                          <option value="quarter">
+                            Trimestre
+                          </option>
+
+                          <option value="week">
+                            Semaine
+                          </option>
+
+                          <option value="weekday">
+                            Jour de semaine
+                          </option>
+                        </select>
+                      </label>
+                    </div>
+                  </>
+                )
+              : null
+          }
+
+
+          {
+            operation ===
+              "aggregate"
+              ? (
+                  <>
+                    <div
+                      className={
+                        styles.formIntro
+                      }
+                    >
+                      <strong>
+                        Agréger un dataset
+                      </strong>
+
+                      <p>
+                        Cette opération produit un nouveau dataset dérivé et ne
+                        remplace pas silencieusement le grain source.
+                      </p>
+                    </div>
+
+                    <div
+                      className={
+                        styles.formGrid
+                      }
+                    >
+                      <label
+                        className={
+                          styles.fullWidth
+                        }
+                      >
+                        <span>
+                          Regrouper par
+                        </span>
+
+                        <input
+                          value={
+                            aggregateDraft.groupBy
+                          }
+                          onChange={
+                            (
+                              event
+                            ) =>
+                              setAggregateDraft(
+                                (
+                                  current
+                                ) => ({
+                                  ...current,
+
+                                  groupBy:
+                                    event.target.value,
+                                })
+                              )
+                          }
+                          placeholder="customer_id, year"
+                        />
+                      </label>
+
+                      <label>
+                        <span>
+                          Mesure source
+                        </span>
+
+                        <input
+                          value={
+                            aggregateDraft.sourceColumn
+                          }
+                          onChange={
+                            (
+                              event
+                            ) =>
+                              setAggregateDraft(
+                                (
+                                  current
+                                ) => ({
+                                  ...current,
+
+                                  sourceColumn:
+                                    event.target.value,
+                                })
+                              )
+                          }
+                          placeholder="revenue"
+                        />
+                      </label>
+
+                      <label>
+                        <span>
+                          Fonction
+                        </span>
+
+                        <select
+                          value={
+                            aggregateDraft.function
+                          }
+                          onChange={
+                            (
+                              event
+                            ) =>
+                              setAggregateDraft(
+                                (
+                                  current
+                                ) => ({
+                                  ...current,
+
+                                  function:
+                                    event.target.value as TransformationAggregationFunction,
+                                })
+                              )
+                          }
+                        >
+                          <option value="sum">
+                            Somme
+                          </option>
+
+                          <option value="mean">
+                            Moyenne
+                          </option>
+
+                          <option value="median">
+                            Médiane
+                          </option>
+
+                          <option value="min">
+                            Minimum
+                          </option>
+
+                          <option value="max">
+                            Maximum
+                          </option>
+
+                          <option value="count">
+                            Nombre
+                          </option>
+
+                          <option value="nunique">
+                            Valeurs distinctes
+                          </option>
+                        </select>
+                      </label>
+
+                      <label>
+                        <span>
+                          Colonne résultante
+                        </span>
+
+                        <input
+                          value={
+                            aggregateDraft.outputColumn
+                          }
+                          onChange={
+                            (
+                              event
+                            ) =>
+                              setAggregateDraft(
+                                (
+                                  current
+                                ) => ({
+                                  ...current,
+
+                                  outputColumn:
+                                    event.target.value,
+                                })
+                              )
+                          }
+                          placeholder="total_revenue"
+                        />
+                      </label>
+
+                      <label>
+                        <span>
+                          Nom du dataset dérivé
+                        </span>
+
+                        <input
+                          value={
+                            aggregateDraft.outputFilename
+                          }
+                          onChange={
+                            (
+                              event
+                            ) =>
+                              setAggregateDraft(
+                                (
+                                  current
+                                ) => ({
+                                  ...current,
+
+                                  outputFilename:
+                                    event.target.value,
+                                })
+                              )
+                          }
+                          placeholder="orders_by_customer.csv"
+                        />
+                      </label>
+                    </div>
+                  </>
+                )
+              : null
+          }
+
+
+          {
+            draftError
+              ? (
+                  <div
+                    className={
+                      styles.error
+                    }
+                    role="alert"
+                  >
+                    {
+                      draftError
+                    }
+                  </div>
+                )
+              : null
+          }
+
+
+          <div
+            className={
+              styles.formFooter
+            }
+          >
+            <span>
+              Les noms de colonnes seront contrôlés sur l’artifact serveur au
+              moment de la planification.
+            </span>
+
+            <button
+              type="button"
+              className={
+                styles.primaryButton
+              }
+              onClick={
+                handleAddTransformation
+              }
+              disabled={
+                selectedDataset ===
+                null
+              }
+            >
+              Ajouter au plan
+            </button>
+          </div>
+        </div>
+      </section>
+
+
+      <section
+        className={
+          styles.draftSection
+        }
+      >
+        <div
+          className={
+            styles.sectionHeading
+          }
+        >
+          <div>
+            <span
+              className={
+                styles.eyebrow
+              }
+            >
+              03 · Plan
+            </span>
+
+            <strong>
+              Transformations demandées
+            </strong>
+          </div>
+
+          <span
+            className={
+              styles.counter
+            }
+          >
+            {
+              intents.length
+            }
+          </span>
+        </div>
+
+
+        {
+          intents.length >
+            0
+            ? (
+                <div
+                  className={
+                    styles.intentList
+                  }
+                >
+                  {
+                    intents.map(
+                      (
+                        intent,
+                        index
+                      ) => (
+                        <article
+                          key={
+                            intent.request_id
+                          }
+                          className={
+                            styles.intentCard
+                          }
+                        >
+                          <span
+                            className={
+                              styles.intentIndex
+                            }
+                          >
+                            {
+                              String(
+                                index +
+                                1
+                              ).padStart(
+                                2,
+                                "0"
+                              )
+                            }
+                          </span>
+
+                          <div>
+                            <strong>
+                              {
+                                operationLabel(
+                                  intent.operation
+                                )
+                              }
+                            </strong>
+
+                            <p>
+                              {
+                                transformationSummary(
+                                  intent
+                                )
+                              }
+                            </p>
+                          </div>
+
+                          <button
+                            type="button"
+                            className={
+                              styles.removeButton
+                            }
+                            onClick={
+                              () =>
+                                handleRemoveIntent(
+                                  intent.request_id
+                                )
+                            }
+                          >
+                            Retirer
+                          </button>
+                        </article>
+                      )
+                    )
+                  }
+                </div>
+              )
+            : (
+                <div
+                  className={
+                    styles.empty
+                  }
+                >
+                  Aucune transformation ajoutée.
+                </div>
+              )
+        }
+
+
+        <div
+          className={
+            styles.planActions
+          }
+        >
+          <button
+            type="button"
+            className={
+              styles.secondaryButton
+            }
+            disabled={
+              applying ||
+              planning ||
+              !selectedDatasetId ||
+              intents.length >
+                0
+            }
+            onClick={
+              handleSkipTransform
+            }
+          >
+            {
+              applying &&
+              intents.length ===
+                0
+                ? "Validation…"
+                : "Aucune transformation requise"
+            }
+          </button>
+
+          <button
+            type="button"
+            className={
+              styles.primaryButton
+            }
+            disabled={
+              planning ||
+              applying ||
+              intents.length ===
+                0 ||
+              !selectedDatasetId
+            }
+            onClick={
+              handleBuildPlan
+            }
+          >
+            {
+              planning
+                ? "Construction du plan…"
+                : plan
+                  ? "Reconstruire le plan"
+                  : "Vérifier le plan"
+            }
+          </button>
+        </div>
+      </section>
+
+
+      {
+        plan
+          ? (
+              <section
+                className={
+                  styles.reviewSection
+                }
+              >
+                <div
+                  className={
+                    styles.sectionHeading
+                  }
+                >
+                  <div>
+                    <span
+                      className={
+                        styles.eyebrow
+                      }
+                    >
+                      04 · Contrôle Python
+                    </span>
+
+                    <strong>
+                      Plan de transformation
+                    </strong>
+                  </div>
+
+                  <span
+                    className={
+                      styles.planStatus
+                    }
+                  >
+                    {
+                      plan.review_required_count >
+                        0
+                        ? `${
+                            plan.review_required_count
+                          } approbation${
+                            plan.review_required_count >
+                              1
+                              ? "s"
+                              : ""
+                          }`
+                        : "Prêt"
+                    }
+                  </span>
+                </div>
+
+
+                <div
+                  className={
+                    styles.planMetrics
+                  }
+                >
+                  <div>
+                    <span>
+                      Étapes
+                    </span>
+
+                    <strong>
+                      {
+                        plan.step_count
+                      }
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>
+                      Validées
+                    </span>
+
+                    <strong>
+                      {
+                        plan.validated_count
+                      }
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>
+                      Revue
+                    </span>
+
+                    <strong>
+                      {
+                        plan.review_required_count
+                      }
+                    </strong>
+                  </div>
+                </div>
+
+
+                <div
+                  className={
+                    styles.planStepList
+                  }
+                >
+                  {
+                    plan.steps.map(
+                      (
+                        step,
+                        index
+                      ) => {
+                        const needsApproval =
+                          step.requires_human_approval ||
+                          step.status ===
+                            "review_required";
+
+
+                        return (
+                          <article
+                            key={
+                              step.step_id
+                            }
+                            className={
+                              `${styles.planStep} ${
+                                needsApproval
+                                  ? styles.planStepAttention
+                                  : styles.planStepValidated
+                              }`
+                            }
+                          >
+                            <header>
+                              <div>
+                                <span>
+                                  Étape
+                                  {" "}
+                                  {
+                                    String(
+                                      index +
+                                      1
+                                    ).padStart(
+                                      2,
+                                      "0"
+                                    )
+                                  }
+                                </span>
+
+                                <strong>
+                                  {
+                                    operationLabel(
+                                      step.operation
+                                    )
+                                  }
+                                </strong>
+                              </div>
+
+                              <span
+                                className={
+                                  styles.stepStatus
+                                }
+                              >
+                                {
+                                  plannerStatusLabel(
+                                    step.status
+                                  )
+                                }
+                              </span>
+                            </header>
+
+
+                            <div
+                              className={
+                                styles.stepMeta
+                              }
+                            >
+                              <div>
+                                <span>
+                                  Risque
+                                </span>
+
+                                <strong>
+                                  {
+                                    riskLabel(
+                                      step.risk
+                                    )
+                                  }
+                                </strong>
+                              </div>
+
+                              <div>
+                                <span>
+                                  Entrées
+                                </span>
+
+                                <strong>
+                                  {
+                                    step.input_columns.length >
+                                      0
+                                      ? step.input_columns.join(
+                                          ", "
+                                        )
+                                      : "—"
+                                  }
+                                </strong>
+                              </div>
+
+                              <div>
+                                <span>
+                                  Sortie
+                                </span>
+
+                                <strong>
+                                  {
+                                    step.output_column ??
+                                    step.output_dataset_filename ??
+                                    "—"
+                                  }
+                                </strong>
+                              </div>
+                            </div>
+
+
+                            <p
+                              className={
+                                styles.rationale
+                              }
+                            >
+                              {
+                                step.rationale
+                              }
+                            </p>
+
+
+                            {
+                              needsApproval
+                                ? (
+                                    <div
+                                      className={
+                                        styles.approvalChoices
+                                      }
+                                    >
+                                      <span>
+                                        Décision analyste
+                                      </span>
+
+                                      <div>
+                                        <button
+                                          type="button"
+                                          className={
+                                            approvals[
+                                              step.request_id
+                                            ] ===
+                                              "approve"
+                                              ? styles.choiceActive
+                                              : ""
+                                          }
+                                          onClick={
+                                            () =>
+                                              setApprovals(
+                                                (
+                                                  current
+                                                ) => ({
+                                                  ...current,
+
+                                                  [
+                                                    step.request_id
+                                                  ]:
+                                                    "approve",
+                                                })
+                                              )
+                                          }
+                                        >
+                                          Approuver
+                                        </button>
+
+                                        <button
+                                          type="button"
+                                          className={
+                                            approvals[
+                                              step.request_id
+                                            ] ===
+                                              "reject"
+                                              ? styles.choiceReject
+                                              : ""
+                                          }
+                                          onClick={
+                                            () =>
+                                              setApprovals(
+                                                (
+                                                  current
+                                                ) => ({
+                                                  ...current,
+
+                                                  [
+                                                    step.request_id
+                                                  ]:
+                                                    "reject",
+                                                })
+                                              )
+                                          }
+                                        >
+                                          Refuser
+                                        </button>
+
+                                        <button
+                                          type="button"
+                                          className={
+                                            approvals[
+                                              step.request_id
+                                            ] ===
+                                              "defer"
+                                              ? styles.choiceDefer
+                                              : ""
+                                          }
+                                          onClick={
+                                            () =>
+                                              setApprovals(
+                                                (
+                                                  current
+                                                ) => ({
+                                                  ...current,
+
+                                                  [
+                                                    step.request_id
+                                                  ]:
+                                                    "defer",
+                                                })
+                                              )
+                                          }
+                                        >
+                                          Reporter
+                                        </button>
+                                      </div>
+                                    </div>
+                                  )
+                                : (
+                                    <div
+                                      className={
+                                        styles.automaticNotice
+                                      }
+                                    >
+                                      Faible risque · autorisation automatique côté serveur.
+                                    </div>
+                                  )
+                            }
+                          </article>
+                        );
+                      }
+                    )
+                  }
+                </div>
+
+
+                <div
+                  className={
+                    styles.executionFooter
+                  }
+                >
+                  <div>
+                    <strong>
+                      {
+                        unresolvedApprovalCount >
+                          0
+                          ? `${
+                              unresolvedApprovalCount
+                            } décision${
+                              unresolvedApprovalCount >
+                                1
+                                ? "s"
+                                : ""
+                            } restante${
+                              unresolvedApprovalCount >
+                                1
+                                ? "s"
+                                : ""
+                            }`
+                          : "Plan prêt à être exécuté"
+                      }
+                    </strong>
+
+                    <span>
+                      Python reconstruira le plan à partir de l’artifact serveur
+                      avant l’exécution.
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    className={
+                      styles.primaryButton
+                    }
+                    disabled={
+                      !canApplyPlan
+                    }
+                    onClick={
+                      handleApplyPlan
+                    }
+                  >
+                    {
+                      applying
+                        ? "Transformation en cours…"
+                        : "Appliquer les transformations"
+                    }
+                  </button>
+                </div>
+              </section>
+            )
+          : null
+      }
+
+
+      {
+        workflowError
+          ? (
+              <div
+                className={
+                  styles.error
+                }
+                role="alert"
+              >
+                <strong>
+                  Transformation impossible
+                </strong>
+
+                <span>
+                  {
+                    workflowError
+                  }
+                </span>
+              </div>
+            )
+          : null
+      }
+
+
+      <details
+        className={
+          styles.technicalDetails
+        }
+      >
+        <summary>
+          Voir les garanties techniques
+        </summary>
+
+        <div>
+          <p>
+            Le navigateur n’envoie jamais de DataFrame, de plan approuvé,
+            de résultat d’exécution ou de résultat de validation.
+          </p>
+
+          <p>
+            Le serveur recharge l’artifact courant, reconstruit le plan,
+            applique les décisions autorisées, exécute avec Python puis
+            lance une post-validation indépendante avant toute
+            matérialisation.
+          </p>
+        </div>
+      </details>
     </section>
   );
 }

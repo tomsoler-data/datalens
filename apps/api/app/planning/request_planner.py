@@ -47,7 +47,7 @@ if TYPE_CHECKING:
 # ============================================================
 
 REQUEST_PLANNER_RULE_VERSION = (
-    "analytical_request_planner_v0.2"
+    "analytical_request_planner_v0.3"
 )
 
 
@@ -1995,6 +1995,77 @@ def finalize_plan(
     )
 
 
+def _require_user_parameter_resolution(
+    *,
+    plan: RequestedAnalysisPlan,
+    required_operation: str,
+    reason: str,
+    blocker: str,
+) -> RequestedAnalysisPlan:
+    """
+    Convert an otherwise executable documentary request into
+    an explicit user-resolution state.
+
+    Structural/data failures remain blocked. Only a plan that
+    already passed deterministic dataset/column/join validation
+    may become ambiguous here.
+    """
+
+    if (
+        plan.status
+        !=
+        "ready"
+    ):
+        return plan
+
+
+    payload = (
+        plan.model_dump()
+        if hasattr(
+            plan,
+            "model_dump",
+        )
+        else
+        plan.dict()
+    )
+
+
+    payload.update(
+        {
+            "status":
+                "ambiguous",
+
+            "required_operations":
+                [
+                    required_operation,
+                    *list(
+                        plan.required_operations
+                    ),
+                ],
+
+            "reasons":
+                [
+                    *list(
+                        plan.reasons
+                    ),
+                    reason,
+                ],
+
+            "blockers":
+                [
+                    blocker
+                ],
+        }
+    )
+
+
+    return (
+        RequestedAnalysisPlan(
+            **payload
+        )
+    )
+
+
 # ============================================================
 # REQUEST RESOLUTION
 # ============================================================
@@ -2262,37 +2333,37 @@ def resolve_request(
         ]
 
 
-        blockers = []
+        data_blockers = []
 
 
         if transaction_dataset is None:
-            blockers.append(
+            data_blockers.append(
                 (
                     "Aucun dataset transactionnel "
-                    "fiable n'a été identifié."
+                    "fiable n'a \u00e9t\u00e9 identifi\u00e9."
                 )
             )
 
 
         if amount is None:
-            blockers.append(
+            data_blockers.append(
                 (
-                    "Aucune variable monétaire "
-                    "fiable n'a été identifiée."
+                    "Aucune variable mon\u00e9taire "
+                    "fiable n'a \u00e9t\u00e9 identifi\u00e9e."
                 )
             )
 
 
         if time_column is None:
-            blockers.append(
+            data_blockers.append(
                 (
                     "Aucune variable temporelle "
-                    "d'achat n'a été identifiée."
+                    "d'achat n'a \u00e9t\u00e9 identifi\u00e9e."
                 )
             )
 
 
-        return (
+        candidate = (
             finalize_plan(
                 claim=
                     claim,
@@ -2314,32 +2385,63 @@ def resolve_request(
 
                 operations=[
                     (
-                        "Relier la valeur monétaire "
+                        "Relier la valeur mon\u00e9taire "
                         "aux transactions si elle "
                         "provient d'un autre dataset."
                     ),
                     (
                         "Calculer le chiffre d'affaires "
-                        "par période."
+                        "selon la granularit\u00e9 temporelle "
+                        "r\u00e9solue."
                     ),
                     (
                         "Calculer une moyenne mobile "
-                        "sur une fenêtre explicitement "
-                        "choisie ou configurée."
+                        "sur la fen\u00eatre r\u00e9solue."
                     ),
                 ],
 
                 reasons=[
                     (
                         "La demande contient une "
-                        "mesure monétaire, une "
+                        "mesure mon\u00e9taire, une "
                         "dimension temporelle et une "
                         "moyenne mobile."
                     )
                 ],
 
                 blockers=
-                    blockers,
+                    data_blockers,
+            )
+        )
+
+
+        return (
+            _require_user_parameter_resolution(
+                plan=
+                    candidate,
+
+                required_operation=
+                    (
+                        "Faire choisir explicitement "
+                        "la granularit\u00e9 temporelle et "
+                        "la fen\u00eatre de moyenne mobile."
+                    ),
+
+                reason=
+                    (
+                        "La demande laisse le choix "
+                        "des param\u00e8tres temporels "
+                        "\u00e0 l'utilisateur."
+                    ),
+
+                blocker=
+                    (
+                        "La granularit\u00e9 temporelle "
+                        "(jour, semaine, mois, trimestre "
+                        "ou ann\u00e9e) et la fen\u00eatre de "
+                        "moyenne mobile doivent \u00eatre "
+                        "r\u00e9solues avant l'ex\u00e9cution."
+                    ),
             )
         )
 
@@ -2659,6 +2761,7 @@ def resolve_request(
             in [
                 product_id,
                 amount,
+                session_id,
             ]
 
             if match

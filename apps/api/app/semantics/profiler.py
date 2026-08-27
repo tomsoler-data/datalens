@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import re
 import unicodedata
@@ -17,6 +17,10 @@ from pandas.api.types import (
 
 from app.ai.provider import (
     DEFAULT_MODEL,
+)
+
+from app.security.semantic_value_sample import (
+    MAX_SEMANTIC_VALUE_SAMPLE_VALUES,
 )
 
 from app.semantics.provider import (
@@ -39,7 +43,11 @@ from app.semantics.schemas import (
 
 MAX_SEMANTIC_ATTEMPTS = 2
 
-MAX_SAMPLE_VALUES = 5
+# Backward-compatible local name. The actual privacy budget
+# is owned by app.security.semantic_value_sample.
+MAX_SAMPLE_VALUES = (
+    MAX_SEMANTIC_VALUE_SAMPLE_VALUES
+)
 
 
 # ============================================================

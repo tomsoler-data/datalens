@@ -1,7 +1,12 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import json
 import re
+
+from app.security.llm_payload import (
+    LLMPayloadClass,
+    classified_llm_chat,
+)
 
 from app.ai.provider import (
     DEFAULT_MODEL,
@@ -510,7 +515,12 @@ def call_quantity_family_model(
 
 
             response = (
-                client.chat(
+                classified_llm_chat(
+            client,
+            payload_class=(
+                LLMPayloadClass
+                .METADATA_ONLY
+            ),
                     model=
                         model,
 

@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 
 from fastapi.middleware.cors import (
@@ -9,12 +11,60 @@ from app.api.analysis_run import (
     router as analysis_run_router,
 )
 
+from app.api.requested_resolution import (
+    router as requested_resolution_router,
+)
+
 from app.api.document_ingestion import (
     router as document_ingestion_router,
 )
 
+from app.api.preparation_cleaning import (
+    router as preparation_cleaning_router,
+)
+
+from app.api.preparation_combination import (
+    router as preparation_combination_router,
+)
+
+from app.api.preparation_combine import (
+    router as preparation_combine_router,
+)
+
+from app.api.preparation_identity import (
+    router as preparation_identity_router,
+)
+
+from app.api.preparation_output_explanation import (
+    router as preparation_output_explanation_router,
+)
+
 from app.api.preparation_quality import (
     router as preparation_quality_router,
+)
+
+from app.api.preparation_semantic import (
+    router as preparation_semantic_router,
+)
+
+from app.api.preparation_session import (
+    router as preparation_session_router,
+)
+
+from app.api.preparation_transformation import (
+    router as preparation_transformation_router,
+)
+
+from app.api.preparation_validation import (
+    router as preparation_validation_router,
+)
+
+from app.api.preparation_workflow import (
+    router as preparation_workflow_router,
+)
+
+from app.api.report_selection import (
+    router as report_selection_router,
 )
 
 from app.api.routes import (
@@ -22,18 +72,64 @@ from app.api.routes import (
 )
 
 
+# ============================================================
+# WORKFLOW DELETE CRASH RECOVERY
+# PREPARATION_WORKFLOW_DELETE_API_V0_1
+# ============================================================
+
+
+from app.preparation.preparation_workflow_delete import (
+    recover_pending_workflow_deletions,
+)
+
+
+@asynccontextmanager
+async def datalens_lifespan(
+    _app: FastAPI,
+):
+    """
+    Reconcile any interrupted permanent workflow deletion
+    before DataLens begins serving requests.
+
+    Recovery failure intentionally prevents startup because
+    serving against ambiguous SQLite/filesystem state would
+    violate the permanent-delete contract.
+    """
+
+    recover_pending_workflow_deletions()
+
+    yield
+
+
+# ============================================================
+# APPLICATION
+# ============================================================
+
+
 app = FastAPI(
     title="DataLens API",
+
     description=(
-        "Local-first backend API for "
-        "deterministic data analysis, "
-        "statistical decisions, visualization "
-        "selection, dashboard composition, "
-        "data-quality preparation, "
-        "document retrieval and grounded "
-        "AI explanations."
+        "Local-first backend API for deterministic data "
+        "analysis, controlled preparation, guarded semantic "
+        "review, document retrieval and grounded AI "
+        "explanations."
     ),
-    version="0.6.0",
+
+    version="0.8.0",
+
+    lifespan=
+        datalens_lifespan,
+)
+
+
+# ============================================================
+# CORS
+# ============================================================
+
+
+LOCAL_FRONTEND_CORS_RULE_VERSION = (
+    "local_frontend_cors_v0.1"
 )
 
 
@@ -43,26 +139,51 @@ LOCAL_FRONTEND_ORIGINS = [
 ]
 
 
+LOCAL_FRONTEND_METHODS = [
+    "GET",
+    "POST",
+    "DELETE",
+]
+
+
+LOCAL_FRONTEND_HEADERS = [
+    "Content-Type",
+]
+
+
+LOCAL_FRONTEND_ALLOW_CREDENTIALS = False
+
+
 app.add_middleware(
     CORSMiddleware,
+
     allow_origins=
         LOCAL_FRONTEND_ORIGINS,
+
     allow_credentials=
-        False,
-    allow_methods=[
-        "GET",
-        "POST",
-        "OPTIONS",
-    ],
-    allow_headers=[
-        "*",
-    ],
+        LOCAL_FRONTEND_ALLOW_CREDENTIALS,
+
+    allow_methods=
+        LOCAL_FRONTEND_METHODS,
+
+    allow_headers=
+        LOCAL_FRONTEND_HEADERS,
 )
+
+
+# ============================================================
+# CORE API
+# ============================================================
 
 
 app.include_router(
     api_router
 )
+
+
+# ============================================================
+# ANALYSIS
+# ============================================================
 
 
 app.include_router(
@@ -71,10 +192,135 @@ app.include_router(
 
 
 app.include_router(
+    requested_resolution_router
+)
+
+
+# ============================================================
+# REPORT SELECTION
+# ============================================================
+
+
+app.include_router(
+    report_selection_router
+)
+
+
+# ============================================================
+# DOCUMENTS / RAG
+# ============================================================
+
+
+app.include_router(
     document_ingestion_router
 )
 
 
+# ============================================================
+# PREPARATION - QUALITY
+# ============================================================
+
+
 app.include_router(
     preparation_quality_router
+)
+
+
+# ============================================================
+# PREPARATION - CLEANING
+# ============================================================
+
+
+app.include_router(
+    preparation_cleaning_router
+)
+
+
+# ============================================================
+# PREPARATION - SEMANTIC REVIEW
+# ============================================================
+
+
+app.include_router(
+    preparation_semantic_router
+)
+
+
+# ============================================================
+# PREPARATION - IDENTITY
+# ============================================================
+
+
+app.include_router(
+    preparation_identity_router
+)
+
+
+# ============================================================
+# PREPARATION - TRANSFORMATION
+# ============================================================
+
+
+app.include_router(
+    preparation_transformation_router
+)
+
+
+# ============================================================
+# PREPARATION - LEGACY / LOW-LEVEL COMBINATION
+# ============================================================
+
+
+app.include_router(
+    preparation_combination_router
+)
+
+
+# ============================================================
+# PREPARATION - CONTROLLED COMBINE WORKFLOW
+# ============================================================
+
+
+app.include_router(
+    preparation_combine_router
+)
+
+
+# ============================================================
+# PREPARATION - ANALYSIS OUTPUT EXPLANATION
+# ============================================================
+
+
+app.include_router(
+    preparation_output_explanation_router
+)
+
+
+# ============================================================
+# PREPARATION - WORKFLOW
+# ============================================================
+
+
+app.include_router(
+    preparation_workflow_router
+)
+
+
+# ============================================================
+# PREPARATION - SERVER-OWNED SESSION
+# ============================================================
+
+
+app.include_router(
+    preparation_session_router
+)
+
+
+# ============================================================
+# PREPARATION - FINAL VALIDATION
+# ============================================================
+
+
+app.include_router(
+    preparation_validation_router
 )

@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import json
 
@@ -9,6 +9,11 @@ from typing import (
 from app.ai.provider import (
     DEFAULT_MODEL,
     client,
+)
+
+from app.security.llm_payload import (
+    LLMPayloadClass,
+    classified_llm_chat,
 )
 
 from app.ai.report_schemas import (
@@ -274,7 +279,12 @@ def call_semantic_candidate_model(
     model: str = DEFAULT_MODEL,
     strict_retry: bool = False,
 ) -> str:
-    response = client.chat(
+    response = classified_llm_chat(
+        client,
+        payload_class=(
+            LLMPayloadClass
+            .DETERMINISTIC_EVIDENCE
+        ),
         model=
             model,
 

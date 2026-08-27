@@ -326,6 +326,35 @@ def _mutation_lock_reason(
         )
 
 
+    # ========================================================
+    # IDENTITY_CLEAN_GUARD_V0_1
+    #
+    # Identity may inspect a dataset before CLEAN is resolved,
+    # but it must not persist an identity decision or
+    # materialize a TRANSFORM artifact until CLEAN is PASSED
+    # or SKIPPED.
+    # ========================================================
+
+    clean_status = _stage_status(
+        session,
+        PreparationStage.CLEAN,
+    )
+
+
+    if (
+        clean_status
+        not in {
+            "passed",
+            "skipped",
+        }
+    ):
+        return (
+            "Preparation identity cannot mutate before "
+            "CLEAN is resolved. "
+            f"Current CLEAN status: {clean_status}."
+        )
+
+
     combine_artifacts = [
         artifact
         for artifact
@@ -638,9 +667,10 @@ def inspect_preparation_identity(
                     )
                 )
 
-            except Exception as error:
-                ai_error = str(
-                    error
+            except Exception:
+                ai_error = (
+                    "Local model dataset-identity explanation "
+                    "is unavailable."
                 )
 
 
@@ -989,6 +1019,7 @@ def create_preparation_surrogate_key(
     - request_id is derived from the current Python report;
     - report is recomputed immediately before execution;
     - stale request_id is rejected;
+    - no mutation is allowed until CLEAN is PASSED or SKIPPED;
     - no mutation is allowed after COMBINE materialization or
       final VALIDATE;
     - source artifact is not mutated;
@@ -1103,6 +1134,38 @@ def create_preparation_surrogate_key(
                     "not match the current deterministic "
                     "identity report."
                 )
+            )
+
+
+        # ====================================================
+        # PRE-MATERIALIZATION SERVER RECHECK
+        # IDENTITY_CLEAN_GUARD_V0_1
+        # ====================================================
+
+        latest_session = (
+            get_preparation_session(
+                request.workflow_id
+            )
+        )
+
+
+        latest_lock_reason = (
+            _mutation_lock_reason(
+                workflow_id=
+                    request.workflow_id,
+
+                session=
+                    latest_session,
+            )
+        )
+
+
+        if (
+            latest_lock_reason
+            is not None
+        ):
+            raise ValueError(
+                latest_lock_reason
             )
 
 

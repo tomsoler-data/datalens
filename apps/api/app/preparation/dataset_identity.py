@@ -14,7 +14,7 @@ from pydantic import BaseModel, ConfigDict, Field
 # ============================================================
 
 
-DATASET_IDENTITY_RULE_VERSION = "dataset_identity_v0.1"
+DATASET_IDENTITY_RULE_VERSION = "dataset_identity_v0.2"
 
 
 # ============================================================
@@ -101,6 +101,11 @@ EXACT_IDENTIFIER_NAMES = {
 }
 
 
+IDENTIFIER_PREFIXES = (
+    "id_",
+)
+
+
 IDENTIFIER_SUFFIXES = (
     "_id",
     "_uuid",
@@ -112,6 +117,13 @@ IDENTIFIER_SUFFIXES = (
     "_ref",
     "_reference",
 )
+
+
+TECHNICAL_SURROGATE_NAMES = {
+    "row_id",
+    "datalens_row_id",
+    "technical_row_id",
+}
 
 
 def normalize_column_name(
@@ -139,11 +151,48 @@ def has_identifier_name_signal(
     if normalized in EXACT_IDENTIFIER_NAMES:
         return True
 
+    if any(
+        normalized.startswith(
+            prefix
+        )
+        for prefix in IDENTIFIER_PREFIXES
+    ):
+        return True
+
     return any(
         normalized.endswith(
             suffix
         )
         for suffix in IDENTIFIER_SUFFIXES
+    )
+
+
+def is_technical_surrogate_column(
+    column_name: object,
+) -> bool:
+    """
+    Return True only for technical row identifiers that DataLens
+    itself can create during Preparation.
+
+    A surrogate row identity may legitimately identify one row
+    inside one prepared artifact, but it never carries semantic
+    evidence of a relationship with another dataset.
+    """
+
+    normalized = normalize_column_name(
+        str(
+            column_name
+        )
+    )
+
+    if normalized in TECHNICAL_SURROGATE_NAMES:
+        return True
+
+    return bool(
+        re.fullmatch(
+            r"datalens_row_id_[0-9]+",
+            normalized,
+        )
     )
 
 
@@ -491,6 +540,10 @@ def profile_dataset_identity(
     - reliable identity candidate:
       a mechanically unique column, or a simple unique
       composite, whose names also look like identifiers.
+
+    Identifier conventions accepted here include both common
+    suffix forms such as customer_id and prefix forms such as
+    id_prod.
 
     An arbitrary amount, timestamp or free-text field is not
     accepted as a row identity merely because it happens to be

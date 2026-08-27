@@ -26,7 +26,7 @@ from app.profiling.types import (
 
 
 PLANNER_CATALOG_RULE_VERSION = (
-    "planner_catalog_v0.1"
+    "planner_catalog_v0.3"
 )
 
 
@@ -103,6 +103,177 @@ def _duplicate_column_names(
     )
 
 
+def _provenance_dict(
+    record: dict[
+        str,
+        Any,
+    ],
+) -> dict[
+    str,
+    Any,
+]:
+    provenance = (
+        record.get(
+            "provenance"
+        )
+    )
+
+
+    return (
+        provenance
+        if isinstance(
+            provenance,
+            dict,
+        )
+        else {}
+    )
+
+
+def _normalized_optional_text(
+    value: Any,
+) -> str | None:
+    normalized = str(
+        value
+        or
+        ""
+    ).strip()
+
+
+    return (
+        normalized
+        or
+        None
+    )
+
+
+def _analytical_measure_aliases(
+    *,
+    provenance: dict[
+        str,
+        Any,
+    ],
+) -> list[
+    str
+]:
+    """
+    Build a small deterministic semantic alias set for the declared
+    target measure of a server-owned analytical view.
+
+    The special revenue aliases are allowed only for the strict
+    analytical line-amount derivation already guarded by the
+    Analytical View Builder:
+
+        quantity * unit_price -> gross_amount
+
+    This does not invent a new physical column and does not mutate the
+    Preparation output. It exposes controlled semantic vocabulary to
+    the planner and to Python's metric-fidelity checks.
+    """
+
+    aliases: list[
+        str
+    ] = []
+
+
+    for key in [
+        "source_measure_column",
+        "target_measure_column",
+    ]:
+        value = _normalized_optional_text(
+            provenance.get(
+                key
+            )
+        )
+
+
+        if value:
+            aliases.append(
+                value
+            )
+
+
+    derivation = (
+        provenance.get(
+            "source_measure_derivation"
+        )
+    )
+
+
+    if not isinstance(
+        derivation,
+        dict,
+    ):
+        return list(
+            dict.fromkeys(
+                aliases
+            )
+        )
+
+
+    operation = _normalized_optional_text(
+        derivation.get(
+            "operation"
+        )
+    )
+
+
+    derived_column = _normalized_optional_text(
+        derivation.get(
+            "derived_column"
+        )
+    )
+
+
+    quantity_column = _normalized_optional_text(
+        derivation.get(
+            "source_quantity_column"
+        )
+    )
+
+
+    unit_price_column = _normalized_optional_text(
+        derivation.get(
+            "source_unit_price_column"
+        )
+    )
+
+
+    if (
+        operation
+        ==
+        "analytical_line_amount_derivation"
+        and
+        derived_column
+        ==
+        "gross_amount"
+        and
+        quantity_column
+        and
+        unit_price_column
+    ):
+        aliases.extend(
+            [
+                "gross_amount",
+                "gross_sales_amount",
+                "sales_amount",
+                "revenue",
+                "turnover",
+                "chiffre_affaires",
+                "ca",
+            ]
+        )
+
+
+    return list(
+        dict.fromkeys(
+            alias
+            for alias
+            in aliases
+            if alias
+        )
+    )
+
+
 # ============================================================
 # CENTRAL ANALYTICAL CATALOG
 # ============================================================
@@ -148,8 +319,9 @@ def planner_catalog_from_dataset_records(
         string customer identifier
             -> identifier
 
-    Only schema-level metadata is returned in PlannerCatalog.
-    Raw rows are never copied into the planner catalog.
+    Only schema-level and server-owned analytical metadata are returned
+    in PlannerCatalog. Raw rows are never copied into the planner
+    catalog.
     """
 
     if not dataset_records:
@@ -447,6 +619,53 @@ def planner_catalog_from_dataset_records(
 
 
         # ====================================================
+        # SERVER-OWNED ANALYTICAL METADATA
+        # ====================================================
+
+        provenance = (
+            _provenance_dict(
+                record
+            )
+        )
+
+
+        derivation = (
+            provenance.get(
+                "source_measure_derivation"
+            )
+        )
+
+
+        source_measure_formula = (
+            _normalized_optional_text(
+                derivation.get(
+                    "formula"
+                )
+            )
+            if isinstance(
+                derivation,
+                dict,
+            )
+            else None
+        )
+
+
+        analytical_grain = (
+            _normalized_optional_text(
+                provenance.get(
+                    "grain"
+                )
+            )
+            or
+            _normalized_optional_text(
+                record.get(
+                    "analytical_grain"
+                )
+            )
+        )
+
+
+        # ====================================================
         # DATASET PROFILE
         # ====================================================
 
@@ -466,6 +685,107 @@ def planner_catalog_from_dataset_records(
 
                 columns=
                     columns,
+
+                is_derived=bool(
+                    record.get(
+                        "is_derived",
+                        False,
+                    )
+                ),
+
+                derivation_type=(
+                    _normalized_optional_text(
+                        record.get(
+                            "derivation_type"
+                        )
+                    )
+                ),
+
+                analytical_grain=
+                    analytical_grain,
+
+                operation=(
+                    _normalized_optional_text(
+                        provenance.get(
+                            "operation"
+                        )
+                    )
+                ),
+
+                aggregation=(
+                    _normalized_optional_text(
+                        provenance.get(
+                            "aggregation"
+                        )
+                    )
+                ),
+
+                group_column=(
+                    _normalized_optional_text(
+                        provenance.get(
+                            "group_column"
+                        )
+                    )
+                ),
+
+                entity_column=(
+                    _normalized_optional_text(
+                        provenance.get(
+                            "entity_column"
+                        )
+                    )
+                ),
+
+                source_time_column=(
+                    _normalized_optional_text(
+                        provenance.get(
+                            "source_time_column"
+                        )
+                    )
+                ),
+
+                target_time_column=(
+                    _normalized_optional_text(
+                        provenance.get(
+                            "target_time_column"
+                        )
+                    )
+                ),
+
+                source_measure_column=(
+                    _normalized_optional_text(
+                        provenance.get(
+                            "source_measure_column"
+                        )
+                    )
+                ),
+
+                target_measure_column=(
+                    _normalized_optional_text(
+                        provenance.get(
+                            "target_measure_column"
+                        )
+                    )
+                ),
+
+                source_measure_formula=(
+                    source_measure_formula
+                ),
+
+                metric_semantics=(
+                    _normalized_optional_text(
+                        provenance.get(
+                            "metric_semantics"
+                        )
+                    )
+                ),
+
+                measure_semantic_aliases=(
+                    _analytical_measure_aliases(
+                        provenance=
+                            provenance,
+                    )
+                ),
             )
         )
 

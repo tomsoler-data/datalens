@@ -52,6 +52,11 @@ MAX_GROUPS_FOR_LINE_CHART = 12
 MAX_CATEGORICAL_LEVELS = 40
 
 
+GROUP_CHART_CONSISTENCY_RULE_VERSION = (
+    "group_chart_consistency_v0.1"
+)
+
+
 ENTITY_NAME_SIGNALS = {
     "country",
     "countries",
@@ -294,6 +299,123 @@ def validate_columns(
 
 
     return missing
+
+
+# ============================================================
+# GROUP / CHART CONSISTENCY
+# ============================================================
+
+def validate_group_chart_consistency(
+    *,
+    expected_group_count: int,
+    chart_data: list[
+        dict[
+            str,
+            Any,
+        ]
+    ],
+) -> dict[
+    str,
+    Any,
+]:
+    """
+    Verify that a group-comparison result exposes exactly one
+    chart row per computed group.
+
+    This is a fail-closed integrity guard. A report must never
+    announce N groups while exposing fewer (or duplicated)
+    graphical groups downstream.
+    """
+
+    chart_group_keys: list[
+        tuple[
+            str,
+            str,
+        ]
+    ] = []
+
+
+    for item in chart_data:
+        if not isinstance(
+            item,
+            dict,
+        ):
+            continue
+
+
+        group_value = (
+            item.get(
+                "group"
+            )
+        )
+
+
+        if group_value is None:
+            continue
+
+
+        native_value = (
+            to_native(
+                group_value
+            )
+        )
+
+
+        chart_group_keys.append(
+            (
+                type(
+                    native_value
+                ).__name__,
+                repr(
+                    native_value
+                ),
+            )
+        )
+
+
+    chart_group_count = len(
+        chart_group_keys
+    )
+
+
+    distinct_chart_group_count = len(
+        set(
+            chart_group_keys
+        )
+    )
+
+
+    consistent = (
+        expected_group_count
+        ==
+        chart_group_count
+        ==
+        distinct_chart_group_count
+    )
+
+
+    return {
+        "consistent":
+            consistent,
+
+        "expected_group_count":
+            int(
+                expected_group_count
+            ),
+
+        "chart_group_count":
+            int(
+                chart_group_count
+            ),
+
+        "distinct_chart_group_count":
+            int(
+                distinct_chart_group_count
+            ),
+
+        "rule_version":
+            GROUP_CHART_CONSISTENCY_RULE_VERSION,
+    }
 
 
 # ============================================================
@@ -1361,7 +1483,7 @@ def execute_group_comparison(
         chart_data.append(
             {
                 "group":
-                    str(
+                    to_native(
                         group
                     ),
 
@@ -1419,6 +1541,90 @@ def execute_group_comparison(
                         clean.max()
                     ),
             }
+        )
+
+
+    group_chart_consistency = (
+        validate_group_chart_consistency(
+            expected_group_count=
+                group_count,
+
+            chart_data=
+                chart_data,
+        )
+    )
+
+
+    if not (
+        group_chart_consistency[
+            "consistent"
+        ]
+    ):
+        return build_result(
+            analysis,
+            execution_status=
+                "failed",
+
+            summary=[
+                (
+                    "Une incohérence interne a été détectée "
+                    "entre les groupes calculés et les données "
+                    "destinées à la visualisation."
+                )
+            ],
+
+            metrics={
+                "group_column":
+                    group_column,
+
+                "value_column":
+                    value_column,
+
+                "group_count":
+                    group_count,
+
+                "chart_group_count":
+                    group_chart_consistency[
+                        "chart_group_count"
+                    ],
+
+                "distinct_chart_group_count":
+                    group_chart_consistency[
+                        "distinct_chart_group_count"
+                    ],
+
+                "valid_observations":
+                    int(
+                        len(
+                            working
+                        )
+                    ),
+
+                "group_chart_consistency":
+                    False,
+
+                "group_chart_consistency_rule_version":
+                    GROUP_CHART_CONSISTENCY_RULE_VERSION,
+            },
+
+            chart_data=[],
+
+            warnings=[
+                (
+                    "DataLens a bloqué ce résultat : "
+                    f"{group_count} groupe(s) ont été calculés, "
+                    "mais la représentation graphique n'expose "
+                    f"que {group_chart_consistency['chart_group_count']} "
+                    "groupe(s) et "
+                    f"{group_chart_consistency['distinct_chart_group_count']} "
+                    "libellé(s) distinct(s)."
+                ),
+
+                (
+                    "Le résultat n'est pas transmis au rapport "
+                    "tant que cette incohérence n'est pas résolue."
+                ),
+            ],
         )
 
 
@@ -1482,6 +1688,17 @@ def execute_group_comparison(
 
             "group_count":
                 group_count,
+
+            "chart_group_count":
+                group_chart_consistency[
+                    "chart_group_count"
+                ],
+
+            "group_chart_consistency":
+                True,
+
+            "group_chart_consistency_rule_version":
+                GROUP_CHART_CONSISTENCY_RULE_VERSION,
 
             "valid_observations":
                 int(
@@ -2106,6 +2323,70 @@ def execute_quantitative_association(
 
 
     if panel_structure:
+        # ----------------------------------------------------
+        # Descriptive visualization remains valid even when
+        # classical inferential correlation is not.
+        #
+        # Important invariant:
+        # - keep the repeated-measures guard;
+        # - do not execute Pearson/Spearman automatically;
+        # - still expose the observed x/y pairs so the user can
+        #   inspect the relationship descriptively.
+        # ----------------------------------------------------
+
+        chart_source = (
+            pair_frame
+            .copy()
+        )
+
+
+        if (
+            len(
+                chart_source
+            )
+            >
+            MAX_CHART_POINTS
+        ):
+            indexes = np.linspace(
+                0,
+                len(
+                    chart_source
+                )
+                -
+                1,
+                MAX_CHART_POINTS,
+                dtype=int,
+            )
+
+            chart_source = (
+                chart_source.iloc[
+                    indexes
+                ]
+            )
+
+
+        chart_data = [
+            {
+                "x":
+                    float(
+                        row[
+                            x_column
+                        ]
+                    ),
+
+                "y":
+                    float(
+                        row[
+                            y_column
+                        ]
+                    ),
+            }
+
+            for _, row
+            in chart_source.iterrows()
+        ]
+
+
         return build_result(
             analysis,
             execution_status=
@@ -2125,6 +2406,14 @@ def execute_quantitative_association(
                     "structure longitudinale ou "
                     "de panel dans le dataset."
                 ),
+
+                (
+                    "Le nuage de points reste "
+                    "affiché à titre descriptif ; "
+                    "aucune corrélation inférentielle "
+                    "classique n'est interprétée "
+                    "automatiquement."
+                ),
             ],
 
             metrics={
@@ -2141,9 +2430,25 @@ def execute_quantitative_association(
                         )
                     ),
 
+                "chart_point_count":
+                    int(
+                        len(
+                            chart_data
+                        )
+                    ),
+
+                "inference_performed":
+                    False,
+
+                "interpretation_scope":
+                    "descriptive_only",
+
                 "repeated_measure_structure":
                     panel_structure,
             },
+
+            chart_data=
+                chart_data,
 
             warnings=[
                 (
@@ -2166,7 +2471,14 @@ def execute_quantitative_association(
                 (
                     "No inferential correlation "
                     "was executed automatically."
-                )
+                ),
+
+                (
+                    "The scatter plot is descriptive "
+                    "only and must not be interpreted "
+                    "as evidence from an independent-"
+                    "observations correlation test."
+                ),
             ],
         )
 

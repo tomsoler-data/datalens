@@ -27,6 +27,11 @@ from app.ai.provider import (
     client,
 )
 
+from app.security.llm_payload import (
+    LLMPayloadClass,
+    classified_llm_chat,
+)
+
 from app.planning.analytical_contract import (
     AggregationSpec,
     AnalysisFamily,
@@ -42,7 +47,7 @@ from app.planning.analytical_contract import (
 # ============================================================
 
 AI_ANALYTICAL_PLANNER_RULE_VERSION = (
-    "ai_analytical_planner_v0.15"
+    "ai_analytical_planner_v0.27"
 )
 
 
@@ -119,6 +124,74 @@ class PlannerDatasetProfile(
     columns: list[
         PlannerColumnProfile
     ]
+
+    # Server-owned analytical metadata. These fields are optional
+    # so source datasets and legacy manifests remain fully compatible.
+    is_derived: bool = False
+
+    derivation_type: (
+        str
+        | None
+    ) = None
+
+    analytical_grain: (
+        str
+        | None
+    ) = None
+
+    operation: (
+        str
+        | None
+    ) = None
+
+    aggregation: (
+        str
+        | None
+    ) = None
+
+    group_column: (
+        str
+        | None
+    ) = None
+
+    entity_column: (
+        str
+        | None
+    ) = None
+
+    source_time_column: (
+        str
+        | None
+    ) = None
+
+    target_time_column: (
+        str
+        | None
+    ) = None
+
+    source_measure_column: (
+        str
+        | None
+    ) = None
+
+    target_measure_column: (
+        str
+        | None
+    ) = None
+
+    source_measure_formula: (
+        str
+        | None
+    ) = None
+
+    metric_semantics: (
+        str
+        | None
+    ) = None
+
+    measure_semantic_aliases: list[str] = Field(
+        default_factory=list
+    )
 
 
 class PlannerCatalog(
@@ -650,6 +723,183 @@ def planner_catalog_from_manifests(
                 columns=(
                     columns
                 ),
+                is_derived=bool(
+                    read_value(
+                        manifest,
+                        "is_derived",
+                        False,
+                    )
+                ),
+                derivation_type=(
+                    str(
+                        read_value(
+                            manifest,
+                            "derivation_type",
+                            "",
+                        )
+                        or
+                        ""
+                    ).strip()
+                    or
+                    None
+                ),
+                analytical_grain=(
+                    str(
+                        read_value(
+                            manifest,
+                            "analytical_grain",
+                            "",
+                        )
+                        or
+                        ""
+                    ).strip()
+                    or
+                    None
+                ),
+                operation=(
+                    str(
+                        read_value(
+                            manifest,
+                            "operation",
+                            "",
+                        )
+                        or
+                        ""
+                    ).strip()
+                    or
+                    None
+                ),
+                aggregation=(
+                    str(
+                        read_value(
+                            manifest,
+                            "aggregation",
+                            "",
+                        )
+                        or
+                        ""
+                    ).strip()
+                    or
+                    None
+                ),
+                group_column=(
+                    str(
+                        read_value(
+                            manifest,
+                            "group_column",
+                            "",
+                        )
+                        or
+                        ""
+                    ).strip()
+                    or
+                    None
+                ),
+                entity_column=(
+                    str(
+                        read_value(
+                            manifest,
+                            "entity_column",
+                            "",
+                        )
+                        or
+                        ""
+                    ).strip()
+                    or
+                    None
+                ),
+                source_time_column=(
+                    str(
+                        read_value(
+                            manifest,
+                            "source_time_column",
+                            "",
+                        )
+                        or
+                        ""
+                    ).strip()
+                    or
+                    None
+                ),
+                target_time_column=(
+                    str(
+                        read_value(
+                            manifest,
+                            "target_time_column",
+                            "",
+                        )
+                        or
+                        ""
+                    ).strip()
+                    or
+                    None
+                ),
+                source_measure_column=(
+                    str(
+                        read_value(
+                            manifest,
+                            "source_measure_column",
+                            "",
+                        )
+                        or
+                        ""
+                    ).strip()
+                    or
+                    None
+                ),
+                target_measure_column=(
+                    str(
+                        read_value(
+                            manifest,
+                            "target_measure_column",
+                            "",
+                        )
+                        or
+                        ""
+                    ).strip()
+                    or
+                    None
+                ),
+                source_measure_formula=(
+                    str(
+                        read_value(
+                            manifest,
+                            "source_measure_formula",
+                            "",
+                        )
+                        or
+                        ""
+                    ).strip()
+                    or
+                    None
+                ),
+                metric_semantics=(
+                    str(
+                        read_value(
+                            manifest,
+                            "metric_semantics",
+                            "",
+                        )
+                        or
+                        ""
+                    ).strip()
+                    or
+                    None
+                ),
+                measure_semantic_aliases=[
+                    str(value).strip()
+                    for value
+                    in (
+                        read_value(
+                            manifest,
+                            "measure_semantic_aliases",
+                            [],
+                        )
+                        or
+                        []
+                    )
+                    if str(value).strip()
+                ],
             )
         )
 
@@ -968,6 +1218,48 @@ dataset_id = null
 toutes les colonnes = null
 blockers contient la raison exacte.
 
+EXEMPLE 7
+
+Catalogue :
+dataset_id = dataset:sales
+category = categorical
+unit_price = quantitative
+
+Objectif :
+"Quelle catégorie a le prix unitaire moyen le plus élevé ?"
+
+Sortie conceptuelle :
+decision = propose
+family = ranking
+dataset_id = dataset:sales
+dimension_column = category
+value_column = unit_price
+aggregation_function = mean
+ranking_order = descending
+ranking_limit = 1
+tous les autres rôles de colonnes = null
+
+EXEMPLE 8
+
+Catalogue :
+dataset_id = dataset:sales
+category = categorical
+list_price = quantitative
+
+Objectif :
+"Donne-moi les deux catégories ayant le prix catalogue moyen le plus élevé."
+
+Sortie conceptuelle :
+decision = propose
+family = ranking
+dataset_id = dataset:sales
+dimension_column = category
+value_column = list_price
+aggregation_function = mean
+ranking_order = descending
+ranking_limit = 2
+tous les autres rôles de colonnes = null
+
 Retourne uniquement la structure JSON imposée.
 """.strip()
 
@@ -990,6 +1282,94 @@ def compact_catalog_text(
                 f"{dataset.row_count} lignes"
             )
         )
+
+
+        analytical_metadata: list[str] = []
+
+
+        if dataset.is_derived:
+            analytical_metadata.append(
+                "kind=derived_analytical_view"
+            )
+
+
+        for (
+            label,
+            value,
+        ) in [
+            (
+                "derivation",
+                dataset.derivation_type,
+            ),
+            (
+                "grain",
+                dataset.analytical_grain,
+            ),
+            (
+                "operation",
+                dataset.operation,
+            ),
+            (
+                "aggregation",
+                dataset.aggregation,
+            ),
+            (
+                "group",
+                dataset.group_column,
+            ),
+            (
+                "entity",
+                dataset.entity_column,
+            ),
+            (
+                "source_time",
+                dataset.source_time_column,
+            ),
+            (
+                "target_time",
+                dataset.target_time_column,
+            ),
+            (
+                "source_measure",
+                dataset.source_measure_column,
+            ),
+            (
+                "target_measure",
+                dataset.target_measure_column,
+            ),
+            (
+                "formula",
+                dataset.source_measure_formula,
+            ),
+        ]:
+            if value:
+                analytical_metadata.append(
+                    f"{label}={value}"
+                )
+
+
+        if dataset.measure_semantic_aliases:
+            analytical_metadata.append(
+                (
+                    "measure_aliases="
+                    +
+                    ",".join(
+                        dataset.measure_semantic_aliases
+                    )
+                )
+            )
+
+
+        if analytical_metadata:
+            lines.append(
+                (
+                    "ANALYTICAL_VIEW "
+                    +
+                    " | ".join(
+                        analytical_metadata
+                    )
+                )
+            )
 
 
         for column in (
@@ -1059,7 +1439,12 @@ def build_user_prompt(
         "Pour une time_series numérique, utilise time_column pour la "
         "dimension temporelle et value_column pour la mesure ; "
         "x_column, y_column, group_column et dimension_column doivent "
-        "être null.\n\n"
+        "être null.\n"
+        "Les lignes ANALYTICAL_VIEW décrivent des vues déterministes "
+        "server-owned. Respecte EXACTEMENT leur dataset_id, leur grain, "
+        "leur group/entity et leur target_measure. Une vue "
+        "categorical_additive_measure avec operation=groupby_sum est "
+        "une agrégation, jamais une quantitative_association.\n\n"
         "Construis uniquement le ou les plans nécessaires pour "
         "répondre directement à l'objectif."
     )
@@ -1405,9 +1790,10 @@ def literal_schema_identifier_mentioned(
     of an identifier. Therefore `revenue` does not match inside
     `net_revenue`, while the full `net_revenue` still matches.
 
-    This guard intentionally checks literal schema names only.
-    Semantic mapping remains the LLM's job; Python uses this
-    helper only to protect explicit user references.
+    This helper intentionally checks literal schema names only.
+    A separate conservative lexical resolver may confirm an
+    already proposed quantitative metric, while this function
+    remains dedicated to protecting explicit user references.
     """
 
     identifier = (
@@ -1468,6 +1854,787 @@ def explicit_known_column_mentions(
         dict.fromkeys(
             mentions
         )
+    )
+
+
+# ============================================================
+# CONSERVATIVE SEMANTIC METRIC REFERENCES
+#
+# The literal fidelity guard above protects exact schema names.
+# This second layer is deliberately narrower than an LLM:
+#
+# - it operates only on schema tokens;
+# - it uses a small deterministic bilingual lexical map;
+# - every token of the candidate column must be supported;
+# - supported tokens must occur in a short local objective span;
+# - only the unique best quantitative match is accepted.
+#
+# Examples:
+#   "prix unitaire"   -> unit_price
+#   "coût unitaire"   -> unit_cost
+#   "prix catalogue"  -> list_price
+#
+# But:
+#   "prix moyen"
+# does not fully identify unit_price or list_price and therefore
+# remains ambiguous when several quantitative columns exist.
+#
+# This layer never invents a column and never changes the LLM
+# proposal. It only decides whether Python has enough lexical
+# evidence to trust an already proposed quantitative column.
+# ============================================================
+
+SEMANTIC_TOKEN_CANONICAL = {
+    "unit": "unit",
+    "unite": "unit",
+    "unitaire": "unit",
+    "unitaires": "unit",
+    "unites": "unit",
+
+    "price": "price",
+    "prix": "price",
+
+    "cost": "cost",
+    "cout": "cost",
+    "couts": "cost",
+
+    "list": "list",
+    "catalog": "list",
+    "catalogue": "list",
+    "catalogues": "list",
+
+    "quantity": "quantity",
+    "quantite": "quantity",
+    "quantites": "quantity",
+
+    "discount": "discount",
+    "remise": "discount",
+    "remises": "discount",
+    "rabais": "discount",
+
+    "pct": "percent",
+    "percent": "percent",
+    "percentage": "percent",
+    "pourcentage": "percent",
+    "pourcentages": "percent",
+    "taux": "percent",
+
+    "age": "age",
+
+    "revenue": "revenue",
+    "revenu": "revenue",
+    "revenus": "revenue",
+    "recette": "revenue",
+    "recettes": "revenue",
+
+    "sale": "sales",
+    "sales": "sales",
+    "vente": "sales",
+    "ventes": "sales",
+
+    "amount": "amount",
+    "montant": "amount",
+    "montants": "amount",
+
+    "basket": "basket",
+    "baskets": "basket",
+    "panier": "basket",
+    "paniers": "basket",
+
+    "mean": "mean",
+    "average": "mean",
+    "avg": "mean",
+    "moyen": "mean",
+    "moyens": "mean",
+    "moyenne": "mean",
+    "moyennes": "mean",
+
+    "category": "category",
+    "categories": "category",
+    "categorie": "category",
+
+    "brand": "brand",
+    "brands": "brand",
+    "marque": "brand",
+    "marques": "brand",
+
+    "country": "country",
+    "countries": "country",
+    "pays": "country",
+
+    "segment": "segment",
+    "segments": "segment",
+
+    "product": "product",
+    "products": "product",
+    "produit": "product",
+    "produits": "product",
+
+    "month": "month",
+    "months": "month",
+    "monthly": "month",
+    "mois": "month",
+    "mensuel": "month",
+    "mensuels": "month",
+    "mensuelle": "month",
+    "mensuelles": "month",
+}
+
+
+def canonical_semantic_token(
+    token: str,
+) -> str:
+    normalized = (
+        normalize_identifier_for_match(
+            token
+        )
+    )
+
+
+    return (
+        SEMANTIC_TOKEN_CANONICAL.get(
+            normalized,
+            normalized,
+        )
+    )
+
+
+def semantic_metric_match_score(
+    *,
+    objective: str,
+    column_name: str,
+) -> int:
+    """
+    Return a deterministic lexical score for one candidate
+    quantitative column.
+
+    A candidate matches only when every semantic token from the
+    physical column name appears in a short local span of the
+    user objective. Order may differ so that French expressions
+    such as "prix unitaire" can match `unit_price`.
+
+    More specific column names receive a higher score. This
+    prevents a generic one-token candidate such as `price` from
+    outranking `unit_price` for "prix unitaire".
+    """
+
+    objective_tokens = [
+        canonical_semantic_token(
+            token
+        )
+
+        for token
+        in normalized_objective_tokens(
+            objective
+        )
+    ]
+
+
+    column_tokens = [
+        canonical_semantic_token(
+            token
+        )
+
+        for token
+        in normalized_column_tokens(
+            column_name
+        )
+    ]
+
+
+    required_tokens = {
+        token
+
+        for token
+        in column_tokens
+
+        if token
+    }
+
+
+    if (
+        not required_tokens
+        or
+        not objective_tokens
+    ):
+        return 0
+
+
+    # A small local window prevents unrelated words that happen
+    # to occur far apart in the request from being combined into
+    # an artificial semantic match.
+    max_window = max(
+        len(
+            required_tokens
+        )
+        +
+        2,
+        3,
+    )
+
+
+    best_score = 0
+
+
+    for start in range(
+        len(
+            objective_tokens
+        )
+    ):
+        max_end = min(
+            len(
+                objective_tokens
+            ),
+            start
+            +
+            max_window,
+        )
+
+
+        for end in range(
+            start
+            +
+            1,
+            max_end
+            +
+            1,
+        ):
+            window = (
+                objective_tokens[
+                    start:
+                    end
+                ]
+            )
+
+
+            if (
+                not required_tokens.issubset(
+                    set(
+                        window
+                    )
+                )
+            ):
+                continue
+
+
+            extra_tokens = max(
+                0,
+                len(
+                    window
+                )
+                -
+                len(
+                    required_tokens
+                ),
+            )
+
+
+            score = (
+                len(
+                    required_tokens
+                )
+                *
+                100
+                -
+                extra_tokens
+            )
+
+
+            best_score = max(
+                best_score,
+                score,
+            )
+
+
+    return (
+        best_score
+    )
+
+
+def semantic_names_for_column(
+    *,
+    dataset: PlannerDatasetProfile,
+    column_name: str,
+) -> list[str]:
+    """
+    Return deterministic semantic names that may identify one
+    physical planner column.
+
+    Only the declared target measure of a server-owned analytical
+    view receives aliases. Source datasets keep pure schema-name
+    semantics.
+    """
+
+    names = [
+        column_name
+    ]
+
+
+    if (
+        dataset.target_measure_column
+        ==
+        column_name
+    ):
+        names.extend(
+            dataset.measure_semantic_aliases
+        )
+
+
+    return list(
+        dict.fromkeys(
+            value.strip()
+            for value
+            in names
+            if value.strip()
+        )
+    )
+
+
+
+def semantic_quantitative_column_mentions(
+    *,
+    objective: str,
+    dataset: PlannerDatasetProfile,
+) -> list[
+    str
+]:
+    """
+    Resolve the unique best quantitative schema reference from
+    deterministic lexical evidence.
+
+    Returning several names means the semantic evidence is still
+    ambiguous. Returning an empty list means no quantitative
+    column was sufficiently identified.
+    """
+
+    scored_matches: list[
+        tuple[
+            int,
+            str,
+        ]
+    ] = []
+
+
+    for column in (
+        dataset.columns
+    ):
+        if (
+            not is_quantitative(
+                column.analysis_kind
+            )
+        ):
+            continue
+
+
+        score = max(
+            (
+                semantic_metric_match_score(
+                    objective=(
+                        objective
+                    ),
+                    column_name=(
+                        semantic_name
+                    ),
+                )
+
+                for semantic_name
+                in semantic_names_for_column(
+                    dataset=dataset,
+                    column_name=column.name,
+                )
+            ),
+            default=0,
+        )
+
+
+        if (
+            score
+            >
+            0
+        ):
+            scored_matches.append(
+                (
+                    score,
+                    column.name,
+                )
+            )
+
+
+    if (
+        not scored_matches
+    ):
+        return []
+
+
+    best_score = max(
+        score
+
+        for (
+            score,
+            _,
+        )
+        in scored_matches
+    )
+
+
+    best_matches = [
+        column_name
+
+        for (
+            score,
+            column_name,
+        )
+        in scored_matches
+
+        if (
+            score
+            ==
+            best_score
+        )
+    ]
+
+
+    return list(
+        dict.fromkeys(
+            best_matches
+        )
+    )
+
+
+
+def semantic_schema_column_mentions(
+    *,
+    objective: str,
+    dataset: PlannerDatasetProfile,
+) -> list[
+    str
+]:
+    """
+    Resolve deterministic schema references across all analytical
+    column types.
+
+    Unlike the quantitative-only metric resolver, this helper may
+    return several independent columns because an analytical request
+    commonly names two variables (for example `unit_cost` and
+    `category`).
+
+    A less-specific candidate is removed only when its semantic token
+    set is a strict subset of another matched schema column. This keeps
+    `category` beside `unit_cost`, while preventing a generic `price`
+    column from competing with a more specific `unit_price` match for
+    the phrase "prix unitaire".
+    """
+
+    matched: list[
+        tuple[
+            str,
+            set[str],
+            int,
+        ]
+    ] = []
+
+
+    for column in dataset.columns:
+        score = max(
+            (
+                semantic_metric_match_score(
+                    objective=objective,
+                    column_name=semantic_name,
+                )
+                for semantic_name
+                in semantic_names_for_column(
+                    dataset=dataset,
+                    column_name=column.name,
+                )
+            ),
+            default=0,
+        )
+
+
+        if score <= 0:
+            continue
+
+
+        tokens = {
+            canonical_semantic_token(token)
+            for token in normalized_column_tokens(column.name)
+            if token
+        }
+
+
+        if not tokens:
+            continue
+
+
+        matched.append(
+            (
+                column.name,
+                tokens,
+                score,
+            )
+        )
+
+
+    if not matched:
+        return []
+
+
+    selected: list[str] = []
+
+
+    for (
+        column_name,
+        tokens,
+        score,
+    ) in matched:
+        shadowed = any(
+            tokens < other_tokens
+            and other_score > score
+            for (
+                other_name,
+                other_tokens,
+                other_score,
+            ) in matched
+            if other_name != column_name
+        )
+
+
+        if not shadowed:
+            selected.append(column_name)
+
+
+    return list(
+        dict.fromkeys(
+            selected
+        )
+    )
+
+
+def objective_schema_column_mentions(
+    *,
+    objective: str,
+    dataset: PlannerDatasetProfile,
+) -> list[
+    str
+]:
+    """
+    Return schema columns that are explicitly or conservatively
+    referenced by the user objective.
+
+    Literal identifiers remain authoritative. Semantic matches are
+    added only through the deterministic token resolver above.
+    """
+
+    mentions = [
+        *explicit_known_column_mentions(
+            objective=objective,
+            dataset=dataset,
+        ),
+        *semantic_schema_column_mentions(
+            objective=objective,
+            dataset=dataset,
+        ),
+    ]
+
+
+    return list(
+        dict.fromkeys(
+            mentions
+        )
+    )
+
+
+def canonicalize_explicit_objective_bindings(
+    *,
+    objective: str,
+    proposal: AIPlannerProposal,
+    catalog: PlannerCatalog,
+) -> tuple[
+    AIPlannerProposal,
+    list[str],
+]:
+    """
+    Protect semantic fidelity when the objective deterministically
+    identifies exactly two physical columns.
+
+    Small local models can preserve the wording of the request while
+    binding a nearby but unmentioned column. Python repairs that wire
+    error only when the objective resolves to exactly two schema
+    columns and their deterministic analytical types imply one
+    unambiguous supported two-variable family.
+
+    Supported repairs:
+    - quantitative + quantitative -> quantitative_association
+    - categorical + categorical -> categorical_association
+    - categorical + quantitative -> group_comparison
+
+    No repair occurs for vague, one-column or 3+-column objectives.
+    """
+
+    if (
+        proposal.decision != "propose"
+        or proposal.dataset_id is None
+        or proposal.family not in {
+            "quantitative_association",
+            "categorical_association",
+            "group_comparison",
+        }
+    ):
+        return proposal, []
+
+
+    dataset = catalog_index(catalog).get(
+        proposal.dataset_id
+    )
+
+
+    if dataset is None:
+        return proposal, []
+
+
+    mentions = objective_schema_column_mentions(
+        objective=objective,
+        dataset=dataset,
+    )
+
+
+    if len(mentions) != 2:
+        return proposal, []
+
+
+    first = find_column(
+        dataset,
+        mentions[0],
+    )
+    second = find_column(
+        dataset,
+        mentions[1],
+    )
+
+
+    if first is None or second is None:
+        return proposal, []
+
+
+    first_is_quantitative = is_quantitative(
+        first.analysis_kind
+    )
+    second_is_quantitative = is_quantitative(
+        second.analysis_kind
+    )
+    first_is_categorical = is_categorical(
+        first.analysis_kind
+    )
+    second_is_categorical = is_categorical(
+        second.analysis_kind
+    )
+
+
+    update: dict[str, Any] | None = None
+
+
+    if (
+        first_is_quantitative
+        and second_is_quantitative
+    ):
+        update = {
+            "family": "quantitative_association",
+            "x_column": first.name,
+            "y_column": second.name,
+            "group_column": None,
+            "value_column": None,
+            "time_column": None,
+            "dimension_column": None,
+            "entity_column": None,
+        }
+
+
+    elif (
+        first_is_categorical
+        and second_is_categorical
+    ):
+        update = {
+            "family": "categorical_association",
+            "x_column": first.name,
+            "y_column": second.name,
+            "group_column": None,
+            "value_column": None,
+            "time_column": None,
+            "dimension_column": None,
+            "entity_column": None,
+        }
+
+
+    elif (
+        (first_is_categorical and second_is_quantitative)
+        or
+        (first_is_quantitative and second_is_categorical)
+    ):
+        group_profile = (
+            first
+            if first_is_categorical
+            else second
+        )
+        value_profile = (
+            first
+            if first_is_quantitative
+            else second
+        )
+
+
+        update = {
+            "family": "group_comparison",
+            "x_column": None,
+            "y_column": None,
+            "group_column": group_profile.name,
+            "value_column": value_profile.name,
+            "time_column": None,
+            "dimension_column": None,
+            "entity_column": None,
+        }
+
+
+    if update is None:
+        return proposal, []
+
+
+    current_bound = {
+        column_name
+        for column_name in [
+            proposal.x_column,
+            proposal.y_column,
+            proposal.group_column,
+            proposal.value_column,
+        ]
+        if column_name is not None
+    }
+    expected_bound = set(mentions)
+
+
+    if (
+        proposal.family == update["family"]
+        and current_bound == expected_bound
+    ):
+        return proposal, []
+
+
+    normalized = proposal.model_copy(
+        update=update
+    )
+
+
+    return (
+        normalized,
+        [
+            (
+                "Python a corrigé une incohérence sémantique entre "
+                "le texte de la demande et les colonnes proposées "
+                "par le modèle. Les deux colonnes déterministiquement "
+                "identifiées dans l'objectif sont "
+                f"{mentions[0]} et {mentions[1]}; la famille canonique "
+                f"est `{normalized.family}`."
+            )
+        ],
     )
 
 
@@ -2444,6 +3611,60 @@ def canonicalize_wire_roles(
                     "à partir des types analytiques déterministes "
                     "des colonnes exactes : "
                     f"{original_family} -> {target_family}. "
+                    f"x={proposal.x_column}, "
+                    f"y={proposal.y_column}."
+                )
+            )
+
+
+        # Association families never aggregate their x/y inputs.
+        # A small local model can otherwise identify the exact two
+        # quantitative/categorical columns and family, but leak a
+        # stray aggregation_function such as ``sum``. Because the
+        # deterministic catalog has already proved that both x/y
+        # roles are valid for the selected association family,
+        # Python may safely repair this WIRE-PROTOCOL invariant.
+        #
+        # This does not invent a column, dataset, family or metric;
+        # it only removes an operation that the association family
+        # explicitly forbids. The two roles must also reference two
+        # DISTINCT physical columns: x == y is a common malformed wire
+        # output and must remain rejected rather than being converted
+        # into a meaningless self-association. Invalid/mixed x/y types
+        # are not repaired here and continue to be rejected downstream.
+        if (
+            target_family is not None
+            and
+            proposal.x_column
+            !=
+            proposal.y_column
+            and
+            proposal.aggregation_function
+            !=
+            "none"
+        ):
+            original_aggregation = (
+                proposal.aggregation_function
+            )
+
+
+            proposal = (
+                proposal.model_copy(
+                    update={
+                        "aggregation_function":
+                            "none",
+                    }
+                )
+            )
+
+
+            normalizations.append(
+                (
+                    "Python a supprimé une agrégation incompatible "
+                    "avec une famille d'association validée par les "
+                    "types analytiques déterministes : "
+                    f"aggregation={original_aggregation} -> none, "
+                    f"family={proposal.family}, "
                     f"x={proposal.x_column}, "
                     f"y={proposal.y_column}."
                 )
@@ -3749,6 +4970,1126 @@ def build_window(
 
 
 # ============================================================
+# ANALYTICAL VIEW IDENTITY / GRAIN HELPERS
+# ============================================================
+
+def normalized_grain(
+    value: str | None,
+) -> str:
+    return (
+        normalize_identifier_for_match(
+            value
+            or
+            ""
+        )
+    )
+
+
+def dataset_matches_requested_grain(
+    *,
+    dataset: PlannerDatasetProfile,
+    proposal: AIPlannerProposal,
+) -> bool:
+    requested = normalized_grain(
+        proposal.analytical_grain
+    )
+    available = normalized_grain(
+        dataset.analytical_grain
+    )
+
+
+    return bool(
+        requested
+        and
+        available
+        and
+        requested == available
+    )
+
+
+def dataset_contains_bound_columns(
+    *,
+    dataset: PlannerDatasetProfile,
+    proposal: AIPlannerProposal,
+) -> bool:
+    bound_names = {
+        column_name
+        for (
+            _,
+            column_name,
+        )
+        in proposed_role_columns(
+            proposal
+        )
+    }
+
+
+    if not bound_names:
+        return False
+
+
+    available = {
+        column.name
+        for column
+        in dataset.columns
+    }
+
+
+    return bound_names.issubset(
+        available
+    )
+
+
+def objective_requests_monthly_time_series(
+    objective: str,
+) -> bool:
+    """
+    Return True only for an explicit monthly-series intent.
+
+    A bare mention of a month is not enough because a request such as
+    "CA du mois d'août" may be a single-period aggregate. The deterministic
+    repair is enabled for explicit monthly cadence words, or for a trend /
+    evolution request that also names a monthly period.
+    """
+
+    tokens = set(
+        normalized_objective_tokens(
+            objective
+        )
+    )
+
+
+    monthly_cadence = {
+        "mensuel",
+        "mensuels",
+        "mensuelle",
+        "mensuelles",
+        "monthly",
+    }
+
+
+    monthly_period = {
+        "mois",
+        "month",
+        "months",
+    }
+
+
+    trend_markers = {
+        "evolution",
+        "evolutions",
+        "tendance",
+        "tendances",
+        "trend",
+        "trends",
+    }
+
+
+    return bool(
+        tokens.intersection(
+            monthly_cadence
+        )
+        or
+        (
+            tokens.intersection(
+                monthly_period
+            )
+            and
+            tokens.intersection(
+                trend_markers
+            )
+        )
+    )
+
+
+def canonicalize_monthly_analytical_view_intent(
+    *,
+    objective: str,
+    proposal: AIPlannerProposal,
+    catalog: PlannerCatalog,
+) -> tuple[
+    AIPlannerProposal,
+    list[str],
+]:
+    """
+    Resolve a monthly additive analytical view directly from the user
+    objective plus server-owned provenance.
+
+    This canonicalizer is intentionally independent of the model's proposed
+    columns. Small local models may hallucinate roles such as category or
+    total_spend even when the objective clearly asks for monthly revenue.
+
+    Python repairs the proposal only when ALL of the following are true:
+
+    - the user explicitly asks for a monthly time series;
+    - the user did not explicitly name a dataset;
+    - exactly one server-owned `monthly_additive_measure` view matches;
+    - the objective deterministically identifies both the materialized time
+      column and the declared target measure of that view.
+
+    No dataset, column, metric or derived variable is invented. Ambiguous
+    matches remain unrepaired and continue to the ordinary validation guards.
+    """
+
+    if proposal.decision != "propose":
+        return proposal, []
+
+
+    if not objective_requests_monthly_time_series(
+        objective
+    ):
+        return proposal, []
+
+
+    if explicit_dataset_mentions(
+        objective=objective,
+        catalog=catalog,
+    ):
+        return proposal, []
+
+
+    candidates: list[
+        PlannerDatasetProfile
+    ] = []
+
+
+    for dataset in catalog.datasets:
+        if (
+            not dataset.is_derived
+            or
+            dataset.derivation_type
+            !=
+            "monthly_additive_measure"
+            or
+            dataset.operation
+            !=
+            "groupby_sum"
+            or
+            dataset.aggregation
+            !=
+            "sum"
+            or
+            not dataset.target_time_column
+            or
+            not dataset.target_measure_column
+        ):
+            continue
+
+
+        mentions = set(
+            objective_schema_column_mentions(
+                objective=objective,
+                dataset=dataset,
+            )
+        )
+
+
+        required = {
+            dataset.target_time_column,
+            dataset.target_measure_column,
+        }
+
+
+        if required.issubset(
+            mentions
+        ):
+            candidates.append(
+                dataset
+            )
+
+
+    if len(candidates) != 1:
+        return proposal, []
+
+
+    selected = candidates[0]
+    previous = proposal.dataset_id
+
+
+    normalized = proposal.model_copy(
+        update={
+            "family": "time_series",
+            "dataset_id": selected.dataset_id,
+            "analytical_grain": (
+                selected.analytical_grain
+                or
+                "month"
+            ),
+            "x_column": None,
+            "y_column": None,
+            "group_column": None,
+            "value_column": selected.target_measure_column,
+            "time_column": selected.target_time_column,
+            "dimension_column": None,
+            "entity_column": None,
+            "aggregation_function": "sum",
+            "ranking_order": "none",
+            "ranking_limit": None,
+            "window_operation": "none",
+            "window_size": None,
+        }
+    )
+
+
+    return (
+        normalized,
+        [
+            (
+                "Python a normalisé une demande de série temporelle "
+                "mensuelle vers la vue analytique additive server-owned : "
+                f"dataset_id={selected.dataset_id}, "
+                f"time={selected.target_time_column}, "
+                f"value={selected.target_measure_column}, "
+                f"grain={selected.analytical_grain}, "
+                "aggregation=sum"
+                +
+                (
+                    f" (dataset proposé par le modèle : {previous})."
+                    if previous and previous != selected.dataset_id
+                    else
+                    "."
+                )
+            )
+        ],
+    )
+
+
+
+
+def canonicalize_categorical_association_from_objective(
+    *,
+    objective: str,
+    proposal: AIPlannerProposal,
+    catalog: PlannerCatalog,
+) -> tuple[
+    AIPlannerProposal,
+    list[str],
+]:
+    """
+    Resolve an explicit categorical association directly from the
+    user objective before inferred dataset repair can anchor the
+    proposal to a wrong derived analytical view.
+
+    This guard is intentionally conservative:
+
+    - the objective must explicitly ask for a relation/association;
+    - the user must not explicitly name a dataset;
+    - exactly one NON-DERIVED catalog dataset must contain exactly
+      two categorical columns deterministically referenced by the
+      objective;
+    - no quantitative or third schema column may also be
+      deterministically referenced in that same candidate dataset.
+
+    This repairs small-model wire failures such as:
+
+        "Existe-t-il une relation entre le segment client et la
+        catégorie de produit ?"
+
+    when Gemma proposes a quantitative association against an
+    unrelated revenue-by-category derived view.
+
+    The normalization does not invent a variable or metric. It
+    simply binds the two categorical schema columns that the
+    objective itself deterministically identifies.
+    """
+
+    if proposal.decision != "propose":
+        return proposal, []
+
+
+    if proposal.family not in {
+        "quantitative_association",
+        "categorical_association",
+    }:
+        return proposal, []
+
+
+    if explicit_dataset_mentions(
+        objective=objective,
+        catalog=catalog,
+    ):
+        return proposal, []
+
+
+    objective_tokens = set(
+        normalized_objective_tokens(
+            objective
+        )
+    )
+
+
+    if not (
+        objective_tokens
+        &
+        {
+            "relation",
+            "association",
+            "correlation",
+            "relationship",
+            "lien",
+        }
+    ):
+        return proposal, []
+
+
+    candidates: list[
+        tuple[
+            PlannerDatasetProfile,
+            list[str],
+        ]
+    ] = []
+
+
+    for dataset in catalog.datasets:
+        # Categorical association requires row-level co-occurrence.
+        # Do not infer it from aggregated analytical views.
+        if dataset.is_derived:
+            continue
+
+
+        mentions = list(
+            dict.fromkeys(
+                objective_schema_column_mentions(
+                    objective=objective,
+                    dataset=dataset,
+                )
+            )
+        )
+
+
+        if len(mentions) != 2:
+            continue
+
+
+        profiles = [
+            find_column(
+                dataset,
+                column_name,
+            )
+            for column_name
+            in mentions
+        ]
+
+
+        if any(
+            profile is None
+            for profile
+            in profiles
+        ):
+            continue
+
+
+        if not all(
+            is_categorical(
+                profile.analysis_kind
+            )
+            for profile
+            in profiles
+            if profile is not None
+        ):
+            continue
+
+
+        if mentions[0] == mentions[1]:
+            continue
+
+
+        candidates.append(
+            (
+                dataset,
+                mentions,
+            )
+        )
+
+
+    if len(candidates) != 1:
+        return proposal, []
+
+
+    selected, mentions = candidates[0]
+    previous_dataset = proposal.dataset_id
+
+
+    normalized = proposal.model_copy(
+        update={
+            "family":
+                "categorical_association",
+
+            "dataset_id":
+                selected.dataset_id,
+
+            "analytical_grain":
+                (
+                    selected.analytical_grain
+                    or
+                    "row"
+                ),
+
+            "x_column":
+                mentions[0],
+
+            "y_column":
+                mentions[1],
+
+            "group_column":
+                None,
+
+            "value_column":
+                None,
+
+            "time_column":
+                None,
+
+            "dimension_column":
+                None,
+
+            "entity_column":
+                None,
+
+            "aggregation_function":
+                "none",
+
+            "ranking_order":
+                "none",
+
+            "ranking_limit":
+                None,
+
+            "window_operation":
+                "none",
+
+            "window_size":
+                None,
+        }
+    )
+
+
+    return (
+        normalized,
+        [
+            (
+                "Python a résolu une intention d'association "
+                "catégorielle explicitement formulée vers l'unique "
+                "dataset source server-owned contenant les deux "
+                "variables catégorielles déterministiquement "
+                "identifiées dans l'objectif : "
+                f"dataset_id={selected.dataset_id}, "
+                f"x={mentions[0]}, "
+                f"y={mentions[1]}, "
+                "family=categorical_association, "
+                "aggregation=none"
+                +
+                (
+                    f" (dataset proposé par le modèle : "
+                    f"{previous_dataset})."
+                    if (
+                        previous_dataset
+                        and
+                        previous_dataset
+                        !=
+                        selected.dataset_id
+                    )
+                    else
+                    "."
+                )
+            )
+        ],
+    )
+
+
+def canonicalize_categorical_additive_view_from_objective(
+    *,
+    objective: str,
+    proposal: AIPlannerProposal,
+    catalog: PlannerCatalog,
+) -> tuple[
+    AIPlannerProposal,
+    list[str],
+]:
+    """
+    Resolve a categorical additive analytical view directly from the
+    user objective plus server-owned provenance.
+
+    This is the categorical counterpart of the monthly analytical-view
+    canonicalizer. It deliberately runs BEFORE inferred dataset repair so
+    a small local model cannot lock the request onto a lower-level session
+    or entity view merely because it proposed semantically related columns
+    such as ``country`` + ``basket_amount`` for an objective such as
+    ``CA par pays``.
+
+    Python rewrites the proposal only when ALL of the following are true:
+
+    - the user did not explicitly name a dataset;
+    - exactly one server-owned ``categorical_additive_measure`` view
+      matches the objective;
+    - the objective deterministically identifies both that view's declared
+      grouping column and its declared target measure.
+
+    No dataset, column, metric or aggregation is invented. If zero or more
+    than one categorical additive view match, this canonicalizer abstains
+    and ordinary validation continues unchanged.
+    """
+
+    if proposal.decision != "propose":
+        return proposal, []
+
+
+    if explicit_dataset_mentions(
+        objective=objective,
+        catalog=catalog,
+    ):
+        return proposal, []
+
+
+    candidates: list[
+        PlannerDatasetProfile
+    ] = []
+
+
+    for dataset in catalog.datasets:
+        if (
+            not dataset.is_derived
+            or
+            dataset.derivation_type
+            !=
+            "categorical_additive_measure"
+            or
+            dataset.operation
+            !=
+            "groupby_sum"
+            or
+            dataset.aggregation
+            !=
+            "sum"
+            or
+            not dataset.group_column
+            or
+            not dataset.target_measure_column
+        ):
+            continue
+
+
+        mentions = set(
+            objective_schema_column_mentions(
+                objective=objective,
+                dataset=dataset,
+            )
+        )
+
+
+        required = {
+            dataset.group_column,
+            dataset.target_measure_column,
+        }
+
+
+        if required.issubset(
+            mentions
+        ):
+            candidates.append(
+                dataset
+            )
+
+
+    if len(candidates) != 1:
+        return proposal, []
+
+
+    selected = candidates[0]
+    previous = proposal.dataset_id
+
+
+    normalized = proposal.model_copy(
+        update={
+            "family": "aggregation",
+            "dataset_id": selected.dataset_id,
+            "analytical_grain": (
+                selected.analytical_grain
+                or
+                selected.group_column
+            ),
+            "x_column": None,
+            "y_column": None,
+            "group_column": selected.group_column,
+            "value_column": selected.target_measure_column,
+            "time_column": None,
+            "dimension_column": None,
+            "entity_column": None,
+            "aggregation_function": "sum",
+            "ranking_order": "none",
+            "ranking_limit": None,
+            "window_operation": "none",
+            "window_size": None,
+        }
+    )
+
+
+    return (
+        normalized,
+        [
+            (
+                "Python a résolu la demande vers l'unique vue "
+                "catégorielle additive server-owned correspondant "
+                "explicitement au groupe et à la mesure de l'objectif : "
+                f"dataset_id={selected.dataset_id}, "
+                f"group={selected.group_column}, "
+                f"value={selected.target_measure_column}, "
+                f"grain={selected.analytical_grain}, "
+                "aggregation=sum"
+                +
+                (
+                    f" (dataset proposé par le modèle : {previous})."
+                    if previous and previous != selected.dataset_id
+                    else
+                    "."
+                )
+            )
+        ],
+    )
+
+
+def canonicalize_entity_measure_group_comparison_from_objective(
+    *,
+    objective: str,
+    proposal: AIPlannerProposal,
+    catalog: PlannerCatalog,
+) -> tuple[
+    AIPlannerProposal,
+    list[str],
+]:
+    """
+    Resolve a group comparison directly from a server-owned entity-level
+    analytical view when the objective deterministically identifies one
+    quantitative target measure and one categorical grouping variable.
+
+    This canonicalizer runs BEFORE inferred dataset repair. That ordering
+    matters for small local models that may identify the right entity-level
+    dataset columns but emit the wrong family/roles, for example:
+
+        "Comment le montant du panier varie-t-il selon le pays ?"
+
+    with ``x=basket_amount``, ``y=basket_amount`` and an invented/root
+    dataset id.
+
+    Python rewrites the proposal only when ALL of the following are true:
+
+    - the user did not explicitly name a dataset;
+    - the proposal is still in a two-variable/distribution family that may
+      legitimately be repaired into a group comparison;
+    - exactly one server-owned ``entity_additive_measure`` view matches;
+    - the objective deterministically identifies that view's declared target
+      measure and exactly one categorical column present in the same view.
+
+    The target measure must be explicitly/semantically named in the user
+    objective. A vague request such as ``performance selon le pays`` is not
+    rewritten to basket_amount or any other business measure.
+    """
+
+    if proposal.decision != "propose":
+        return proposal, []
+
+
+    if proposal.family not in {
+        "quantitative_association",
+        "group_comparison",
+        "distribution",
+    }:
+        return proposal, []
+
+
+    if explicit_dataset_mentions(
+        objective=objective,
+        catalog=catalog,
+    ):
+        return proposal, []
+
+
+    candidates: list[
+        tuple[
+            PlannerDatasetProfile,
+            str,
+        ]
+    ] = []
+
+
+    for dataset in catalog.datasets:
+        if (
+            not dataset.is_derived
+            or
+            dataset.derivation_type
+            !=
+            "entity_additive_measure"
+            or
+            not dataset.target_measure_column
+        ):
+            continue
+
+
+        # For entity-level views, require evidence for the PHYSICAL target
+        # measure name itself. Do not use inherited source-measure aliases
+        # here: basket_amount may legitimately originate from gross_amount,
+        # but a request for "CA" must not become a basket-distribution query.
+        target_measure_match = (
+            dataset.target_measure_column
+            in
+            explicit_known_column_mentions(
+                objective=objective,
+                dataset=dataset,
+            )
+            or
+            semantic_metric_match_score(
+                objective=objective,
+                column_name=dataset.target_measure_column,
+            )
+            >
+            0
+        )
+
+
+        if not target_measure_match:
+            continue
+
+
+        mentions = list(
+            dict.fromkeys(
+                objective_schema_column_mentions(
+                    objective=objective,
+                    dataset=dataset,
+                )
+            )
+        )
+
+
+        categorical_mentions = []
+
+
+        for column_name in mentions:
+            if (
+                column_name
+                ==
+                dataset.target_measure_column
+            ):
+                continue
+
+
+            column = find_column(
+                dataset,
+                column_name,
+            )
+
+
+            if (
+                column is not None
+                and
+                is_categorical(
+                    column.analysis_kind
+                )
+            ):
+                categorical_mentions.append(
+                    column.name
+                )
+
+
+        categorical_mentions = list(
+            dict.fromkeys(
+                categorical_mentions
+            )
+        )
+
+
+        if len(categorical_mentions) != 1:
+            continue
+
+
+        candidates.append(
+            (
+                dataset,
+                categorical_mentions[0],
+            )
+        )
+
+
+    if len(candidates) != 1:
+        return proposal, []
+
+
+    selected, group_column = candidates[0]
+    previous = proposal.dataset_id
+
+
+    normalized = proposal.model_copy(
+        update={
+            "family": "group_comparison",
+            "dataset_id": selected.dataset_id,
+            "analytical_grain": (
+                selected.analytical_grain
+                or
+                selected.entity_column
+                or
+                group_column
+            ),
+            "x_column": None,
+            "y_column": None,
+            "group_column": group_column,
+            "value_column": selected.target_measure_column,
+            "time_column": None,
+            "dimension_column": None,
+            "entity_column": None,
+            "aggregation_function": "none",
+            "ranking_order": "none",
+            "ranking_limit": None,
+            "window_operation": "none",
+            "window_size": None,
+        }
+    )
+
+
+    return (
+        normalized,
+        [
+            (
+                "Python a résolu la demande vers l'unique vue "
+                "entity-level server-owned correspondant explicitement "
+                "à la mesure et au groupe de l'objectif : "
+                f"dataset_id={selected.dataset_id}, "
+                f"group={group_column}, "
+                f"value={selected.target_measure_column}, "
+                f"grain={selected.analytical_grain}"
+                +
+                (
+                    f" (dataset proposé par le modèle : {previous})."
+                    if previous and previous != selected.dataset_id
+                    else
+                    "."
+                )
+            )
+        ],
+    )
+
+
+def canonicalize_inferred_dataset_reference(
+    *,
+    objective: str,
+    proposal: AIPlannerProposal,
+    catalog: PlannerCatalog,
+) -> tuple[
+    AIPlannerProposal,
+    list[str],
+]:
+    """
+    Repair only an absent or hallucinated dataset_id when the exact
+    columns already emitted by the model identify one deterministic
+    catalog dataset.
+
+    If several datasets contain the same bound columns, an exact
+    analytical-grain match is preferred. No column is invented and
+    an explicit user dataset reference is never overridden.
+    """
+
+    if proposal.decision != "propose":
+        return proposal, []
+
+
+    if explicit_dataset_mentions(
+        objective=objective,
+        catalog=catalog,
+    ):
+        return proposal, []
+
+
+    known = catalog_index(
+        catalog
+    )
+
+
+    if (
+        proposal.dataset_id
+        is not None
+        and
+        proposal.dataset_id in known
+    ):
+        return proposal, []
+
+
+    candidates = [
+        dataset
+        for dataset
+        in catalog.datasets
+        if dataset_contains_bound_columns(
+            dataset=dataset,
+            proposal=proposal,
+        )
+    ]
+
+
+    exact_grain = [
+        dataset
+        for dataset
+        in candidates
+        if dataset_matches_requested_grain(
+            dataset=dataset,
+            proposal=proposal,
+        )
+    ]
+
+
+    if exact_grain:
+        candidates = exact_grain
+
+
+    if len(candidates) != 1:
+        return proposal, []
+
+
+    selected = candidates[0]
+    previous = proposal.dataset_id
+
+
+    return (
+        proposal.model_copy(
+            update={
+                "dataset_id":
+                    selected.dataset_id,
+            }
+        ),
+        [
+            (
+                "Python a réparé un dataset_id absent ou inconnu "
+                "à partir des colonnes exactes déjà proposées et "
+                "du grain analytique server-owned : "
+                f"dataset_id={selected.dataset_id}"
+                +
+                (
+                    f" à la place de {previous}."
+                    if previous
+                    else
+                    "."
+                )
+            )
+        ],
+    )
+
+
+def canonicalize_analytical_view_intent(
+    *,
+    objective: str,
+    proposal: AIPlannerProposal,
+    catalog: PlannerCatalog,
+) -> tuple[
+    AIPlannerProposal,
+    list[str],
+]:
+    """
+    Promote a server-owned categorical additive analytical view to
+    the canonical aggregation wire shape when the user objective
+    deterministically identifies both its grouping column and its
+    declared target measure.
+
+    This repairs family/role mistakes from a small local model without
+    inventing a dataset, a column or a metric.
+    """
+
+    if (
+        proposal.decision != "propose"
+        or
+        proposal.dataset_id is None
+    ):
+        return proposal, []
+
+
+    dataset = catalog_index(
+        catalog
+    ).get(
+        proposal.dataset_id
+    )
+
+
+    if (
+        dataset is None
+        or
+        not dataset.is_derived
+        or
+        dataset.derivation_type
+        !=
+        "categorical_additive_measure"
+        or
+        dataset.operation
+        !=
+        "groupby_sum"
+        or
+        dataset.aggregation
+        !=
+        "sum"
+        or
+        not dataset.group_column
+        or
+        not dataset.target_measure_column
+    ):
+        return proposal, []
+
+
+    mentions = set(
+        objective_schema_column_mentions(
+            objective=objective,
+            dataset=dataset,
+        )
+    )
+
+
+    required = {
+        dataset.group_column,
+        dataset.target_measure_column,
+    }
+
+
+    if not required.issubset(
+        mentions
+    ):
+        return proposal, []
+
+
+    normalized = proposal.model_copy(
+        update={
+            "family": "aggregation",
+            "analytical_grain": (
+                dataset.analytical_grain
+                or
+                proposal.analytical_grain
+            ),
+            "x_column": None,
+            "y_column": None,
+            "group_column": dataset.group_column,
+            "value_column": dataset.target_measure_column,
+            "time_column": None,
+            "dimension_column": None,
+            "entity_column": None,
+            "aggregation_function": "sum",
+            "ranking_order": "none",
+            "ranking_limit": None,
+            "window_operation": "none",
+            "window_size": None,
+        }
+    )
+
+
+    return (
+        normalized,
+        [
+            (
+                "Python a normalisé la proposition vers la vue "
+                "analytique additive server-owned : "
+                f"family=aggregation, "
+                f"group={dataset.group_column}, "
+                f"value={dataset.target_measure_column}, "
+                f"grain={dataset.analytical_grain}, "
+                "aggregation=sum."
+            )
+        ],
+    )
+
+
+
+# ============================================================
 # DETERMINISTIC DATASET / INTENT ABSTENTION GUARDS
 # ============================================================
 
@@ -3813,7 +6154,7 @@ def compatible_datasets_for_proposal(
 ) -> list[
     PlannerDatasetProfile
 ]:
-    return [
+    compatible = [
         dataset
 
         for dataset
@@ -3828,6 +6169,29 @@ def compatible_datasets_for_proposal(
             ),
         )
     ]
+
+
+    exact_grain = [
+        dataset
+
+        for dataset
+        in compatible
+
+        if dataset_matches_requested_grain(
+            dataset=dataset,
+            proposal=proposal,
+        )
+    ]
+
+
+    # Exact analytical grain is stronger evidence than mere
+    # column compatibility. Fall back only when no catalog
+    # dataset declares the requested grain.
+    return (
+        exact_grain
+        if exact_grain
+        else compatible
+    )
 
 
 def clear_executable_bindings(
@@ -3885,6 +6249,488 @@ def clear_executable_bindings(
             }
         )
     )
+
+
+# ============================================================
+# DETERMINISTIC AGGREGATION / RANKING INTENT NORMALIZATION
+#
+# Python normalizes only explicit analytical cues and only with
+# columns already proposed by the LLM and confirmed by catalog
+# types. It never invents a metric or grouping variable.
+# ============================================================
+
+def explicit_aggregation_from_objective(
+    objective: str,
+) -> WireAggregation:
+    tokens = set(
+        normalized_objective_tokens(
+            objective
+        )
+    )
+
+
+    if tokens & {
+        "moyen", "moyenne", "moyennes", "moyens",
+        "mean", "average", "avg",
+    }:
+        return "mean"
+
+
+    if tokens & {
+        "median", "mediane", "medians", "medianes",
+    }:
+        return "median"
+
+
+    if tokens & {
+        "somme", "sum", "total", "totale", "totaux",
+    }:
+        return "sum"
+
+
+    if tokens & {
+        "minimum", "minimums", "min",
+    }:
+        return "min"
+
+
+    if tokens & {
+        "maximum", "maximums", "max",
+    }:
+        return "max"
+
+
+    return "none"
+
+
+def explicit_ranking_order_from_objective(
+    objective: str,
+) -> WireRankingOrder:
+    normalized = " ".join(
+        normalized_objective_tokens(
+            objective
+        )
+    )
+
+
+    descending_patterns = [
+        r"\bplus (?:eleve|elevee|eleves|elevees)\b",
+        r"\bplus (?:haut|haute|hauts|hautes)\b",
+        r"\bplus (?:grand|grande|grands|grandes)\b",
+        r"\bhighest\b",
+        r"\blargest\b",
+        r"\btop\b",
+        r"\bdecroissant(?:e|es|s)?\b",
+        r"\bdescending\b",
+    ]
+
+
+    ascending_patterns = [
+        r"\bplus (?:faible|faibles)\b",
+        r"\bplus (?:bas|basse|basses)\b",
+        r"\bplus (?:petit|petite|petits|petites)\b",
+        r"\blowest\b",
+        r"\bsmallest\b",
+        r"\bcroissant(?:e|es|s)?\b",
+        r"\bascending\b",
+    ]
+
+
+    for pattern in descending_patterns:
+        if re.search(
+            pattern,
+            normalized,
+        ):
+            return "descending"
+
+
+    for pattern in ascending_patterns:
+        if re.search(
+            pattern,
+            normalized,
+        ):
+            return "ascending"
+
+
+    return "none"
+
+
+def explicit_ranking_limit_from_objective(
+    objective: str,
+    *,
+    ranking_order: WireRankingOrder,
+) -> int | None:
+    if ranking_order == "none":
+        return None
+
+
+    tokens = normalized_objective_tokens(
+        objective
+    )
+
+
+    normalized = " ".join(
+        tokens
+    )
+
+
+    numeric_match = re.search(
+        r"\b(?:top|les|the|premiers?|premieres?)\s+(\d{1,3})\b",
+        normalized,
+    )
+
+
+    if numeric_match is not None:
+        return min(
+            100,
+            max(
+                1,
+                int(
+                    numeric_match.group(
+                        1
+                    )
+                ),
+            ),
+        )
+
+
+    number_words = {
+        "un": 1,
+        "une": 1,
+        "one": 1,
+        "deux": 2,
+        "two": 2,
+        "trois": 3,
+        "three": 3,
+        "quatre": 4,
+        "four": 4,
+        "cinq": 5,
+        "five": 5,
+        "six": 6,
+        "six": 6,
+        "sept": 7,
+        "seven": 7,
+        "huit": 8,
+        "eight": 8,
+        "neuf": 9,
+        "nine": 9,
+        "dix": 10,
+        "ten": 10,
+    }
+
+
+    for index, token in enumerate(
+        tokens
+    ):
+        value = number_words.get(
+            token
+        )
+
+
+        if value is None:
+            continue
+
+
+        local_window = set(
+            tokens[
+                max(0, index - 3):
+                min(len(tokens), index + 4)
+            ]
+        )
+
+
+        if local_window & {
+            "categorie", "categories",
+            "groupe", "groupes",
+            "category", "group", "groups",
+            "top",
+        }:
+            return value
+
+
+    if (
+        "quelle" in tokens
+        or
+        "quel" in tokens
+        or
+        "which" in tokens
+    ):
+        return 1
+
+
+    return 10
+
+
+def canonicalize_aggregation_ranking_intent(
+    *,
+    objective: str,
+    proposal: AIPlannerProposal,
+    catalog: PlannerCatalog,
+) -> tuple[
+    AIPlannerProposal,
+    list[str],
+]:
+    if (
+        proposal.decision != "propose"
+        or
+        proposal.dataset_id is None
+        or
+        proposal.family not in {
+            "group_comparison",
+            "aggregation",
+            "ranking",
+        }
+    ):
+        return proposal, []
+
+
+    dataset = catalog_index(
+        catalog
+    ).get(
+        proposal.dataset_id
+    )
+
+
+    if dataset is None:
+        return proposal, []
+
+
+    normalizations: list[str] = []
+
+
+    explicit_aggregation = (
+        explicit_aggregation_from_objective(
+            objective
+        )
+    )
+
+
+    aggregation_function = (
+        proposal.aggregation_function
+    )
+
+
+    if (
+        explicit_aggregation != "none"
+        and
+        aggregation_function != explicit_aggregation
+    ):
+        aggregation_function = explicit_aggregation
+        normalizations.append(
+            "Python a confirmé l'agrégation explicitement "
+            "demandée dans l'objectif : "
+            f"aggregation={aggregation_function}."
+        )
+
+
+    categorical_candidates: list[str] = []
+
+
+    for candidate_name in [
+        proposal.dimension_column,
+        proposal.group_column,
+        proposal.x_column,
+        proposal.y_column,
+    ]:
+        if not candidate_name:
+            continue
+
+
+        profile = find_column(
+            dataset,
+            candidate_name,
+        )
+
+
+        if (
+            profile is not None
+            and
+            is_categorical(
+                profile.analysis_kind
+            )
+        ):
+            categorical_candidates.append(
+                candidate_name
+            )
+
+
+    categorical_candidates = list(
+        dict.fromkeys(
+            categorical_candidates
+        )
+    )
+
+
+    dimension_column = (
+        categorical_candidates[0]
+        if len(categorical_candidates) == 1
+        else None
+    )
+
+
+    quantitative_candidates: list[str] = []
+
+
+    for candidate_name in [
+        proposal.value_column,
+        proposal.x_column,
+        proposal.y_column,
+        proposal.group_column,
+        proposal.dimension_column,
+    ]:
+        if (
+            not candidate_name
+            or
+            candidate_name == dimension_column
+        ):
+            continue
+
+
+        profile = find_column(
+            dataset,
+            candidate_name,
+        )
+
+
+        if (
+            profile is not None
+            and
+            is_quantitative(
+                profile.analysis_kind
+            )
+        ):
+            quantitative_candidates.append(
+                candidate_name
+            )
+
+
+    quantitative_candidates = list(
+        dict.fromkeys(
+            quantitative_candidates
+        )
+    )
+
+
+    value_column = (
+        proposal.value_column
+        if proposal.value_column in quantitative_candidates
+        else (
+            quantitative_candidates[0]
+            if len(quantitative_candidates) == 1
+            else None
+        )
+    )
+
+
+    ranking_order = (
+        explicit_ranking_order_from_objective(
+            objective
+        )
+    )
+
+
+    ranking_limit = (
+        explicit_ranking_limit_from_objective(
+            objective,
+            ranking_order=ranking_order,
+        )
+    )
+
+
+    if (
+        ranking_order != "none"
+        and
+        aggregation_function != "none"
+        and
+        dimension_column is not None
+        and
+        (
+            value_column is not None
+            or
+            aggregation_function == "count"
+        )
+    ):
+        normalizations.append(
+            "Python a normalisé une intention de classement "
+            "explicitement formulée : "
+            f"dimension={dimension_column}, "
+            f"value={value_column}, "
+            f"aggregation={aggregation_function}, "
+            f"order={ranking_order}, "
+            f"limit={ranking_limit}."
+        )
+
+
+        return (
+            proposal.model_copy(
+                update={
+                    "family": "ranking",
+                    "x_column": None,
+                    "y_column": None,
+                    "group_column": None,
+                    "value_column": value_column,
+                    "time_column": None,
+                    "dimension_column": dimension_column,
+                    "entity_column": None,
+                    "aggregation_function": aggregation_function,
+                    "ranking_order": ranking_order,
+                    "ranking_limit": ranking_limit,
+                    "window_operation": "none",
+                    "window_size": None,
+                }
+            ),
+            normalizations,
+        )
+
+
+    if (
+        explicit_aggregation != "none"
+        and
+        proposal.family in {
+            "group_comparison",
+            "aggregation",
+        }
+        and
+        dimension_column is not None
+        and
+        (
+            value_column is not None
+            or
+            aggregation_function == "count"
+        )
+    ):
+        normalizations.append(
+            "Python a normalisé une demande descriptive "
+            "explicitement agrégée vers `aggregation` : "
+            f"group={dimension_column}, "
+            f"value={value_column}, "
+            f"aggregation={aggregation_function}."
+        )
+
+
+        return (
+            proposal.model_copy(
+                update={
+                    "family": "aggregation",
+                    "x_column": None,
+                    "y_column": None,
+                    "group_column": dimension_column,
+                    "value_column": value_column,
+                    "time_column": None,
+                    "dimension_column": None,
+                    "entity_column": None,
+                    "aggregation_function": aggregation_function,
+                    "ranking_order": "none",
+                    "ranking_limit": None,
+                    "window_operation": "none",
+                    "window_size": None,
+                }
+            ),
+            normalizations,
+        )
+
+
+    return proposal, normalizations
 
 
 def apply_deterministic_abstention_guards(
@@ -3945,6 +6791,55 @@ def apply_deterministic_abstention_guards(
         )
 
 
+        # ----------------------------------------------------
+        # Objective-first categorical associations intentionally
+        # bind to a non-derived source dataset because the
+        # association requires row-level category co-occurrence.
+        #
+        # A derived session/entity view may expose the same two
+        # categorical columns, but it is a different analytical
+        # grain and must not invalidate an already deterministic
+        # source binding. Multiple compatible SOURCE datasets
+        # still remain ambiguous and therefore fail closed.
+        # ----------------------------------------------------
+
+        selected_dataset = (
+            catalog_index(
+                catalog
+            ).get(
+                proposal.dataset_id
+            )
+            if proposal.dataset_id
+            else
+            None
+        )
+
+
+        if (
+            proposal.family
+            ==
+            "categorical_association"
+            and
+            selected_dataset is not None
+            and
+            not selected_dataset.is_derived
+        ):
+            source_compatible = [
+                dataset
+
+                for dataset
+                in compatible
+
+                if not dataset.is_derived
+            ]
+
+
+            if source_compatible:
+                compatible = (
+                    source_compatible
+                )
+
+
         if (
             len(
                 compatible
@@ -3999,8 +6894,11 @@ def apply_deterministic_abstention_guards(
 
     if (
         proposal.family
-        ==
-        "group_comparison"
+        in {
+            "group_comparison",
+            "aggregation",
+            "ranking",
+        }
         and
         proposal.dataset_id
         is not None
@@ -4039,6 +6937,23 @@ def apply_deterministic_abstention_guards(
             }
 
 
+            semantic_metric_columns = {
+                normalize_identifier_for_match(
+                    column_name
+                )
+
+                for column_name
+                in semantic_quantitative_column_mentions(
+                    objective=(
+                        objective
+                    ),
+                    dataset=(
+                        dataset
+                    ),
+                )
+            }
+
+
             selected_value = (
                 normalize_identifier_for_match(
                     proposal.value_column
@@ -4058,9 +6973,28 @@ def apply_deterministic_abstention_guards(
             ]
 
 
-            if (
+            metric_is_literal = (
                 selected_value
-                not in explicit_columns
+                in explicit_columns
+            )
+
+
+            metric_is_semantically_resolved = (
+                len(
+                    semantic_metric_columns
+                )
+                ==
+                1
+                and
+                selected_value
+                in semantic_metric_columns
+            )
+
+
+            if (
+                not metric_is_literal
+                and
+                not metric_is_semantically_resolved
                 and
                 len(
                     quantitative_candidates
@@ -4090,6 +7024,36 @@ def apply_deterministic_abstention_guards(
                             "choisie arbitrairement par le LLM."
                         ),
                         clear_dataset=False,
+                    )
+                )
+
+
+            if (
+                metric_is_semantically_resolved
+                and
+                not metric_is_literal
+            ):
+                semantic_reason = (
+                    "Python a confirmé la métrique proposée "
+                    "par une résolution lexicale déterministe "
+                    "et non ambiguë de l'objectif : "
+                    f"value={proposal.value_column}."
+                )
+
+
+                proposal = (
+                    proposal.model_copy(
+                        update={
+                            "reasons":
+                                list(
+                                    dict.fromkeys(
+                                        [
+                                            *proposal.reasons,
+                                            semantic_reason,
+                                        ]
+                                    )
+                                ),
+                        }
                     )
                 )
 
@@ -4177,6 +7141,118 @@ def validate_ai_proposal(
 
     (
         proposal,
+        categorical_association_objective_normalizations,
+    ) = canonicalize_categorical_association_from_objective(
+        objective=(
+            objective
+        ),
+        proposal=(
+            proposal
+        ),
+        catalog=(
+            catalog
+        ),
+    )
+
+
+    (
+        proposal,
+        monthly_view_normalizations,
+    ) = canonicalize_monthly_analytical_view_intent(
+        objective=(
+            objective
+        ),
+        proposal=(
+            proposal
+        ),
+        catalog=(
+            catalog
+        ),
+    )
+
+
+    (
+        proposal,
+        categorical_view_objective_normalizations,
+    ) = canonicalize_categorical_additive_view_from_objective(
+        objective=(
+            objective
+        ),
+        proposal=(
+            proposal
+        ),
+        catalog=(
+            catalog
+        ),
+    )
+
+
+    (
+        proposal,
+        entity_group_objective_normalizations,
+    ) = canonicalize_entity_measure_group_comparison_from_objective(
+        objective=(
+            objective
+        ),
+        proposal=(
+            proposal
+        ),
+        catalog=(
+            catalog
+        ),
+    )
+
+
+    (
+        proposal,
+        inferred_dataset_normalizations,
+    ) = canonicalize_inferred_dataset_reference(
+        objective=(
+            objective
+        ),
+        proposal=(
+            proposal
+        ),
+        catalog=(
+            catalog
+        ),
+    )
+
+
+    (
+        proposal,
+        semantic_binding_normalizations,
+    ) = canonicalize_explicit_objective_bindings(
+        objective=(
+            objective
+        ),
+        proposal=(
+            proposal
+        ),
+        catalog=(
+            catalog
+        ),
+    )
+
+
+    (
+        proposal,
+        analytical_view_normalizations,
+    ) = canonicalize_analytical_view_intent(
+        objective=(
+            objective
+        ),
+        proposal=(
+            proposal
+        ),
+        catalog=(
+            catalog
+        ),
+    )
+
+
+    (
+        proposal,
         wire_normalizations,
     ) = canonicalize_wire_roles(
         proposal=(
@@ -4188,9 +7264,33 @@ def validate_ai_proposal(
     )
 
 
+    (
+        proposal,
+        intent_normalizations,
+    ) = canonicalize_aggregation_ranking_intent(
+        objective=(
+            objective
+        ),
+        proposal=(
+            proposal
+        ),
+        catalog=(
+            catalog
+        ),
+    )
+
+
     normalizations = [
         *dataset_normalizations,
+        *categorical_association_objective_normalizations,
+        *monthly_view_normalizations,
+        *categorical_view_objective_normalizations,
+        *entity_group_objective_normalizations,
+        *inferred_dataset_normalizations,
+        *semantic_binding_normalizations,
+        *analytical_view_normalizations,
         *wire_normalizations,
+        *intent_normalizations,
     ]
 
 
@@ -5187,7 +8287,12 @@ def _generate_raw_ai_plan_with_timing(
 
 
     try:
-        response = client.chat(
+        response = classified_llm_chat(
+            client,
+            payload_class=(
+                LLMPayloadClass
+                .METADATA_ONLY
+            ),
             model=(
                 model
             ),

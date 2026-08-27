@@ -18,6 +18,11 @@ from app.ai.provider import (
     client,
 )
 
+from app.security.llm_payload import (
+    LLMPayloadClass,
+    classified_llm_chat,
+)
+
 from app.rag import (
     DocumentChunk,
     DocumentIngestionReport,
@@ -33,7 +38,7 @@ from app.rag_relevance import (
 # ============================================================
 
 DOCUMENT_SUMMARY_RULE_VERSION = (
-    "document_summary_v0.4"
+    "document_summary_v0.5"
 )
 
 
@@ -725,6 +730,130 @@ def is_list_terminator(
 # EVIDENCE EXTRACTION
 # ============================================================
 
+# ============================================================
+# COUNTED LIST SCOPE
+# ============================================================
+
+COUNTED_LIST_NOUNS = {
+    "analyse",
+    "analyses",
+    "correlation",
+    "correlations",
+    "graphique",
+    "graphiques",
+    "indicateur",
+    "indicateurs",
+    "relation",
+    "relations",
+    "comparaison",
+    "comparaisons",
+    "test",
+    "tests",
+    "mesure",
+    "mesures",
+    "point",
+    "points",
+    "question",
+    "questions",
+    "demande",
+    "demandes",
+    "variable",
+    "variables",
+    "element",
+    "elements",
+}
+
+
+def declared_list_item_count(
+    value: str,
+) -> (
+    int
+    | None
+):
+    """
+    Return an explicitly declared number of list items.
+
+    Examples:
+
+        "5 corr?lations :" -> 5
+        "3 analyses :"     -> 3
+
+    The count is accepted only when:
+
+    - the text is already structurally recognized as a
+      list parent;
+    - the integer is associated with a known analytical /
+      list noun;
+    - the value remains within a conservative range.
+
+    This prevents unrelated numbers such as years from
+    accidentally defining list scope.
+    """
+
+    if not looks_like_list_parent(
+        value
+    ):
+        return None
+
+
+    normalized = (
+        normalize_for_matching(
+            value
+        )
+    )
+
+
+    matches = re.finditer(
+        r"\b(\d{1,3})\s+([a-z]+)\b",
+        normalized,
+    )
+
+
+    for match in matches:
+        count = int(
+            match.group(
+                1
+            )
+        )
+
+
+        noun = (
+            match.group(
+                2
+            )
+        )
+
+
+        if (
+            noun
+            not in
+            COUNTED_LIST_NOUNS
+        ):
+            continue
+
+
+        if (
+            count
+            <
+            1
+            or
+            count
+            >
+            100
+        ):
+            continue
+
+
+        return count
+
+
+    return None
+
+
+# ============================================================
+# EVIDENCE EXTRACTION
+# ============================================================
+
 def evidence_units_for_chunk(
     chunk: DocumentChunk,
 ) -> list[
@@ -788,6 +917,17 @@ def evidence_units_for_chunk(
     ) = None
 
 
+    active_parent_expected_count: (
+        int
+        | None
+    ) = None
+
+
+    active_parent_consumed_count = (
+        0
+    )
+
+
     for (
         evidence_unit_id,
         normalized_unit,
@@ -799,6 +939,10 @@ def evidence_units_for_chunk(
         )
 
 
+        # ----------------------------------------------------
+        # NEW LIST PARENT
+        # ----------------------------------------------------
+
         if current_is_parent:
             active_parent_text = (
                 normalized_unit
@@ -806,6 +950,16 @@ def evidence_units_for_chunk(
 
             active_parent_id = (
                 evidence_unit_id
+            )
+
+            active_parent_expected_count = (
+                declared_list_item_count(
+                    normalized_unit
+                )
+            )
+
+            active_parent_consumed_count = (
+                0
             )
 
 
@@ -843,8 +997,13 @@ def evidence_units_for_chunk(
                 )
             )
 
+
             continue
 
+
+        # ----------------------------------------------------
+        # NORMAL UNIT
+        # ----------------------------------------------------
 
         output.append(
             DocumentEvidenceUnit(
@@ -883,10 +1042,24 @@ def evidence_units_for_chunk(
 
         if (
             active_parent_text
-            and
-            is_list_terminator(
-                normalized_unit
-            )
+            is None
+        ):
+            continue
+
+
+        # ----------------------------------------------------
+        # EXPLICIT TERMINATOR
+        #
+        # Existing behaviour:
+        #
+        #   ? ...
+        #   ? ...
+        #   ? etc.
+        #
+        # ----------------------------------------------------
+
+        if is_list_terminator(
+            normalized_unit
         ):
             active_parent_text = (
                 None
@@ -895,6 +1068,60 @@ def evidence_units_for_chunk(
             active_parent_id = (
                 None
             )
+
+            active_parent_expected_count = (
+                None
+            )
+
+            active_parent_consumed_count = (
+                0
+            )
+
+
+            continue
+
+
+        # ----------------------------------------------------
+        # DECLARED ITEM COUNT
+        #
+        # Example:
+        #
+        #   "5 corr?lations :"
+        #
+        # After exactly five child units, the parent context
+        # expires before the next evidence unit.
+        #
+        # ----------------------------------------------------
+
+        if (
+            active_parent_expected_count
+            is not None
+        ):
+            active_parent_consumed_count += (
+                1
+            )
+
+
+            if (
+                active_parent_consumed_count
+                >=
+                active_parent_expected_count
+            ):
+                active_parent_text = (
+                    None
+                )
+
+                active_parent_id = (
+                    None
+                )
+
+                active_parent_expected_count = (
+                    None
+                )
+
+                active_parent_consumed_count = (
+                    0
+                )
 
 
     return output
@@ -1505,7 +1732,12 @@ def generate_raw_batch_extraction(
     model: str,
 ) -> RawDocumentBatchExtraction:
     response = (
-        client.chat(
+        classified_llm_chat(
+            client,
+            payload_class=(
+                LLMPayloadClass
+                .DOCUMENT_CONTENT
+            ),
             model=
                 model,
 

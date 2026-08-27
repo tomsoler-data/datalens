@@ -1,0 +1,42 @@
+# DataLens Registry Runtime
+# Contract version: datalens_registry_runtime_v0.1
+
+services:
+
+  api:
+    image: "${DATALENS_API_IMAGE:-ghcr.io/tomsoler-data/datalens-api:integration}"
+
+    pull_policy: always
+
+    ports:
+      - "127.0.0.1:8000:8000"
+
+    volumes:
+      - datalens-api-var:/app/var
+
+    environment:
+      DATALENS_LLM_DOCKER_BRIDGE_ENABLED: "1"
+      DATALENS_OLLAMA_HOST: "http://host.docker.internal:11434"
+
+    init: true
+
+
+  web:
+    image: "${DATALENS_WEB_IMAGE:-ghcr.io/tomsoler-data/datalens-web:integration}"
+
+    pull_policy: always
+
+    ports:
+      - "127.0.0.1:3000:3000"
+
+    depends_on:
+      api:
+        condition: service_healthy
+
+    init: true
+
+
+volumes:
+
+  datalens-api-var:
+    name: datalens-api-var-v0-1

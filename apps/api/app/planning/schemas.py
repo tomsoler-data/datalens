@@ -211,6 +211,43 @@ class RequestedColumnMatch(
     )
 
 
+class RequestedAnalysisResolution(
+    BaseModel
+):
+    resolution_type: Literal[
+        "ranking_metric",
+        "time_series_parameters",
+    ] = "ranking_metric"
+
+    ranking_metric: (
+        Literal[
+            "revenue",
+            "units",
+            "transaction_count",
+        ]
+        | None
+    ) = None
+
+    time_granularity: (
+        Literal[
+            "day",
+            "week",
+            "month",
+            "quarter",
+            "year",
+        ]
+        | None
+    ) = None
+
+    moving_average_window: (
+        int
+        | None
+    ) = Field(
+        default=None,
+        ge=1,
+    )
+
+
 class RequestedAnalysisPlan(
     BaseModel
 ):
@@ -241,6 +278,11 @@ class RequestedAnalysisPlan(
     kind: RequestedAnalysisKind
 
     status: RequestPlanningStatus
+
+    resolution: (
+        RequestedAnalysisResolution
+        | None
+    ) = None
 
     target_family: (
         str

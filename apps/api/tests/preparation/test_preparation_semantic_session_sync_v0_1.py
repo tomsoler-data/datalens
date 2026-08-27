@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from io import StringIO
+
+import pandas as pd
+
 from fastapi import (
     FastAPI,
 )
@@ -14,6 +18,11 @@ import app.api.preparation_semantic as semantic_api
 
 from app.preparation.data_quality import (
     QualityIssueKind,
+)
+
+from app.preparation.preparation_artifact_store import (
+    put_preparation_artifact,
+    reset_preparation_artifact_store_for_tests,
 )
 
 from app.preparation.preparation_session import (
@@ -64,6 +73,81 @@ CSV_WITH_DUPLICATE = (
     "Standard,20\n"
     "Premium,30\n"
 )
+
+
+def fixture_dataframe() -> pd.DataFrame:
+    return (
+        pd.read_csv(
+            StringIO(
+                CSV_WITH_DUPLICATE
+            )
+        )
+    )
+
+
+# ============================================================
+# SERVER-OWNED ARTIFACT HELPERS
+# ============================================================
+
+
+def put_session_artifact(
+    *,
+    workflow_id: str,
+    dataset_id: str,
+    dataset_filename: str,
+    cleaning_executed: bool,
+) -> None:
+    """
+    Materialize the dataset exactly where the semantic API now
+    expects to find it: the server-owned Preparation Artifact
+    Store.
+
+    The dataframe intentionally retains the duplicate row.
+
+    This is useful for the precondition test because the
+    deterministic cleaning plan continues to contain an
+    executable action. Therefore:
+
+    - with cleaning_execution evidence -> semantic review may
+      proceed;
+    - without cleaning_execution evidence -> semantic review
+      must return 409.
+
+    The semantic API must not reconstruct this state from the
+    browser-uploaded multipart file.
+    """
+
+    put_preparation_artifact(
+        workflow_id=
+            workflow_id,
+
+        dataset_id=
+            dataset_id,
+
+        dataset_filename=
+            dataset_filename,
+
+        stage=(
+            "clean"
+            if cleaning_executed
+            else
+            "source"
+        ),
+
+        dataframe=
+            fixture_dataframe(),
+
+        evidence_refs=(
+            [
+                "cleaning_execution:cleaning_engine_test"
+            ]
+            if cleaning_executed
+            else
+            [
+                "csv_ingestion"
+            ]
+        ),
+    )
 
 
 # ============================================================
@@ -167,6 +251,157 @@ def create_session(
                 "semantic review."
             )
         ],
+    )
+
+
+    # ========================================================
+    # SERVER-OWNED MATERIALIZATION
+    # ========================================================
+    #
+    # Previous versions of this test stopped at the
+    # PreparationSession.
+    #
+    # Semantic Review is now server-owned and therefore also
+    # requires the exact materialized Preparation artifact.
+    # ========================================================
+
+    put_session_artifact(
+        workflow_id=
+            session.workflow_id,
+
+        dataset_id=
+            "dataset:0001",
+
+        dataset_filename=
+            "orders.csv",
+
+        cleaning_executed=
+            cleaning_executed,
+    )
+
+
+    return (
+        get_preparation_session(
+            session.workflow_id
+        )
+    )
+
+
+def create_two_dataset_session():
+    dataset_ids = [
+        "dataset:0001",
+        "dataset:0002",
+    ]
+
+
+    session = (
+        create_preparation_session(
+            selected_analysis_dataset_ids=
+                dataset_ids
+        )
+    )
+
+
+    for stage, evidence in [
+        (
+            PreparationStage.IMPORT,
+            "csv_ingestion",
+        ),
+
+        (
+            PreparationStage.UNDERSTAND,
+            "dataset_profile",
+        ),
+
+        (
+            PreparationStage.QUALITY,
+            "data_quality_engine",
+        ),
+    ]:
+        record_required_stage_signal(
+            workflow_id=
+                session.workflow_id,
+
+            stage=
+                stage,
+
+            completed=
+                True,
+
+            dataset_ids=
+                dataset_ids,
+
+            evidence_refs=[
+                evidence
+            ],
+
+            blocking_reasons=[],
+        )
+
+
+    record_optional_stage_signal(
+        workflow_id=
+            session.workflow_id,
+
+        stage=
+            PreparationStage.CLEAN,
+
+        required=
+            True,
+
+        completed=
+            False,
+
+        review_required=
+            True,
+
+        blocked=
+            False,
+
+        dataset_ids=
+            dataset_ids,
+
+        evidence_refs=[
+            "cleaning_plan:cleaning_engine_test",
+            "cleaning_execution:cleaning_engine_test",
+        ],
+
+        blocking_reasons=[
+            (
+                "Protected issues require "
+                "semantic review."
+            )
+        ],
+    )
+
+
+    put_session_artifact(
+        workflow_id=
+            session.workflow_id,
+
+        dataset_id=
+            "dataset:0001",
+
+        dataset_filename=
+            "orders.csv",
+
+        cleaning_executed=
+            True,
+    )
+
+
+    put_session_artifact(
+        workflow_id=
+            session.workflow_id,
+
+        dataset_id=
+            "dataset:0002",
+
+        dataset_filename=
+            "customers.csv",
+
+        cleaning_executed=
+            True,
     )
 
 
@@ -558,49 +793,107 @@ def test_unknown_session_returns_404():
 
 
 # ============================================================
-# DATASET SCOPE
+# SERVER-OWNED DATASET SCOPE
 # ============================================================
 
 
-def test_dataset_scope_mismatch_returns_409():
+def test_dataset_scope_is_server_owned():
+    """
+    Browser multipart files no longer define the semantic
+    dataset scope.
+
+    The PreparationSession selects two datasets and the
+    Preparation Artifact Store owns both DataFrames.
+
+    We deliberately send only one bogus browser file.
+
+    Semantic Review must still receive both server-owned
+    datasets.
+    """
+
     session = (
-        create_preparation_session(
-            selected_analysis_dataset_ids=[
-                "dataset:0001",
-                "dataset:0002",
-            ]
-        )
+        create_two_dataset_session()
     )
 
 
-    response = (
-        client.post(
-            "/preparation/semantic-review",
+    observed_dataset_ids: set[
+        str
+    ] = set()
 
-            data={
-                "workflow_id":
-                    session.workflow_id,
 
-                "model":
-                    "test-model",
-            },
+    original = (
+        semantic_api
+        .review_quality_semantics
+    )
 
-            files=[
-                (
-                    "dataset_files",
+
+    def fake_scope_review(
+        *,
+        quality_report,
+        dataset_frames,
+        model,
+    ) -> SemanticReviewReport:
+        del quality_report
+        del model
+
+
+        observed_dataset_ids.update(
+            dataset_frames.keys()
+        )
+
+
+        return (
+            fake_semantic_review()
+        )
+
+
+    semantic_api.review_quality_semantics = (
+        fake_scope_review
+    )
+
+
+    try:
+        response = (
+            client.post(
+                "/preparation/semantic-review",
+
+                data={
+                    "workflow_id":
+                        session.workflow_id,
+
+                    "model":
+                        "test-model",
+                },
+
+                # Intentionally does NOT correspond to the
+                # server-owned Preparation scope.
+                #
+                # The bytes must not become analytical input.
+                files=[
                     (
-                        "orders.csv",
-                        CSV_WITH_DUPLICATE,
-                        "text/csv",
-                    ),
-                )
-            ],
+                        "dataset_files",
+                        (
+                            "tampered-browser-copy.csv",
+                            (
+                                "this,is,not,the,"
+                                "server,owned,data\n"
+                            ),
+                            "text/csv",
+                        ),
+                    )
+                ],
+            )
         )
-    )
+
+
+    finally:
+        semantic_api.review_quality_semantics = (
+            original
+        )
 
 
     print(
-        "\n=== DATASET SCOPE MISMATCH ==="
+        "\n=== SERVER-OWNED DATASET SCOPE ==="
     )
 
     print(
@@ -608,27 +901,28 @@ def test_dataset_scope_mismatch_returns_409():
         f"{response.status_code}"
     )
 
+    print(
+        (
+            "Semantic dataset ids: "
+            f"{sorted(observed_dataset_ids)}"
+        )
+    )
+
 
     assert (
         response.status_code
         ==
-        409
-    )
-
-
-    body = (
-        response.json()
+        200
     )
 
 
     assert (
-        body[
-            "detail"
-        ][
-            "error"
-        ]
+        observed_dataset_ids
         ==
-        "preparation_dataset_scope_mismatch"
+        {
+            "dataset:0001",
+            "dataset:0002",
+        }
     )
 
 
@@ -719,6 +1013,8 @@ def test_workflow_id_required():
 def main():
     reset_preparation_session_store_for_tests()
 
+    reset_preparation_artifact_store_for_tests()
+
 
     print(
         "\n========================================"
@@ -742,7 +1038,7 @@ def main():
 
     test_unknown_session_returns_404()
 
-    test_dataset_scope_mismatch_returns_409()
+    test_dataset_scope_is_server_owned()
 
     test_workflow_id_required()
 

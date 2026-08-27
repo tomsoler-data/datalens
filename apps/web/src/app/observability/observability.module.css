@@ -161,9 +161,11 @@
 
   align-self: start;
 
+  min-width: 0;
   height: calc(100vh - 72px);
   padding: 24px 18px;
 
+  overflow-x: hidden;
   overflow-y: auto;
 
   border-right: 1px solid rgba(255, 255, 255, 0.075);
@@ -231,12 +233,18 @@
   display: grid;
   gap: 8px;
 
+  min-width: 0;
   margin-top: 14px;
 }
 
 .traceCard {
+  box-sizing: border-box;
+
   width: 100%;
+  min-width: 0;
   padding: 13px;
+
+  overflow: hidden;
 
   border: 1px solid rgba(255, 255, 255, 0.065);
   border-radius: 12px;
@@ -367,6 +375,8 @@
   align-items: center;
   gap: 7px;
 
+  min-width: 0;
+  max-width: 100%;
   min-height: 30px;
   padding: 0 9px;
 
@@ -383,7 +393,13 @@
 }
 
 .metaBadge strong {
+  min-width: 0;
+  overflow: hidden;
+
   color: rgba(233, 240, 251, 0.76);
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .statusBadge {
@@ -1460,3 +1476,88 @@
   }
 }
 
+
+
+/* =========================================================
+   OBSERVABILITY LIFECYCLE · V0.4
+========================================================= */
+
+.failureStagePanel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+
+  padding: 13px 14px;
+
+  border: 1px solid rgba(232, 130, 130, 0.12);
+  border-radius: 11px;
+
+  background: rgba(183, 80, 80, 0.045);
+}
+
+.failureStagePanel > div:first-child {
+  display: grid;
+  gap: 5px;
+}
+
+.failureStagePanel strong {
+  font-size: 0.74rem;
+}
+
+.failureStageTags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.failureStageTags span {
+  padding: 5px 8px;
+
+  border: 1px solid rgba(232, 130, 130, 0.14);
+  border-radius: 999px;
+
+  color: rgba(239, 181, 181, 0.82);
+  background: rgba(183, 80, 80, 0.055);
+
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    monospace;
+
+  font-size: 0.61rem;
+}
+
+.failurePanel {
+  border-color: rgba(232, 130, 130, 0.16);
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(183, 80, 80, 0.065),
+      rgba(255, 255, 255, 0.018)
+    );
+}
+
+.failureMessage {
+  margin: 14px 0 0;
+
+  color: rgba(239, 196, 196, 0.78);
+
+  font-size: 0.72rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 760px) {
+  .failureStagePanel {
+    display: grid;
+  }
+
+  .failureStageTags {
+    justify-content: flex-start;
+  }
+}
