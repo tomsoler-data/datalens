@@ -15,6 +15,7 @@ on:
       - "apps/api/**"
       - "apps/web/**"
       - "compose.yaml"
+      - "compose.registry.yaml"
       - ".github/workflows/datalens-runtime.yml"
       - ".github/workflows/datalens-publish.yml"
 
@@ -28,6 +29,7 @@ on:
       - "apps/api/**"
       - "apps/web/**"
       - "compose.yaml"
+      - "compose.registry.yaml"
       - ".github/workflows/datalens-runtime.yml"
       - ".github/workflows/datalens-publish.yml"
 
@@ -145,6 +147,7 @@ jobs:
 
           python -m tests.ci.test_ci_runtime_workflow_v0_1
           python -m tests.ci.test_ci_publish_workflow_v0_1
+          python -m tests.ci.test_ci_registry_runtime_v0_1
 
 
       # ------------------------------------------------------
@@ -225,6 +228,11 @@ jobs:
 
           docker compose \
             -f ./compose.yaml \
+            config \
+            --quiet
+
+          docker compose \
+            -f ./compose.registry.yaml \
             config \
             --quiet
 
@@ -687,3 +695,604 @@ jobs:
       packages: write
 
     uses: ./.github/workflows/datalens-publish.yml
+
+  # ==========================================================
+  # PUBLISHED REGISTRY RUNTIME VERIFICATION
+  #
+  # Runs only after GHCR publication succeeds.
+  # Uses immutable sha-<commit> image tags.
+  # Hosted CI validates configuration only for Ollama:
+  # no real local model is required.
+  # ==========================================================
+
+  verify-published-images:
+
+    name: Verify Published Registry Runtime
+
+    needs:
+      - publish-images
+
+    if: >-
+      github.event_name == 'push' &&
+      (
+        github.ref == 'refs/heads/main' ||
+        github.ref == 'refs/heads/chore/organize-artifact-store-wiring'
+      )
+
+    permissions:
+      contents: read
+      packages: read
+
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 25
+
+    env:
+      COMPOSE_PROJECT_NAME: datalens-registry-ci
+
+
+    steps:
+
+      # ------------------------------------------------------
+      # REPOSITORY
+      # ------------------------------------------------------
+
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+
+      # ------------------------------------------------------
+      # GHCR AUTH
+      # ------------------------------------------------------
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+
+      # ------------------------------------------------------
+      # IMMUTABLE IMAGE REFERENCES
+      # ------------------------------------------------------
+
+      - name: Resolve immutable Registry Runtime images
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          short_sha="${GITHUB_SHA::12}"
+
+          {
+            echo \
+              "DATALENS_API_IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER}/datalens-api:sha-${short_sha}"
+
+            echo \
+              "DATALENS_WEB_IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER}/datalens-web:sha-${short_sha}"
+          } >> "${GITHUB_ENV}"
+
+          echo "SHA=${short_sha}"
+
+
+      # ------------------------------------------------------
+      # STATIC COMPOSE
+      # ------------------------------------------------------
+
+      - name: Validate Registry Runtime Compose
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          rendered="$(
+            docker compose \
+              -f ./compose.registry.yaml \
+              config
+          )"
+
+          printf '%s\n' "${rendered}"
+
+          if grep -Eq '^[[:space:]]*build:' <<< "${rendered}"
+          then
+            echo \
+              "::error::Registry Runtime must not contain local builds."
+
+            exit 1
+          fi
+
+          docker compose \
+            -f ./compose.registry.yaml \
+            config \
+            --quiet
+
+
+      # ------------------------------------------------------
+      # PULL EXACT PUBLISHED ARTIFACTS
+      # ------------------------------------------------------
+
+      - name: Pull published Registry Runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          docker compose \
+            -f ./compose.registry.yaml \
+            pull
+
+
+      # ------------------------------------------------------
+      # START WITHOUT BUILD
+      # ------------------------------------------------------
+
+      - name: Start published Registry Runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          docker compose \
+            -f ./compose.registry.yaml \
+            up \
+            --detach \
+            --no-build
+
+
+      # ------------------------------------------------------
+      # HEALTH
+      # ------------------------------------------------------
+
+      - name: Wait for published runtime health
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          wait_for_registry_healthy() {
+            local service="$1"
+
+            for attempt in $(seq 1 30)
+            do
+              container_id="$(
+                docker compose \
+                  -f ./compose.registry.yaml \
+                  ps \
+                  --quiet \
+                  "${service}"
+              )"
+
+              health=""
+
+              if [[ -n "${container_id}" ]]
+              then
+                health="$(
+                  docker inspect \
+                    --format '{{.State.Health.Status}}' \
+                    "${container_id}" \
+                    2>/dev/null \
+                    || true
+                )"
+              fi
+
+              echo \
+                "Attempt ${attempt}: ${service}=${health}"
+
+              if [[ "${health}" == "healthy" ]]
+              then
+                return 0
+              fi
+
+              sleep 2
+            done
+
+            docker compose \
+              -f ./compose.registry.yaml \
+              logs \
+              --no-color \
+              --tail 200
+
+            return 1
+          }
+
+          wait_for_registry_healthy api
+          wait_for_registry_healthy web
+
+
+      # ------------------------------------------------------
+      # EXACT IMAGE REFERENCES
+      # ------------------------------------------------------
+
+      - name: Validate immutable running images
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          api_container="$(
+            docker compose \
+              -f ./compose.registry.yaml \
+              ps \
+              --quiet \
+              api
+          )"
+
+          web_container="$(
+            docker compose \
+              -f ./compose.registry.yaml \
+              ps \
+              --quiet \
+              web
+          )"
+
+          api_image="$(
+            docker inspect \
+              --format '{{.Config.Image}}' \
+              "${api_container}"
+          )"
+
+          web_image="$(
+            docker inspect \
+              --format '{{.Config.Image}}' \
+              "${web_container}"
+          )"
+
+          echo "API=${api_image}"
+          echo "WEB=${web_image}"
+
+          test \
+            "${api_image}" \
+            = \
+            "${DATALENS_API_IMAGE}"
+
+          test \
+            "${web_image}" \
+            = \
+            "${DATALENS_WEB_IMAGE}"
+
+          echo \
+            "[PASS] Containers use immutable GHCR artifacts."
+
+
+      # ------------------------------------------------------
+      # HTTP CONTRACTS
+      # ------------------------------------------------------
+
+      - name: Validate published HTTP contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            http://127.0.0.1:3000 \
+            > /dev/null
+
+          api_health="$(
+            curl \
+              --fail \
+              --silent \
+              --show-error \
+              http://127.0.0.1:8000/health
+          )"
+
+          python - "${api_health}" <<'PY'
+          import json
+          import sys
+
+          payload = json.loads(
+              sys.argv[1]
+          )
+
+          assert payload == {
+              "status": "ok",
+              "service": "datalens-api",
+          }
+
+          print(
+              "[PASS] Published API health contract."
+          )
+          PY
+
+          echo \
+            "[PASS] Published frontend HTTP contract."
+
+
+      # ------------------------------------------------------
+      # NON-ROOT
+      # ------------------------------------------------------
+
+      - name: Validate published non-root runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          api_uid="$(
+            docker compose \
+              -f ./compose.registry.yaml \
+              exec \
+              -T \
+              api \
+              id -u
+          )"
+
+          api_gid="$(
+            docker compose \
+              -f ./compose.registry.yaml \
+              exec \
+              -T \
+              api \
+              id -g
+          )"
+
+          web_uid="$(
+            docker compose \
+              -f ./compose.registry.yaml \
+              exec \
+              -T \
+              web \
+              id -u
+          )"
+
+          web_gid="$(
+            docker compose \
+              -f ./compose.registry.yaml \
+              exec \
+              -T \
+              web \
+              id -g
+          )"
+
+          echo "API=${api_uid}/${api_gid}"
+          echo "WEB=${web_uid}/${web_gid}"
+
+          test "${api_uid}" = "10001"
+          test "${api_gid}" = "10001"
+          test "${web_uid}" = "10001"
+          test "${web_gid}" = "10001"
+
+          echo \
+            "[PASS] Published runtime remains non-root."
+
+
+      # ------------------------------------------------------
+      # OLLAMA HOSTED-CI BOUNDARY
+      #
+      # Configuration is validated.
+      # No real host Ollama process/model exists in hosted CI.
+      # ------------------------------------------------------
+
+      - name: Validate published Ollama bridge configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          bridge_enabled="$(
+            docker compose \
+              -f ./compose.registry.yaml \
+              exec \
+              -T \
+              api \
+              printenv \
+              DATALENS_LLM_DOCKER_BRIDGE_ENABLED
+          )"
+
+          ollama_host="$(
+            docker compose \
+              -f ./compose.registry.yaml \
+              exec \
+              -T \
+              api \
+              printenv \
+              DATALENS_OLLAMA_HOST
+          )"
+
+          echo "Bridge=${bridge_enabled}"
+          echo "Host=${ollama_host}"
+
+          test "${bridge_enabled}" = "1"
+
+          test \
+            "${ollama_host}" \
+            = \
+            "http://host.docker.internal:11434"
+
+          echo \
+            "[PASS] Published Ollama bridge configuration exact."
+
+
+      # ------------------------------------------------------
+      # PERSISTENCE
+      # ------------------------------------------------------
+
+      - name: Validate published runtime persistence
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sentinel_path="/app/var/ci-registry-persistence-sentinel.txt"
+
+          docker compose \
+            -f ./compose.registry.yaml \
+            exec \
+            -T \
+            api \
+            python -c \
+            "from pathlib import Path; Path('${sentinel_path}').write_text('DATALENS_REGISTRY_CI_V0_1\n', encoding='utf-8')"
+
+          registry_before_hash="$(
+            docker compose \
+              -f ./compose.registry.yaml \
+              exec \
+              -T \
+              api \
+              python -c \
+              "from pathlib import Path; import hashlib; print(hashlib.sha256(Path('${sentinel_path}').read_bytes()).hexdigest())"
+          )"
+
+          echo "Before=${registry_before_hash}"
+
+          docker compose \
+            -f ./compose.registry.yaml \
+            down
+
+          docker volume inspect \
+            datalens-api-var-v0-1 \
+            > /dev/null
+
+          docker compose \
+            -f ./compose.registry.yaml \
+            up \
+            --detach \
+            --no-build
+
+          wait_for_registry_healthy() {
+            local service="$1"
+
+            for attempt in $(seq 1 30)
+            do
+              container_id="$(
+                docker compose \
+                  -f ./compose.registry.yaml \
+                  ps \
+                  --quiet \
+                  "${service}"
+              )"
+
+              health=""
+
+              if [[ -n "${container_id}" ]]
+              then
+                health="$(
+                  docker inspect \
+                    --format '{{.State.Health.Status}}' \
+                    "${container_id}" \
+                    2>/dev/null \
+                    || true
+                )"
+              fi
+
+              echo \
+                "Attempt ${attempt}: ${service}=${health}"
+
+              if [[ "${health}" == "healthy" ]]
+              then
+                return 0
+              fi
+
+              sleep 2
+            done
+
+            return 1
+          }
+
+          wait_for_registry_healthy api
+          wait_for_registry_healthy web
+
+          registry_after_hash="$(
+            docker compose \
+              -f ./compose.registry.yaml \
+              exec \
+              -T \
+              api \
+              python -c \
+              "from pathlib import Path; import hashlib; print(hashlib.sha256(Path('${sentinel_path}').read_bytes()).hexdigest())"
+          )"
+
+          echo "After=${registry_after_hash}"
+
+          test \
+            "${registry_before_hash}" \
+            = \
+            "${registry_after_hash}"
+
+          persisted_content="$(
+            docker compose \
+              -f ./compose.registry.yaml \
+              exec \
+              -T \
+              api \
+              python -c \
+              "from pathlib import Path; print(Path('${sentinel_path}').read_text(encoding='utf-8').strip())"
+          )"
+
+          test \
+            "${persisted_content}" \
+            = \
+            "DATALENS_REGISTRY_CI_V0_1"
+
+          docker compose \
+            -f ./compose.registry.yaml \
+            exec \
+            -T \
+            api \
+            python -c \
+            "from pathlib import Path; Path('${sentinel_path}').unlink(missing_ok=True)"
+
+          echo \
+            "[PASS] Published registry state survived down/up."
+
+
+      # ------------------------------------------------------
+      # FINAL STATE
+      # ------------------------------------------------------
+
+      - name: Validate final published runtime state
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          docker compose \
+            -f ./compose.registry.yaml \
+            ps
+
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            http://127.0.0.1:3000 \
+            > /dev/null
+
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            http://127.0.0.1:8000/health \
+            > /dev/null
+
+          echo \
+            "[PASS] Published Registry Runtime healthy."
+
+
+      # ------------------------------------------------------
+      # FAILURE DIAGNOSTICS
+      # ------------------------------------------------------
+
+      - name: Show published runtime diagnostics on failure
+        if: ${{ failure() }}
+        shell: bash
+        run: |
+          docker compose \
+            -f ./compose.registry.yaml \
+            ps \
+            || true
+
+          docker compose \
+            -f ./compose.registry.yaml \
+            logs \
+            --no-color \
+            --tail 250 \
+            || true
+
+
+      # ------------------------------------------------------
+      # CLEANUP
+      # ------------------------------------------------------
+
+      - name: Clean published Registry Runtime
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          docker compose \
+            -f ./compose.registry.yaml \
+            down \
+            --volumes \
+            --remove-orphans \
+            || true
