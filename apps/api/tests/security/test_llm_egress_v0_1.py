@@ -184,9 +184,9 @@ def test_remote_request_never_reaches_urlopen(
 
 
     with patch.object(
-        llm_egress_module,
-        "urlopen",
-    ) as mocked_urlopen:
+        llm_egress_module._LOCAL_LLM_OPENER,
+        "open",
+    ) as mocked_transport:
         captured = None
 
         try:
@@ -218,7 +218,7 @@ def test_remote_request_never_reaches_urlopen(
             ),
         )
 
-        mocked_urlopen.assert_not_called()
+        mocked_transport.assert_not_called()
 
 
 # ============================================================
@@ -238,10 +238,10 @@ def test_local_request_reaches_urlopen(
 
 
     with patch.object(
-        llm_egress_module,
-        "urlopen",
+        llm_egress_module._LOCAL_LLM_OPENER,
+        "open",
         return_value=sentinel,
-    ) as mocked_urlopen:
+    ) as mocked_transport:
         result = (
             llm_egress_module
             .open_local_llm_request(
@@ -261,7 +261,7 @@ def test_local_request_reaches_urlopen(
         "Local request did not reach transport.",
     )
 
-    mocked_urlopen.assert_called_once_with(
+    mocked_transport.assert_called_once_with(
         request,
         timeout=2.5,
     )

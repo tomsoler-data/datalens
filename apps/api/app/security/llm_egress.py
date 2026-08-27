@@ -14,8 +14,10 @@ from urllib.parse import (
 )
 
 from urllib.request import (
+    HTTPRedirectHandler,
+    ProxyHandler,
     Request,
-    urlopen,
+    build_opener,
 )
 
 from app.security.llm_payload import (
@@ -46,6 +48,61 @@ class LocalLLMEgressError(
     Raised when an LLM destination would leave the local
     machine or violates the local-only URL contract.
     """
+
+
+# ============================================================
+# FAIL-CLOSED LOCAL TRANSPORT
+# ============================================================
+
+
+class _RejectLLMRedirectHandler(
+    HTTPRedirectHandler
+):
+    """
+    Reject every HTTP redirect before urllib can perform
+    a second network request.
+
+    Even loopback-to-loopback redirects are forbidden.
+    DataLens model-service URLs must be direct.
+    """
+
+    def redirect_request(
+        self,
+        req,
+        fp,
+        code,
+        msg,
+        headers,
+        newurl,
+    ):
+        del (
+            req,
+            fp,
+            code,
+            msg,
+            headers,
+            newurl,
+        )
+
+        raise LocalLLMEgressError(
+            (
+                "LLM egress redirects "
+                "are forbidden."
+            )
+        )
+
+
+_LOCAL_LLM_OPENER = (
+    build_opener(
+        # Never inherit HTTP(S)_PROXY or related
+        # environment configuration for local LLM I/O.
+        ProxyHandler(
+            {}
+        ),
+
+        _RejectLLMRedirectHandler(),
+    )
+)
 
 
 # ============================================================
@@ -256,7 +313,10 @@ def open_local_llm_request(
     )
 
 
-    return urlopen(
-        request,
-        timeout=timeout,
+    return (
+        _LOCAL_LLM_OPENER
+        .open(
+            request,
+            timeout=timeout,
+        )
     )

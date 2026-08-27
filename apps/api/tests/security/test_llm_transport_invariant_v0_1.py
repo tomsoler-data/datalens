@@ -176,9 +176,9 @@ def test_raw_rows_blocked_before_urlopen(
     )
 
     with patch.object(
-        llm_egress,
-        "urlopen",
-    ) as mocked_urlopen:
+        llm_egress._LOCAL_LLM_OPENER,
+        "open",
+    ) as mocked_transport:
 
         try:
             (
@@ -204,10 +204,10 @@ def test_raw_rows_blocked_before_urlopen(
                 )
             )
 
-        if mocked_urlopen.called:
+        if mocked_transport.called:
             raise AssertionError(
                 (
-                    "urlopen was reached "
+                    "urllib transport was reached "
                     "before privacy rejection."
                 )
             )
@@ -345,7 +345,10 @@ def test_classified_calls_require_payload_class(
 def test_urlopen_has_single_owner(
 ) -> None:
 
-    violations = []
+    direct_urlopen_calls = []
+
+    opener_calls = []
+
 
     for path in production_python_files():
 
@@ -361,6 +364,7 @@ def test_urlopen_has_single_owner(
             )
         )
 
+
         for node in ast.walk(
             tree
         ):
@@ -371,32 +375,89 @@ def test_urlopen_has_single_owner(
             ):
                 continue
 
-            if (
-                call_name(node)
-                !=
-                "urlopen"
-            ):
-                continue
+
+            name = (
+                call_name(
+                    node
+                )
+            )
+
 
             if (
-                relative
-                !=
-                ALLOWED_URLOPEN_FILE
+                name
+                ==
+                "urlopen"
             ):
-                violations.append(
+                direct_urlopen_calls.append(
                     (
                         relative,
                         node.lineno,
                     )
                 )
 
-    if violations:
+
+            if (
+                name
+                ==
+                "build_opener"
+            ):
+                opener_calls.append(
+                    (
+                        relative,
+                        node.lineno,
+                    )
+                )
+
+
+    if direct_urlopen_calls:
         raise AssertionError(
             (
-                "Unauthorized urlopen "
-                f"calls: {violations}"
+                "Direct production urlopen "
+                "calls are forbidden: "
+                f"{direct_urlopen_calls}"
             )
         )
+
+
+    if (
+        len(
+            opener_calls
+        )
+        !=
+        1
+    ):
+        raise AssertionError(
+            (
+                "Expected exactly one production "
+                "urllib opener construction; found "
+                f"{opener_calls}"
+            )
+        )
+
+
+    (
+        owner,
+        _line,
+    ) = (
+        opener_calls[
+            0
+        ]
+    )
+
+
+    if (
+        owner
+        !=
+        ALLOWED_URLOPEN_FILE
+    ):
+        raise AssertionError(
+            (
+                "urllib opener is owned by an "
+                "unauthorized module: "
+                f"{owner}"
+            )
+        )
+
 
 
 def test_egress_payload_class_is_required(
@@ -490,7 +551,7 @@ def main() -> None:
             test_classified_calls_require_payload_class,
         ),
         (
-            "urlopen has one production owner",
+            "urllib opener is centralized",
             test_urlopen_has_single_owner,
         ),
         (

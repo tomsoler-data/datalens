@@ -41,7 +41,9 @@ MAX_FORMAT_ATTEMPTS = 2
 client = Client(
     host=require_local_llm_url(
         OLLAMA_HOST
-    )
+    ),
+    follow_redirects=False,
+    trust_env=False,
 )
 
 
