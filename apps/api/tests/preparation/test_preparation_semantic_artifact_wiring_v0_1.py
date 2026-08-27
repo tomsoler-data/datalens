@@ -17,6 +17,21 @@ from fastapi import (
 import app.api.preparation_semantic as semantic_api
 
 
+class ModelDumpNamespace(
+    SimpleNamespace
+):
+    def model_dump(
+        self,
+        *,
+        mode: str = "python",
+    ):
+        return dict(
+            vars(
+                self
+            )
+        )
+
+
 # ============================================================
 # CONSTANTS
 # ============================================================
@@ -122,7 +137,7 @@ def semantic_frame() -> pd.DataFrame:
 def semantic_plan():
 
     return (
-        SimpleNamespace(
+        ModelDumpNamespace(
             rule_version=(
                 "semantic_plan_test_v0.1"
             )
@@ -136,7 +151,7 @@ def semantic_execution(
 ):
 
     return (
-        SimpleNamespace(
+        ModelDumpNamespace(
             rule_version=(
                 "semantic_execution_test_v0.1"
             ),
@@ -167,7 +182,7 @@ def semantic_execution(
 def confirmation_report():
 
     return (
-        SimpleNamespace(
+        ModelDumpNamespace(
             rule_version=(
                 "semantic_confirmation_test_v0.1"
             ),
