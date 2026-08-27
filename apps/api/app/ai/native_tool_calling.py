@@ -18,6 +18,11 @@ from pydantic import (
 )
 
 
+from app.security.llm_payload import (
+    LLMPayloadClass,
+    classified_llm_chat,
+)
+
 from app.ai.provider import (
     client,
 )
@@ -2193,7 +2198,12 @@ def make_native_tool_request(
 ) -> Any:
     try:
         return (
-            client.chat(
+            classified_llm_chat(
+                client,
+                payload_class=(
+                    LLMPayloadClass
+                    .METADATA_ONLY
+                ),
                 model=(
                     model
                 ),

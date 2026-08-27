@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from typing import (
     Any,
@@ -6,6 +6,11 @@ from typing import (
 
 import numpy as np
 import pandas as pd
+
+from app.security.llm_payload import (
+    LLMPayloadClass,
+    classified_llm_chat,
+)
 
 from app.ai.provider import (
     DEFAULT_MODEL,
@@ -537,7 +542,12 @@ def adjudicate_semantic_pair(
     ):
         try:
             response = (
-                client.chat(
+                classified_llm_chat(
+            client,
+            payload_class=(
+                LLMPayloadClass
+                .DETERMINISTIC_EVIDENCE
+            ),
                     model=
                         model,
 

@@ -128,10 +128,30 @@ app = FastAPI(
 # ============================================================
 
 
+LOCAL_FRONTEND_CORS_RULE_VERSION = (
+    "local_frontend_cors_v0.1"
+)
+
+
 LOCAL_FRONTEND_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]
+
+
+LOCAL_FRONTEND_METHODS = [
+    "GET",
+    "POST",
+    "DELETE",
+]
+
+
+LOCAL_FRONTEND_HEADERS = [
+    "Content-Type",
+]
+
+
+LOCAL_FRONTEND_ALLOW_CREDENTIALS = False
 
 
 app.add_middleware(
@@ -141,18 +161,13 @@ app.add_middleware(
         LOCAL_FRONTEND_ORIGINS,
 
     allow_credentials=
-        False,
+        LOCAL_FRONTEND_ALLOW_CREDENTIALS,
 
-    allow_methods=[
-        "GET",
-        "POST",
-        "DELETE",
-        "OPTIONS",
-    ],
+    allow_methods=
+        LOCAL_FRONTEND_METHODS,
 
-    allow_headers=[
-        "*",
-    ],
+    allow_headers=
+        LOCAL_FRONTEND_HEADERS,
 )
 
 

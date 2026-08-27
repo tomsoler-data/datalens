@@ -3,7 +3,15 @@ from __future__ import annotations
 import json
 from typing import Literal
 from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
+from urllib.request import Request
+
+from app.security.llm_egress import (
+    open_local_llm_request,
+)
+
+from app.security.llm_payload import (
+    LLMPayloadClass,
+)
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
@@ -739,8 +747,12 @@ def _ollama_output_explanation(
     )
 
     try:
-        with urlopen(
+        with open_local_llm_request(
             request,
+            payload_class=(
+                LLMPayloadClass
+                .DETERMINISTIC_EVIDENCE
+            ),
             timeout=timeout_seconds,
         ) as response:
             payload = json.loads(
@@ -752,25 +764,10 @@ def _ollama_output_explanation(
             )
 
     except HTTPError as error:
-        body = ""
-
-        try:
-            body = (
-                error
-                .read()
-                .decode(
-                    "utf-8",
-                    errors="replace",
-                )
-            )
-
-        except Exception:
-            pass
-
         raise RuntimeError(
             (
-                "Ollama analysis-output explanation failed "
-                f"with HTTP {error.code}: {body}"
+                "Local model analysis-output explanation "
+                "request failed."
             )
         ) from error
 

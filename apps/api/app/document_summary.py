@@ -18,6 +18,11 @@ from app.ai.provider import (
     client,
 )
 
+from app.security.llm_payload import (
+    LLMPayloadClass,
+    classified_llm_chat,
+)
+
 from app.rag import (
     DocumentChunk,
     DocumentIngestionReport,
@@ -1727,7 +1732,12 @@ def generate_raw_batch_extraction(
     model: str,
 ) -> RawDocumentBatchExtraction:
     response = (
-        client.chat(
+        classified_llm_chat(
+            client,
+            payload_class=(
+                LLMPayloadClass
+                .DOCUMENT_CONTENT
+            ),
             model=
                 model,
 

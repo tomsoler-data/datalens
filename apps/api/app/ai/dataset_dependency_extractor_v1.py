@@ -19,6 +19,11 @@ from app.ai.dataset_dependency_prompt_v1 import (
     DATASET_DEPENDENCY_SYSTEM_PROMPT,
 )
 
+from app.security.llm_payload import (
+    LLMPayloadClass,
+    classified_llm_chat,
+)
+
 from app.ai.provider import (
     client,
 )
@@ -494,7 +499,12 @@ def extract_dataset_dependencies(
 
 
         response = (
-            active_client.chat(
+            classified_llm_chat(
+                active_client,
+                payload_class=(
+                    LLMPayloadClass
+                    .METADATA_ONLY
+                ),
                 model=(
                     model
                 ),

@@ -19,6 +19,15 @@ from app.ai.schemas import (
     EvidenceReference,
 )
 
+from app.security.llm_egress import (
+    require_local_llm_url,
+)
+
+from app.security.llm_payload import (
+    LLMPayloadClass,
+    classified_llm_chat,
+)
+
 
 DEFAULT_MODEL = "gemma3:4b"
 
@@ -30,7 +39,11 @@ MAX_FORMAT_ATTEMPTS = 2
 
 
 client = Client(
-    host=OLLAMA_HOST
+    host=require_local_llm_url(
+        OLLAMA_HOST
+    ),
+    follow_redirects=False,
+    trust_env=False,
 )
 
 
@@ -690,7 +703,12 @@ def call_local_model(
     )
 
     response = (
-        client.chat(
+        classified_llm_chat(
+            client,
+            payload_class=(
+                LLMPayloadClass
+                .DETERMINISTIC_EVIDENCE
+            ),
             model=model,
 
             messages=[
@@ -776,7 +794,12 @@ def call_statistical_model(
     )
 
     response = (
-        client.chat(
+        classified_llm_chat(
+            client,
+            payload_class=(
+                LLMPayloadClass
+                .DETERMINISTIC_EVIDENCE
+            ),
             model=model,
 
             messages=[

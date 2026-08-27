@@ -18,6 +18,11 @@ from app.ai.analytical_planner_prompt_v1 import (
     ANALYTICAL_PLANNER_SYSTEM_PROMPT,
 )
 
+from app.security.llm_payload import (
+    LLMPayloadClass,
+    classified_llm_chat,
+)
+
 from app.ai.provider import (
     client,
 )
@@ -392,7 +397,12 @@ def generate_analytical_plan(
     try:
 
         response = (
-            active_client.chat(
+            classified_llm_chat(
+                active_client,
+                payload_class=(
+                    LLMPayloadClass
+                    .METADATA_ONLY
+                ),
                 model=(
                     model
                 ),

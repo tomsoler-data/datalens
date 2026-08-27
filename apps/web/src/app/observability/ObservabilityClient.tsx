@@ -108,9 +108,6 @@ type TraceListResponse = {
   trace_store_rule_version:
     string;
 
-  path:
-    string;
-
   trace_count:
     number;
 
@@ -148,9 +145,6 @@ type AggregateCategoryCount = {
 
 type TraceMetricsResponse = {
   trace_store_rule_version:
-    string;
-
-  path:
     string;
 
   trace_count:

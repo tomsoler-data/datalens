@@ -147,8 +147,6 @@ class AITraceListResponse(
         AI_TRACE_STORE_RULE_VERSION
     )
 
-    path: str
-
     trace_count: int
 
     malformed_line_count: int
@@ -202,8 +200,6 @@ class AITraceMetricsResponse(
     trace_store_rule_version: str = (
         AI_TRACE_STORE_RULE_VERSION
     )
-
-    path: str
 
     trace_count: int
 
@@ -1330,10 +1326,6 @@ def get_ai_trace_metrics(
 
     return (
         AITraceMetricsResponse(
-            path=str(
-                resolved_path
-            ),
-
             trace_count=len(
                 traces
             ),
@@ -1576,10 +1568,6 @@ def list_ai_traces(
 
     return (
         AITraceListResponse(
-            path=str(
-                resolved_path
-            ),
-
             trace_count=len(
                 traces
             ),

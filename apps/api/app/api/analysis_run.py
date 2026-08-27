@@ -2019,21 +2019,12 @@ def prepare_analysis_datasets(
         )
 
 
-    except Exception as error:
+    except Exception:
         source_discovery.discovery_notes.append(
             (
                 "Analytical View Builder was "
                 "disabled because its controlled "
                 "construction failed."
-            )
-        )
-
-
-        source_discovery.discovery_notes.append(
-            (
-                "Analytical View Builder error — "
-                f"{type(error).__name__}: "
-                f"{error}"
             )
         )
 
@@ -3111,8 +3102,8 @@ def preview_ai_analytical_plan(
     except RuntimeError as error:
         raise HTTPException(
             status_code=503,
-            detail=str(
-                error
+            detail=(
+                "Local AI processing is unavailable or returned an invalid response."
             ),
         ) from error
 
@@ -3368,8 +3359,8 @@ def run_ai_analytical_tool(
     except RuntimeError as error:
         raise HTTPException(
             status_code=503,
-            detail=str(
-                error
+            detail=(
+                "Local AI processing is unavailable or returned an invalid response."
             ),
         ) from error
 
@@ -3969,14 +3960,11 @@ def run_ai_native_pipeline(
             trace_write.enabled
             and
             not trace_write.written
-            and
-            trace_write.error
         ):
             pipeline_report.notes.append(
                 (
                     "Local AI observability trace "
-                    "could not be persisted: "
-                    f"{trace_write.error}"
+                    "could not be persisted."
                 )
             )
 
@@ -4016,8 +4004,8 @@ def run_ai_native_pipeline(
 
         raise HTTPException(
             status_code=503,
-            detail=str(
-                error
+            detail=(
+                "Local AI processing is unavailable or returned an invalid response."
             ),
         ) from error
 
@@ -4235,8 +4223,7 @@ def export_analysis_pdf(
         raise HTTPException(
             status_code=500,
             detail=(
-                "La génération locale du PDF a échoué : "
-                f"{type(error).__name__}: {error}"
+                "La génération locale du PDF a échoué."
             ),
         ) from error
 
@@ -4553,8 +4540,8 @@ def run_contextualized_dataset_analysis(
     except RuntimeError as error:
         raise HTTPException(
             status_code=503,
-            detail=str(
-                error
+            detail=(
+                "Local AI processing is unavailable or returned an invalid response."
             ),
         ) from error
 
@@ -4792,8 +4779,8 @@ def run_contextualized_dataset_analysis(
     except RuntimeError as error:
         raise HTTPException(
             status_code=503,
-            detail=str(
-                error
+            detail=(
+                "Local AI processing is unavailable or returned an invalid response."
             ),
         ) from error
 

@@ -20,6 +20,11 @@ from app.ai.provider import (
     client,
 )
 
+from app.security.llm_payload import (
+    LLMPayloadClass,
+    classified_llm_chat,
+)
+
 
 # ============================================================
 # VERSION
@@ -1819,7 +1824,12 @@ def classify_relevance(
 
 
     try:
-        response = client.chat(
+        response = classified_llm_chat(
+            client,
+            payload_class=(
+                LLMPayloadClass
+                .DOCUMENT_CONTENT
+            ),
             model=
                 model,
 

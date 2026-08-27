@@ -420,7 +420,17 @@ def test_server_owned_pdf_uses_report_selection_only() -> None:
     )
 
 
-    # Initial is automatically selected. Add only this follow-up.
+    # Report composition is manual-only.
+    # Explicitly select both executed analyses.
+    add_analysis_to_report(
+        workflow_id=
+            workflow_id,
+
+        analysis_id=
+            initial.analysis_id,
+    )
+
+
     add_analysis_to_report(
         workflow_id=
             workflow_id,
