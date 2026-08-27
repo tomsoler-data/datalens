@@ -1,0 +1,939 @@
+# DataLens Release Promotion
+# Contract version: datalens_release_promotion_v0.1
+
+name: DataLens Release Promotion
+
+
+on:
+
+  workflow_dispatch:
+
+    inputs:
+
+      version:
+        description: Stable release version, for example v0.1.0
+        required: true
+        type: string
+
+      confirm:
+        description: Type RELEASE followed by the requested version
+        required: true
+        type: string
+
+
+permissions:
+  contents: read
+
+
+concurrency:
+  group: datalens-release-promotion
+  cancel-in-progress: false
+
+
+env:
+
+  REGISTRY: ghcr.io
+
+  API_IMAGE: >-
+    ghcr.io/${{ github.repository_owner }}/datalens-api
+
+  WEB_IMAGE: >-
+    ghcr.io/${{ github.repository_owner }}/datalens-web
+
+
+jobs:
+
+  # ==========================================================
+  # VALIDATION
+  # ==========================================================
+
+  validate-release:
+
+    name: Validate Release Promotion
+
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 15
+
+    permissions:
+      contents: read
+      packages: read
+
+    outputs:
+
+      version: >-
+        ${{ steps.preflight.outputs.version }}
+
+      short_sha: >-
+        ${{ steps.preflight.outputs.short_sha }}
+
+      api_digest: >-
+        ${{ steps.preflight.outputs.api_digest }}
+
+      web_digest: >-
+        ${{ steps.preflight.outputs.web_digest }}
+
+
+    steps:
+
+      # ------------------------------------------------------
+      # REPOSITORY
+      # ------------------------------------------------------
+
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+
+      # ------------------------------------------------------
+      # BUILDX
+      # ------------------------------------------------------
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+
+      # ------------------------------------------------------
+      # GHCR READ ACCESS
+      # ------------------------------------------------------
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+
+      # ------------------------------------------------------
+      # PREFLIGHT
+      # ------------------------------------------------------
+
+      - name: Validate immutable release source
+        id: preflight
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          version="${{ inputs.version }}"
+          confirm="${{ inputs.confirm }}"
+
+          echo "Requested version=${version}"
+          echo "Workflow SHA=${GITHUB_SHA}"
+          echo "Workflow ref=${GITHUB_REF}"
+
+
+          # --------------------------------------------------
+          # MAIN ONLY
+          # --------------------------------------------------
+
+          if [[ "${GITHUB_REF}" != "refs/heads/main" ]]
+          then
+            echo "::error::Release Promotion is authorized only from main."
+            exit 1
+          fi
+
+
+          # --------------------------------------------------
+          # STABLE SEMVER ONLY
+          # --------------------------------------------------
+
+          if [[ ! "${version}" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]
+          then
+            echo "::error::Release version must use stable SemVer vMAJOR.MINOR.PATCH."
+            exit 1
+          fi
+
+
+          # --------------------------------------------------
+          # EXPLICIT CONFIRMATION
+          # --------------------------------------------------
+
+          if [[ "${confirm}" != "RELEASE ${version}" ]]
+          then
+            echo "::error::Release confirmation mismatch."
+            exit 1
+          fi
+
+
+          # --------------------------------------------------
+          # CURRENT MAIN ONLY
+          # --------------------------------------------------
+
+          remote_main="$(
+            git ls-remote \
+              origin \
+              refs/heads/main |
+              awk '{print $1}'
+          )"
+
+          if [[ -z "${remote_main}" ]]
+          then
+            echo "::error::Could not resolve origin/main."
+            exit 1
+          fi
+
+          echo "origin/main=${remote_main}"
+
+          if [[ "${remote_main}" != "${GITHUB_SHA}" ]]
+          then
+            echo "::error::Workflow SHA is not the current origin/main."
+            echo "workflow=${GITHUB_SHA}"
+            echo "main=${remote_main}"
+            exit 1
+          fi
+
+
+          # --------------------------------------------------
+          # IMMUTABLE SHA SOURCE
+          # --------------------------------------------------
+
+          short_sha="${GITHUB_SHA::12}"
+
+          api_source="${API_IMAGE}:sha-${short_sha}"
+          web_source="${WEB_IMAGE}:sha-${short_sha}"
+
+          echo "API source=${api_source}"
+          echo "Web source=${web_source}"
+
+
+          # --------------------------------------------------
+          # MANIFEST DIGEST RESOLUTION
+          # --------------------------------------------------
+
+          manifest_digest() {
+
+            local reference="$1"
+            local manifest
+            local digest
+
+            manifest="$(
+              docker buildx imagetools inspect \
+                "${reference}"
+            )"
+
+            digest="$(
+              printf '%s\n' "${manifest}" |
+                awk '/^Digest:/ {print $2; exit}'
+            )"
+
+            if [[ ! "${digest}" =~ ^sha256:[0-9a-f]{64}$ ]]
+            then
+              echo \
+                "::error::Could not resolve manifest digest for ${reference}." \
+                >&2
+
+              exit 1
+            fi
+
+            printf '%s' "${digest}"
+          }
+
+
+          api_digest="$(
+            manifest_digest \
+              "${api_source}"
+          )"
+
+          web_digest="$(
+            manifest_digest \
+              "${web_source}"
+          )"
+
+          echo "API digest=${api_digest}"
+          echo "Web digest=${web_digest}"
+
+
+          # --------------------------------------------------
+          # OCI REVISION VERIFICATION
+          # --------------------------------------------------
+
+          docker pull \
+            --platform linux/amd64 \
+            "${api_source}" \
+            > /dev/null
+
+          docker pull \
+            --platform linux/amd64 \
+            "${web_source}" \
+            > /dev/null
+
+
+          api_revision="$(
+            docker image inspect \
+              --format \
+              '{{ index .Config.Labels "org.opencontainers.image.revision" }}' \
+              "${api_source}"
+          )"
+
+          web_revision="$(
+            docker image inspect \
+              --format \
+              '{{ index .Config.Labels "org.opencontainers.image.revision" }}' \
+              "${web_source}"
+          )"
+
+
+          if [[ "${api_revision}" != "${GITHUB_SHA}" ]]
+          then
+            echo "::error::API OCI revision does not match the release commit."
+            echo "expected=${GITHUB_SHA}"
+            echo "actual=${api_revision}"
+            exit 1
+          fi
+
+
+          if [[ "${web_revision}" != "${GITHUB_SHA}" ]]
+          then
+            echo "::error::Web OCI revision does not match the release commit."
+            echo "expected=${GITHUB_SHA}"
+            echo "actual=${web_revision}"
+            exit 1
+          fi
+
+          echo "[PASS] OCI revisions match release commit."
+
+
+          # --------------------------------------------------
+          # RELEASE IMAGE CONFLICT GUARD
+          # --------------------------------------------------
+
+          check_release_target() {
+
+            local target="$1"
+            local expected_digest="$2"
+            local label="$3"
+
+            local manifest
+            local actual_digest
+
+
+            if manifest="$(
+              docker buildx imagetools inspect \
+                "${target}" \
+                2>/dev/null
+            )"
+            then
+
+              actual_digest="$(
+                printf '%s\n' "${manifest}" |
+                  awk '/^Digest:/ {print $2; exit}'
+              )"
+
+
+              if [[ "${actual_digest}" != "${expected_digest}" ]]
+              then
+
+                echo \
+                  "::error::${label} release tag already exists with a different digest."
+
+                echo "target=${target}"
+                echo "expected=${expected_digest}"
+                echo "actual=${actual_digest}"
+
+                exit 1
+              fi
+
+
+              echo \
+                "[PASS] ${label} release tag already points to the expected digest."
+
+            else
+
+              echo \
+                "[PASS] ${label} release tag is available."
+
+            fi
+          }
+
+
+          check_release_target \
+            "${API_IMAGE}:${version}" \
+            "${api_digest}" \
+            "API"
+
+          check_release_target \
+            "${WEB_IMAGE}:${version}" \
+            "${web_digest}" \
+            "Web"
+
+
+          # --------------------------------------------------
+          # GIT TAG CONFLICT GUARD
+          # --------------------------------------------------
+
+          git fetch \
+            origin \
+            --tags \
+            --force
+
+
+          if git show-ref \
+            --verify \
+            --quiet \
+            "refs/tags/${version}"
+          then
+
+            tag_target="$(
+              git rev-list \
+                -n 1 \
+                "${version}"
+            )"
+
+
+            if [[ "${tag_target}" != "${GITHUB_SHA}" ]]
+            then
+              echo "::error::Git tag already exists on another commit."
+              echo "tag=${version}"
+              echo "expected=${GITHUB_SHA}"
+              echo "actual=${tag_target}"
+              exit 1
+            fi
+
+
+            echo \
+              "[PASS] Existing Git tag points to the release commit."
+
+          else
+
+            echo \
+              "[PASS] Git release tag is available."
+
+          fi
+
+
+          # --------------------------------------------------
+          # GITHUB RELEASE CONFLICT GUARD
+          # --------------------------------------------------
+
+          if gh release view \
+            "${version}" \
+            > /dev/null \
+            2>&1
+          then
+
+            echo "::error::GitHub Release already exists."
+            exit 1
+
+          fi
+
+          echo "[PASS] GitHub Release slot available."
+
+
+          # --------------------------------------------------
+          # OUTPUTS
+          # --------------------------------------------------
+
+          {
+            echo "version=${version}"
+            echo "short_sha=${short_sha}"
+            echo "api_digest=${api_digest}"
+            echo "web_digest=${web_digest}"
+          } >> "${GITHUB_OUTPUT}"
+
+
+          echo
+          echo "[PASS] Release Promotion preflight complete."
+
+
+  # ==========================================================
+  # PROMOTION
+  # ==========================================================
+
+  promote-release:
+
+    name: Promote Runtime Release
+
+    needs:
+      - validate-release
+
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 20
+
+    permissions:
+      contents: write
+      packages: write
+
+
+    steps:
+
+      # ------------------------------------------------------
+      # REPOSITORY
+      # ------------------------------------------------------
+
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+
+      # ------------------------------------------------------
+      # BUILDX
+      # ------------------------------------------------------
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+
+      # ------------------------------------------------------
+      # GHCR WRITE ACCESS
+      # ------------------------------------------------------
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+
+      # ------------------------------------------------------
+      # TOCTOU REVALIDATION
+      # ------------------------------------------------------
+
+      - name: Revalidate release source
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          short_sha="${{ needs.validate-release.outputs.short_sha }}"
+
+          expected_api_digest="$(
+            printf '%s' \
+              '${{ needs.validate-release.outputs.api_digest }}'
+          )"
+
+          expected_web_digest="$(
+            printf '%s' \
+              '${{ needs.validate-release.outputs.web_digest }}'
+          )"
+
+
+          remote_main="$(
+            git ls-remote \
+              origin \
+              refs/heads/main |
+              awk '{print $1}'
+          )"
+
+
+          if [[ "${remote_main}" != "${GITHUB_SHA}" ]]
+          then
+            echo "::error::origin/main moved after release preflight."
+            echo "workflow=${GITHUB_SHA}"
+            echo "main=${remote_main}"
+            exit 1
+          fi
+
+
+          manifest_digest() {
+
+            local reference="$1"
+            local manifest
+            local digest
+
+            manifest="$(
+              docker buildx imagetools inspect \
+                "${reference}"
+            )"
+
+            digest="$(
+              printf '%s\n' "${manifest}" |
+                awk '/^Digest:/ {print $2; exit}'
+            )"
+
+            if [[ ! "${digest}" =~ ^sha256:[0-9a-f]{64}$ ]]
+            then
+              echo \
+                "::error::Could not resolve manifest digest for ${reference}." \
+                >&2
+
+              exit 1
+            fi
+
+            printf '%s' "${digest}"
+          }
+
+
+          actual_api_digest="$(
+            manifest_digest \
+              "${API_IMAGE}:sha-${short_sha}"
+          )"
+
+          actual_web_digest="$(
+            manifest_digest \
+              "${WEB_IMAGE}:sha-${short_sha}"
+          )"
+
+
+          if [[ "${actual_api_digest}" != "${expected_api_digest}" ]]
+          then
+            echo "::error::API source digest changed after preflight."
+            exit 1
+          fi
+
+
+          if [[ "${actual_web_digest}" != "${expected_web_digest}" ]]
+          then
+            echo "::error::Web source digest changed after preflight."
+            exit 1
+          fi
+
+
+          echo "[PASS] Immutable release source revalidated."
+
+
+      # ------------------------------------------------------
+      # DIGEST-PRESERVING PROMOTION
+      # ------------------------------------------------------
+
+      - name: Promote immutable manifests
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          version="${{ needs.validate-release.outputs.version }}"
+
+
+          promote_manifest() {
+
+            local image="$1"
+            local expected_digest="$2"
+
+            local target="${image}:${version}"
+            local manifest
+            local actual_digest
+
+
+            if manifest="$(
+              docker buildx imagetools inspect \
+                "${target}" \
+                2>/dev/null
+            )"
+            then
+
+              actual_digest="$(
+                printf '%s\n' "${manifest}" |
+                  awk '/^Digest:/ {print $2; exit}'
+              )"
+
+
+              if [[ "${actual_digest}" != "${expected_digest}" ]]
+              then
+
+                echo \
+                  "::error::Release target already exists with an incompatible digest."
+
+                echo "target=${target}"
+                echo "expected=${expected_digest}"
+                echo "actual=${actual_digest}"
+
+                exit 1
+              fi
+
+
+              echo "[PASS] ${target} already promoted."
+
+              return
+            fi
+
+
+            docker buildx imagetools create \
+              --tag "${target}" \
+              "${image}@${expected_digest}"
+
+
+            manifest="$(
+              docker buildx imagetools inspect \
+                "${target}"
+            )"
+
+            actual_digest="$(
+              printf '%s\n' "${manifest}" |
+                awk '/^Digest:/ {print $2; exit}'
+            )"
+
+
+            if [[ "${actual_digest}" != "${expected_digest}" ]]
+            then
+
+              echo "::error::Release tag digest mismatch."
+
+              echo "target=${target}"
+              echo "expected=${expected_digest}"
+              echo "actual=${actual_digest}"
+
+              exit 1
+            fi
+
+
+            echo "[PASS] ${target} promoted without rebuild."
+          }
+
+
+          promote_manifest \
+            "${API_IMAGE}" \
+            '${{ needs.validate-release.outputs.api_digest }}'
+
+          promote_manifest \
+            "${WEB_IMAGE}" \
+            '${{ needs.validate-release.outputs.web_digest }}'
+
+
+      # ------------------------------------------------------
+      # GIT TAG
+      # ------------------------------------------------------
+
+      - name: Create immutable Git release tag
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          version="${{ needs.validate-release.outputs.version }}"
+
+
+          git fetch \
+            origin \
+            --tags \
+            --force
+
+
+          if git show-ref \
+            --verify \
+            --quiet \
+            "refs/tags/${version}"
+          then
+
+            tag_target="$(
+              git rev-list \
+                -n 1 \
+                "${version}"
+            )"
+
+
+            if [[ "${tag_target}" != "${GITHUB_SHA}" ]]
+            then
+              echo "::error::Git tag already exists on another commit."
+              exit 1
+            fi
+
+
+            echo \
+              "[PASS] Git tag already points to release commit."
+
+          else
+
+            git config \
+              user.name \
+              "github-actions[bot]"
+
+            git config \
+              user.email \
+              "41898282+github-actions[bot]@users.noreply.github.com"
+
+
+            git tag \
+              -a \
+              "${version}" \
+              "${GITHUB_SHA}" \
+              -m "DataLens ${version}"
+
+
+            git push \
+              origin \
+              "refs/tags/${version}"
+
+
+            echo "[PASS] Immutable Git tag created."
+
+          fi
+
+
+      # ------------------------------------------------------
+      # GITHUB RELEASE
+      # ------------------------------------------------------
+
+      - name: Create GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          version="${{ needs.validate-release.outputs.version }}"
+          short_sha="${{ needs.validate-release.outputs.short_sha }}"
+
+
+          if gh release view \
+            "${version}" \
+            > /dev/null \
+            2>&1
+          then
+            echo "::error::GitHub Release already exists."
+            exit 1
+          fi
+
+
+          cat > release-notes.md <<EOF
+          ## DataLens ${version}
+
+          Validated local-first DataLens runtime release.
+
+          ### Runtime images
+
+          - API: \`${API_IMAGE}:${version}\`
+          - API digest: \`${{ needs.validate-release.outputs.api_digest }}\`
+          - Web: \`${WEB_IMAGE}:${version}\`
+          - Web digest: \`${{ needs.validate-release.outputs.web_digest }}\`
+
+          ### Provenance
+
+          - Git commit: \`${GITHUB_SHA}\`
+          - Source image tag: \`sha-${short_sha}\`
+          - Promotion policy: no Docker rebuild
+          - Release tags reuse the already validated immutable GHCR manifests
+          EOF
+
+
+          gh release create \
+            "${version}" \
+            --verify-tag \
+            --title "DataLens ${version}" \
+            --notes-file release-notes.md
+
+
+          echo "[PASS] GitHub Release created."
+
+
+      # ------------------------------------------------------
+      # FINAL VERIFICATION
+      # ------------------------------------------------------
+
+      - name: Verify final release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          version="${{ needs.validate-release.outputs.version }}"
+
+          expected_api_digest="$(
+            printf '%s' \
+              '${{ needs.validate-release.outputs.api_digest }}'
+          )"
+
+          expected_web_digest="$(
+            printf '%s' \
+              '${{ needs.validate-release.outputs.web_digest }}'
+          )"
+
+
+          manifest_digest() {
+
+            local reference="$1"
+            local manifest
+            local digest
+
+            manifest="$(
+              docker buildx imagetools inspect \
+                "${reference}"
+            )"
+
+            digest="$(
+              printf '%s\n' "${manifest}" |
+                awk '/^Digest:/ {print $2; exit}'
+            )"
+
+            if [[ ! "${digest}" =~ ^sha256:[0-9a-f]{64}$ ]]
+            then
+              echo \
+                "::error::Could not resolve manifest digest for ${reference}." \
+                >&2
+
+              exit 1
+            fi
+
+            printf '%s' "${digest}"
+          }
+
+
+          final_api_digest="$(
+            manifest_digest \
+              "${API_IMAGE}:${version}"
+          )"
+
+          final_web_digest="$(
+            manifest_digest \
+              "${WEB_IMAGE}:${version}"
+          )"
+
+
+          if [[ "${final_api_digest}" != "${expected_api_digest}" ]]
+          then
+            echo "::error::Final API release digest mismatch."
+            exit 1
+          fi
+
+
+          if [[ "${final_web_digest}" != "${expected_web_digest}" ]]
+          then
+            echo "::error::Final Web release digest mismatch."
+            exit 1
+          fi
+
+
+          git fetch \
+            origin \
+            --tags \
+            --force
+
+
+          tag_target="$(
+            git rev-list \
+              -n 1 \
+              "${version}"
+          )"
+
+
+          if [[ "${tag_target}" != "${GITHUB_SHA}" ]]
+          then
+            echo "::error::Final Git tag target mismatch."
+            exit 1
+          fi
+
+
+          gh release view \
+            "${version}" \
+            > /dev/null
+
+
+          echo "[PASS] Release Promotion fully verified."
+
+
+      # ------------------------------------------------------
+      # SUMMARY
+      # ------------------------------------------------------
+
+      - name: Write release summary
+        shell: bash
+        run: |
+          version="${{ needs.validate-release.outputs.version }}"
+          short_sha="${{ needs.validate-release.outputs.short_sha }}"
+
+          {
+            echo "## DataLens Release Promotion"
+            echo
+            echo "- Version: \`${version}\`"
+            echo "- Commit: \`${GITHUB_SHA}\`"
+            echo "- Source SHA tag: \`sha-${short_sha}\`"
+            echo "- API digest: \`${{ needs.validate-release.outputs.api_digest }}\`"
+            echo "- Web digest: \`${{ needs.validate-release.outputs.web_digest }}\`"
+            echo "- Docker rebuild: \`no\`"
+            echo "- Git tag: \`${version}\`"
+            echo "- GitHub Release: \`${version}\`"
+          } >> "${GITHUB_STEP_SUMMARY}"
