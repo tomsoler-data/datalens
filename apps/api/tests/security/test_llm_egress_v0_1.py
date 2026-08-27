@@ -194,6 +194,11 @@ def test_remote_request_never_reaches_urlopen(
                 llm_egress_module
                 .open_local_llm_request(
                     request,
+                    payload_class=(
+                        llm_egress_module
+                        .LLMPayloadClass
+                        .METADATA_ONLY
+                    ),
                     timeout=1.0,
                 )
             )
@@ -241,6 +246,11 @@ def test_local_request_reaches_urlopen(
             llm_egress_module
             .open_local_llm_request(
                 request,
+                payload_class=(
+                    llm_egress_module
+                    .LLMPayloadClass
+                    .METADATA_ONLY
+                ),
                 timeout=2.5,
             )
         )

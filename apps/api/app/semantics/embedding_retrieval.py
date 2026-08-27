@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from typing import (
     Iterable,
@@ -6,6 +6,11 @@ from typing import (
 )
 
 import numpy as np
+
+from app.security.llm_payload import (
+    LLMPayloadClass,
+    classified_llm_embed,
+)
 
 from app.ai.provider import (
     client,
@@ -178,7 +183,12 @@ def embed_column_names(
 
 
     response = (
-        client.embed(
+        classified_llm_embed(
+            client,
+            payload_class=(
+                LLMPayloadClass
+                .METADATA_ONLY
+            ),
             model=
                 model,
 

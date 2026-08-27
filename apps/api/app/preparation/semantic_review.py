@@ -17,6 +17,10 @@ from app.security.llm_egress import (
     open_local_llm_request,
 )
 
+from app.security.llm_payload import (
+    LLMPayloadClass,
+)
+
 import pandas as pd
 from pydantic import (
     BaseModel,
@@ -965,6 +969,10 @@ def _ollama_chat_one(
     try:
         with open_local_llm_request(
             request,
+            payload_class=(
+                LLMPayloadClass
+                .SEMANTIC_VALUE_SAMPLE
+            ),
             timeout=
                 timeout_seconds,
         ) as response:

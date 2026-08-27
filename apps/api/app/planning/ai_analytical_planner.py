@@ -27,6 +27,11 @@ from app.ai.provider import (
     client,
 )
 
+from app.security.llm_payload import (
+    LLMPayloadClass,
+    classified_llm_chat,
+)
+
 from app.planning.analytical_contract import (
     AggregationSpec,
     AnalysisFamily,
@@ -8282,7 +8287,12 @@ def _generate_raw_ai_plan_with_timing(
 
 
     try:
-        response = client.chat(
+        response = classified_llm_chat(
+            client,
+            payload_class=(
+                LLMPayloadClass
+                .METADATA_ONLY
+            ),
             model=(
                 model
             ),

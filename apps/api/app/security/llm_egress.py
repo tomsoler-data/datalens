@@ -18,6 +18,11 @@ from urllib.request import (
     urlopen,
 )
 
+from app.security.llm_payload import (
+    LLMPayloadClass,
+    require_allowed_llm_payload_class,
+)
+
 
 # ============================================================
 # VERSION
@@ -231,6 +236,7 @@ def require_local_llm_url(
 def open_local_llm_request(
     request: Request,
     *,
+    payload_class: LLMPayloadClass | str,
     timeout: float,
 ) -> Any:
     """
@@ -240,6 +246,10 @@ def open_local_llm_request(
     This protects Preparation paths that historically call
     Ollama through urllib rather than app.ai.provider.client.
     """
+
+    require_allowed_llm_payload_class(
+        payload_class
+    )
 
     require_local_llm_url(
         request.full_url

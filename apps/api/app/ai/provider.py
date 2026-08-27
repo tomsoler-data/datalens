@@ -23,6 +23,11 @@ from app.security.llm_egress import (
     require_local_llm_url,
 )
 
+from app.security.llm_payload import (
+    LLMPayloadClass,
+    classified_llm_chat,
+)
+
 
 DEFAULT_MODEL = "gemma3:4b"
 
@@ -696,7 +701,12 @@ def call_local_model(
     )
 
     response = (
-        client.chat(
+        classified_llm_chat(
+            client,
+            payload_class=(
+                LLMPayloadClass
+                .DETERMINISTIC_EVIDENCE
+            ),
             model=model,
 
             messages=[
@@ -782,7 +792,12 @@ def call_statistical_model(
     )
 
     response = (
-        client.chat(
+        classified_llm_chat(
+            client,
+            payload_class=(
+                LLMPayloadClass
+                .DETERMINISTIC_EVIDENCE
+            ),
             model=model,
 
             messages=[

@@ -9,6 +9,10 @@ from app.security.llm_egress import (
     open_local_llm_request,
 )
 
+from app.security.llm_payload import (
+    LLMPayloadClass,
+)
+
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from app.preparation.preparation_artifact_store import (
@@ -745,6 +749,10 @@ def _ollama_output_explanation(
     try:
         with open_local_llm_request(
             request,
+            payload_class=(
+                LLMPayloadClass
+                .DETERMINISTIC_EVIDENCE
+            ),
             timeout=timeout_seconds,
         ) as response:
             payload = json.loads(

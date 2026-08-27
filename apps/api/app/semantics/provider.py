@@ -1,9 +1,14 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import json
 
 from typing import (
     Any,
+)
+
+from app.security.llm_payload import (
+    LLMPayloadClass,
+    classified_llm_chat,
 )
 
 from app.ai.provider import (
@@ -321,7 +326,12 @@ def call_column_semantic_model(
     model: str = DEFAULT_MODEL,
     strict_retry: bool = False,
 ) -> str:
-    response = client.chat(
+    response = classified_llm_chat(
+            client,
+            payload_class=(
+                LLMPayloadClass
+                .SEMANTIC_VALUE_SAMPLE
+            ),
         model=
             model,
 
