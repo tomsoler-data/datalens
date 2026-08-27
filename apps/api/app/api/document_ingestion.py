@@ -9,6 +9,7 @@ from fastapi import (
 
 from app.rag import (
     DocumentIngestionReport,
+    MAX_DOCUMENT_BYTES,
     MAX_DOCUMENT_FILES,
     build_document_ingestion_report,
 )
@@ -22,6 +23,21 @@ from app.rag_retrieval import (
 
 
 router = APIRouter()
+
+
+# ============================================================
+# DOCUMENT UPLOAD GUARD
+# ============================================================
+
+
+DOCUMENT_UPLOAD_GUARD_RULE_VERSION = (
+    "document_upload_guard_v0.1"
+)
+
+
+DOCUMENT_UPLOAD_TOO_LARGE_DETAIL = (
+    "Un document dépasse la taille maximale autorisée."
+)
 
 
 # ============================================================
@@ -98,11 +114,38 @@ def read_uploaded_documents(
             )
 
 
+            # SECURITY BOUNDARY
+            #
+            # Never read an arbitrarily large browser upload
+            # into application memory.
+            #
+            # MAX_DOCUMENT_BYTES + 1 lets DataLens distinguish
+            # exactly-at-limit content from oversized content
+            # while keeping the HTTP read itself bounded.
             content = (
                 document_file
                 .file
-                .read()
+                .read(
+                    MAX_DOCUMENT_BYTES
+                    +
+                    1
+                )
             )
+
+
+            if (
+                len(
+                    content
+                )
+                >
+                MAX_DOCUMENT_BYTES
+            ):
+                raise HTTPException(
+                    status_code=413,
+                    detail=(
+                        DOCUMENT_UPLOAD_TOO_LARGE_DETAIL
+                    ),
+                )
 
 
             documents.append(
