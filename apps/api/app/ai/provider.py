@@ -11,6 +11,10 @@ from pydantic import (
     ValidationError,
 )
 
+from app.ai.ollama_runtime import (
+    resolve_ollama_host,
+)
+
 from app.ai.schemas import (
     AIFinding,
     AIWarning,
@@ -32,7 +36,7 @@ from app.security.llm_payload import (
 DEFAULT_MODEL = "gemma3:4b"
 
 OLLAMA_HOST = (
-    "http://localhost:11434"
+    resolve_ollama_host()
 )
 
 MAX_FORMAT_ATTEMPTS = 2

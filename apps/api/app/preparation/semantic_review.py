@@ -13,6 +13,10 @@ from urllib.request import (
     Request,
 )
 
+from app.ai.ollama_runtime import (
+    resolve_ollama_chat_url,
+)
+
 from app.security.llm_egress import (
     open_local_llm_request,
 )
@@ -56,7 +60,7 @@ DEFAULT_SEMANTIC_REVIEW_MODEL = (
 
 
 DEFAULT_OLLAMA_CHAT_URL = (
-    "http://127.0.0.1:11434/api/chat"
+    resolve_ollama_chat_url()
 )
 
 

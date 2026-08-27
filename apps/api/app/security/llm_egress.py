@@ -1,5 +1,7 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
+
+import os
 
 from ipaddress import (
     ip_address,
@@ -32,8 +34,46 @@ from app.security.llm_payload import (
 
 
 LLM_EGRESS_RULE_VERSION = (
-    "llm_egress_v0.1"
+    "llm_egress_v0.2"
 )
+
+
+# ============================================================
+# DOCKER BRIDGE CONTRACT
+# ============================================================
+
+
+LLM_DOCKER_BRIDGE_ENV = (
+    "DATALENS_LLM_DOCKER_BRIDGE_ENABLED"
+)
+
+OLLAMA_DOCKER_BRIDGE_HOST = (
+    "host.docker.internal"
+)
+
+OLLAMA_DOCKER_BRIDGE_PORT = (
+    11434
+)
+
+
+def is_llm_docker_bridge_enabled(
+) -> bool:
+    """
+    Return True only for an explicit Docker bridge opt-in.
+
+    Any missing, empty, malformed or alternate value keeps
+    the bridge disabled.
+    """
+
+    configured = (
+        os.getenv(
+            LLM_DOCKER_BRIDGE_ENV,
+            "",
+        )
+        .strip()
+    )
+
+    return configured == "1"
 
 
 # ============================================================
@@ -62,7 +102,7 @@ class _RejectLLMRedirectHandler(
     Reject every HTTP redirect before urllib can perform
     a second network request.
 
-    Even loopback-to-loopback redirects are forbidden.
+    Even local-to-local redirects are forbidden.
     DataLens model-service URLs must be direct.
     """
 
@@ -122,12 +162,17 @@ def require_local_llm_url(
     - explicit URL syntax;
     - no credentials;
     - no query string or fragment;
-    - hostname must be exactly localhost OR
-      a literal loopback IP address.
+    - localhost is allowed;
+    - literal loopback IP addresses are allowed;
+    - host.docker.internal is allowed only when the Docker
+      bridge is explicitly enabled and only on Ollama port
+      11434.
 
-    DNS hostnames other than localhost are deliberately
-    forbidden. DataLens does not resolve arbitrary hostnames
-    to decide whether they are local.
+    Other DNS hostnames remain forbidden.
+
+    The Docker exception is deliberately exact. It does not
+    authorize LAN addresses, arbitrary private networks or
+    arbitrary Docker hostnames.
     """
 
     if not isinstance(
@@ -233,7 +278,7 @@ def require_local_llm_url(
     # parsed.port raises ValueError for malformed or
     # out-of-range ports.
     try:
-        _ = parsed.port
+        port = parsed.port
 
     except ValueError as error:
         raise LocalLLMEgressError(
@@ -258,6 +303,34 @@ def require_local_llm_url(
         return normalized
 
 
+    if (
+        normalized_hostname
+        ==
+        OLLAMA_DOCKER_BRIDGE_HOST
+    ):
+        if not is_llm_docker_bridge_enabled():
+            raise LocalLLMEgressError(
+                (
+                    "Docker LLM bridge destination "
+                    "is disabled."
+                )
+            )
+
+        if (
+            port
+            !=
+            OLLAMA_DOCKER_BRIDGE_PORT
+        ):
+            raise LocalLLMEgressError(
+                (
+                    "Docker LLM bridge destination "
+                    "must use Ollama port 11434."
+                )
+            )
+
+        return normalized
+
+
     try:
         address = ip_address(
             normalized_hostname
@@ -266,9 +339,10 @@ def require_local_llm_url(
     except ValueError as error:
         raise LocalLLMEgressError(
             (
-                "LLM egress destination must "
-                "use localhost or a literal "
-                "loopback IP address."
+                "LLM egress destination must use "
+                "localhost, a literal loopback IP "
+                "address, or the explicitly enabled "
+                "Docker Ollama bridge."
             )
         ) from error
 

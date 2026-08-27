@@ -5,6 +5,10 @@ from typing import Literal
 from urllib.error import HTTPError, URLError
 from urllib.request import Request
 
+from app.ai.ollama_runtime import (
+    resolve_ollama_chat_url,
+)
+
 from app.security.llm_egress import (
     open_local_llm_request,
 )
@@ -32,7 +36,7 @@ ANALYSIS_OUTPUT_EXPLANATION_RULE_VERSION = (
 DEFAULT_ANALYSIS_OUTPUT_EXPLANATION_MODEL = "gemma3:4b"
 
 DEFAULT_OLLAMA_CHAT_URL = (
-    "http://127.0.0.1:11434/api/chat"
+    resolve_ollama_chat_url()
 )
 
 

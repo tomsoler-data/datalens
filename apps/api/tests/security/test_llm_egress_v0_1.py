@@ -1,4 +1,7 @@
-﻿from __future__ import annotations
+from __future__ import annotations
+
+
+import os
 
 
 from unittest.mock import (
@@ -9,6 +12,8 @@ from urllib.request import (
     Request,
 )
 
+
+import app.ai.ollama_runtime as ollama_runtime_module
 
 import app.ai.provider as provider_module
 
@@ -27,7 +32,7 @@ import app.security.llm_egress as llm_egress_module
 
 
 TEST_RULE_VERSION = (
-    "llm_egress_test_v0.1"
+    "llm_egress_test_v0.2"
 )
 
 
@@ -103,7 +108,7 @@ def test_version(
             llm_egress_module
             .LLM_EGRESS_RULE_VERSION
         ),
-        "llm_egress_v0.1",
+        "llm_egress_v0.2",
         "Unexpected LLM egress rule version.",
     )
 
@@ -344,6 +349,281 @@ def test_preparation_urllib_paths_use_shared_guard(
         )
 
 
+
+# ============================================================
+# TEST 8
+# DOCKER BRIDGE REQUIRES EXPLICIT OPT-IN
+# ============================================================
+
+
+def test_docker_bridge_requires_explicit_opt_in(
+) -> None:
+    url = (
+        "http://"
+        "host.docker.internal"
+        ":11434/api/chat"
+    )
+
+
+    with patch.dict(
+        os.environ,
+        {
+            (
+                llm_egress_module
+                .LLM_DOCKER_BRIDGE_ENV
+            ):
+                "0",
+        },
+        clear=False,
+    ):
+        assert_rejected(
+            url
+        )
+
+
+# ============================================================
+# TEST 9
+# DOCKER BRIDGE SCOPE
+# ============================================================
+
+
+def test_docker_bridge_is_exactly_scoped(
+) -> None:
+    allowed = [
+        (
+            "http://"
+            "host.docker.internal"
+            ":11434"
+        ),
+        (
+            "http://"
+            "host.docker.internal"
+            ":11434/api/chat"
+        ),
+    ]
+
+    rejected = [
+        "http://host.docker.internal",
+        "http://host.docker.internal:11435",
+        "https://host.docker.internal:11434",
+        (
+            "http://user:password@"
+            "host.docker.internal:11434"
+        ),
+        (
+            "http://host.docker.internal:"
+            "11434/api/chat?remote=true"
+        ),
+        (
+            "http://host.docker.internal:"
+            "11434/api/chat#fragment"
+        ),
+        (
+            "http://host.docker.internal."
+            "evil.example:11434"
+        ),
+        "http://192.168.65.254:11434",
+        "http://192.168.1.20:11434",
+        "http://10.0.0.5:11434",
+    ]
+
+
+    with patch.dict(
+        os.environ,
+        {
+            (
+                llm_egress_module
+                .LLM_DOCKER_BRIDGE_ENV
+            ):
+                "1",
+        },
+        clear=False,
+    ):
+        for url in allowed:
+            assert_equal(
+                (
+                    llm_egress_module
+                    .require_local_llm_url(
+                        url
+                    )
+                ),
+                url,
+                (
+                    "Explicit Docker Ollama "
+                    "bridge should be allowed."
+                ),
+            )
+
+
+        for url in rejected:
+            assert_rejected(
+                url
+            )
+
+
+# ============================================================
+# TEST 10
+# DOCKER BRIDGE MAY REACH GUARDED TRANSPORT
+# ============================================================
+
+
+def test_docker_bridge_request_reaches_transport_when_enabled(
+) -> None:
+    request = Request(
+        (
+            "http://"
+            "host.docker.internal"
+            ":11434/api/chat"
+        ),
+        method="POST",
+    )
+
+    sentinel = object()
+
+
+    with patch.dict(
+        os.environ,
+        {
+            (
+                llm_egress_module
+                .LLM_DOCKER_BRIDGE_ENV
+            ):
+                "1",
+        },
+        clear=False,
+    ):
+        with patch.object(
+            llm_egress_module._LOCAL_LLM_OPENER,
+            "open",
+            return_value=sentinel,
+        ) as mocked_transport:
+            result = (
+                llm_egress_module
+                .open_local_llm_request(
+                    request,
+                    payload_class=(
+                        llm_egress_module
+                        .LLMPayloadClass
+                        .METADATA_ONLY
+                    ),
+                    timeout=2.5,
+                )
+            )
+
+
+    assert_true(
+        result is sentinel,
+        (
+            "Enabled Docker Ollama bridge "
+            "did not reach guarded transport."
+        ),
+    )
+
+    mocked_transport.assert_called_once_with(
+        request,
+        timeout=2.5,
+    )
+
+
+# ============================================================
+# TEST 11
+# CENTRAL OLLAMA RUNTIME RESOLUTION
+# ============================================================
+
+
+def test_ollama_runtime_resolver_uses_guarded_bridge(
+) -> None:
+    bridge_host = (
+        "http://"
+        "host.docker.internal"
+        ":11434"
+    )
+
+
+    with patch.dict(
+        os.environ,
+        {
+            (
+                llm_egress_module
+                .LLM_DOCKER_BRIDGE_ENV
+            ):
+                "1",
+
+            (
+                ollama_runtime_module
+                .OLLAMA_HOST_ENV
+            ):
+                bridge_host,
+        },
+        clear=False,
+    ):
+        assert_equal(
+            (
+                ollama_runtime_module
+                .resolve_ollama_host()
+            ),
+            bridge_host,
+            (
+                "Central Ollama host resolver "
+                "did not select Docker bridge."
+            ),
+        )
+
+        assert_equal(
+            (
+                ollama_runtime_module
+                .resolve_ollama_chat_url()
+            ),
+            (
+                bridge_host
+                + "/api/chat"
+            ),
+            (
+                "Central Ollama chat resolver "
+                "did not derive /api/chat."
+            ),
+        )
+
+
+    with patch.dict(
+        os.environ,
+        {
+            (
+                llm_egress_module
+                .LLM_DOCKER_BRIDGE_ENV
+            ):
+                "1",
+
+            (
+                ollama_runtime_module
+                .OLLAMA_HOST_ENV
+            ):
+                "http://192.168.1.20:11434",
+        },
+        clear=False,
+    ):
+        captured = None
+
+        try:
+            (
+                ollama_runtime_module
+                .resolve_ollama_host()
+            )
+
+        except (
+            llm_egress_module
+            .LocalLLMEgressError
+        ) as error:
+            captured = error
+
+
+        assert_true(
+            captured is not None,
+            (
+                "Central Ollama resolver must "
+                "reject arbitrary LAN hosts."
+            ),
+        )
 # ============================================================
 # RUNNER
 # ============================================================
@@ -378,13 +658,29 @@ TESTS = [
         "Preparation urllib paths share guard",
         test_preparation_urllib_paths_use_shared_guard,
     ),
+    (
+        "Docker bridge requires explicit opt-in",
+        test_docker_bridge_requires_explicit_opt_in,
+    ),
+    (
+        "Docker bridge scope is exact",
+        test_docker_bridge_is_exactly_scoped,
+    ),
+    (
+        "Docker bridge reaches guarded transport",
+        test_docker_bridge_request_reaches_transport_when_enabled,
+    ),
+    (
+        "Central Ollama runtime uses guarded bridge",
+        test_ollama_runtime_resolver_uses_guarded_bridge,
+    ),
 ]
 
 
 def main(
 ) -> None:
     print(
-        "=== DATALENS LLM EGRESS BOUNDARY v0.1 ==="
+        "=== DATALENS LLM EGRESS BOUNDARY v0.2 ==="
     )
 
     print()
