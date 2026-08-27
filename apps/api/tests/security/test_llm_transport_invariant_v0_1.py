@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import ast
 import inspect
@@ -32,7 +32,12 @@ APP_ROOT = (
 )
 
 
-EXCLUDED_PREFIXES = (
+# These packages are offline evaluation harnesses, not
+# production runtime code. Their isolation and network
+# ownership are locked separately by:
+#
+# tests/security/test_offline_evaluation_boundary_v0_1.py
+OFFLINE_EVALUATION_PREFIXES = (
     "app/evals/",
     "app/evaluation/",
 )
@@ -102,7 +107,7 @@ def production_python_files():
                 prefix
             )
             for prefix
-            in EXCLUDED_PREFIXES
+            in OFFLINE_EVALUATION_PREFIXES
         ):
             continue
 
