@@ -50,6 +50,30 @@ class AITraceSummary(
 
     trace_rule_version: str
 
+    workflow_id: (
+        str
+        | None
+    ) = None
+
+    analysis_id: (
+        str
+        | None
+    ) = None
+
+    analysis_source_type: (
+        str
+        | None
+    ) = None
+
+    run_status: str = (
+        "completed"
+    )
+
+    failure_stage: (
+        str
+        | None
+    ) = None
+
     objective: str
 
     dataset_filenames: list[
@@ -186,6 +210,18 @@ class AITraceMetricsResponse(
     malformed_line_count: int
 
     analyzed_trace_count: int
+
+    completed_trace_count: int
+
+    failed_trace_count: int
+
+    failure_rate: float
+
+    failure_stages: list[
+        AITraceCategoryCount
+    ] = Field(
+        default_factory=list
+    )
 
     detailed_trace_count: int
 
@@ -389,6 +425,30 @@ def _summary_from_trace(
 
             trace_rule_version=
                 trace.trace_rule_version,
+
+            workflow_id=
+                trace.workflow_id,
+
+            analysis_id=
+                trace.analysis_id,
+
+            analysis_source_type=
+                trace.analysis_source_type,
+
+            run_status=
+                trace.run_status,
+
+            failure_stage=(
+                trace.failure.stage
+
+                if (
+                    trace.failure
+                    is not None
+                )
+
+                else
+                None
+            ),
 
             objective=
                 trace.objective,
@@ -773,6 +833,11 @@ def get_ai_trace_metrics(
     ] = Counter()
 
 
+    failure_stage_counter: Counter[
+        str
+    ] = Counter()
+
+
     total_latencies: list[
         float
     ] = []
@@ -824,6 +889,10 @@ def get_ai_trace_metrics(
 
     detailed_trace_count = 0
 
+    completed_trace_count = 0
+
+    failed_trace_count = 0
+
 
     for trace in selected:
         planner = (
@@ -836,6 +905,30 @@ def get_ai_trace_metrics(
             trace.native_pipeline
             or {}
         )
+
+
+        if (
+            trace.run_status
+            ==
+            "failed"
+        ):
+            failed_trace_count += 1
+
+            if (
+                trace.failure
+                is not None
+                and
+                trace.failure.stage
+            ):
+                failure_stage_counter[
+                    trace.failure.stage
+                ] += 1
+
+        else:
+            # Historical v0.3 traces are validated through the
+            # current AITraceRecord contract and therefore
+            # default to run_status="completed".
+            completed_trace_count += 1
 
 
         planner_model = (
@@ -1183,6 +1276,17 @@ def get_ai_trace_metrics(
     )
 
 
+    failure_rate = (
+        (
+            failed_trace_count /
+            analyzed_trace_count
+        )
+        if analyzed_trace_count
+        else
+        0.0
+    )
+
+
     execution_rate = (
         (
             executed_trace_count /
@@ -1239,6 +1343,23 @@ def get_ai_trace_metrics(
 
             analyzed_trace_count=
                 analyzed_trace_count,
+
+            completed_trace_count=
+                completed_trace_count,
+
+            failed_trace_count=
+                failed_trace_count,
+
+            failure_rate=
+                round(
+                    failure_rate,
+                    6,
+                ),
+
+            failure_stages=
+                _category_counts(
+                    failure_stage_counter
+                ),
 
             detailed_trace_count=
                 detailed_trace_count,
