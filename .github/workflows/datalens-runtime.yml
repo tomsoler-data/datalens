@@ -16,6 +16,7 @@ on:
       - "apps/web/**"
       - "compose.yaml"
       - ".github/workflows/datalens-runtime.yml"
+      - ".github/workflows/datalens-publish.yml"
 
 
   pull_request:
@@ -28,6 +29,7 @@ on:
       - "apps/web/**"
       - "compose.yaml"
       - ".github/workflows/datalens-runtime.yml"
+      - ".github/workflows/datalens-publish.yml"
 
 
   workflow_dispatch:
@@ -142,6 +144,7 @@ jobs:
           set -euo pipefail
 
           python -m tests.ci.test_ci_runtime_workflow_v0_1
+          python -m tests.ci.test_ci_publish_workflow_v0_1
 
 
       # ------------------------------------------------------
@@ -657,3 +660,30 @@ jobs:
             --volumes \
             --remove-orphans \
             || true
+
+  # ==========================================================
+  # GHCR PUBLICATION
+  #
+  # PRs validate only.
+  # Pushes to integration/main publish only after runtime-gate.
+  # ==========================================================
+
+  publish-images:
+
+    name: Publish GHCR Images
+
+    needs:
+      - runtime-gate
+
+    if: >-
+      github.event_name == 'push' &&
+      (
+        github.ref == 'refs/heads/main' ||
+        github.ref == 'refs/heads/chore/organize-artifact-store-wiring'
+      )
+
+    permissions:
+      contents: read
+      packages: write
+
+    uses: ./.github/workflows/datalens-publish.yml

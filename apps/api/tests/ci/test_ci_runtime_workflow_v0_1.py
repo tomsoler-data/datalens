@@ -148,6 +148,7 @@ def test_workflow_triggers(
         '"apps/api/**"',
         '"apps/web/**"',
         '"compose.yaml"',
+        '".github/workflows/datalens-publish.yml"',
     ):
         assert_contains(
             workflow,
@@ -180,17 +181,26 @@ def test_minimal_permissions(
 
     for forbidden in (
         "contents: write",
-        "packages: write",
         "id-token: write",
     ):
         assert_not_contains(
             workflow,
             forbidden,
             (
-                "Runtime validation gate must "
-                "not request publishing permissions."
+                "Runtime validation workflow "
+                "must not request this permission."
             ),
         )
+
+    assert_true(
+        workflow.count(
+            "packages: write"
+        ) == 1,
+        (
+            "packages: write must exist exactly "
+            "once, on the gated publish job."
+        ),
+    )
 
 
 # ============================================================
@@ -502,6 +512,46 @@ def test_cleanup_contract(
 
 
 # ============================================================
+# TEST 13
+# GATED GHCR PUBLICATION HANDOFF
+# ============================================================
+
+
+def test_publish_handoff_contract(
+) -> None:
+    workflow = load_workflow()
+
+    for fragment in (
+        "publish-images:",
+        "name: Publish GHCR Images",
+        "needs:",
+        "- runtime-gate",
+        "github.event_name == 'push'",
+        "refs/heads/main",
+        (
+            "refs/heads/chore/"
+            "organize-artifact-store-wiring"
+        ),
+        "packages: write",
+        (
+            "uses: ./.github/workflows/"
+            "datalens-publish.yml"
+        ),
+        (
+            "python -m tests.ci."
+            "test_ci_publish_workflow_v0_1"
+        ),
+    ):
+        assert_contains(
+            workflow,
+            fragment,
+            (
+                "Runtime-to-publication gated "
+                "handoff is incomplete."
+            ),
+        )
+
+# ============================================================
 # RUNNER
 # ============================================================
 
@@ -554,6 +604,10 @@ TESTS = [
     (
         "Runtime cleanup contract",
         test_cleanup_contract,
+    ),
+    (
+        "Runtime gated GHCR publication",
+        test_publish_handoff_contract,
     ),
 ]
 
