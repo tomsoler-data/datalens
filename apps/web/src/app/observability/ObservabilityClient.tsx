@@ -33,6 +33,26 @@ type TraceSummary = {
   trace_rule_version:
     string;
 
+  workflow_id:
+    string |
+    null;
+
+  analysis_id:
+    string |
+    null;
+
+  analysis_source_type:
+    AnalysisSourceType |
+    null;
+
+  run_status:
+    "completed" |
+    "failed";
+
+  failure_stage:
+    string |
+    null;
+
   objective:
     string;
 
@@ -141,6 +161,18 @@ type TraceMetricsResponse = {
 
   analyzed_trace_count:
     number;
+
+  completed_trace_count:
+    number;
+
+  failed_trace_count:
+    number;
+
+  failure_rate:
+    number;
+
+  failure_stages:
+    AggregateCategoryCount[];
 
   detailed_trace_count:
     number;
@@ -327,6 +359,25 @@ type TracePrivacy = {
 };
 
 
+type AnalysisSourceType =
+  | "initial_request"
+  | "follow_up_prompt"
+  | "document_request"
+  | "automatic";
+
+
+type TraceFailure = {
+  stage:
+    string;
+
+  error_type:
+    string;
+
+  message_safe:
+    string;
+};
+
+
 type TraceRecord = {
   trace_id:
     string;
@@ -336,6 +387,26 @@ type TraceRecord = {
 
   trace_rule_version:
     string;
+
+  workflow_id:
+    string |
+    null;
+
+  analysis_id:
+    string |
+    null;
+
+  analysis_source_type:
+    AnalysisSourceType |
+    null;
+
+  run_status:
+    "completed" |
+    "failed";
+
+  failure:
+    TraceFailure |
+    null;
 
   objective:
     string;
@@ -807,6 +878,12 @@ function statusLabel(
     case "executed":
       return "Exécuté";
 
+    case "completed":
+      return "Terminée";
+
+    case "failed":
+      return "Échec";
+
     case "blocked":
       return "Bloqué";
 
@@ -826,6 +903,8 @@ function statusLabel(
 }
 
 
+
+
 function statusTone(
   value:
     string |
@@ -840,7 +919,9 @@ function statusTone(
     value ===
       "validated" ||
     value ===
-      "executed"
+      "executed" ||
+    value ===
+      "completed"
   ) {
     return "good";
   }
@@ -850,7 +931,9 @@ function statusTone(
     value ===
       "blocked" ||
     value ===
-      "rejected"
+      "rejected" ||
+    value ===
+      "failed"
   ) {
     return "bad";
   }
@@ -858,6 +941,37 @@ function statusTone(
 
   return "neutral";
 }
+
+
+
+
+function analysisSourceLabel(
+  value:
+    AnalysisSourceType |
+    null |
+    undefined
+): string {
+  switch (
+    value
+  ) {
+    case "initial_request":
+      return "Requête initiale";
+
+    case "follow_up_prompt":
+      return "Suivi";
+
+    case "document_request":
+      return "Document";
+
+    case "automatic":
+      return "Automatique";
+
+    default:
+      return "—";
+  }
+}
+
+
 
 
 function MetaBadge({
@@ -1039,7 +1153,7 @@ function TraceList({
 
                 <StatusBadge
                   value={
-                    trace.pipeline_status
+                    trace.run_status
                   }
                 />
               </div>
@@ -1069,9 +1183,13 @@ function TraceList({
 
                 <span>
                   {
-                    formatLatency(
-                      trace.total_ms
-                    )
+                    trace.run_status ===
+                      "failed" &&
+                    trace.failure_stage
+                      ? `Étape · ${trace.failure_stage}`
+                      : formatLatency(
+                          trace.total_ms
+                        )
                   }
                 </span>
               </div>
@@ -1245,6 +1363,82 @@ function AggregateOverview({
           }
         >
           <span>
+            Terminées
+          </span>
+
+          <strong>
+            {
+              formatCount(
+                metrics.completed_trace_count
+              )
+            }
+          </strong>
+
+          <small>
+            {
+              metrics.completed_trace_count
+            }
+            {" / "}
+            {
+              metrics.analyzed_trace_count
+            }
+            {" traces"}
+          </small>
+        </article>
+
+
+        <article
+          className={
+            styles.aggregateMetricCard
+          }
+        >
+          <span>
+            Échecs
+          </span>
+
+          <strong>
+            {
+              formatCount(
+                metrics.failed_trace_count
+              )
+            }
+          </strong>
+
+          <small>
+            Traces interrompues
+          </small>
+        </article>
+
+
+        <article
+          className={
+            styles.aggregateMetricCard
+          }
+        >
+          <span>
+            Taux d’échec
+          </span>
+
+          <strong>
+            {
+              formatPercentRate(
+                metrics.failure_rate
+              )
+            }
+          </strong>
+
+          <small>
+            Sur les traces analysées
+          </small>
+        </article>
+
+
+        <article
+          className={
+            styles.aggregateMetricCard
+          }
+        >
+          <span>
             Taux d’exécution
           </span>
 
@@ -1348,6 +1542,62 @@ function AggregateOverview({
           </small>
         </article>
       </div>
+
+
+      {
+        metrics.failure_stages.length >
+          0
+          ? (
+              <div
+                className={
+                  styles.failureStagePanel
+                }
+              >
+                <div>
+                  <span
+                    className={
+                      styles.eyebrow
+                    }
+                  >
+                    ÉCHECS · ÉTAPES
+                  </span>
+
+                  <strong>
+                    Où les exécutions échouent
+                  </strong>
+                </div>
+
+                <div
+                  className={
+                    styles.failureStageTags
+                  }
+                >
+                  {
+                    metrics.failure_stages.map(
+                      (
+                        item
+                      ) => (
+                        <span
+                          key={
+                            `failure-stage-${item.name}`
+                          }
+                        >
+                          {
+                            item.name
+                          }
+                          {" · "}
+                          {
+                            item.count
+                          }
+                        </span>
+                      )
+                    )
+                  }
+                </div>
+              </div>
+            )
+          : null
+      }
 
 
       <div
@@ -2615,7 +2865,7 @@ function TraceOverview({
 
           <StatusBadge
             value={
-              pipelineStatus
+              trace.run_status
             }
           />
         </div>
@@ -2649,8 +2899,116 @@ function TraceOverview({
               )
             }
           />
+
+          {
+            trace.analysis_source_type
+              ? (
+                  <MetaBadge
+                    label="Source"
+                    value={
+                      analysisSourceLabel(
+                        trace.analysis_source_type
+                      )
+                    }
+                  />
+                )
+              : null
+          }
+
+          {
+            trace.workflow_id
+              ? (
+                  <MetaBadge
+                    label="Workflow"
+                    value={
+                      trace.workflow_id
+                    }
+                  />
+                )
+              : null
+          }
+
+          {
+            trace.analysis_id
+              ? (
+                  <MetaBadge
+                    label="Analyse"
+                    value={
+                      trace.analysis_id
+                    }
+                  />
+                )
+              : null
+          }
         </div>
       </section>
+
+
+      {
+        trace.failure
+          ? (
+              <section
+                className={
+                  `${styles.panel} ${styles.failurePanel}`
+                }
+              >
+                <div
+                  className={
+                    styles.sectionHead
+                  }
+                >
+                  <div>
+                    <span
+                      className={
+                        styles.eyebrow
+                      }
+                    >
+                      ÉCHEC D’EXÉCUTION
+                    </span>
+
+                    <h2>
+                      Trace interrompue
+                    </h2>
+                  </div>
+
+                  <StatusBadge
+                    value="failed"
+                  />
+                </div>
+
+                <div
+                  className={
+                    styles.metaRow
+                  }
+                >
+                  <MetaBadge
+                    label="Étape"
+                    value={
+                      trace.failure.stage
+                    }
+                  />
+
+                  <MetaBadge
+                    label="Type"
+                    value={
+                      trace.failure.error_type
+                    }
+                  />
+                </div>
+
+                <p
+                  className={
+                    styles.failureMessage
+                  }
+                >
+                  {
+                    trace.failure.message_safe
+                  }
+                </p>
+              </section>
+            )
+          : null
+      }
 
 
       <section
