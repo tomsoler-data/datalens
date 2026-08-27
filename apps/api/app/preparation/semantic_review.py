@@ -11,7 +11,10 @@ from urllib.error import (
 )
 from urllib.request import (
     Request,
-    urlopen,
+)
+
+from app.security.llm_egress import (
+    open_local_llm_request,
 )
 
 import pandas as pd
@@ -960,7 +963,7 @@ def _ollama_chat_one(
     )
 
     try:
-        with urlopen(
+        with open_local_llm_request(
             request,
             timeout=
                 timeout_seconds,

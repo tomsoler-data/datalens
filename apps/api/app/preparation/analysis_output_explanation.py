@@ -3,7 +3,11 @@ from __future__ import annotations
 import json
 from typing import Literal
 from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
+from urllib.request import Request
+
+from app.security.llm_egress import (
+    open_local_llm_request,
+)
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
@@ -739,7 +743,7 @@ def _ollama_output_explanation(
     )
 
     try:
-        with urlopen(
+        with open_local_llm_request(
             request,
             timeout=timeout_seconds,
         ) as response:
