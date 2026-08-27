@@ -492,8 +492,7 @@ def export_selected_report_pdf(
                 "message":
                     (
                         "La génération locale du PDF "
-                        "server-owned a échoué : "
-                        f"{type(error).__name__}: {error}"
+                        "server-owned a échoué."
                     ),
 
                 "workflow_id":

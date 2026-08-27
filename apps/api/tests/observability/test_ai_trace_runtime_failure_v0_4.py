@@ -177,7 +177,10 @@ class AITraceRuntimeFailureV04Tests(
 
         self.assertEqual(
             error.detail,
-            "synthetic planner failure",
+            (
+                "Local AI processing is unavailable "
+                "or returned an invalid response."
+            ),
         )
 
 
@@ -325,7 +328,10 @@ class AITraceRuntimeFailureV04Tests(
 
         self.assertEqual(
             error.detail,
-            "synthetic planner failure",
+            (
+                "Local AI processing is unavailable "
+                "or returned an invalid response."
+            ),
         )
 
 

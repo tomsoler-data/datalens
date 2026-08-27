@@ -667,9 +667,10 @@ def inspect_preparation_identity(
                     )
                 )
 
-            except Exception as error:
-                ai_error = str(
-                    error
+            except Exception:
+                ai_error = (
+                    "Local model dataset-identity explanation "
+                    "is unavailable."
                 )
 
 

@@ -985,24 +985,8 @@ def _ollama_chat_one(
             )
 
     except HTTPError as error:
-        body = ""
-
-        try:
-            body = (
-                error
-                .read()
-                .decode(
-                    "utf-8",
-                    errors="replace",
-                )
-            )
-
-        except Exception:
-            pass
-
         raise RuntimeError(
-            "Ollama semantic review failed "
-            f"with HTTP {error.code}: {body}"
+            "Local model semantic review request failed."
         ) from error
 
     except URLError as error:
@@ -2068,7 +2052,7 @@ def review_quality_semantics(
         except (
             RuntimeError,
             ValueError,
-        ) as error:
+        ):
             llm_failure_count += 1
 
             validated_decisions.append(
@@ -2089,10 +2073,9 @@ def review_quality_semantics(
 
                     validation_notes=[
                         (
-                            "Candidate-level semantic "
-                            "review failure: "
-                            f"{type(error).__name__}: "
-                            f"{error}"
+                            "Candidate-level semantic review "
+                            "failed; internal model error "
+                            "details were suppressed."
                         )
                     ],
                 )

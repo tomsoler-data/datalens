@@ -552,26 +552,10 @@ def _ollama_identity_explanation(
             )
 
     except HTTPError as error:
-        body = ""
-
-        try:
-            body = (
-                error
-                .read()
-                .decode(
-                    "utf-8",
-                    errors=
-                        "replace",
-                )
-            )
-
-        except Exception:
-            pass
-
         raise RuntimeError(
             (
-                "Ollama dataset-identity explanation failed "
-                f"with HTTP {error.code}: {body}"
+                "Local model dataset-identity explanation "
+                "request failed."
             )
         ) from error
 
