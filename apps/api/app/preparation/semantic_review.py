@@ -21,6 +21,11 @@ from app.security.llm_payload import (
     LLMPayloadClass,
 )
 
+from app.security.semantic_value_sample import (
+    MAX_SEMANTIC_VALUE_SAMPLE_VALUES,
+    require_bounded_semantic_value_sample,
+)
+
 import pandas as pd
 from pydantic import (
     BaseModel,
@@ -271,7 +276,9 @@ def _safe_unique_values(
     dataframe: pd.DataFrame,
     column: str | None,
     *,
-    limit: int = 20,
+    limit: int = (
+        MAX_SEMANTIC_VALUE_SAMPLE_VALUES
+    ),
 ) -> list[str]:
     if (
         column is None
@@ -546,7 +553,9 @@ def _candidate_from_issue(
             _safe_unique_values(
                 dataframe,
                 issue.column,
-                limit=12,
+                limit=(
+                    MAX_SEMANTIC_VALUE_SAMPLE_VALUES
+                ),
             ),
 
         "deterministic_details":
@@ -602,7 +611,7 @@ def _candidate_from_issue(
                 list(
                     issue.evidence
                     .examples[
-                        :8
+                        :MAX_SEMANTIC_VALUE_SAMPLE_VALUES
                     ]
                 ),
 
@@ -766,7 +775,7 @@ def build_semantic_review_candidates(
                     list(
                         issue.evidence
                         .examples[
-                            :8
+                            :MAX_SEMANTIC_VALUE_SAMPLE_VALUES
                         ]
                     ),
                 candidate_groups=
@@ -855,12 +864,135 @@ def _system_prompt(
     )
 
 
+def _model_visible_candidate_payload(
+    candidate: SemanticReviewCandidate,
+) -> dict[
+    str,
+    Any,
+]:
+    """
+    Build the only SemanticReviewCandidate representation that
+    may cross the local-model boundary.
+
+    Internal deterministic_details deliberately do not cross
+    this boundary. Explicit dataset-derived value collections
+    must each respect the global semantic sample budget.
+    """
+
+    # The model-visible value budget is aggregate, not
+    # per field. A candidate cannot bypass the five-value
+    # privacy budget by spreading different values across
+    # candidate_values and candidate_groups.
+    model_visible_values = list(
+        candidate.candidate_values
+    )
+
+
+    for group in (
+        candidate.candidate_groups
+    ):
+        model_visible_values.extend(
+            group
+        )
+
+
+    unique_model_visible_values = list(
+        dict.fromkeys(
+            model_visible_values
+        )
+    )
+
+
+    require_bounded_semantic_value_sample(
+        unique_model_visible_values,
+        field_name=
+            "candidate.model_visible_values",
+    )
+
+
+    safe_context = {
+        "column_dtype":
+            candidate.context.get(
+                "column_dtype"
+            ),
+
+        "source_quality_issue_id":
+            candidate.context.get(
+                "source_quality_issue_id"
+            ),
+
+        "alias_group_index":
+            candidate.context.get(
+                "alias_group_index"
+            ),
+
+        "semantic_canonicalization_rule_version":
+            candidate.context.get(
+                "semantic_canonicalization_rule_version"
+            ),
+    }
+
+
+    return {
+        "issue_id":
+            candidate.issue_id,
+
+        "dataset_id":
+            candidate.dataset_id,
+
+        "dataset_filename":
+            candidate.dataset_filename,
+
+        "column":
+            candidate.column,
+
+        "kind":
+            candidate.kind.value,
+
+        "severity":
+            candidate.severity,
+
+        "title":
+            candidate.title,
+
+        "explanation":
+            candidate.explanation,
+
+        "observed_count":
+            candidate.observed_count,
+
+        "affected_ratio":
+            candidate.affected_ratio,
+
+        # examples and context.sample_unique_values remain
+        # internal Python evidence. candidate_values is the
+        # sole flat value collection exposed to the model.
+        "candidate_values":
+            list(
+                candidate.candidate_values
+            ),
+
+        "candidate_groups":
+            [
+                list(
+                    group
+                )
+
+                for group
+                in candidate.candidate_groups
+            ],
+
+        "context":
+            safe_context,
+    }
+
+
 def _user_prompt(
     candidate: SemanticReviewCandidate,
 ) -> str:
     payload = (
-        candidate.model_dump(
-            mode="json"
+        _model_visible_candidate_payload(
+            candidate
         )
     )
 
