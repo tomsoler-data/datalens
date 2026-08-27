@@ -175,12 +175,15 @@ jobs:
 
           for test_file in tests/security/test_*.py
           do
+            test_module="${test_file%.py}"
+            test_module="${test_module//\//.}"
+
             echo
             echo "========================================"
-            echo "RUN ${test_file}"
+            echo "RUN ${test_module}"
             echo "========================================"
 
-            python "${test_file}"
+            python -m "${test_module}"
 
             test_count=$((test_count + 1))
           done

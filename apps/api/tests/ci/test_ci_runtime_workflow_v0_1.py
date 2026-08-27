@@ -236,8 +236,44 @@ def test_security_regression_contract(
         workflow,
         "tests/security/test_*.py",
         (
-            "Runtime CI must execute the "
+            "Runtime CI must discover the "
             "security regression scripts."
+        ),
+    )
+
+    assert_contains(
+        workflow,
+        'test_module="${test_file%.py}"',
+        (
+            "Runtime CI must derive a Python "
+            "module from each security test path."
+        ),
+    )
+
+    assert_contains(
+        workflow,
+        r'test_module="${test_module//\//.}"',
+        (
+            "Runtime CI must convert security "
+            "test paths to dotted modules."
+        ),
+    )
+
+    assert_contains(
+        workflow,
+        'python -m "${test_module}"',
+        (
+            "Runtime CI must execute security "
+            "tests as importable Python modules."
+        ),
+    )
+
+    assert_not_contains(
+        workflow,
+        'python "${test_file}"',
+        (
+            "Runtime CI must not execute security "
+            "tests by filesystem path."
         ),
     )
 
