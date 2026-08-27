@@ -149,6 +149,7 @@ def test_workflow_triggers(
         '"apps/web/**"',
         '"compose.yaml"',
         '".github/workflows/datalens-publish.yml"',
+        '".github/workflows/datalens-release.yml"',
     ):
         assert_contains(
             workflow,
@@ -540,6 +541,10 @@ def test_publish_handoff_contract(
         (
             "python -m tests.ci."
             "test_ci_publish_workflow_v0_1"
+        ),
+        (
+            "python -m tests.ci."
+            "test_ci_release_workflow_v0_1"
         ),
     ):
         assert_contains(
