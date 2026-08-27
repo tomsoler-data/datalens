@@ -161,9 +161,11 @@
 
   align-self: start;
 
+  min-width: 0;
   height: calc(100vh - 72px);
   padding: 24px 18px;
 
+  overflow-x: hidden;
   overflow-y: auto;
 
   border-right: 1px solid rgba(255, 255, 255, 0.075);
@@ -231,12 +233,18 @@
   display: grid;
   gap: 8px;
 
+  min-width: 0;
   margin-top: 14px;
 }
 
 .traceCard {
+  box-sizing: border-box;
+
   width: 100%;
+  min-width: 0;
   padding: 13px;
+
+  overflow: hidden;
 
   border: 1px solid rgba(255, 255, 255, 0.065);
   border-radius: 12px;
