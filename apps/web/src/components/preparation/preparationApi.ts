@@ -8,8 +8,12 @@ import type {
   PreparationIdentityInspectResponse,
   PreparationOutputExplanationResponse,
   PreparationSessionCapabilities,
+  PreparationSessionCatalogItem,
+  PreparationSessionCatalogResponse,
   PreparationSessionView,
+  PreparationUiStateView,
 } from "./preparationTypes";
+import type { MultiDatasetIngestion } from "../../app/types";
 
 
 const API_URL =
@@ -295,7 +299,10 @@ export async function createPreparationSession(
     string[],
 
   signal?:
-    AbortSignal
+    AbortSignal,
+
+  displayName?:
+    string
 ): Promise<
   PreparationSessionView
 > {
@@ -305,10 +312,25 @@ export async function createPreparationSession(
     );
 
 
+  const normalizedDisplayName =
+    displayName
+      ?.trim() ??
+    "";
+
+
   const body:
     CreatePreparationSessionRequest = {
       selected_analysis_dataset_ids:
         normalizedIds,
+
+      ...(
+        normalizedDisplayName
+          ? {
+              display_name:
+                normalizedDisplayName,
+            }
+          : {}
+      ),
     };
 
 
@@ -337,6 +359,212 @@ export async function createPreparationSession(
   return (
     requireSuccessfulJson<
       PreparationSessionView
+    >(
+      response
+    )
+  );
+}
+
+
+/* ============================================================
+   WORKFLOW HISTORY
+   PREPARATION_WORKFLOW_HISTORY_FRONTEND_V0_1
+============================================================ */
+
+
+export async function listPreparationSessions(
+  signal?:
+    AbortSignal
+): Promise<
+  PreparationSessionCatalogResponse
+> {
+  const response =
+    await fetch(
+      `${
+        API_URL
+      }/preparation/sessions`,
+      {
+        method:
+          "GET",
+
+        cache:
+          "no-store",
+
+        signal,
+      }
+    );
+
+
+  return (
+    requireSuccessfulJson<
+      PreparationSessionCatalogResponse
+    >(
+      response
+    )
+  );
+}
+
+
+
+/* ============================================================
+   WORKFLOW METADATA
+   PREPARATION_WORKFLOW_METADATA_FRONTEND_V0_1
+============================================================ */
+
+
+export async function renamePreparationSession(
+  workflowId:
+    string,
+
+  displayName:
+    string,
+
+  signal?:
+    AbortSignal
+): Promise<
+  PreparationSessionCatalogItem
+> {
+  const normalizedId =
+    normalizeWorkflowId(
+      workflowId
+    );
+
+  const normalizedName =
+    displayName.trim();
+
+
+  if (
+    !normalizedName
+  ) {
+    throw new Error(
+      "Le nom du workflow ne peut pas etre vide."
+    );
+  }
+
+
+  const response =
+    await fetch(
+      `${API_URL}/preparation/sessions/${
+        encodeURIComponent(
+          normalizedId
+        )
+      }/rename`,
+      {
+        method:
+          "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+
+        body:
+          JSON.stringify(
+            {
+              display_name:
+                normalizedName,
+            }
+          ),
+
+        cache:
+          "no-store",
+
+        signal,
+      }
+    );
+
+
+  return (
+    requireSuccessfulJson<
+      PreparationSessionCatalogItem
+    >(
+      response
+    )
+  );
+}
+
+
+export async function archivePreparationSession(
+  workflowId:
+    string,
+
+  signal?:
+    AbortSignal
+): Promise<
+  PreparationSessionCatalogItem
+> {
+  const normalizedId =
+    normalizeWorkflowId(
+      workflowId
+    );
+
+
+  const response =
+    await fetch(
+      `${API_URL}/preparation/sessions/${
+        encodeURIComponent(
+          normalizedId
+        )
+      }/archive`,
+      {
+        method:
+          "POST",
+
+        cache:
+          "no-store",
+
+        signal,
+      }
+    );
+
+
+  return (
+    requireSuccessfulJson<
+      PreparationSessionCatalogItem
+    >(
+      response
+    )
+  );
+}
+
+
+export async function restorePreparationSession(
+  workflowId:
+    string,
+
+  signal?:
+    AbortSignal
+): Promise<
+  PreparationSessionCatalogItem
+> {
+  const normalizedId =
+    normalizeWorkflowId(
+      workflowId
+    );
+
+
+  const response =
+    await fetch(
+      `${API_URL}/preparation/sessions/${
+        encodeURIComponent(
+          normalizedId
+        )
+      }/restore`,
+      {
+        method:
+          "POST",
+
+        cache:
+          "no-store",
+
+        signal,
+      }
+    );
+
+
+  return (
+    requireSuccessfulJson<
+      PreparationSessionCatalogItem
     >(
       response
     )
@@ -1069,3 +1297,308 @@ export async function approvePreparationCombine(
   );
 }
 
+/* ============================================================
+   PERMANENT WORKFLOW DELETE
+   PREPARATION_WORKFLOW_PERMANENT_DELETE_FRONTEND_V0_1
+============================================================ */
+
+
+export async function deletePreparationSession(
+  workflowId:
+    string,
+
+  confirmationDisplayName:
+    string,
+
+  expectedRevision:
+    number,
+
+  signal?:
+    AbortSignal
+): Promise<
+  void
+> {
+  const normalizedWorkflowId =
+    normalizeWorkflowId(
+      workflowId
+    );
+
+
+  const normalizedDisplayName =
+    confirmationDisplayName.trim();
+
+
+  if (
+    !normalizedDisplayName
+  ) {
+    throw new Error(
+      "Le nom du workflow est requis pour confirmer la suppression."
+    );
+  }
+
+
+  if (
+    !Number.isInteger(
+      expectedRevision
+    )
+    ||
+    expectedRevision <
+      0
+  ) {
+    throw new Error(
+      "La révision du workflow est invalide."
+    );
+  }
+
+
+  const response =
+    await fetch(
+      `${
+        API_URL
+      }/preparation/sessions/${
+        encodeURIComponent(
+          normalizedWorkflowId
+        )
+      }`,
+      {
+        method:
+          "DELETE",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+
+        body:
+          JSON.stringify(
+            {
+              confirmation_workflow_id:
+                normalizedWorkflowId,
+
+              confirmation_display_name:
+                normalizedDisplayName,
+
+              expected_revision:
+                expectedRevision,
+            }
+          ),
+
+        signal,
+      }
+    );
+
+
+  await requireSuccessfulJson<
+    unknown
+  >(
+    response
+  );
+}
+
+
+export async function getPreparationUiState(
+  workflowId:
+    string,
+
+  signal?:
+    AbortSignal
+): Promise<
+  PreparationUiStateView
+> {
+  const response =
+    await fetch(
+      `${API_URL}/preparation/sessions/${encodeURIComponent(
+        workflowId
+      )}/ui-state`,
+      {
+        method:
+          "GET",
+
+        cache:
+          "no-store",
+
+        signal,
+      }
+    );
+
+
+  let payload:
+    unknown =
+      null;
+
+
+  try {
+    payload =
+      await response.json();
+  } catch {
+    payload =
+      null;
+  }
+
+
+  if (
+    !response.ok
+  ) {
+    let detail =
+      (
+        "Impossible de restaurer "
+        +
+        "l'état détaillé de la préparation."
+      );
+
+
+    if (
+      payload &&
+      typeof payload ===
+        "object" &&
+      !Array.isArray(
+        payload
+      ) &&
+      "detail" in payload
+    ) {
+      const candidate =
+        (
+          payload as {
+            detail?:
+              unknown;
+          }
+        ).detail;
+
+
+      if (
+        typeof candidate ===
+          "string" &&
+        candidate.trim()
+      ) {
+        detail =
+          candidate.trim();
+      }
+    }
+
+
+    throw new Error(
+      detail
+    );
+  }
+
+
+  if (
+    !payload ||
+    typeof payload !==
+      "object" ||
+    Array.isArray(
+      payload
+    )
+  ) {
+    throw new Error(
+      "Le backend a retourné un état de préparation invalide."
+    );
+  }
+
+
+  return (
+    payload as
+      PreparationUiStateView
+  );
+}
+
+
+export async function getPreparationIngestionView(
+  workflowId:
+    string,
+
+  signal?:
+    AbortSignal
+): Promise<
+  MultiDatasetIngestion
+> {
+  const response =
+    await fetch(
+      `${API_URL}/preparation/sessions/${encodeURIComponent(
+        workflowId
+      )}/ingestion-view`,
+      {
+        method:
+          "GET",
+
+        cache:
+          "no-store",
+
+        signal,
+      }
+    );
+
+
+  let payload:
+    unknown =
+      null;
+
+
+  try {
+    payload =
+      await response.json();
+  } catch {
+    payload =
+      null;
+  }
+
+
+  if (
+    !response.ok
+  ) {
+    let detail =
+      (
+        "Impossible de restaurer le contexte "
+        +
+        "des datasets du workflow."
+      );
+
+
+    if (
+      payload &&
+      typeof payload ===
+        "object" &&
+      "detail" in payload
+    ) {
+      const candidate =
+        (
+          payload as {
+            detail?:
+              unknown;
+          }
+        ).detail;
+
+
+      if (
+        typeof candidate ===
+          "string" &&
+        candidate.trim()
+      ) {
+        detail =
+          candidate.trim();
+      }
+    }
+
+
+    throw new Error(
+      detail
+    );
+  }
+
+
+  if (
+    !payload ||
+    typeof payload !==
+      "object"
+  ) {
+    throw new Error(
+      "Le backend a retourné un contexte dataset invalide."
+    );
+  }
+
+
+  return (
+    payload as
+      MultiDatasetIngestion
+  );
+}

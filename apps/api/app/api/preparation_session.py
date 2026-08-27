@@ -34,11 +34,50 @@ from app.preparation.preparation_artifact_store import (
 
 from app.preparation.preparation_session import (
     PREPARATION_SESSION_RULE_VERSION,
+    PreparationSessionCatalogItem,
     PreparationSessionNotFoundError,
     PreparationSessionRevisionConflictError,
+    PreparationSessionStoreError,
     PreparationSessionView,
     create_preparation_session,
     get_preparation_session,
+    list_preparation_sessions,
+    archive_preparation_session,
+    restore_preparation_session,
+    rename_preparation_session,
+)
+
+
+
+from app.preparation.preparation_workflow_delete import (
+    PreparationWorkflowDeleteConfirmationError,
+    PreparationWorkflowDeleteIntegrityError,
+    PreparationWorkflowDeleteNotArchivedError,
+    PreparationWorkflowDeleteNotFoundError,
+    PreparationWorkflowDeleteRecoveryError,
+    PreparationWorkflowDeleteResult,
+    PreparationWorkflowDeleteRevisionConflictError,
+    delete_preparation_workflow,
+)
+
+
+from app.ingestion.loader import (
+    build_dataset_manifest,
+)
+
+from app.ingestion.schemas import (
+    MultiDatasetIngestion,
+)
+
+from app.preparation.preparation_artifact_store import (
+    PreparationArtifactStoreError,
+    get_preparation_artifact,
+)
+
+
+from app.preparation.preparation_ui_state import (
+    PreparationUiStateView,
+    get_preparation_ui_state,
 )
 
 
@@ -78,6 +117,7 @@ class StrictPreparationSessionRequest(
     )
 
 
+
 class PreparationSessionCreateRequest(
     StrictPreparationSessionRequest,
 ):
@@ -86,6 +126,48 @@ class PreparationSessionCreateRequest(
     ] = Field(
         min_length=
             1
+    )
+
+    display_name: (
+        str
+        |
+        None
+    ) = Field(
+        default=None,
+        max_length=120,
+    )
+
+
+class PreparationSessionRenameRequest(
+    StrictPreparationSessionRequest,
+):
+    display_name: str = Field(
+        min_length=1,
+        max_length=120,
+    )
+
+
+
+# ============================================================
+# PERMANENT WORKFLOW DELETE REQUEST
+# PREPARATION_WORKFLOW_DELETE_API_V0_1
+# ============================================================
+
+
+class PreparationWorkflowDeleteRequest(
+    StrictPreparationSessionRequest,
+):
+    confirmation_workflow_id: str = Field(
+        min_length=1,
+    )
+
+    confirmation_display_name: str = Field(
+        min_length=1,
+        max_length=120,
+    )
+
+    expected_revision: int = Field(
+        ge=0,
     )
 
 
@@ -151,6 +233,33 @@ class PreparationSessionCapabilities(
     notes: List[
         str
     ]
+
+
+
+# ============================================================
+# WORKFLOW HISTORY ? RESPONSE
+# PREPARATION_SESSION_CATALOG_V0_1
+# ============================================================
+
+
+class PreparationSessionCatalogResponse(
+    BaseModel,
+):
+    model_config = ConfigDict(
+        extra="forbid"
+    )
+
+    count: int = Field(
+        ge=0
+    )
+
+    sessions: List[
+        PreparationSessionCatalogItem
+    ]
+
+    api_version: str = (
+        PREPARATION_SESSION_API_VERSION
+    )
 
 
 # ============================================================
@@ -322,6 +431,38 @@ def _revision_conflict_detail(
 
 
 # ============================================================
+# PERMANENT WORKFLOW DELETE ERROR
+# PREPARATION_WORKFLOW_DELETE_API_V0_1
+# ============================================================
+
+
+def _workflow_delete_detail(
+    *,
+    error: str,
+    exc: Exception,
+    workflow_id: str,
+) -> Dict[
+    str,
+    Any,
+]:
+    return {
+        "error":
+            error,
+
+        "message":
+            str(
+                exc
+            ),
+
+        "workflow_id":
+            workflow_id,
+
+        "api_version":
+            PREPARATION_SESSION_API_VERSION,
+    }
+
+
+# ============================================================
 # VALIDATE LOCK
 # ============================================================
 
@@ -375,10 +516,10 @@ def get_preparation_session_capabilities(
                 PREPARATION_SESSION_RULE_VERSION,
 
             storage=
-                "in_memory",
+                "sqlite",
 
             persistent=
-                False,
+                True,
 
             client_can_set_workflow_id=
                 False,
@@ -394,61 +535,35 @@ def get_preparation_session_capabilities(
 
             notes=[
                 (
-                    "Preparation Session state is "
-                    "stored in the FastAPI process."
+                    "Preparation sessions are stored "
+                    "in the local DataLens SQLite "
+                    "control-plane database."
                 ),
 
                 (
-                    "Sessions are lost when the "
-                    "backend process restarts."
+                    "Sessions survive FastAPI process "
+                    "restarts."
                 ),
 
                 (
-                    "workflow_id values are generated "
-                    "by the backend."
+                    "workflow_id values remain "
+                    "backend-generated."
                 ),
 
                 (
-                    "No public endpoint allows the "
-                    "client to mark preparation stages "
-                    "as PASSED."
+                    "Preparation stage statuses remain "
+                    "backend-owned and derived from "
+                    "server-side evidence."
                 ),
 
                 (
-                    "No public endpoint allows the "
-                    "client to set READY FOR ANALYSIS."
-                ),
-
-                (
-                    "Stage updates are reserved for "
-                    "backend preparation engines."
-                ),
-
-                (
-                    "The client may select final "
-                    "analytical outputs only among "
-                    "server-owned Preparation artifacts."
-                ),
-
-                (
-                    "Final output selection is "
-                    "revalidated server-side against "
-                    "Artifact Store lineage before "
-                    "being committed."
-                ),
-
-                (
-                    "A PASSED VALIDATE stage locks "
-                    "the final analytical-output scope."
+                    "Final analysis-output selection "
+                    "keeps optimistic revision checks "
+                    "and artifact-lineage validation."
                 ),
             ],
         )
     )
-
-
-# ============================================================
-# CREATE SESSION
-# ============================================================
 
 
 @router.post(
@@ -479,7 +594,11 @@ def create_session(
                 selected_analysis_dataset_ids=(
                     request
                     .selected_analysis_dataset_ids
-                )
+                ),
+
+                display_name=(
+                    request.display_name
+                ),
             )
         )
 
@@ -502,6 +621,500 @@ def create_session(
 # ============================================================
 # READ SESSION
 # ============================================================
+
+
+
+# ============================================================
+# WORKFLOW HISTORY ? READ-ONLY CATALOG
+# PREPARATION_SESSION_CATALOG_V0_1
+# ============================================================
+
+
+@router.get(
+    "/sessions",
+    response_model=
+        PreparationSessionCatalogResponse,
+)
+def list_sessions(
+) -> PreparationSessionCatalogResponse:
+    """
+    Return the server-owned Preparation workflow history.
+
+    Catalog membership is defined exclusively by
+    preparation_sessions.
+
+    Historical AnalysisArtifact / ReportSelection rows that no
+    longer own a Preparation session are intentionally excluded.
+    """
+
+    try:
+        sessions = (
+            list_preparation_sessions()
+        )
+
+
+        return (
+            PreparationSessionCatalogResponse(
+                count=
+                    len(
+                        sessions
+                    ),
+
+                sessions=
+                    sessions,
+            )
+        )
+
+
+    except PreparationSessionStoreError as exc:
+        raise HTTPException(
+            status_code=
+                status
+                .HTTP_500_INTERNAL_SERVER_ERROR,
+
+            detail={
+                "error":
+                    "preparation_session_catalog_failed",
+
+                "message":
+                    str(
+                        exc
+                    ),
+
+                "api_version":
+                    PREPARATION_SESSION_API_VERSION,
+            },
+        ) from exc
+
+
+# ============================================================
+# WORKFLOW LIFECYCLE
+# PREPARATION_WORKFLOW_METADATA_V0_1
+# ============================================================
+
+
+
+# ============================================================
+# WORKFLOW METADATA ? RENAME
+# PREPARATION_WORKFLOW_METADATA_V0_1
+# ============================================================
+
+
+@router.post(
+    "/sessions/{workflow_id}/rename",
+    response_model=
+        PreparationSessionCatalogItem,
+)
+def rename_session(
+    workflow_id: str,
+    request:
+        PreparationSessionRenameRequest,
+) -> PreparationSessionCatalogItem:
+    try:
+        return (
+            rename_preparation_session(
+                workflow_id=
+                    workflow_id,
+
+                display_name=
+                    request.display_name,
+            )
+        )
+
+
+    except PreparationSessionNotFoundError as exc:
+        raise HTTPException(
+            status_code=
+                status.HTTP_404_NOT_FOUND,
+
+            detail=(
+                _not_found_detail(
+                    exc
+                )
+            ),
+        ) from exc
+
+
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=
+                status
+                .HTTP_422_UNPROCESSABLE_CONTENT,
+
+            detail=(
+                _invalid_session_detail(
+                    exc
+                )
+            ),
+        ) from exc
+
+
+    except PreparationSessionStoreError as exc:
+        raise HTTPException(
+            status_code=
+                status
+                .HTTP_500_INTERNAL_SERVER_ERROR,
+
+            detail={
+                "error":
+                    "preparation_workflow_rename_failed",
+
+                "message":
+                    str(
+                        exc
+                    ),
+
+                "api_version":
+                    PREPARATION_SESSION_API_VERSION,
+            },
+        ) from exc
+
+@router.post(
+    "/sessions/{workflow_id}/archive",
+    response_model=
+        PreparationSessionCatalogItem,
+)
+def archive_session(
+    workflow_id: str,
+) -> PreparationSessionCatalogItem:
+    """
+    Archive a server-owned workflow without deleting or
+    modifying its analytical state.
+    """
+
+    try:
+        return (
+            archive_preparation_session(
+                workflow_id
+            )
+        )
+
+
+    except PreparationSessionNotFoundError as exc:
+        raise HTTPException(
+            status_code=
+                status.HTTP_404_NOT_FOUND,
+
+            detail=(
+                _not_found_detail(
+                    exc
+                )
+            ),
+        ) from exc
+
+
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=
+                status
+                .HTTP_422_UNPROCESSABLE_CONTENT,
+
+            detail=(
+                _invalid_session_detail(
+                    exc
+                )
+            ),
+        ) from exc
+
+
+    except PreparationSessionStoreError as exc:
+        raise HTTPException(
+            status_code=
+                status
+                .HTTP_500_INTERNAL_SERVER_ERROR,
+
+            detail={
+                "error":
+                    "preparation_workflow_archive_failed",
+
+                "message":
+                    str(
+                        exc
+                    ),
+
+                "api_version":
+                    PREPARATION_SESSION_API_VERSION,
+            },
+        ) from exc
+
+
+@router.post(
+    "/sessions/{workflow_id}/restore",
+    response_model=
+        PreparationSessionCatalogItem,
+)
+def restore_session(
+    workflow_id: str,
+) -> PreparationSessionCatalogItem:
+    """
+    Restore an archived workflow.
+
+    No Preparation, AnalysisArtifact, ReportSelection or
+    filesystem payload is recreated because archive never
+    deleted those resources.
+    """
+
+    try:
+        return (
+            restore_preparation_session(
+                workflow_id
+            )
+        )
+
+
+    except PreparationSessionNotFoundError as exc:
+        raise HTTPException(
+            status_code=
+                status.HTTP_404_NOT_FOUND,
+
+            detail=(
+                _not_found_detail(
+                    exc
+                )
+            ),
+        ) from exc
+
+
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=
+                status
+                .HTTP_422_UNPROCESSABLE_CONTENT,
+
+            detail=(
+                _invalid_session_detail(
+                    exc
+                )
+            ),
+        ) from exc
+
+
+    except PreparationSessionStoreError as exc:
+        raise HTTPException(
+            status_code=
+                status
+                .HTTP_500_INTERNAL_SERVER_ERROR,
+
+            detail={
+                "error":
+                    "preparation_workflow_restore_failed",
+
+                "message":
+                    str(
+                        exc
+                    ),
+
+                "api_version":
+                    PREPARATION_SESSION_API_VERSION,
+            },
+        ) from exc
+
+# ============================================================
+# PERMANENT WORKFLOW DELETE
+# PREPARATION_WORKFLOW_DELETE_API_V0_1
+# ============================================================
+
+
+@router.delete(
+    "/sessions/{workflow_id}",
+    response_model=
+        PreparationWorkflowDeleteResult,
+)
+def delete_session(
+    workflow_id: str,
+    request:
+        PreparationWorkflowDeleteRequest,
+) -> PreparationWorkflowDeleteResult:
+    """
+    Permanently destroy an archived Preparation workflow.
+
+    Archive remains reversible.
+
+    Delete irreversibly removes the workflow-owned SQLite
+    control-plane rows and filesystem payloads.
+
+    The caller must confirm:
+    - immutable workflow_id;
+    - current display name;
+    - current analytical revision.
+    """
+
+    try:
+        return (
+            delete_preparation_workflow(
+                workflow_id=
+                    workflow_id,
+
+                confirmation_workflow_id=(
+                    request
+                    .confirmation_workflow_id
+                ),
+
+                confirmation_display_name=(
+                    request
+                    .confirmation_display_name
+                ),
+
+                expected_revision=(
+                    request
+                    .expected_revision
+                ),
+            )
+        )
+
+
+    except PreparationWorkflowDeleteNotFoundError as exc:
+        raise HTTPException(
+            status_code=
+                status.HTTP_404_NOT_FOUND,
+
+            detail=(
+                _workflow_delete_detail(
+                    error=
+                        "preparation_workflow_not_found",
+
+                    exc=
+                        exc,
+
+                    workflow_id=
+                        workflow_id,
+                )
+            ),
+        ) from exc
+
+
+    except PreparationWorkflowDeleteNotArchivedError as exc:
+        raise HTTPException(
+            status_code=
+                status.HTTP_409_CONFLICT,
+
+            detail=(
+                _workflow_delete_detail(
+                    error=(
+                        "preparation_workflow_"
+                        "delete_requires_archive"
+                    ),
+
+                    exc=
+                        exc,
+
+                    workflow_id=
+                        workflow_id,
+                )
+            ),
+        ) from exc
+
+
+    except PreparationWorkflowDeleteConfirmationError as exc:
+        raise HTTPException(
+            status_code=
+                status.HTTP_409_CONFLICT,
+
+            detail=(
+                _workflow_delete_detail(
+                    error=(
+                        "preparation_workflow_"
+                        "delete_confirmation_conflict"
+                    ),
+
+                    exc=
+                        exc,
+
+                    workflow_id=
+                        workflow_id,
+                )
+            ),
+        ) from exc
+
+
+    except PreparationWorkflowDeleteRevisionConflictError as exc:
+        raise HTTPException(
+            status_code=
+                status.HTTP_409_CONFLICT,
+
+            detail=(
+                _workflow_delete_detail(
+                    error=(
+                        "preparation_workflow_"
+                        "delete_revision_conflict"
+                    ),
+
+                    exc=
+                        exc,
+
+                    workflow_id=
+                        workflow_id,
+                )
+            ),
+        ) from exc
+
+
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=(
+                status
+                .HTTP_422_UNPROCESSABLE_CONTENT
+            ),
+
+            detail=(
+                _workflow_delete_detail(
+                    error=(
+                        "invalid_preparation_"
+                        "workflow_delete_request"
+                    ),
+
+                    exc=
+                        exc,
+
+                    workflow_id=
+                        workflow_id,
+                )
+            ),
+        ) from exc
+
+
+    except PreparationWorkflowDeleteIntegrityError as exc:
+        raise HTTPException(
+            status_code=
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+
+            detail=(
+                _workflow_delete_detail(
+                    error=(
+                        "preparation_workflow_"
+                        "delete_integrity_failure"
+                    ),
+
+                    exc=
+                        exc,
+
+                    workflow_id=
+                        workflow_id,
+                )
+            ),
+        ) from exc
+
+
+    except PreparationWorkflowDeleteRecoveryError as exc:
+        raise HTTPException(
+            status_code=
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+
+            detail=(
+                _workflow_delete_detail(
+                    error=(
+                        "preparation_workflow_"
+                        "delete_recovery_failure"
+                    ),
+
+                    exc=
+                        exc,
+
+                    workflow_id=
+                        workflow_id,
+                )
+            ),
+        ) from exc
 
 
 @router.get(
@@ -540,9 +1153,252 @@ def read_session(
         ) from exc
 
 
+
+# ============================================================
+# PREPARATION UI STATE
+# PREPARATION_UI_STATE_READ_V0_1
+# ============================================================
+
+
+@router.get(
+    "/sessions/{workflow_id}/ui-state",
+    response_model=
+        PreparationUiStateView,
+)
+def read_preparation_ui_state(
+    workflow_id: str,
+) -> PreparationUiStateView:
+    """
+    Restore committed structured Preparation outputs.
+
+    The Preparation Session remains the workflow authority.
+    This endpoint contains no DataFrames and performs no
+    recalculation, LLM call or cleaning execution.
+    """
+
+    try:
+        # Fail closed for stale / unknown workflow IDs.
+        get_preparation_session(
+            workflow_id
+        )
+
+        return (
+            get_preparation_ui_state(
+                workflow_id
+            )
+        )
+
+    except PreparationSessionNotFoundError as exc:
+        raise HTTPException(
+            status_code=(
+                status.HTTP_404_NOT_FOUND
+            ),
+
+            detail=(
+                _not_found_detail(
+                    exc
+                )
+            ),
+        ) from exc
+
+
 # ============================================================
 # ANALYSIS OUTPUT CANDIDATES
 # ============================================================
+
+
+@router.get(
+    "/sessions/{workflow_id}/ingestion-view",
+    response_model=
+        MultiDatasetIngestion,
+)
+def read_preparation_ingestion_view(
+    workflow_id: str,
+) -> MultiDatasetIngestion:
+    """
+    Reconstruct the dataset metadata required by the frontend
+    from server-owned Preparation artifacts.
+
+    This endpoint is strictly read-only:
+
+    - it does not re-run ingestion;
+    - it does not require browser File objects;
+    - it does not mutate Preparation artifacts;
+    - it does not advance the workflow;
+    - it never exposes DataFrame values.
+
+    The immutable Preparation root dataset IDs determine which
+    logical datasets belong to the restored ingestion view.
+    Their current server-owned materializations are used to
+    rebuild DatasetManifest objects.
+    """
+
+    try:
+        session = (
+            get_preparation_session(
+                workflow_id
+            )
+        )
+
+    except PreparationSessionNotFoundError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail=str(
+                exc
+            ),
+        ) from exc
+
+
+    root_dataset_ids = list(
+        session
+        .selected_analysis_dataset_ids
+    )
+
+
+    if not root_dataset_ids:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "Preparation session has no immutable "
+                "root datasets available for ingestion "
+                "rehydration."
+            ),
+        )
+
+
+    manifests = []
+
+
+    try:
+        for dataset_id in root_dataset_ids:
+            artifact = (
+                get_preparation_artifact(
+                    workflow_id=
+                        workflow_id,
+
+                    dataset_id=
+                        dataset_id,
+                )
+            )
+
+
+            filename = (
+                artifact
+                .dataset_filename
+            )
+
+
+            if "." in filename:
+                extension = (
+                    "."
+                    +
+                    filename
+                    .rsplit(
+                        ".",
+                        1,
+                    )[
+                        1
+                    ]
+                    .lower()
+                )
+
+            else:
+                # DataLens ingestion is currently CSV-based.
+                extension = ".csv"
+
+
+            manifest = (
+                build_dataset_manifest(
+                    artifact.dataframe,
+
+                    dataset_id=
+                        artifact.dataset_id,
+
+                    filename=
+                        filename,
+
+                    extension=
+                        extension,
+                )
+            )
+
+
+            manifests.append(
+                manifest
+            )
+
+    except PreparationArtifactStoreError as exc:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "Preparation dataset context cannot be "
+                "rehydrated because a required server-owned "
+                "artifact is unavailable. "
+                f"{exc}"
+            ),
+        ) from exc
+
+
+    filenames = [
+        manifest.filename
+        for manifest
+        in manifests
+    ]
+
+
+    duplicate_filenames = sorted(
+        {
+            filename
+            for filename
+            in filenames
+            if filenames.count(
+                filename
+            )
+            > 1
+        }
+    )
+
+
+    warnings = []
+
+
+    if duplicate_filenames:
+        warnings.append(
+            (
+                "Duplicate filenames are present in the "
+                "restored Preparation workflow: "
+                +
+                ", ".join(
+                    duplicate_filenames
+                )
+                +
+                ". Dataset IDs should be used to "
+                "distinguish them."
+            )
+        )
+
+
+    return (
+        MultiDatasetIngestion(
+            dataset_count=
+                len(
+                    manifests
+                ),
+
+            total_rows=
+                sum(
+                    manifest.row_count
+                    for manifest
+                    in manifests
+                ),
+
+            datasets=
+                manifests,
+
+            warnings=
+                warnings,
+        )
+    )
 
 
 @router.get(
@@ -575,10 +1431,6 @@ def read_analysis_output_candidates(
     try:
         # ====================================================
         # SERVER-OWNED SESSION
-        #
-        # Read this first so an unknown Preparation session is
-        # always a 404 even if Artifact Store.list() would
-        # otherwise simply return an empty list.
         # ====================================================
 
         session = (
@@ -621,11 +1473,6 @@ def read_analysis_output_candidates(
 
         # ====================================================
         # PRESENTATION ORDER
-        #
-        # More final/materialized stages appear first.
-        # This is UI ordering only.
-        #
-        # It does NOT authorize an artifact.
         # ====================================================
 
         stage_priority = {
@@ -842,13 +1689,6 @@ def select_analysis_output(
     try:
         # ====================================================
         # AUTHORITATIVE SERVER-SIDE COMMIT
-        #
-        # Do NOT call record_analysis_output_selection()
-        # directly here.
-        #
-        # This wrapper validates the requested output against
-        # current Preparation Artifact Store lineage before the
-        # session transaction is committed.
         # ====================================================
 
         commit_analysis_output_selection(
@@ -904,14 +1744,6 @@ def select_analysis_output(
 
 
     except ValueError as exc:
-        # State-level conflicts such as:
-        #
-        # - invalid output selection;
-        # - output change after VALIDATE PASSED;
-        # - violated Preparation invariant.
-        #
-        # The JSON shape itself has already been validated by
-        # Pydantic before reaching this function.
         raise HTTPException(
             status_code=(
                 status.HTTP_409_CONFLICT
@@ -930,11 +1762,6 @@ def select_analysis_output(
 
 
     except RuntimeError as exc:
-        # Selection / lineage guardrails are allowed to fail
-        # closed with domain-level runtime errors.
-        #
-        # They represent a conflict with current Preparation
-        # state, not a server crash.
         raise HTTPException(
             status_code=(
                 status.HTTP_409_CONFLICT

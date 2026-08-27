@@ -190,14 +190,14 @@ def test_capabilities():
             "storage"
         ]
         ==
-        "in_memory"
+        "sqlite"
     )
 
     assert (
         body[
             "persistent"
         ]
-        is False
+        is True
     )
 
     assert (

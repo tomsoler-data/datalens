@@ -1743,6 +1743,119 @@ def build_time_series_analysis_id(
     )
 
 
+def is_automatic_time_series_axis(
+    column_profile: ColumnProfile,
+) -> bool:
+    """
+    Return whether a temporal column is appropriate as an
+    automatically discovered longitudinal time-series axis.
+
+    Temporal typing and longitudinal analytical eligibility
+    are intentionally distinct concepts.
+
+    Birth dates / birth years remain temporal information,
+    but they describe an individual/cohort attribute rather
+    than the chronology along which an observed phenomenon
+    evolves.
+    """
+
+    if (
+        column_profile.kind
+        !=
+        "temporal"
+    ):
+        return False
+
+
+    subtype = str(
+        column_profile.analytical_subtype
+        or
+        ""
+    ).strip().lower()
+
+
+    # Strong deterministic signal produced by the central
+    # analytical type inference engine.
+    if (
+        subtype
+        ==
+        "birth_year"
+    ):
+        return False
+
+
+    concepts = {
+        str(
+            concept
+        ).strip().lower()
+
+        for concept
+        in column_profile.concepts
+    }
+
+
+    # Protect datetime birth-date columns too. Their physical
+    # subtype can simply be "datetime", while the semantic
+    # concept still identifies age/birth semantics.
+    if (
+        "age"
+        in concepts
+    ):
+        return False
+
+
+    return True
+
+
+def automatic_time_series_columns(
+    profile: DatasetProfile,
+) -> list[
+    str
+]:
+    """
+    Return temporal columns eligible for automatic
+    longitudinal time-series discovery.
+
+    profile.temporal_columns itself remains unchanged because
+    cohort/birth fields are still legitimately temporal and
+    useful elsewhere in the analytical system.
+    """
+
+    eligible: list[
+        str
+    ] = []
+
+
+    for column_name in (
+        profile.temporal_columns
+    ):
+        column_profile = (
+            profile.columns.get(
+                column_name
+            )
+        )
+
+
+        if (
+            column_profile
+            is None
+        ):
+            continue
+
+
+        if (
+            is_automatic_time_series_axis(
+                column_profile
+            )
+        ):
+            eligible.append(
+                column_name
+            )
+
+
+    return eligible
+
+
 def discover_time_series(
     profile: DatasetProfile,
     *,
@@ -1756,7 +1869,9 @@ def discover_time_series(
 
 
     for time_column in (
-        profile.temporal_columns
+        automatic_time_series_columns(
+            profile
+        )
     ):
         period_count = int(
             profile.dataframe[

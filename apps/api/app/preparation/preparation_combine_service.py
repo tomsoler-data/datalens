@@ -26,6 +26,8 @@ from app.preparation.post_join_validation import (
     validate_join_execution,
 )
 from app.preparation.dataset_identity import (
+    is_technical_surrogate_column,
+    normalize_column_name,
     profile_dataset_identity,
 )
 from app.preparation.preparation_identity_resolution import (
@@ -45,7 +47,14 @@ from app.preparation.preparation_session import (
 from app.preparation.preparation_workflow import PreparationStage
 
 
-PREPARATION_COMBINE_SERVICE_VERSION = "preparation_combine_service_v0.3"
+PREPARATION_COMBINE_SERVICE_VERSION = "preparation_combine_service_v0.5"
+
+# A same-named identifier is not sufficient evidence by itself.
+# Automatic relationship discovery requires at least a small amount
+# of actual overlap on the oriented left side. This is deliberately
+# a low floor: it only rejects pathological candidates, while normal
+# left joins with legitimate orphans remain reviewable.
+MIN_AUTOMATIC_JOIN_MATCH_RATE = 0.05
 
 
 class CombineIdentityResolutionRequiredError(
@@ -93,6 +102,7 @@ class _CandidateSeed:
     right_dataset_id: str
     key_column: str
     expected_cardinality: JoinCardinality
+    left_match_rate: float
     sort_key: tuple[object, ...]
 
 
@@ -112,6 +122,14 @@ def _stage_status(
 
 
 def _require_combine_window(session: PreparationSessionView) -> None:
+    # COMBINE_SERVICE_CLEAN_GUARD_V0_1
+    clean_status = _stage_status(session, PreparationStage.CLEAN)
+    if clean_status not in {"passed", "skipped"}:
+        raise ValueError(
+            "Combine cannot start until CLEAN is resolved. "
+            f"Current CLEAN status: {clean_status}."
+        )
+
     transform_status = _stage_status(session, PreparationStage.TRANSFORM)
     if transform_status not in {"passed", "skipped"}:
         raise ValueError(
@@ -195,9 +213,52 @@ def _active_artifacts(
 
 
 def _is_automatic_join_key(column: object) -> bool:
-    name = str(column).strip().lower()
-    # Deliberately conservative: bare `id` is too ambiguous.
-    return bool(name) and name.endswith("_id")
+    """
+    Conservative structural relationship-name guard.
+
+    Accepted common conventions:
+        customer_id
+        product_id
+        id_prod
+
+    Explicitly forbidden:
+        row_id
+        datalens_row_id
+        technical_row_id
+        datalens_row_id_<n>
+
+    A DataLens surrogate identifies a row inside one artifact only.
+    It never constitutes evidence of a relationship across datasets.
+    """
+
+    normalized = normalize_column_name(
+        str(
+            column
+        )
+    )
+
+    if not normalized:
+        return False
+
+    if is_technical_surrogate_column(
+        normalized
+    ):
+        return False
+
+    # Bare `id` remains too ambiguous for automatic cross-dataset
+    # relationship discovery.
+    if normalized == "id":
+        return False
+
+    return (
+        normalized.endswith(
+            "_id"
+        )
+        or
+        normalized.startswith(
+            "id_"
+        )
+    )
 
 
 def _non_null_unique(series: pd.Series) -> bool:
@@ -222,6 +283,69 @@ def _shared_id_columns(
         if _is_automatic_join_key(column)
     }
     return sorted(left_names & right_names)
+
+
+def _oriented_frames(
+    *,
+    first: PreparationDatasetArtifactInfo,
+    second: PreparationDatasetArtifactInfo,
+    first_frame: pd.DataFrame,
+    second_frame: pd.DataFrame,
+    left_dataset_id: str,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    if left_dataset_id == first.dataset_id:
+        return (
+            first_frame,
+            second_frame,
+        )
+
+    return (
+        second_frame,
+        first_frame,
+    )
+
+
+def _left_match_rate(
+    *,
+    left_frame: pd.DataFrame,
+    right_frame: pd.DataFrame,
+    key_column: str,
+) -> float:
+    """
+    Fraction of non-null left key values that occur on the right.
+
+    This is only a discovery guard. Join Planner still owns the
+    complete deterministic diagnostics and safety decision.
+    """
+
+    left_values = (
+        left_frame[
+            key_column
+        ]
+        .dropna()
+    )
+
+    if left_values.empty:
+        return 0.0
+
+    right_values = (
+        right_frame[
+            key_column
+        ]
+        .dropna()
+        .unique()
+    )
+
+    if len(right_values) == 0:
+        return 0.0
+
+    return float(
+        left_values
+        .isin(
+            right_values
+        )
+        .mean()
+    )
 
 
 def _candidate_seed(
@@ -256,6 +380,20 @@ def _candidate_seed(
         )
         expected = JoinCardinality.MANY_TO_MANY
 
+    left_frame, right_frame = _oriented_frames(
+        first=first,
+        second=second,
+        first_frame=first_frame,
+        second_frame=second_frame,
+        left_dataset_id=left.dataset_id,
+    )
+
+    match_rate = _left_match_rate(
+        left_frame=left_frame,
+        right_frame=right_frame,
+        key_column=key_column,
+    )
+
     cardinality_rank = {
         JoinCardinality.MANY_TO_ONE: 0,
         JoinCardinality.ONE_TO_ONE: 1,
@@ -267,8 +405,10 @@ def _candidate_seed(
         right_dataset_id=right.dataset_id,
         key_column=key_column,
         expected_cardinality=expected,
+        left_match_rate=match_rate,
         sort_key=(
             cardinality_rank,
+            -match_rate,
             -left.rows,
             key_column.lower(),
             left.dataset_filename.lower(),
@@ -292,14 +432,23 @@ def _candidate_seeds(
             second_frame = frames[second.dataset_id]
 
             for key_column in _shared_id_columns(first_frame, second_frame):
+                seed = _candidate_seed(
+                    first=first,
+                    second=second,
+                    first_frame=first_frame,
+                    second_frame=second_frame,
+                    key_column=key_column,
+                )
+
+                if (
+                    seed.left_match_rate
+                    <
+                    MIN_AUTOMATIC_JOIN_MATCH_RATE
+                ):
+                    continue
+
                 seeds.append(
-                    _candidate_seed(
-                        first=first,
-                        second=second,
-                        first_frame=first_frame,
-                        second_frame=second_frame,
-                        key_column=key_column,
-                    )
+                    seed
                 )
 
     seeds.sort(key=lambda seed: seed.sort_key)
@@ -365,6 +514,36 @@ def _intent_from_seed(
     )
 
 
+def _requires_explicit_identity_resolution(
+    artifact: PreparationDatasetArtifactInfo,
+) -> bool:
+    """
+    Return whether an active artifact must pass the row-identity gate.
+
+    Source/CLEAN/TRANSFORM artifacts represent independently prepared
+    datasets and therefore need their identity resolved before COMBINE.
+
+    A COMBINE artifact is different: it already exists only because an
+    earlier server-derived join plan was explicitly approved, executed,
+    and accepted by Post-Join Validation. Requiring a fresh identity
+    decision for that derived artifact would deadlock legitimate
+    multi-step joins whenever the preserved left grain has no natural
+    unique key.
+
+    This exemption does NOT make technical row ids join keys. Automatic
+    relationship discovery still excludes row_id and other DataLens
+    surrogate identifiers via _is_automatic_join_key().
+    """
+
+    return (
+        str(
+            artifact.stage
+        )
+        !=
+        "combine"
+    )
+
+
 def _require_identity_frontier_resolved(
     *,
     workflow_id: str,
@@ -382,6 +561,11 @@ def _require_identity_frontier_resolved(
 
 
     for artifact in artifacts:
+        if not _requires_explicit_identity_resolution(
+            artifact
+        ):
+            continue
+
         dataframe = frames.get(
             artifact.dataset_id
         )
@@ -490,10 +674,12 @@ def _discover_without_stage_write(workflow_id: str) -> CombineDiscovery:
         artifacts=artifacts,
         frames=frames,
     )
+
     artifact_by_id = {
         artifact.dataset_id: artifact
         for artifact in artifacts
     }
+
     seeds = _candidate_seeds(
         artifacts=artifacts,
         frames=frames,
@@ -506,7 +692,8 @@ def _discover_without_stage_write(workflow_id: str) -> CombineDiscovery:
             intent=None,
             plan=None,
             reason=(
-                "No deterministic shared *_id relationship was found "
+                "No deterministic shared identifier-like relationship "
+                "passed automatic relationship discovery guardrails "
                 "between the active Preparation artifacts."
             ),
         )
@@ -518,6 +705,7 @@ def _discover_without_stage_write(workflow_id: str) -> CombineDiscovery:
             seed=seed,
             artifact_by_id=artifact_by_id,
         )
+
         plan = plan_joins(
             datasets=frames,
             intents=[intent],
@@ -531,8 +719,8 @@ def _discover_without_stage_write(workflow_id: str) -> CombineDiscovery:
                 plan=plan,
                 reason=(
                     "A deterministic relationship candidate passed "
-                    "Join Planner safety checks and requires explicit "
-                    "analyst approval."
+                    "automatic relationship discovery and Join Planner "
+                    "safety checks and requires explicit analyst approval."
                 ),
             )
 
@@ -541,6 +729,7 @@ def _discover_without_stage_write(workflow_id: str) -> CombineDiscovery:
 
     assert first_blocked is not None
     intent, plan = first_blocked
+
     return CombineDiscovery(
         workflow_id=workflow_id,
         active_dataset_ids=active_ids,
@@ -607,6 +796,7 @@ def _sync_discovery_stage(
         for reason in [planned.rationale, *planned.warnings]
         if str(reason).strip()
     ]
+
     return record_optional_stage_signal(
         workflow_id=discovery.workflow_id,
         stage=PreparationStage.COMBINE,
@@ -626,8 +816,12 @@ def discover_next_combine(
     synchronize_stage: bool = True,
 ) -> CombineDiscovery:
     discovery = _discover_without_stage_write(workflow_id)
+
     if synchronize_stage:
-        _sync_discovery_stage(discovery)
+        _sync_discovery_stage(
+            discovery
+        )
+
     return discovery
 
 
@@ -638,7 +832,9 @@ def approve_and_execute_next_combine(
     actor: str = "user",
     comment: str | None = None,
 ) -> CombineExecution:
-    discovery = _discover_without_stage_write(workflow_id)
+    discovery = _discover_without_stage_write(
+        workflow_id
+    )
 
     if not discovery.has_candidate:
         raise ValueError(
@@ -655,7 +851,10 @@ def approve_and_execute_next_combine(
         )
 
     if not discovery.plan.ready_for_approval:
-        _sync_discovery_stage(discovery)
+        _sync_discovery_stage(
+            discovery
+        )
+
         raise ValueError(
             "The current join candidate is blocked and cannot be approved."
         )
@@ -707,12 +906,16 @@ def approve_and_execute_next_combine(
                 "Post-join validation rejected the materialized output."
             ],
         )
+
         raise RuntimeError(
             "Post-join validation rejected the materialized output."
         )
 
     output_id = discovery.intent.output_dataset_id
-    output_frame = execution.joined_datasets.get(output_id)
+    output_frame = execution.joined_datasets.get(
+        output_id
+    )
+
     if output_frame is None:
         raise RuntimeError(
             "Join Executor did not return the approved output dataset: "
@@ -738,8 +941,13 @@ def approve_and_execute_next_combine(
         replace=False,
     )
 
-    next_discovery = _discover_without_stage_write(workflow_id)
-    session = _sync_discovery_stage(next_discovery)
+    next_discovery = _discover_without_stage_write(
+        workflow_id
+    )
+
+    session = _sync_discovery_stage(
+        next_discovery
+    )
 
     return CombineExecution(
         workflow_id=workflow_id,

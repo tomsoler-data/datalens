@@ -33,7 +33,7 @@ from app.relationships import (
 # ============================================================
 
 ANALYTICAL_VIEW_RULE_VERSION = (
-    "analytical_view_v0.4"
+    "analytical_view_v0.6"
 )
 
 
@@ -90,6 +90,31 @@ QUANTITY_SIGNALS = {
     "nombre",
     "count",
 }
+
+
+# Strict signals used only for deterministic line-amount
+# derivation. These are intentionally narrower than the
+# generic quantity / monetary signals above.
+STRICT_QUANTITY_COLUMN_NAMES = {
+    "quantity",
+    "quantite",
+    "qty",
+}
+
+
+STRICT_UNIT_PRICE_COLUMN_NAMES = {
+    "unit_price",
+    "unitprice",
+    "price_per_unit",
+    "price_each",
+    "prix_unitaire",
+    "prix_unite",
+}
+
+
+DERIVED_LINE_AMOUNT_COLUMN = (
+    "gross_amount"
+)
 
 
 SESSION_IDENTIFIER_SIGNALS = {
@@ -1774,6 +1799,295 @@ def find_birth_year_column(
 # ============================================================
 # METRIC SEMANTICS
 # ============================================================
+
+def strict_numeric_candidates(
+    dataframe: pd.DataFrame,
+    *,
+    allowed_names: set[str],
+) -> list[str]:
+    """
+    Return quantitative columns whose normalized name is an
+    exact member of a deliberately narrow semantic allow-list.
+
+    This helper is intentionally stricter than has_signal().
+    It is used only when DataLens would create a new monetary
+    measure, where false positives are more dangerous than
+    abstention.
+    """
+
+    candidates: list[str] = []
+
+
+    for column in quantitative_columns(
+        dataframe
+    ):
+        if normalize_text(
+            column
+        ) in allowed_names:
+            candidates.append(
+                column
+            )
+
+
+    return candidates
+
+
+def has_strong_additive_monetary_column(
+    dataframe: pd.DataFrame,
+) -> bool:
+    """
+    Return True when the fact grain already exposes a strong
+    additive monetary measure such as revenue or amount.
+
+    When such a measure exists, DataLens does not manufacture a
+    second competing line amount from quantity * unit price.
+    """
+
+    for column in quantitative_columns(
+        dataframe
+    ):
+        if has_signal(
+            column,
+            STRONG_ADDITIVE_MONETARY_SIGNALS,
+        ):
+            return True
+
+
+    return False
+
+
+def derive_safe_line_monetary_amount(
+    dataframe: pd.DataFrame,
+) -> tuple[
+    pd.DataFrame,
+    dict[
+        str,
+        Any,
+    ] | None,
+]:
+    """
+    Derive one analytical-only line amount from an unambiguous
+    quantity * unit-price pair.
+
+    Safety rules:
+    - never overwrite an existing gross_amount column;
+    - do not derive a competing amount when a strong additive
+      monetary measure already exists;
+    - require exactly one strict quantity candidate;
+    - require exactly one strict unit-price candidate;
+    - require at least one row where both inputs are numeric;
+    - keep the derivation internal to the Analytical View
+      Builder. The validated Preparation dataframe is not
+      mutated.
+
+    Generic signals such as count, nombre, volume, price or cost
+    are intentionally insufficient for this derivation.
+    """
+
+    if (
+        DERIVED_LINE_AMOUNT_COLUMN
+        in dataframe.columns
+    ):
+        return (
+            dataframe,
+            None,
+        )
+
+
+    if has_strong_additive_monetary_column(
+        dataframe
+    ):
+        return (
+            dataframe,
+            None,
+        )
+
+
+    quantity_candidates = (
+        strict_numeric_candidates(
+            dataframe,
+            allowed_names=
+                STRICT_QUANTITY_COLUMN_NAMES,
+        )
+    )
+
+
+    unit_price_candidates = (
+        strict_numeric_candidates(
+            dataframe,
+            allowed_names=
+                STRICT_UNIT_PRICE_COLUMN_NAMES,
+        )
+    )
+
+
+    if (
+        len(
+            quantity_candidates
+        )
+        !=
+        1
+        or
+        len(
+            unit_price_candidates
+        )
+        !=
+        1
+    ):
+        return (
+            dataframe,
+            None,
+        )
+
+
+    quantity_column = (
+        quantity_candidates[
+            0
+        ]
+    )
+
+
+    unit_price_column = (
+        unit_price_candidates[
+            0
+        ]
+    )
+
+
+    if (
+        quantity_column
+        ==
+        unit_price_column
+    ):
+        return (
+            dataframe,
+            None,
+        )
+
+
+    quantity = pd.to_numeric(
+        dataframe[
+            quantity_column
+        ],
+        errors="coerce",
+    )
+
+
+    unit_price = pd.to_numeric(
+        dataframe[
+            unit_price_column
+        ],
+        errors="coerce",
+    )
+
+
+    valid_inputs = (
+        quantity.notna()
+        &
+        unit_price.notna()
+    )
+
+
+    if int(
+        valid_inputs.sum()
+    ) == 0:
+        return (
+            dataframe,
+            None,
+        )
+
+
+    line_amount = (
+        quantity
+        *
+        unit_price
+    )
+
+
+    line_amount = (
+        line_amount
+        .replace(
+            [
+                float("inf"),
+                float("-inf"),
+            ],
+            float("nan"),
+        )
+    )
+
+
+    if int(
+        line_amount
+        .notna()
+        .sum()
+    ) == 0:
+        return (
+            dataframe,
+            None,
+        )
+
+
+    result = (
+        dataframe.copy()
+    )
+
+
+    result[
+        DERIVED_LINE_AMOUNT_COLUMN
+    ] = line_amount
+
+
+    audit = {
+        "operation":
+            "analytical_line_amount_derivation",
+
+        "derived_column":
+            DERIVED_LINE_AMOUNT_COLUMN,
+
+        "source_quantity_column":
+            quantity_column,
+
+        "source_unit_price_column":
+            unit_price_column,
+
+        "formula":
+            (
+                f"{quantity_column} * "
+                f"{unit_price_column}"
+            ),
+
+        "valid_count":
+            int(
+                line_amount
+                .notna()
+                .sum()
+            ),
+
+        "missing_count":
+            int(
+                line_amount
+                .isna()
+                .sum()
+            ),
+
+        "analytical_only":
+            True,
+
+        "safety_policy":
+            (
+                "Derived only from exactly one strict "
+                "quantity column and exactly one strict "
+                "unit-price column. Generic count/volume/"
+                "price signals are insufficient."
+            ),
+    }
+
+
+    return (
+        result,
+        audit,
+    )
+
 
 def has_explicit_quantity_column(
     dataframe: pd.DataFrame,
@@ -3507,6 +3821,19 @@ def materialize_views_for_fact(
     ] = []
 
 
+    analytical_frame = (
+        enriched.copy()
+    )
+
+
+    (
+        analytical_frame,
+        line_amount_audit,
+    ) = derive_safe_line_monetary_amount(
+        analytical_frame
+    )
+
+
     fact_slug = (
         normalize_text(
             fact_dataset_id
@@ -3516,28 +3843,28 @@ def materialize_views_for_fact(
 
     times = (
         event_temporal_columns(
-            enriched
+            analytical_frame
         )
     )
 
 
     categories = (
         categorical_columns(
-            enriched
+            analytical_frame
         )
     )
 
 
     identifiers = (
         identifier_columns(
-            enriched
+            analytical_frame
         )
     )
 
 
     session_column = (
         select_semantic_identifier(
-            enriched,
+            analytical_frame,
             signals=
                 SESSION_IDENTIFIER_SIGNALS,
         )
@@ -3546,7 +3873,7 @@ def materialize_views_for_fact(
 
     customer_column = (
         select_semantic_identifier(
-            enriched,
+            analytical_frame,
             signals=
                 CUSTOMER_IDENTIFIER_SIGNALS,
         )
@@ -3571,7 +3898,7 @@ def materialize_views_for_fact(
             requested_context,
             requested_context_audit,
         ) = build_requested_event_context_view(
-            enriched,
+            analytical_frame,
 
             customer_column=
                 customer_column,
@@ -3641,7 +3968,7 @@ def materialize_views_for_fact(
 
     measure_semantics = (
         select_additive_measures(
-            enriched,
+            analytical_frame,
 
             fact_original_columns=
                 fact_original_columns,
@@ -3652,9 +3979,60 @@ def materialize_views_for_fact(
     )
 
 
+    if line_amount_audit is not None:
+        derived_measure_column = str(
+            line_amount_audit[
+                "derived_column"
+            ]
+        )
+
+
+        measure_semantics[
+            derived_measure_column
+        ] = (
+            "The monetary measure was derived internally at "
+            "fact-row grain from one unambiguous strict "
+            "quantity × unit-price pair. It is analytical-only "
+            "and does not mutate the validated Preparation "
+            "output."
+        )
+
+
     measures = list(
         measure_semantics.keys()
     )
+
+
+    def attach_source_measure_derivation(
+        provenance: dict[
+            str,
+            Any,
+        ],
+        *,
+        measure_column: str,
+    ) -> None:
+        if line_amount_audit is None:
+            return
+
+
+        if (
+            measure_column
+            !=
+            str(
+                line_amount_audit.get(
+                    "derived_column",
+                    "",
+                )
+            )
+        ):
+            return
+
+
+        provenance[
+            "source_measure_derivation"
+        ] = dict(
+            line_amount_audit
+        )
 
 
     if not measures:
@@ -3677,7 +4055,7 @@ def materialize_views_for_fact(
         for measure_column in measures:
             monthly = (
                 build_monthly_measure_view(
-                    enriched,
+                    analytical_frame,
 
                     time_column=
                         time_column,
@@ -3741,6 +4119,13 @@ def materialize_views_for_fact(
             }
 
 
+            attach_source_measure_derivation(
+                provenance,
+                measure_column=
+                    measure_column,
+            )
+
+
             append_derived_record(
                 records=
                     records,
@@ -3785,7 +4170,7 @@ def materialize_views_for_fact(
         for measure_column in measures:
             categorical_view = (
                 build_categorical_measure_view(
-                    enriched,
+                    analytical_frame,
 
                     group_column=
                         group_column,
@@ -3848,6 +4233,13 @@ def materialize_views_for_fact(
             }
 
 
+            attach_source_measure_derivation(
+                provenance,
+                measure_column=
+                    measure_column,
+            )
+
+
             append_derived_record(
                 records=
                     records,
@@ -3894,7 +4286,7 @@ def materialize_views_for_fact(
         for measure_column in measures:
             session_view = (
                 build_session_behavior_view(
-                    enriched,
+                    analytical_frame,
 
                     session_column=
                         session_column,
@@ -3976,6 +4368,13 @@ def materialize_views_for_fact(
                         "contributing to the session."
                     ),
             }
+
+
+            attach_source_measure_derivation(
+                session_provenance,
+                measure_column=
+                    measure_column,
+            )
 
 
             session_measures = [
@@ -4178,6 +4577,13 @@ def materialize_views_for_fact(
             }
 
 
+            attach_source_measure_derivation(
+                customer_provenance,
+                measure_column=
+                    measure_column,
+            )
+
+
             append_derived_record(
                 records=
                     records,
@@ -4233,7 +4639,7 @@ def materialize_views_for_fact(
         for measure_column in measures:
             entity_view = (
                 build_entity_measure_view(
-                    enriched,
+                    analytical_frame,
 
                     entity_column=
                         entity_column,
@@ -4296,6 +4702,13 @@ def materialize_views_for_fact(
             }
 
 
+            attach_source_measure_derivation(
+                provenance,
+                measure_column=
+                    measure_column,
+            )
+
+
             append_derived_record(
                 records=
                     records,
@@ -4339,6 +4752,434 @@ def materialize_views_for_fact(
 
 
 # ============================================================
+# PREPARATION INPUT HELPERS
+# ============================================================
+
+def is_validated_preparation_input(
+    dataset: dict[
+        str,
+        Any,
+    ],
+) -> bool:
+    """
+    Return True only for dataset records that carry
+    server-owned Preparation handoff metadata.
+
+    The browser does not choose this state.
+
+    AnalysisInputHandoff attaches Preparation metadata
+    to the exact validated output records crossing the
+    Preparation -> Analysis trust boundary.
+
+    This distinction is important because a validated
+    Preparation output may already contain columns that
+    were safely enriched during COMBINE. Requiring the
+    Analytical View Builder to rediscover and repeat the
+    original joins would be both unnecessary and wrong.
+    """
+
+    preparation_stage = str(
+        dataset.get(
+            "preparation_stage",
+            "",
+        )
+    ).strip()
+
+
+    if not preparation_stage:
+        return False
+
+
+    preparation_workflow_id = str(
+        dataset.get(
+            "preparation_workflow_id",
+            "",
+        )
+    ).strip()
+
+
+    analysis_input_rule_version = str(
+        dataset.get(
+            "analysis_input_rule_version",
+            "",
+        )
+    ).strip()
+
+
+    has_parent_metadata = (
+        "preparation_parent_dataset_ids"
+        in dataset
+    )
+
+
+    return bool(
+        preparation_workflow_id
+        or
+        analysis_input_rule_version
+        or
+        has_parent_metadata
+    )
+
+
+def prepared_input_enrichment_columns(
+    dataset: dict[
+        str,
+        Any,
+    ],
+    *,
+    dataframe: pd.DataFrame,
+) -> set[str]:
+    """
+    Return the columns that may safely participate in
+    the existing propagated-column monetary policy.
+
+    For a validated COMBINE output, the physical join
+    has already happened inside Preparation and has
+    crossed the server-owned validation boundary.
+
+    The old Analytical View Builder knew that a unit
+    price propagated from a validated dimension could
+    be treated as one monetary event when no explicit
+    quantity column existed.
+
+    After Preparation COMBINE, that lineage is no
+    longer represented as an Analysis-time join.
+    Therefore the final prepared columns are exposed to
+    the same conservative propagated-column rule.
+
+    This does NOT make arbitrary numerics additive:
+    select_additive_measures() still applies all of its
+    existing semantic guards.
+    """
+
+    stage = normalize_text(
+        dataset.get(
+            "preparation_stage",
+            "",
+        )
+    )
+
+
+    raw_parent_ids = dataset.get(
+        "preparation_parent_dataset_ids",
+        [],
+    )
+
+
+    parent_ids = (
+        list(
+            raw_parent_ids
+        )
+        if isinstance(
+            raw_parent_ids,
+            (
+                list,
+                tuple,
+                set,
+            ),
+        )
+        else []
+    )
+
+
+    already_combined = bool(
+        stage
+        ==
+        "combine"
+        or
+        len(
+            parent_ids
+        )
+        >
+        1
+    )
+
+
+    if not already_combined:
+        return set()
+
+
+    return {
+        str(
+            column
+        )
+
+        for column
+        in dataframe.columns
+    }
+
+
+def annotate_prepared_materialization(
+    *,
+    datasets: list[
+        dict[
+            str,
+            Any,
+        ]
+    ],
+    audits: list[
+        DerivedDatasetAudit
+    ],
+    source_record: dict[
+        str,
+        Any,
+    ],
+    dataframe: pd.DataFrame,
+    prepared_enrichment_columns: set[str],
+) -> None:
+    """
+    Add explicit audit metadata showing that the view
+    was materialized directly from a validated
+    Preparation output rather than from a new
+    Analysis-time join.
+    """
+
+    stage = str(
+        source_record.get(
+            "preparation_stage",
+            "",
+        )
+    )
+
+
+    raw_parent_ids = source_record.get(
+        "preparation_parent_dataset_ids",
+        [],
+    )
+
+
+    parent_ids = (
+        list(
+            raw_parent_ids
+        )
+        if isinstance(
+            raw_parent_ids,
+            (
+                list,
+                tuple,
+                set,
+            ),
+        )
+        else []
+    )
+
+
+    def annotate(
+        provenance: object,
+    ) -> None:
+        if not isinstance(
+            provenance,
+            dict,
+        ):
+            return
+
+
+        provenance[
+            "materialization_input_mode"
+        ] = (
+            "validated_preparation_output"
+        )
+
+
+        provenance[
+            "preparation_stage"
+        ] = stage
+
+
+        provenance[
+            "preparation_parent_dataset_ids"
+        ] = list(
+            parent_ids
+        )
+
+
+        source_measure = str(
+            provenance.get(
+                "source_measure_column",
+                "",
+            )
+        )
+
+
+        if (
+            source_measure
+            and
+            source_measure
+            in prepared_enrichment_columns
+            and
+            has_signal(
+                source_measure,
+                UNIT_MONETARY_SIGNALS,
+            )
+            and
+            not has_explicit_quantity_column(
+                dataframe
+            )
+        ):
+            provenance[
+                "metric_semantics"
+            ] = (
+                "The unit monetary measure is present "
+                "on a server-owned validated Preparation "
+                "output produced after controlled "
+                "preparation/enrichment. No explicit "
+                "quantity measure was detected, so one "
+                "prepared event row is conservatively "
+                "treated as one monetary event."
+            )
+
+
+    for dataset in datasets:
+        annotate(
+            dataset.get(
+                "provenance"
+            )
+        )
+
+
+    for audit in audits:
+        annotate(
+            audit.provenance
+        )
+
+
+def materialize_validated_preparation_output(
+    *,
+    dataset: dict[
+        str,
+        Any,
+    ],
+    include_requested_context: bool,
+) -> tuple[
+    list[
+        dict[
+            str,
+            Any,
+        ]
+    ],
+    list[
+        DerivedDatasetAudit
+    ],
+]:
+    """
+    Materialize analytical grains directly from one
+    already-validated Preparation output.
+
+    No new join is performed here.
+
+    This is the missing Preparation-era path:
+
+        validated final output
+                ?
+        already enriched event grain
+                ?
+        analytical materialization
+    """
+
+    dataset_id = str(
+        dataset[
+            "dataset_id"
+        ]
+    )
+
+
+    filename = str(
+        dataset[
+            "filename"
+        ]
+    )
+
+
+    dataframe = dataset.get(
+        "dataframe"
+    )
+
+
+    if not isinstance(
+        dataframe,
+        pd.DataFrame,
+    ):
+        raise TypeError(
+            (
+                "Validated Preparation analytical "
+                "input must contain a pandas "
+                "DataFrame under 'dataframe'."
+            )
+        )
+
+
+    original_columns = {
+        str(
+            column
+        )
+
+        for column
+        in dataframe.columns
+    }
+
+
+    enrichment_columns = (
+        prepared_input_enrichment_columns(
+            dataset,
+            dataframe=
+                dataframe,
+        )
+    )
+
+
+    (
+        records,
+        audits,
+    ) = materialize_views_for_fact(
+        fact_dataset_id=
+            dataset_id,
+
+        fact_filename=
+            filename,
+
+        enriched=
+            dataframe.copy(),
+
+        source_dataset_ids=[
+            dataset_id
+        ],
+
+        fact_original_columns=
+            original_columns,
+
+        propagated_columns=
+            enrichment_columns,
+
+        include_requested_context=
+            include_requested_context,
+    )
+
+
+    annotate_prepared_materialization(
+        datasets=
+            records,
+
+        audits=
+            audits,
+
+        source_record=
+            dataset,
+
+        dataframe=
+            dataframe,
+
+        prepared_enrichment_columns=
+            enrichment_columns,
+    )
+
+
+    return (
+        records,
+        audits,
+    )
+
+
+# ============================================================
 # COMPLETE BUILDER
 # ============================================================
 
@@ -4355,48 +5196,75 @@ def build_analytical_views(
     """
     Build conservative DataLens analytical views.
 
-    v0.4 adds a requested-only event context
-    while preserving explicit behavioural grain
-    materialization.
+    v0.6 supports both analytical input modes and adds a
+    deterministic analytical-only line monetary amount when an
+    unambiguous strict quantity × unit-price pair is available.
 
-    Pipeline:
+    Both analytical input modes remain supported:
 
+    MODE A ? multiple non-derived datasets
         source datasets
-            ↓
+            ?
         validated N:1 enrichment
-            ↓
+            ?
         internal enriched fact grain
-            ↓
+            ?
+        analytical materialization
+
+    MODE B ? validated Preparation output
+        server-owned final Preparation dataset
+            ?
+        already enriched validated grain
+            ?
+        analytical materialization directly
+
+    Both modes then use the same downstream hierarchy:
+
+        event rows
+            ?
         month / category / generic entity
-            ↓
+            ?
         session or order grain
-            ↓
+            ?
         customer grain
 
     Safety rules:
 
-    - original cleaned datasets only;
-    - direct validated 1:N or N:1 relationships;
-    - LEFT many-to-one enrichment;
-    - unique dimension key;
-    - exact fact-row preservation;
-    - at least 95% match coverage;
-    - no recursive view derivation;
+    - derived analytical views are never recursively
+      used as new source datasets;
+    - direct relationship enrichment remains limited
+      to validated 1:N or N:1 relationships;
+    - Analysis-time enrichment uses LEFT JOIN semantics;
+    - dimension keys must be unique;
+    - fact-row count must remain exactly unchanged;
+    - Analysis-time join coverage must be at least 95%;
+    - validated Preparation outputs are consumed as-is
+      and are never rejoined to stale source datasets;
+    - direct prepared-output materialization is enabled
+      only when server-owned Preparation metadata is
+      present on the dataset record;
     - no automatic SUM of arbitrary numerics;
     - no SUM(unit_price) when an explicit quantity
       variable exists;
-    - customer metrics are derived from session
-      grain rather than directly from raw event rows;
-    - purchase_sessions is explicitly an observed
-      count, not an exposure-normalized frequency;
+    - quantity × unit-price derivation is allowed only for one
+      unambiguous strict semantic pair and remains analytical-only;
+    - customer metrics are derived from session grain
+      rather than directly from raw event rows;
+    - purchase_sessions is an observed count, not an
+      exposure-normalized purchase rate;
     - age at first purchase is approximate when only
       birth year is known.
     """
 
+    # ========================================================
+    # 1. NON-DERIVED INPUTS ONLY
+    # ========================================================
+
     originals = [
         dataset
 
-        for dataset in datasets
+        for dataset
+        in datasets
 
         if not bool(
             dataset.get(
@@ -4413,6 +5281,13 @@ def build_analytical_views(
         )
     )
 
+
+    # ========================================================
+    # 2. RELATIONSHIP DISCOVERY
+    #
+    # This remains the normal path when Analysis receives
+    # multiple datasets that still require enrichment.
+    # ========================================================
 
     relationship_input = [
         {
@@ -4436,7 +5311,8 @@ def build_analytical_views(
                 ],
         }
 
-        for dataset in originals
+        for dataset
+        in originals
     ]
 
 
@@ -4496,6 +5372,10 @@ def build_analytical_views(
         )
 
 
+    # ========================================================
+    # 3. RESULT CONTAINERS
+    # ========================================================
+
     derived_datasets: list[
         dict[
             str,
@@ -4514,27 +5394,46 @@ def build_analytical_views(
     ] = []
 
 
+    materialized_fact_ids: set[
+        str
+    ] = set()
+
+
+    preparation_direct_attempt_count = 0
+
+    preparation_direct_materialized_count = 0
+
+
     notes: list[str] = [
         (
             "Analytical views are generated only "
-            "from original cleaned datasets."
+            "from non-derived analytical inputs."
+        ),
+
+        (
+            "Validated server-owned Preparation "
+            "outputs may be materialized directly "
+            "when their enrichment has already "
+            "occurred before the Analysis handoff."
         ),
 
         (
             "Only validated direct 1:N or N:1 "
             "relationships are eligible for "
-            "automatic dimension enrichment."
+            "automatic Analysis-time dimension "
+            "enrichment."
         ),
 
         (
-            "Every automatic enrichment uses "
-            "LEFT JOIN semantics and many-to-one "
-            "validation."
+            "Every Analysis-time automatic "
+            "enrichment uses LEFT JOIN semantics "
+            "and many-to-one validation."
         ),
 
         (
             "The fact-table row count must remain "
-            "exactly unchanged after enrichment."
+            "exactly unchanged after Analysis-time "
+            "enrichment."
         ),
 
         (
@@ -4552,6 +5451,14 @@ def build_analytical_views(
             "Automatic SUM is restricted to "
             "conservatively validated additive "
             "monetary measures."
+        ),
+
+        (
+            "A line monetary amount may be derived "
+            "analytically only from exactly one strict "
+            "quantity column and exactly one strict "
+            "unit-price column; the validated Preparation "
+            "output is never mutated."
         ),
 
         (
@@ -4582,6 +5489,10 @@ def build_analytical_views(
         ),
     ]
 
+
+    # ========================================================
+    # 4. MODE A ? ANALYSIS-TIME RELATIONSHIP ENRICHMENT
+    # ========================================================
 
     for (
         fact_id,
@@ -4810,6 +5721,82 @@ def build_analytical_views(
         )
 
 
+        materialized_fact_ids.add(
+            fact_id
+        )
+
+
+    # ========================================================
+    # 5. MODE B ? VALIDATED PREPARATION OUTPUT
+    #
+    # This is the v0.5 correction.
+    #
+    # A final Preparation output may already be the exact
+    # enriched event grain required by materialize_views_for_fact.
+    #
+    # We therefore do not require a second inter-dataset join.
+    # We also do not reload or substitute old source datasets.
+    # ========================================================
+
+    for dataset in originals:
+        dataset_id = str(
+            dataset[
+                "dataset_id"
+            ]
+        )
+
+
+        if (
+            dataset_id
+            in materialized_fact_ids
+        ):
+            continue
+
+
+        if not is_validated_preparation_input(
+            dataset
+        ):
+            continue
+
+
+        preparation_direct_attempt_count += 1
+
+
+        (
+            prepared_views,
+            prepared_audits,
+        ) = materialize_validated_preparation_output(
+            dataset=
+                dataset,
+
+            include_requested_context=
+                include_requested_context,
+        )
+
+
+        if prepared_views:
+            preparation_direct_materialized_count += 1
+
+
+        derived_datasets.extend(
+            prepared_views
+        )
+
+
+        derived_audits.extend(
+            prepared_audits
+        )
+
+
+        materialized_fact_ids.add(
+            dataset_id
+        )
+
+
+    # ========================================================
+    # 6. BUILD NOTES
+    # ========================================================
+
     notes.append(
         (
             f"{len(join_audits)} relationship "
@@ -4821,7 +5808,28 @@ def build_analytical_views(
     notes.append(
         (
             f"{sum(1 for audit in join_audits if audit.status == 'complete')} "
-            "safe enrichment(s) were accepted."
+            "safe Analysis-time enrichment(s) "
+            "were accepted."
+        )
+    )
+
+
+    notes.append(
+        (
+            f"{preparation_direct_attempt_count} "
+            "validated Preparation output(s) were "
+            "evaluated for direct analytical "
+            "materialization."
+        )
+    )
+
+
+    notes.append(
+        (
+            f"{preparation_direct_materialized_count} "
+            "validated Preparation output(s) "
+            "produced at least one analytical view "
+            "without an additional join."
         )
     )
 

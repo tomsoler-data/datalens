@@ -47,12 +47,22 @@ from app.planning.schemas import (
 # ============================================================
 
 AI_TOOL_ORCHESTRATOR_RULE_VERSION = (
-    "ai_tool_orchestrator_v0.2"
+    "ai_tool_orchestrator_v0.4"
 )
 
 
 AI_TIME_SERIES_EXECUTION_RULE_VERSION = (
-    "ai_tool_time_series_median_v0.1"
+    "ai_tool_time_series_v0.2"
+)
+
+
+AI_AGGREGATION_EXECUTION_RULE_VERSION = (
+    "ai_tool_aggregation_v0.1"
+)
+
+
+AI_RANKING_EXECUTION_RULE_VERSION = (
+    "ai_tool_ranking_v0.1"
 )
 
 
@@ -66,6 +76,8 @@ AIToolName = Literal[
     "run_group_comparison",
     "run_time_series",
     "run_distribution",
+    "run_aggregation",
+    "run_ranking",
 ]
 
 
@@ -289,14 +301,15 @@ TOOL_CAPABILITIES: dict[
                 "time_series"
             ),
             enabled=True,
-            chart_type="line_band",
+            chart_type="line",
             statistical_strategy=(
-                "deterministic_median_iqr_by_period"
+                "deterministic_aggregation_by_period"
             ),
             reason=(
                 "The AI-native time-series boundary executes "
-                "the validated median aggregation by period "
-                "and calculates an IQR band deterministically."
+                "the exact validated aggregation by period. "
+                "Median contracts additionally expose a "
+                "deterministic Q1/Q3 band."
             ),
         ),
 
@@ -342,11 +355,14 @@ TOOL_CAPABILITIES: dict[
             family=(
                 "aggregation"
             ),
-            enabled=False,
+            enabled=True,
+            chart_type="bar",
+            statistical_strategy=(
+                "deterministic_grouped_aggregation"
+            ),
             reason=(
-                "Generic aggregation will be added as a "
-                "dedicated deterministic tool instead of "
-                "reusing business-specific requested code."
+                "The canonical aggregation contract is executed "
+                "directly by Python from AggregationSpec."
             ),
         ),
 
@@ -358,10 +374,15 @@ TOOL_CAPABILITIES: dict[
             family=(
                 "ranking"
             ),
-            enabled=False,
+            enabled=True,
+            chart_type="bar",
+            statistical_strategy=(
+                "deterministic_grouped_ranking"
+            ),
             reason=(
-                "Generic ranking is not yet exposed as a "
-                "canonical deterministic AI tool."
+                "The canonical ranking contract is executed "
+                "directly by Python from AggregationSpec and "
+                "RankingSpec."
             ),
         ),
 
@@ -497,7 +518,7 @@ def resolve_contract_dataset(
         return (
             None,
             (
-                "AI tool execution v0.2 requires exactly "
+                "AI tool execution v0.4 requires exactly "
                 "one validated dataset_id."
             ),
         )
@@ -588,9 +609,9 @@ def resolve_contract_dataset(
 # are already faithfully represented by AnalysisCandidate.
 #
 # time_series is intentionally NOT executed through this
-# compatibility path anymore because AnalysisCandidate does
-# not carry the canonical AggregationSpec. v0.2 therefore
-# executes the validated median-by-period contract directly.
+# compatibility path because AnalysisCandidate does not carry
+# the canonical AggregationSpec. The canonical executor below
+# therefore executes the exact validated aggregation directly.
 # ============================================================
 
 def normalize_candidate_role(
@@ -751,7 +772,7 @@ def contract_to_analysis_candidate(
             ],
             limitations=[
                 (
-                    "AI tool orchestration v0.2 supports only "
+                    "AI tool orchestration v0.4 supports only "
                     "single-dataset contracts and does not "
                     "allow LLM-generated joins, derived "
                     "variables or arbitrary Python code."
@@ -857,13 +878,44 @@ def period_sort_key(
 # CANONICAL AI TIME-SERIES EXECUTION
 # ============================================================
 
-def execute_median_time_series_contract(
+SUPPORTED_TIME_SERIES_AGGREGATIONS = frozenset(
+    {
+        "sum",
+        "mean",
+        "median",
+        "min",
+        "max",
+        "count",
+        "distinct_count",
+    }
+)
+
+
+def execute_time_series_contract(
     *,
     contract: AnalyticalContract,
     dataframe: pd.DataFrame,
     dataset_id: str,
     dataset_filename: str,
 ) -> ExecutedAnalysis:
+    """
+    Execute the canonical time-series AggregationSpec.
+
+    The contract remains authoritative:
+
+        time binding
+            -> grouping period
+
+        value binding
+            -> aggregation source
+
+        aggregation.function
+            -> deterministic reducer
+
+    Median preserves the historical Q1/Q3 band. Other
+    supported reducers return a standard period/value line.
+    """
+
     if (
         contract.family
         !=
@@ -886,8 +938,7 @@ def execute_median_time_series_contract(
         aggregation is None
         or
         aggregation.function
-        !=
-        "median"
+        not in SUPPORTED_TIME_SERIES_AGGREGATIONS
         or
         aggregation.source_role
         !=
@@ -903,8 +954,8 @@ def execute_median_time_series_contract(
     ):
         raise ValueError(
             (
-                "AI time-series v0.2 currently requires "
-                "aggregation=function:median, "
+                "AI time-series v0.4 requires a canonical "
+                "AggregationSpec with a supported function, "
                 "source_role:value and "
                 "group_by_roles:[time]."
             )
@@ -976,6 +1027,11 @@ def execute_median_time_series_contract(
         )
 
 
+    function = (
+        aggregation.function
+    )
+
+
     working = pd.DataFrame(
         {
             "__time":
@@ -984,14 +1040,75 @@ def execute_median_time_series_contract(
                 ],
 
             "__value":
-                pd.to_numeric(
-                    dataframe[
-                        value_column
-                    ],
-                    errors="coerce",
-                ),
+                dataframe[
+                    value_column
+                ],
         }
-    ).dropna()
+    )
+
+
+    working = (
+        working
+        .dropna(
+            subset=[
+                "__time",
+            ]
+        )
+        .copy()
+    )
+
+
+    if (
+        function
+        in {
+            "sum",
+            "mean",
+            "median",
+            "min",
+            "max",
+        }
+    ):
+        working[
+            "__value"
+        ] = pd.to_numeric(
+            working[
+                "__value"
+            ],
+            errors="coerce",
+        )
+
+
+        working = (
+            working
+            .dropna(
+                subset=[
+                    "__value",
+                ]
+            )
+        )
+
+
+    else:
+        working = (
+            working
+            .dropna(
+                subset=[
+                    "__value",
+                ]
+            )
+        )
+
+
+    chart_type = (
+        "line_band"
+        if (
+            function
+            ==
+            "median"
+        )
+        else
+        "line"
+    )
 
 
     if (
@@ -1022,7 +1139,7 @@ def execute_median_time_series_contract(
                     "skipped"
                 ),
                 chart_type=(
-                    "line_band"
+                    chart_type
                 ),
                 summary=[
                     (
@@ -1038,7 +1155,7 @@ def execute_median_time_series_contract(
                         value_column,
 
                     "aggregation_function":
-                        "median",
+                        function,
 
                     "valid_observations":
                         0,
@@ -1051,8 +1168,8 @@ def execute_median_time_series_contract(
                     (
                         "The validated contract could not "
                         "produce a temporal profile because "
-                        "all time/value pairs were missing "
-                        "or non-numeric."
+                        "all required time/value pairs were "
+                        "missing or invalid."
                     ),
                 ],
                 limitations=[
@@ -1064,6 +1181,89 @@ def execute_median_time_series_contract(
                 execution_rule_version=(
                     AI_TIME_SERIES_EXECUTION_RULE_VERSION
                 ),
+            )
+        )
+
+
+    def reduce_values(
+        values: pd.Series,
+    ) -> float | int:
+        if (
+            function
+            ==
+            "count"
+        ):
+            return int(
+                values.count()
+            )
+
+
+        if (
+            function
+            ==
+            "distinct_count"
+        ):
+            return int(
+                values.nunique(
+                    dropna=True
+                )
+            )
+
+
+        if (
+            function
+            ==
+            "sum"
+        ):
+            return float(
+                values.sum()
+            )
+
+
+        if (
+            function
+            ==
+            "mean"
+        ):
+            return float(
+                values.mean()
+            )
+
+
+        if (
+            function
+            ==
+            "median"
+        ):
+            return float(
+                values.median()
+            )
+
+
+        if (
+            function
+            ==
+            "min"
+        ):
+            return float(
+                values.min()
+            )
+
+
+        if (
+            function
+            ==
+            "max"
+        ):
+            return float(
+                values.max()
+            )
+
+
+        raise ValueError(
+            (
+                "Unsupported deterministic time-series "
+                f"aggregation: {function}."
             )
         )
 
@@ -1091,37 +1291,71 @@ def execute_median_time_series_contract(
         )
 
 
+        reduced_value = (
+            reduce_values(
+                values
+            )
+        )
+
+
+        row: dict[
+            str,
+            Any,
+        ] = {
+            "period":
+                native_scalar(
+                    period
+                ),
+
+            "value":
+                native_scalar(
+                    reduced_value
+                ),
+
+            "count":
+                int(
+                    values.count()
+                ),
+        }
+
+
+        if (
+            function
+            ==
+            "median"
+        ):
+            numeric_values = pd.to_numeric(
+                values,
+                errors="coerce",
+            ).dropna()
+
+
+            row.update(
+                {
+                    "median":
+                        float(
+                            numeric_values.median()
+                        ),
+
+                    "q1":
+                        float(
+                            numeric_values.quantile(
+                                0.25
+                            )
+                        ),
+
+                    "q3":
+                        float(
+                            numeric_values.quantile(
+                                0.75
+                            )
+                        ),
+                }
+            )
+
+
         grouped_rows.append(
-            {
-                "period":
-                    native_scalar(
-                        period
-                    ),
-
-                "median":
-                    float(
-                        values.median()
-                    ),
-
-                "q1":
-                    float(
-                        values.quantile(
-                            0.25
-                        )
-                    ),
-
-                "q3":
-                    float(
-                        values.quantile(
-                            0.75
-                        )
-                    ),
-
-                "count":
-                    int(
-                        values.count()
-                    ),
-            }
+            row
         )
 
 
@@ -1143,7 +1377,8 @@ def execute_median_time_series_contract(
 
 
     if (
-        period_count <
+        period_count
+        <
         2
     ):
         status = (
@@ -1167,16 +1402,68 @@ def execute_median_time_series_contract(
         warnings = []
 
 
-    medians = [
+    period_values = [
         float(
             row[
-                "median"
+                "value"
             ]
         )
 
         for row
         in grouped_rows
+
+        if isinstance(
+            row.get(
+                "value"
+            ),
+            Number,
+        )
     ]
+
+
+    summary = [
+        (
+            f"{period_count} période(s) distincte(s) "
+            f"ont été agrégées avec `{function}` pour "
+            f"{value_column}."
+        ),
+    ]
+
+
+    if (
+        function
+        ==
+        "median"
+    ):
+        summary.append(
+            (
+                "Les quartiles Q1 et Q3 sont calculés "
+                "pour chaque période afin de représenter "
+                "la dispersion autour de la médiane."
+            )
+        )
+
+
+    limitations = [
+        (
+            "This AI-native time-series execution is "
+            "descriptive. It does not fit a forecasting, "
+            "causal or inferential time-series model."
+        ),
+    ]
+
+
+    if (
+        function
+        ==
+        "median"
+    ):
+        limitations.append(
+            (
+                "Median contracts add Q1/Q3 as deterministic "
+                "descriptive dispersion summaries."
+            )
+        )
 
 
     return (
@@ -1204,20 +1491,11 @@ def execute_median_time_series_contract(
                 status
             ),
             chart_type=(
-                "line_band"
+                chart_type
             ),
-            summary=[
-                (
-                    f"{period_count} période(s) distincte(s) "
-                    f"ont été agrégées par médiane pour "
-                    f"{value_column}."
-                ),
-                (
-                    "Les quartiles Q1 et Q3 sont calculés "
-                    "pour chaque période afin de représenter "
-                    "la dispersion autour de la médiane."
-                ),
-            ],
+            summary=(
+                summary
+            ),
             metrics={
                 "time_column":
                     time_column,
@@ -1226,7 +1504,7 @@ def execute_median_time_series_contract(
                     value_column,
 
                 "aggregation_function":
-                    "median",
+                    function,
 
                 "aggregation_group_role":
                     "time",
@@ -1273,21 +1551,21 @@ def execute_median_time_series_contract(
                         else None
                     ),
 
-                "period_median_min":
+                "period_value_min":
                     (
                         min(
-                            medians
+                            period_values
                         )
-                        if medians
+                        if period_values
                         else None
                     ),
 
-                "period_median_max":
+                "period_value_max":
                     (
                         max(
-                            medians
+                            period_values
                         )
-                        if medians
+                        if period_values
                         else None
                     ),
             },
@@ -1300,24 +1578,667 @@ def execute_median_time_series_contract(
             warnings=(
                 warnings
             ),
-            limitations=[
-                (
-                    "This AI-native time-series execution "
-                    "is descriptive. It does not fit a "
-                    "forecasting, causal or inferential "
-                    "time-series model."
-                ),
-                (
-                    "The current native scope executes the "
-                    "validated median aggregation and adds "
-                    "Q1/Q3 as deterministic descriptive "
-                    "dispersion summaries."
-                ),
-            ],
+            limitations=(
+                limitations
+            ),
             execution_rule_version=(
                 AI_TIME_SERIES_EXECUTION_RULE_VERSION
             ),
         )
+    )
+
+
+# Backward-compatible executor name retained for existing
+# imports/tests. It still refuses non-median contracts by name.
+def execute_median_time_series_contract(
+    *,
+    contract: AnalyticalContract,
+    dataframe: pd.DataFrame,
+    dataset_id: str,
+    dataset_filename: str,
+) -> ExecutedAnalysis:
+    aggregation = (
+        contract.aggregation
+    )
+
+
+    if (
+        aggregation is None
+        or
+        aggregation.function
+        !=
+        "median"
+    ):
+        raise ValueError(
+            (
+                "execute_median_time_series_contract() "
+                "accepts only median contracts."
+            )
+        )
+
+
+    return (
+        execute_time_series_contract(
+            contract=(
+                contract
+            ),
+            dataframe=(
+                dataframe
+            ),
+            dataset_id=(
+                dataset_id
+            ),
+            dataset_filename=(
+                dataset_filename
+            ),
+        )
+    )
+
+
+# ============================================================
+# CANONICAL AGGREGATION / RANKING EXECUTION
+# ============================================================
+
+def aggregation_contract_columns(
+    contract: AnalyticalContract,
+) -> tuple[
+    str | None,
+    list[str],
+]:
+    aggregation = (
+        contract.aggregation
+    )
+
+
+    if (
+        aggregation is None
+    ):
+        raise ValueError(
+            f"A {contract.family} contract requires AggregationSpec."
+        )
+
+
+    bindings = (
+        contract_binding_map(
+            contract
+        )
+    )
+
+
+    source_column: str | None = (
+        None
+    )
+
+
+    if (
+        aggregation.source_role
+        is not None
+    ):
+        source_column = (
+            bindings.get(
+                aggregation.source_role
+            )
+        )
+
+
+        if (
+            source_column is None
+        ):
+            raise ValueError(
+                "The aggregation source role is not bound "
+                "to an execution column."
+            )
+
+
+    group_columns: list[str] = []
+
+
+    for role in (
+        aggregation.group_by_roles
+    ):
+        column = (
+            bindings.get(
+                role
+            )
+        )
+
+
+        if (
+            column is None
+        ):
+            raise ValueError(
+                "The aggregation group role is not bound "
+                f"to an execution column: {role}."
+            )
+
+
+        group_columns.append(
+            column
+        )
+
+
+    return (
+        source_column,
+        group_columns,
+    )
+
+
+def validate_runtime_columns(
+    *,
+    dataframe: pd.DataFrame,
+    columns: list[str],
+) -> None:
+    missing = [
+        column
+        for column
+        in columns
+        if column not in dataframe.columns
+    ]
+
+
+    if missing:
+        raise ValueError(
+            "Validated analytical column(s) are missing at "
+            "execution time: "
+            + ", ".join(
+                missing
+            )
+        )
+
+
+def aggregate_contract_rows(
+    *,
+    contract: AnalyticalContract,
+    dataframe: pd.DataFrame,
+) -> tuple[
+    list[dict[str, Any]],
+    dict[str, Any],
+]:
+    aggregation = contract.aggregation
+
+
+    if aggregation is None:
+        raise ValueError(
+            f"A {contract.family} contract requires AggregationSpec."
+        )
+
+
+    (
+        source_column,
+        group_columns,
+    ) = aggregation_contract_columns(
+        contract
+    )
+
+
+    required_columns = [
+        *group_columns,
+        *(
+            [source_column]
+            if source_column is not None
+            else []
+        ),
+    ]
+
+
+    validate_runtime_columns(
+        dataframe=dataframe,
+        columns=required_columns,
+    )
+
+
+    function = aggregation.function
+
+
+    working = dataframe[
+        required_columns
+    ].copy() if required_columns else dataframe.copy()
+
+
+    if group_columns:
+        working = working.dropna(
+            subset=group_columns
+        )
+
+
+    if (
+        function in {
+            "sum",
+            "mean",
+            "median",
+            "min",
+            "max",
+        }
+    ):
+        if source_column is None:
+            raise ValueError(
+                f"Aggregation `{function}` requires a source column."
+            )
+
+
+        working[source_column] = pd.to_numeric(
+            working[source_column],
+            errors="coerce",
+        )
+
+
+        working = working.dropna(
+            subset=[
+                source_column,
+            ]
+        )
+
+
+    elif (
+        function ==
+        "distinct_count"
+    ):
+        if source_column is None:
+            raise ValueError(
+                "distinct_count requires a source column."
+            )
+
+
+    elif (
+        function !=
+        "count"
+    ):
+        raise ValueError(
+            f"Unsupported aggregation function: {function}."
+        )
+
+
+    source_observation_count = int(
+        len(
+            working
+        )
+    )
+
+
+    def reduce_frame(
+        frame: pd.DataFrame,
+    ) -> float | int:
+        if function == "count":
+            return int(
+                len(
+                    frame
+                )
+            )
+
+
+        assert source_column is not None
+        series = frame[
+            source_column
+        ]
+
+
+        if function == "distinct_count":
+            return int(
+                series.nunique(
+                    dropna=True
+                )
+            )
+
+
+        if function == "sum":
+            return float(
+                series.sum()
+            )
+
+
+        if function == "mean":
+            return float(
+                series.mean()
+            )
+
+
+        if function == "median":
+            return float(
+                series.median()
+            )
+
+
+        if function == "min":
+            return float(
+                series.min()
+            )
+
+
+        if function == "max":
+            return float(
+                series.max()
+            )
+
+
+        raise ValueError(
+            f"Unsupported aggregation function: {function}."
+        )
+
+
+    rows: list[dict[str, Any]] = []
+
+
+    if group_columns:
+        grouper: Any = (
+            group_columns[0]
+            if len(group_columns) == 1
+            else group_columns
+        )
+
+
+        for (
+            key,
+            group_frame,
+        ) in working.groupby(
+            grouper,
+            dropna=False,
+            sort=False,
+        ):
+            raw_key = (
+                key
+                if isinstance(key, tuple)
+                else (key,)
+            )
+
+
+            group_values = {
+                column: native_scalar(
+                    raw_key[index]
+                )
+                for index, column
+                in enumerate(
+                    group_columns
+                )
+            }
+
+
+            if len(group_columns) == 1:
+                label = str(
+                    native_scalar(
+                        raw_key[0]
+                    )
+                )
+            else:
+                label = " · ".join(
+                    str(
+                        native_scalar(
+                            value
+                        )
+                    )
+                    for value
+                    in raw_key
+                )
+
+
+            rows.append(
+                {
+                    "category": label,
+                    "group": label,
+                    "value": native_scalar(
+                        reduce_frame(
+                            group_frame
+                        )
+                    ),
+                    "count": int(
+                        len(
+                            group_frame
+                        )
+                    ),
+                    "group_values": group_values,
+                }
+            )
+
+
+    else:
+        rows.append(
+            {
+                "category": "Total",
+                "group": "Total",
+                "value": native_scalar(
+                    reduce_frame(
+                        working
+                    )
+                ),
+                "count": int(
+                    len(
+                        working
+                    )
+                ),
+                "group_values": {},
+            }
+        )
+
+
+    metrics = {
+        "aggregation_function": function,
+        "aggregation_source_role": aggregation.source_role,
+        "source_column": source_column,
+        "group_by_columns": group_columns,
+        "source_observation_count": source_observation_count,
+        "valid_observations": source_observation_count,
+        "group_count": len(rows),
+        "result_count": len(rows),
+    }
+
+
+    return (
+        rows,
+        metrics,
+    )
+
+
+def execute_aggregation_contract(
+    *,
+    contract: AnalyticalContract,
+    dataframe: pd.DataFrame,
+    dataset_id: str,
+    dataset_filename: str,
+) -> ExecutedAnalysis:
+    if contract.family != "aggregation":
+        raise ValueError(
+            "The canonical aggregation executor only accepts "
+            "`aggregation` contracts."
+        )
+
+
+    (
+        rows,
+        metrics,
+    ) = aggregate_contract_rows(
+        contract=contract,
+        dataframe=dataframe,
+    )
+
+
+    aggregation = contract.aggregation
+    assert aggregation is not None
+
+
+    if not rows:
+        status = "skipped"
+        summary = [
+            "Aucun résultat agrégé n'a pu être calculé."
+        ]
+    else:
+        status = "complete"
+        summary = [
+            (
+                f"{len(rows)} résultat(s) ont été calculés "
+                f"avec l'agrégation `{aggregation.function}`."
+            )
+        ]
+
+
+    return ExecutedAnalysis(
+        analysis_id=(
+            "ai_tool:"
+            f"{contract.contract_id}"
+        ),
+        dataset_id=dataset_id,
+        dataset_filename=dataset_filename,
+        title=contract.title,
+        family="aggregation",
+        planned_readiness="executable_now",
+        execution_status=status,
+        chart_type="bar",
+        summary=summary,
+        metrics=metrics,
+        chart_data=rows,
+        statistical_decision=None,
+        statistical_result=None,
+        visualization=None,
+        warnings=[],
+        limitations=[
+            (
+                "This result is a deterministic descriptive "
+                "aggregation. It does not imply statistical "
+                "significance or causality."
+            )
+        ],
+        execution_rule_version=(
+            AI_AGGREGATION_EXECUTION_RULE_VERSION
+        ),
+    )
+
+
+def execute_ranking_contract(
+    *,
+    contract: AnalyticalContract,
+    dataframe: pd.DataFrame,
+    dataset_id: str,
+    dataset_filename: str,
+) -> ExecutedAnalysis:
+    if contract.family != "ranking":
+        raise ValueError(
+            "The canonical ranking executor only accepts "
+            "`ranking` contracts."
+        )
+
+
+    ranking = contract.ranking
+
+
+    if ranking is None:
+        raise ValueError(
+            "A ranking contract requires RankingSpec."
+        )
+
+
+    (
+        rows,
+        metrics,
+    ) = aggregate_contract_rows(
+        contract=contract,
+        dataframe=dataframe,
+    )
+
+
+    reverse = (
+        ranking.order ==
+        "descending"
+    )
+
+
+    ordered_rows = sorted(
+        rows,
+        key=lambda row: float(
+            row[
+                "value"
+            ]
+        ),
+        reverse=reverse,
+    )
+
+
+    limited_rows = ordered_rows[
+        :ranking.limit
+    ]
+
+
+    chart_rows = [
+        {
+            **row,
+            "rank": index,
+        }
+        for index, row
+        in enumerate(
+            limited_rows,
+            start=1,
+        )
+    ]
+
+
+    metrics = {
+        **metrics,
+        "ranking_order": ranking.order,
+        "ranking_limit": ranking.limit,
+        "available_group_count": len(rows),
+        "result_count": len(chart_rows),
+        "top_category": (
+            chart_rows[0]["category"]
+            if chart_rows
+            else None
+        ),
+        "top_value": (
+            chart_rows[0]["value"]
+            if chart_rows
+            else None
+        ),
+    }
+
+
+    if not chart_rows:
+        status = "skipped"
+        summary = [
+            "Aucun groupe classable n'a pu être calculé."
+        ]
+    else:
+        status = "complete"
+        direction = (
+            "décroissant"
+            if ranking.order == "descending"
+            else "croissant"
+        )
+        summary = [
+            (
+                f"{len(chart_rows)} résultat(s) ont été conservés "
+                f"après classement {direction}."
+            ),
+            (
+                f"Premier résultat : {chart_rows[0]['category']} "
+                f"= {chart_rows[0]['value']}."
+            ),
+        ]
+
+
+    return ExecutedAnalysis(
+        analysis_id=(
+            "ai_tool:"
+            f"{contract.contract_id}"
+        ),
+        dataset_id=dataset_id,
+        dataset_filename=dataset_filename,
+        title=contract.title,
+        family="ranking",
+        planned_readiness="executable_now",
+        execution_status=status,
+        chart_type="bar",
+        summary=summary,
+        metrics=metrics,
+        chart_data=chart_rows,
+        statistical_decision=None,
+        statistical_result=None,
+        visualization=None,
+        warnings=[],
+        limitations=[
+            (
+                "The ranking is deterministic and reflects only "
+                "the validated aggregation, ordering and limit."
+            )
+        ],
+        execution_rule_version=(
+            AI_RANKING_EXECUTION_RULE_VERSION
+        ),
     )
 
 
@@ -1450,7 +2371,7 @@ def execute_validated_contract(
             ),
             errors=[
                 (
-                    "AI tool orchestration v0.2 refuses "
+                    "AI tool orchestration v0.4 refuses "
                     "contracts containing joins or derived "
                     "variables."
                 ),
@@ -1588,7 +2509,53 @@ def execute_validated_contract(
             "time_series"
         ):
             executed = (
-                execute_median_time_series_contract(
+                execute_time_series_contract(
+                    contract=(
+                        contract
+                    ),
+                    dataframe=(
+                        dataframe
+                    ),
+                    dataset_id=(
+                        dataset_id
+                    ),
+                    dataset_filename=(
+                        dataset_filename
+                    ),
+                )
+            )
+
+
+        elif (
+            contract.family
+            ==
+            "aggregation"
+        ):
+            executed = (
+                execute_aggregation_contract(
+                    contract=(
+                        contract
+                    ),
+                    dataframe=(
+                        dataframe
+                    ),
+                    dataset_id=(
+                        dataset_id
+                    ),
+                    dataset_filename=(
+                        dataset_filename
+                    ),
+                )
+            )
+
+
+        elif (
+            contract.family
+            ==
+            "ranking"
+        ):
+            executed = (
+                execute_ranking_contract(
                     contract=(
                         contract
                     ),
@@ -1830,11 +2797,11 @@ def execute_ai_planner_report(
                     "Python generated by an LLM is never run."
                 ),
                 (
-                    "time_series median aggregation is now "
-                    "executed directly from the canonical "
-                    "AggregationSpec instead of being lost "
-                    "through the legacy AnalysisCandidate "
-                    "compatibility adapter."
+                    "time_series aggregation is executed "
+                    "directly from the canonical AggregationSpec. "
+                    "Supported reducers are validated before "
+                    "deterministic execution; median additionally "
+                    "retains the Q1/Q3 descriptive band."
                 ),
             ],
         )

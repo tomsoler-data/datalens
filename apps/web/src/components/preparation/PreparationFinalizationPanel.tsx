@@ -2,7 +2,6 @@
 
 import {
   useEffect,
-  useMemo,
   useState,
 } from "react";
 
@@ -69,19 +68,58 @@ function findStage(
 function stageStatusLabel(
   status:
     PreparationStageStatus |
-    undefined
+    undefined,
+
+  stage:
+    "clean" |
+    "transform" |
+    "combine" |
+    "validate",
+
+  materialized:
+    boolean = false
 ): string {
   switch (
     status
   ) {
     case "passed":
+      if (
+        stage ===
+        "clean"
+      ) {
+        return materialized
+          ? "Appliqué"
+          : "Validé sans modification";
+      }
+
+
+      if (
+        stage ===
+        "transform"
+      ) {
+        return materialized
+          ? "Appliquée"
+          : "Validé sans transformation";
+      }
+
+
+      if (
+        stage ===
+        "combine"
+      ) {
+        return materialized
+          ? "Appliquée"
+          : "Validé sans combinaison";
+      }
+
+
       return "Validé";
 
     case "skipped":
       return "Non requis";
 
     case "review_required":
-      return "Revue requise";
+      return "À valider";
 
     case "blocked":
       return "Bloqué";
@@ -157,6 +195,17 @@ function terminalCandidateDatasetIds(
   candidates:
     PreparationAnalysisOutputCandidate[]
 ): string[] {
+  /*
+   * Return the terminal materialized frontier.
+   *
+   * CLEAN / TRANSFORM may materialize an artifact in-place:
+   *
+   *   dataset_id = "orders"
+   *   parent_dataset_ids = ["orders"]
+   *
+   * A self-parent is lineage evidence. It does not mean that
+   * the current artifact has been superseded.
+   */
   const usedAsParent =
     new Set(
       candidates.flatMap(
@@ -475,6 +524,10 @@ export default function PreparationFinalizationPanel({
           null
         );
 
+        setCandidateLoading(
+          false
+        );
+
         return;
       }
 
@@ -503,6 +556,13 @@ export default function PreparationFinalizationPanel({
               workflowId,
               controller.signal
             );
+
+
+          if (
+            controller.signal.aborted
+          ) {
+            return;
+          }
 
 
           setCandidatesResponse(
@@ -648,10 +708,19 @@ export default function PreparationFinalizationPanel({
     [
       session
         ?.workflow_id,
+
+      session
+        ?.revision,
     ]
   );
 
 
+  /*
+   * Everything below this guard contains no React hooks.
+   *
+   * This keeps the hook order stable whether a Preparation
+   * session exists or not.
+   */
   if (
     session ===
     null
@@ -739,6 +808,153 @@ export default function PreparationFinalizationPanel({
     snapshot.ready_for_analysis;
 
 
+  const candidates =
+    candidatesResponse
+      ?.candidates ??
+    [];
+
+
+  const materializedStageSet =
+    new Set(
+      candidates.map(
+        (
+          candidate
+        ) =>
+          candidate.stage
+      )
+    );
+
+
+  const rootSourceRows =
+    candidates.length >
+      0
+      ? candidates
+          .filter(
+            (
+              candidate
+            ) =>
+              rootDatasetIds.includes(
+                candidate.dataset_id
+              )
+          )
+          .reduce(
+            (
+              total,
+              candidate
+            ) =>
+              total +
+              candidate.rows,
+            0
+          )
+      : null;
+
+
+  const analysisOutputRows =
+    candidates.length >
+      0 &&
+    analysisOutputDatasetIds.length >
+      0
+      ? candidates
+          .filter(
+            (
+              candidate
+            ) =>
+              analysisOutputDatasetIds.includes(
+                candidate.dataset_id
+              )
+          )
+          .reduce(
+            (
+              total,
+              candidate
+            ) =>
+              total +
+              candidate.rows,
+            0
+          )
+      : null;
+
+
+  const terminalDatasetIds =
+    terminalCandidateDatasetIds(
+      candidates
+    );
+
+
+  const terminalDatasetIdSet =
+    new Set(
+      terminalDatasetIds
+    );
+
+
+  const supersededDatasetIdSet =
+    (() => {
+      const terminalAncestors =
+        new Set<
+          string
+        >();
+
+
+      for (
+        const terminalDatasetId
+        of terminalDatasetIds
+      ) {
+        for (
+          const ancestorId
+          of collectAncestorDatasetIds(
+            terminalDatasetId,
+            candidates
+          )
+        ) {
+          terminalAncestors.add(
+            ancestorId
+          );
+        }
+      }
+
+
+      return terminalAncestors;
+    })();
+
+
+  const draftChanged =
+    !sameDatasetSelection(
+      draftDatasetIds,
+      analysisOutputDatasetIds
+    );
+
+
+  /*
+   * Candidate metadata must correspond to the same
+   * server-owned Preparation revision that is currently
+   * displayed.
+   *
+   * This prevents VALIDATE from becoming available for a
+   * stale candidate snapshot during CLEAN / TRANSFORM /
+   * COMBINE transitions.
+   */
+  const candidateScopeCurrent =
+    candidatesResponse !==
+      null &&
+    candidatesResponse.revision ===
+      effectiveSession.revision;
+
+
+  /*
+   * The browser may have a draft selection that differs from
+   * the committed analytical scope.
+   *
+   * VALIDATE must never run against the old committed scope
+   * while the UI is showing a newer uncommitted choice.
+   */
+  const selectionSynchronized =
+    candidateScopeCurrent &&
+    !candidateLoading &&
+    candidateError ===
+      null &&
+    !draftChanged;
+
+
   const selectionLocked =
     ready ||
     candidatesResponse
@@ -749,81 +965,9 @@ export default function PreparationFinalizationPanel({
   const canValidate =
     !ready &&
     outputSelected &&
+    selectionSynchronized &&
     snapshot.next_stage ===
       "validate";
-
-
-  const candidates =
-    candidatesResponse
-      ?.candidates ??
-    [];
-
-
-  const terminalDatasetIds =
-    useMemo(
-      () =>
-        terminalCandidateDatasetIds(
-          candidates
-        ),
-      [
-        candidates,
-      ]
-    );
-
-
-  const terminalDatasetIdSet =
-    useMemo(
-      () =>
-        new Set(
-          terminalDatasetIds
-        ),
-      [
-        terminalDatasetIds,
-      ]
-    );
-
-
-  const supersededDatasetIdSet =
-    useMemo(
-      () => {
-        const terminalAncestors =
-          new Set<
-            string
-          >();
-
-
-        for (
-          const terminalDatasetId
-          of terminalDatasetIds
-        ) {
-          for (
-            const ancestorId
-            of collectAncestorDatasetIds(
-              terminalDatasetId,
-              candidates
-            )
-          ) {
-            terminalAncestors.add(
-              ancestorId
-            );
-          }
-        }
-
-
-        return terminalAncestors;
-      },
-      [
-        candidates,
-        terminalDatasetIds,
-      ]
-    );
-
-
-  const draftChanged =
-    !sameDatasetSelection(
-      draftDatasetIds,
-      analysisOutputDatasetIds
-    );
 
 
   const canCommitSelection =
@@ -834,36 +978,28 @@ export default function PreparationFinalizationPanel({
     draftChanged;
 
 
+  const filenameById =
+    new Map(
+      candidates.map(
+        (
+          candidate
+        ) => [
+          candidate.dataset_id,
+          candidate.dataset_filename,
+        ]
+      )
+    );
+
+
   const selectedCandidateNames =
-    useMemo(
-      () => {
-        const filenameById =
-          new Map(
-            candidates.map(
-              (
-                candidate
-              ) => [
-                candidate.dataset_id,
-                candidate.dataset_filename,
-              ]
-            )
-          );
-
-
-        return analysisOutputDatasetIds.map(
-          (
-            datasetId
-          ) =>
-            filenameById.get(
-              datasetId
-            ) ??
-            datasetId
-        );
-      },
-      [
-        candidates,
-        analysisOutputDatasetIds,
-      ]
+    analysisOutputDatasetIds.map(
+      (
+        datasetId
+      ) =>
+        filenameById.get(
+          datasetId
+        ) ??
+        datasetId
     );
 
 
@@ -995,19 +1131,26 @@ export default function PreparationFinalizationPanel({
       : validate?.status ===
           "blocked"
         ? "× VALIDATION BLOQUÉE"
-        : !outputSelected
-          ? "SORTIE FINALE À SÉLECTIONNER"
-          : "VALIDATION EN ATTENTE";
+        : draftChanged
+          ? "SÉLECTION À ENREGISTRER"
+          : !outputSelected
+            ? "SORTIE FINALE À SÉLECTIONNER"
+            : candidateLoading ||
+                !candidateScopeCurrent
+              ? "VÉRIFICATION DU SCOPE"
+              : "VALIDATION EN ATTENTE";
 
 
   const headline =
     ready
       ? "Préparation validée pour l’analyse"
-      : !outputSelected
-        ? "Choisissez la sortie analytique finale"
-        : canValidate
-          ? "La préparation peut être validée"
-          : "Terminez les étapes précédentes";
+      : draftChanged
+        ? "Enregistrez la sortie analytique finale"
+        : !outputSelected
+          ? "Choisissez la sortie analytique finale"
+          : canValidate
+            ? "La préparation peut être validée"
+            : "Terminez les étapes précédentes";
 
 
   return (
@@ -1206,6 +1349,7 @@ export default function PreparationFinalizationPanel({
                           outputExplanationLoadingIds.includes(
                             candidate.dataset_id
                           );
+
 
                         return (
                           <label
@@ -1675,12 +1819,48 @@ export default function PreparationFinalizationPanel({
       >
         <article>
           <span>
-            Datasets source
+            Sources importées
           </span>
 
           <strong>
             {
               rootDatasetIds.length
+            }
+          </strong>
+        </article>
+
+        <article>
+          <span>
+            Lignes sources inspectées
+          </span>
+
+          <strong>
+            {
+              rootSourceRows !==
+                null
+                ? rootSourceRows
+                    .toLocaleString(
+                      "fr-FR"
+                    )
+                : "—"
+            }
+          </strong>
+        </article>
+
+        <article>
+          <span>
+            Lignes de sortie analytique
+          </span>
+
+          <strong>
+            {
+              analysisOutputRows !==
+                null
+                ? analysisOutputRows
+                    .toLocaleString(
+                      "fr-FR"
+                    )
+                : "—"
             }
           </strong>
         </article>
@@ -1693,7 +1873,11 @@ export default function PreparationFinalizationPanel({
           <strong>
             {
               stageStatusLabel(
-                clean?.status
+                clean?.status,
+                "clean",
+                materializedStageSet.has(
+                  "clean"
+                )
               )
             }
           </strong>
@@ -1707,7 +1891,11 @@ export default function PreparationFinalizationPanel({
           <strong>
             {
               stageStatusLabel(
-                transform?.status
+                transform?.status,
+                "transform",
+                materializedStageSet.has(
+                  "transform"
+                )
               )
             }
           </strong>
@@ -1721,7 +1909,11 @@ export default function PreparationFinalizationPanel({
           <strong>
             {
               stageStatusLabel(
-                combine?.status
+                combine?.status,
+                "combine",
+                materializedStageSet.has(
+                  "combine"
+                )
               )
             }
           </strong>
@@ -1751,7 +1943,8 @@ export default function PreparationFinalizationPanel({
           <strong>
             {
               stageStatusLabel(
-                validate?.status
+                validate?.status,
+                "validate"
               )
             }
           </strong>
@@ -1804,11 +1997,13 @@ export default function PreparationFinalizationPanel({
             {
               ready
                 ? "Analyse déverrouillée"
-                : canValidate
-                  ? "Scope final enregistré"
-                  : outputSelected
-                    ? "Préparation encore incomplète"
-                    : "Sélection finale requise"
+                : draftChanged
+                  ? "Sélection non enregistrée"
+                  : canValidate
+                    ? "Scope final enregistré"
+                    : outputSelected
+                      ? "Préparation encore incomplète"
+                      : "Sélection finale requise"
             }
           </strong>
 
@@ -1819,23 +2014,39 @@ export default function PreparationFinalizationPanel({
                     "Le readiness gate autorise maintenant l’analyse " +
                     "des sorties certifiées."
                   )
-                : canValidate
+                : draftChanged
                   ? (
-                      "Le serveur peut maintenant contrôler la lineage, " +
-                      "les preuves et l’existence des artefacts."
+                      "Enregistrez la sélection ci-dessus avant de lancer " +
+                      "la validation finale."
                     )
-                  : !outputSelected
+                  : candidateLoading ||
+                      !candidateScopeCurrent
                     ? (
-                        "Choisissez puis confirmez au moins une sortie " +
-                        "avant d’exécuter VALIDATE."
+                        "DataLens vérifie que le scope analytique " +
+                        "correspond à la révision serveur courante."
                       )
-                    : snapshot.next_stage
+                    : candidateError
                       ? (
-                          `Prochaine étape serveur : ${snapshot.next_stage}.`
+                          "Le scope analytique n’a pas pu être vérifié. " +
+                          "La validation reste verrouillée."
                         )
-                      : (
-                          "La préparation n’est pas encore validable."
-                        )
+                      : canValidate
+                        ? (
+                            "Le serveur peut maintenant contrôler la lineage, " +
+                            "les preuves et l’existence des artefacts."
+                          )
+                        : !outputSelected
+                          ? (
+                              "Choisissez puis confirmez au moins une sortie " +
+                              "avant d’exécuter VALIDATE."
+                            )
+                          : snapshot.next_stage
+                            ? (
+                                `Prochaine étape serveur : ${snapshot.next_stage}.`
+                              )
+                            : (
+                                "La préparation n’est pas encore validable."
+                              )
             }
           </p>
         </div>
@@ -1860,7 +2071,12 @@ export default function PreparationFinalizationPanel({
               ? "Préparation validée"
               : loading
                 ? "Validation…"
-                : "Valider la préparation"
+                : draftChanged
+                  ? "Enregistrez d’abord la sélection"
+                  : candidateLoading ||
+                      !candidateScopeCurrent
+                    ? "Vérification du scope…"
+                    : "Valider la préparation"
           }
         </button>
       </footer>

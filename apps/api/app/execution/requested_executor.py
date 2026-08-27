@@ -48,7 +48,7 @@ from app.statistics.executor import (
 # ============================================================
 
 REQUESTED_ANALYSIS_EXECUTOR_RULE_VERSION = (
-    "requested_analysis_executor_v0.6"
+    "requested_analysis_executor_v0.7"
 )
 
 
@@ -2524,6 +2524,24 @@ def execute_revenue_moving_average(
         ]
     ],
 ) -> RequestedAnalysisExecution:
+    """
+    Execute one explicitly resolved revenue moving-average
+    request from the server-owned event-grain source dataset.
+
+    Important safeguards:
+
+    - time granularity and moving-average window must come
+      from RequestedAnalysisResolution;
+    - time and monetary variables must resolve uniquely;
+    - both variables must belong to the same source dataset;
+    - the monetary variable must already have passed the
+      conservative additive-measure policy, proven by the
+      existing monthly_additive_measure materialization;
+    - calculations use all valid event rows;
+    - only chart serialization may be deterministically
+      bounded.
+    """
+
     amount_match = (
         request_match(
             request,
@@ -2539,6 +2557,53 @@ def execute_revenue_moving_average(
     )
 
 
+    resolution = (
+        request.resolution
+    )
+
+
+    if (
+        resolution is None
+        or
+        resolution.resolution_type
+        !=
+        "time_series_parameters"
+        or
+        resolution.time_granularity
+        is None
+        or
+        resolution.moving_average_window
+        is None
+    ):
+        return (
+            missing_brief_dataset_result(
+                request,
+
+                variables={},
+
+                analytical_grain=
+                    "time_series",
+
+                reason=(
+                    "La granularite temporelle et "
+                    "la fenetre de moyenne mobile "
+                    "doivent provenir d'une "
+                    "resolution utilisateur "
+                    "server-owned explicite."
+                ),
+            )
+        )
+
+
+    granularity = str(
+        resolution.time_granularity
+    )
+
+    moving_average_window = int(
+        resolution.moving_average_window
+    )
+
+
     if (
         amount_match is None
         or
@@ -2551,20 +2616,73 @@ def execute_revenue_moving_average(
                 variables={},
 
                 analytical_grain=
-                    DEFAULT_REVENUE_PERIOD,
+                    granularity,
 
                 reason=(
                     "Les colonnes montant et date "
-                    "du plan ne sont pas résolues "
-                    "de manière unique."
+                    "du plan ne sont pas resolues "
+                    "de maniere unique."
                 ),
             )
         )
 
 
+    source_dataset_id = str(
+        amount_match.dataset_id
+    )
+
+
+    if (
+        source_dataset_id
+        !=
+        str(
+            time_match.dataset_id
+        )
+    ):
+        return (
+            missing_brief_dataset_result(
+                request,
+
+                variables={
+                    "time":
+                        str(
+                            time_match.column
+                        ),
+
+                    "value":
+                        str(
+                            amount_match.column
+                        ),
+                },
+
+                analytical_grain=
+                    granularity,
+
+                reason=(
+                    "La date et la mesure monetaire "
+                    "ne sont pas resolues dans le "
+                    "meme dataset server-owned."
+                ),
+            )
+        )
+
+
+    # ========================================================
+    # ADDITIVE-MEASURE CERTIFICATE
+    # ========================================================
+    #
+    # We deliberately keep monthly_additive_measure as a
+    # capability / semantic certificate. Its values are NOT
+    # reused for the requested temporal aggregation.
+    #
+    # This preserves the conservative additive-measure guard:
+    # a browser cannot make an arbitrary numeric column
+    # summable merely by requesting another granularity.
+    # ========================================================
+
     (
-        record,
-        resolution_error,
+        additive_certificate,
+        additive_error,
     ) = derived_view_by_provenance(
         datasets=
             datasets,
@@ -2586,7 +2704,7 @@ def execute_revenue_moving_average(
     )
 
 
-    if record is None:
+    if additive_certificate is None:
         return (
             missing_brief_dataset_result(
                 request,
@@ -2604,43 +2722,32 @@ def execute_revenue_moving_average(
                 },
 
                 analytical_grain=
-                    DEFAULT_REVENUE_PERIOD,
+                    granularity,
 
                 reason=(
-                    resolution_error
+                    additive_error
                     or
                     (
-                        "La vue mensuelle du chiffre "
-                        "d'affaires n'a pas pu être "
-                        "résolue."
+                        "Aucune preuve server-owned "
+                        "ne confirme que la mesure "
+                        "monetaire est additive."
                     )
                 ),
             )
         )
 
 
-    dataframe = (
-        dataset_dataframe(
-            record
-        )
-    )
-
-
-    provenance = (
-        record.get(
+    certificate_provenance = (
+        additive_certificate.get(
             "provenance",
             {}
         )
     )
 
 
-    if (
-        dataframe is None
-        or
-        not isinstance(
-            provenance,
-            dict,
-        )
+    if not isinstance(
+        certificate_provenance,
+        dict,
     ):
         return (
             missing_brief_dataset_result(
@@ -2649,40 +2756,102 @@ def execute_revenue_moving_average(
                 variables={},
 
                 analytical_grain=
-                    DEFAULT_REVENUE_PERIOD,
+                    granularity,
 
                 reason=(
-                    "La vue mensuelle résolue "
-                    "n'est pas exécutable."
+                    "La provenance de la preuve "
+                    "d'additivite est invalide."
                 ),
             )
         )
 
 
-    time_column = str(
-        provenance.get(
-            "target_time_column",
-            "month",
-        )
-    )
-
-
-    measure_column = str(
-        provenance.get(
-            "target_measure_column",
-            (
-                "sum_"
-                f"{amount_match.column}"
-            ),
+    certificate_fact_dataset_id = str(
+        certificate_provenance.get(
+            "fact_dataset_id",
+            "",
         )
     )
 
 
     if (
+        not certificate_fact_dataset_id
+        or
+        certificate_fact_dataset_id
+        !=
+        source_dataset_id
+    ):
+        return (
+            missing_brief_dataset_result(
+                request,
+
+                variables={
+                    "time":
+                        str(
+                            time_match.column
+                        ),
+
+                    "value":
+                        str(
+                            amount_match.column
+                        ),
+                },
+
+                analytical_grain=
+                    granularity,
+
+                reason=(
+                    "La preuve d'additivite ne "
+                    "correspond pas exactement au "
+                    "dataset source resolu."
+                ),
+            )
+        )
+
+
+    # ========================================================
+    # EXACT SOURCE DATASET
+    # ========================================================
+
+    record = (
+        source_dataset_by_id(
+            datasets=
+                datasets,
+
+            dataset_id=
+                source_dataset_id,
+        )
+    )
+
+
+    dataframe = (
+        dataset_dataframe(
+            record
+        )
+        if record
+        is not None
+        else None
+    )
+
+
+    time_column = str(
+        time_match.column
+    )
+
+    amount_column = str(
+        amount_match.column
+    )
+
+
+    if (
+        record is None
+        or
+        dataframe is None
+        or
         time_column
         not in dataframe.columns
         or
-        measure_column
+        amount_column
         not in dataframe.columns
     ):
         return (
@@ -2694,56 +2863,337 @@ def execute_revenue_moving_average(
                         time_column,
 
                     "value":
-                        measure_column,
+                        amount_column,
                 },
 
                 analytical_grain=
-                    DEFAULT_REVENUE_PERIOD,
+                    granularity,
 
                 reason=(
-                    "La vue mensuelle ne contient "
-                    "pas les colonnes matérialisées "
-                    "attendues."
+                    "Le dataset transactionnel "
+                    "server-owned resolu ne contient "
+                    "pas les colonnes attendues."
                 ),
             )
         )
 
 
-    working = pd.DataFrame(
-        {
-            "period":
-                pd.to_datetime(
-                    dataframe[
-                        time_column
-                    ],
-                    errors="coerce",
+    # ========================================================
+    # EVENT-GRAIN VALIDATION
+    # ========================================================
+
+    parsed_time = pd.to_datetime(
+        dataframe[
+            time_column
+        ],
+        errors="coerce",
+        utc=True,
+    )
+
+
+    parsed_time = (
+        parsed_time
+        .dt
+        .tz_convert(
+            None
+        )
+    )
+
+
+    numeric_amount = (
+        pd.to_numeric(
+            dataframe[
+                amount_column
+            ],
+            errors="coerce",
+        )
+        .replace(
+            [
+                np.inf,
+                -np.inf,
+            ],
+            np.nan,
+        )
+    )
+
+
+    events = (
+        pd.DataFrame(
+            {
+                "time":
+                    parsed_time,
+
+                "value":
+                    numeric_amount,
+            }
+        )
+        .dropna(
+            subset=[
+                "time",
+                "value",
+            ]
+        )
+        .copy()
+    )
+
+
+    if events.empty:
+        return (
+            missing_brief_dataset_result(
+                request,
+
+                variables={
+                    "time":
+                        time_column,
+
+                    "value":
+                        amount_column,
+                },
+
+                analytical_grain=
+                    granularity,
+
+                reason=(
+                    "Aucune paire date/montant "
+                    "valide n'est disponible."
                 ),
-
-            "value":
-                pd.to_numeric(
-                    dataframe[
-                        measure_column
-                    ],
-                    errors="coerce",
-                ),
-        }
-    ).dropna()
+            )
+        )
 
 
-    working = (
-        working
-        .sort_values(
+    # ========================================================
+    # TEMPORAL BUCKETING
+    # ========================================================
+
+    if granularity == "day":
+        events[
             "period"
+        ] = (
+            events[
+                "time"
+            ]
+            .dt
+            .floor(
+                "D"
+            )
         )
-        .reset_index(
-            drop=True
+
+        frequency = (
+            "D"
         )
+
+        granularity_label = (
+            "jour"
+        )
+
+
+    elif granularity == "week":
+        events[
+            "period"
+        ] = (
+            events[
+                "time"
+            ]
+            .dt
+            .to_period(
+                "W-SUN"
+            )
+            .dt
+            .start_time
+        )
+
+        frequency = (
+            "W-MON"
+        )
+
+        granularity_label = (
+            "semaine"
+        )
+
+
+    elif granularity == "month":
+        events[
+            "period"
+        ] = (
+            events[
+                "time"
+            ]
+            .dt
+            .to_period(
+                "M"
+            )
+            .dt
+            .start_time
+        )
+
+        frequency = (
+            "MS"
+        )
+
+        granularity_label = (
+            "mois"
+        )
+
+
+    elif granularity == "quarter":
+        events[
+            "period"
+        ] = (
+            events[
+                "time"
+            ]
+            .dt
+            .to_period(
+                "Q"
+            )
+            .dt
+            .start_time
+        )
+
+        frequency = (
+            "QS"
+        )
+
+        granularity_label = (
+            "trimestre"
+        )
+
+
+    elif granularity == "year":
+        events[
+            "period"
+        ] = (
+            events[
+                "time"
+            ]
+            .dt
+            .to_period(
+                "Y"
+            )
+            .dt
+            .start_time
+        )
+
+        frequency = (
+            "YS"
+        )
+
+        granularity_label = (
+            "annee"
+        )
+
+
+    else:
+        return (
+            missing_brief_dataset_result(
+                request,
+
+                variables={
+                    "time":
+                        time_column,
+
+                    "value":
+                        amount_column,
+                },
+
+                analytical_grain=
+                    granularity,
+
+                reason=(
+                    "La granularite temporelle "
+                    f"{granularity!r} n'est pas "
+                    "prise en charge."
+                ),
+            )
+        )
+
+
+    grouped = (
+        events
+        .groupby(
+            "period",
+            dropna=True,
+        )[
+            "value"
+        ]
+        .sum()
+        .sort_index()
+    )
+
+
+    if grouped.empty:
+        return (
+            missing_brief_dataset_result(
+                request,
+
+                variables={
+                    "time":
+                        time_column,
+
+                    "value":
+                        amount_column,
+                },
+
+                analytical_grain=
+                    granularity,
+
+                reason=(
+                    "Aucune periode temporelle "
+                    "complete n'a pu etre construite."
+                ),
+            )
+        )
+
+
+    # ========================================================
+    # CONTINUOUS CALENDAR
+    # ========================================================
+    #
+    # Revenue is additive. A calendar bucket with no observed
+    # transaction represents zero revenue, not a missing
+    # period. This matters for a moving average.
+    # ========================================================
+
+    full_index = (
+        pd.date_range(
+            start=
+                grouped.index.min(),
+
+            end=
+                grouped.index.max(),
+
+            freq=
+                frequency,
+        )
+    )
+
+
+    grouped = (
+        grouped
+        .reindex(
+            full_index,
+            fill_value=0.0,
+        )
+    )
+
+
+    grouped.index.name = (
+        "period"
+    )
+
+
+    periods = (
+        grouped
+        .rename(
+            "value"
+        )
+        .reset_index()
     )
 
 
     if (
         len(
-            working
+            periods
         )
         <
         2
@@ -2757,34 +3207,74 @@ def execute_revenue_moving_average(
                         time_column,
 
                     "value":
-                        measure_column,
+                        amount_column,
                 },
 
                 analytical_grain=
-                    DEFAULT_REVENUE_PERIOD,
+                    granularity,
 
                 reason=(
-                    "Moins de deux périodes "
-                    "complètes sont disponibles."
+                    "Moins de deux periodes "
+                    "temporelles sont disponibles."
                 ),
             )
         )
 
 
-    working[
+    # ========================================================
+    # MOVING AVERAGE
+    # ========================================================
+
+    periods[
         "moving_average"
     ] = (
-        working[
+        periods[
             "value"
         ]
         .rolling(
             window=
-                DEFAULT_MOVING_AVERAGE_WINDOW,
+                moving_average_window,
 
-            min_periods=1,
+            min_periods=
+                1,
         )
         .mean()
     )
+
+
+    # ========================================================
+    # CHART BOUNDING ONLY
+    # ========================================================
+
+    chart_source = (
+        periods
+    )
+
+
+    if (
+        len(
+            chart_source
+        )
+        >
+        MAX_CHART_POINTS
+    ):
+        indexes = np.linspace(
+            0,
+            len(
+                chart_source
+            )
+            -
+            1,
+            MAX_CHART_POINTS,
+            dtype=int,
+        )
+
+
+        chart_source = (
+            chart_source.iloc[
+                indexes
+            ]
+        )
 
 
     chart_data = [
@@ -2810,7 +3300,7 @@ def execute_revenue_moving_average(
         }
 
         for _, row
-        in working.iterrows()
+        in chart_source.iterrows()
     ]
 
 
@@ -2819,57 +3309,85 @@ def execute_revenue_moving_average(
             time_column,
 
         "measure_column":
-            measure_column,
+            amount_column,
 
         "valid_observations":
             int(
                 len(
-                    working
+                    events
+                )
+            ),
+
+        "source_observation_count":
+            int(
+                len(
+                    events
                 )
             ),
 
         "period_count":
             int(
                 len(
-                    working
+                    periods
                 )
             ),
 
+        "nonzero_period_count":
+            int(
+                (
+                    periods[
+                        "value"
+                    ]
+                    !=
+                    0
+                )
+                .sum()
+            ),
+
         "aggregation_period":
-            DEFAULT_REVENUE_PERIOD,
+            granularity,
 
         "moving_average_window":
-            DEFAULT_MOVING_AVERAGE_WINDOW,
+            moving_average_window,
 
         "moving_average_window_unit":
             "periods",
 
+        "moving_average_granularity":
+            granularity,
+
+        "time_start":
+            periods[
+                "period"
+            ]
+            .min()
+            .isoformat(),
+
+        "time_end":
+            periods[
+                "period"
+            ]
+            .max()
+            .isoformat(),
+
         "total_revenue":
             float(
-                working[
+                periods[
                     "value"
                 ]
                 .sum()
             ),
+
+        "chart_point_count":
+            int(
+                len(
+                    chart_data
+                )
+            ),
+
+        "additive_measure_certified":
+            True,
     }
-
-
-    limitations = [
-        (
-            "Le brief autorise le choix de la "
-            "granularité temporelle. En l'absence "
-            "de paramètre utilisateur dans "
-            "l'interface actuelle, DataLens v0.5 "
-            "réutilise la vue mensuelle "
-            "déterministe."
-        ),
-        (
-            "La fenêtre de moyenne mobile est "
-            "fixée explicitement à 3 périodes "
-            "dans cette version et devra devenir "
-            "configurable dans l'interface."
-        ),
-    ]
 
 
     executed = (
@@ -2888,14 +3406,15 @@ def execute_revenue_moving_average(
 
             summary=[
                 (
-                    "Le chiffre d'affaires a été "
-                    "agrégé par mois."
+                    "Le chiffre d'affaires a ete "
+                    "agrege par "
+                    f"{granularity_label}."
                 ),
                 (
                     "Une moyenne mobile sur "
-                    f"{DEFAULT_MOVING_AVERAGE_WINDOW} "
-                    "périodes a été calculée de "
-                    "manière déterministe."
+                    f"{moving_average_window} "
+                    "periode(s) a ete calculee "
+                    "de maniere deterministe."
                 ),
             ],
 
@@ -2905,8 +3424,24 @@ def execute_revenue_moving_average(
             chart_data=
                 chart_data,
 
-            limitations=
-                limitations,
+            limitations=[
+                (
+                    "Les periodes calendaires sans "
+                    "transaction observee sont "
+                    "representees par un chiffre "
+                    "d'affaires nul avant le calcul "
+                    "de la moyenne mobile."
+                ),
+                (
+                    "La vue mensuelle derivee est "
+                    "utilisee uniquement comme "
+                    "preuve server-owned "
+                    "d'additivite; l'agregation "
+                    "temporelle demandee est "
+                    "recalculee depuis les "
+                    "evenements valides."
+                ),
+            ],
         )
     )
 
@@ -2923,14 +3458,14 @@ def execute_revenue_moving_average(
                 executed,
 
             analytical_grain=
-                "month",
+                granularity,
 
             variables={
                 "time":
                     time_column,
 
                 "value":
-                    measure_column,
+                    amount_column,
             },
 
             limitations=[],
@@ -4002,6 +4537,516 @@ def find_product_revenue_dataset(
     )
 
 
+def _product_transaction_count_ranking_frame(
+    *,
+    dataframe: pd.DataFrame,
+    product_column: str,
+    transaction_column: str,
+    ascending: bool,
+) -> pd.DataFrame:
+    """
+    Build a deterministic product ranking from distinct
+    transaction/session identifiers.
+
+    Multiple rows for the same product inside the same
+    transaction count only once.
+    """
+
+    working = pd.DataFrame(
+        {
+            "product":
+                dataframe[
+                    product_column
+                ],
+
+            "transaction":
+                dataframe[
+                    transaction_column
+                ],
+        }
+    )
+
+
+    working = (
+        working
+        .dropna(
+            subset=[
+                "product",
+                "transaction",
+            ]
+        )
+    )
+
+
+    if working.empty:
+        return pd.DataFrame(
+            columns=[
+                "product",
+                "transaction_count",
+            ]
+        )
+
+
+    grouped = (
+        working
+        .groupby(
+            "product",
+            dropna=True,
+            sort=False,
+        )[
+            "transaction"
+        ]
+        .nunique()
+        .reset_index(
+            name=
+                "transaction_count"
+        )
+        .sort_values(
+            "transaction_count",
+            ascending=
+                ascending,
+            kind=
+                "mergesort",
+        )
+        .reset_index(
+            drop=True
+        )
+    )
+
+
+    return grouped
+
+
+def execute_product_transaction_count_ranking(
+    *,
+    request: RequestedAnalysisPlan,
+
+    datasets: list[
+        dict[
+            str,
+            Any,
+        ]
+    ],
+
+    ascending: bool,
+) -> RequestedAnalysisExecution:
+    product_match = (
+        request_match(
+            request,
+            "product_id",
+        )
+    )
+
+
+    transaction_match = (
+        request_match(
+            request,
+            "transaction_id",
+        )
+    )
+
+
+    session_match = (
+        request_match(
+            request,
+            "session_id",
+        )
+    )
+
+
+    event_match = (
+        transaction_match
+        if (
+            transaction_match
+            is not None
+        )
+        else
+        session_match
+    )
+
+
+    if (
+        product_match is None
+        or
+        event_match is None
+    ):
+        return (
+            missing_brief_dataset_result(
+                request,
+
+                variables={},
+
+                analytical_grain=
+                    "product",
+
+                reason=(
+                    "L'identifiant produit ou "
+                    "l'identifiant de transaction/"
+                    "session n'est pas "
+                    "r\u00e9solu de mani\u00e8re "
+                    "unique."
+                ),
+            )
+        )
+
+
+    if (
+        str(
+            product_match.dataset_id
+        )
+        !=
+        str(
+            event_match.dataset_id
+        )
+    ):
+        return (
+            missing_brief_dataset_result(
+                request,
+
+                variables={
+                    "product":
+                        str(
+                            product_match.column
+                        ),
+
+                    "transaction":
+                        str(
+                            event_match.column
+                        ),
+                },
+
+                analytical_grain=
+                    "product",
+
+                reason=(
+                    "Le produit et l'identifiant "
+                    "transactionnel ne proviennent "
+                    "pas du m\u00eame dataset "
+                    "server-owned."
+                ),
+            )
+        )
+
+
+    record = (
+        source_dataset_by_id(
+            datasets=
+                datasets,
+
+            dataset_id=
+                str(
+                    product_match.dataset_id
+                ),
+        )
+    )
+
+
+    dataframe = (
+        dataset_dataframe(
+            record
+        )
+        if (
+            record
+            is not None
+        )
+        else
+        None
+    )
+
+
+    product_column = str(
+        product_match.column
+    )
+
+    transaction_column = str(
+        event_match.column
+    )
+
+
+    if (
+        record is None
+        or
+        dataframe is None
+        or
+        product_column
+        not in dataframe.columns
+        or
+        transaction_column
+        not in dataframe.columns
+    ):
+        return (
+            missing_brief_dataset_result(
+                request,
+
+                variables={
+                    "product":
+                        product_column,
+
+                    "transaction":
+                        transaction_column,
+                },
+
+                analytical_grain=
+                    "product",
+
+                reason=(
+                    "Le dataset transactionnel "
+                    "r\u00e9solu ne contient pas "
+                    "les colonnes attendues."
+                ),
+            )
+        )
+
+
+    working = pd.DataFrame(
+        {
+            "product":
+                dataframe[
+                    product_column
+                ],
+
+            "transaction":
+                dataframe[
+                    transaction_column
+                ],
+        }
+    ).dropna(
+        subset=[
+            "product",
+            "transaction",
+        ]
+    )
+
+
+    ranking_frame = (
+        _product_transaction_count_ranking_frame(
+            dataframe=
+                dataframe,
+
+            product_column=
+                product_column,
+
+            transaction_column=
+                transaction_column,
+
+            ascending=
+                ascending,
+        )
+    )
+
+
+    if ranking_frame.empty:
+        return (
+            missing_brief_dataset_result(
+                request,
+
+                variables={
+                    "product":
+                        product_column,
+
+                    "transaction":
+                        transaction_column,
+                },
+
+                analytical_grain=
+                    "product",
+
+                reason=(
+                    "Aucune r\u00e9f\u00e9rence "
+                    "produit avec une transaction "
+                    "valide n'est disponible."
+                ),
+            )
+        )
+
+
+    ranking_limit = min(
+        DEFAULT_PRODUCT_RANKING_LIMIT,
+        len(
+            ranking_frame
+        ),
+    )
+
+
+    ranking = (
+        ranking_frame
+        .head(
+            ranking_limit
+        )
+        .copy()
+    )
+
+
+    chart_data = [
+        {
+            "category":
+                str(
+                    row[
+                        "product"
+                    ]
+                ),
+
+            "value":
+                int(
+                    row[
+                        "transaction_count"
+                    ]
+                ),
+
+            "rank":
+                int(
+                    index
+                    +
+                    1
+                ),
+        }
+
+        for (
+            index,
+            (
+                _,
+                row,
+            ),
+        )
+        in enumerate(
+            ranking.iterrows()
+        )
+    ]
+
+
+    ranking_label = (
+        "tops"
+        if (
+            not ascending
+        )
+        else
+        "flops"
+    )
+
+
+    ranking_direction = (
+        "d\u00e9croissant"
+        if (
+            not ascending
+        )
+        else
+        "croissant"
+    )
+
+
+    executed = (
+        build_direct_executed_analysis(
+            request=
+                request,
+
+            record=
+                record,
+
+            family=
+                "ranking",
+
+            chart_type=
+                "bar",
+
+            summary=[
+                (
+                    f"Les {ranking_limit} "
+                    f"r\u00e9f\u00e9rence(s) "
+                    f"du classement {ranking_label} "
+                    "ont \u00e9t\u00e9 class\u00e9es "
+                    "selon le nombre de "
+                    "transactions distinctes."
+                ),
+                (
+                    "Le classement est effectu\u00e9 "
+                    f"par ordre {ranking_direction}."
+                ),
+            ],
+
+            metrics={
+                "product_column":
+                    product_column,
+
+                "transaction_column":
+                    transaction_column,
+
+                "ranking_metric":
+                    "transaction_count",
+
+                "ranking_direction":
+                    ranking_direction,
+
+                "ranking_limit":
+                    ranking_limit,
+
+                "ranked_product_count":
+                    int(
+                        len(
+                            ranking_frame
+                        )
+                    ),
+
+                "valid_observations":
+                    int(
+                        len(
+                            working
+                        )
+                    ),
+
+                "distinct_transactions_total":
+                    int(
+                        working[
+                            "transaction"
+                        ]
+                        .nunique()
+                    ),
+            },
+
+            chart_data=
+                chart_data,
+
+            limitations=[
+                (
+                    "Une m\u00eame transaction ou "
+                    "session contenant plusieurs "
+                    "lignes de la m\u00eame "
+                    "r\u00e9f\u00e9rence produit "
+                    "n'est compt\u00e9e qu'une fois "
+                    "pour cette r\u00e9f\u00e9rence."
+                )
+            ],
+        )
+    )
+
+
+    return (
+        wrap_direct_requested_result(
+            request=
+                request,
+
+            record=
+                record,
+
+            executed=
+                executed,
+
+            analytical_grain=
+                "product",
+
+            variables={
+                "product":
+                    product_column,
+
+                "transaction":
+                    transaction_column,
+
+                "value":
+                    transaction_column,
+            },
+        )
+    )
+
+
 def execute_product_ranking(
     *,
     request: RequestedAnalysisPlan,
@@ -4015,6 +5060,89 @@ def execute_product_ranking(
 
     ascending: bool,
 ) -> RequestedAnalysisExecution:
+
+    resolution = (
+        request.resolution
+    )
+
+
+    if (
+        resolution
+        is not None
+    ):
+        ranking_metric = str(
+            resolution.ranking_metric
+        )
+
+
+        if (
+            ranking_metric
+            ==
+            "transaction_count"
+        ):
+            return (
+                execute_product_transaction_count_ranking(
+                    request=
+                        request,
+
+                    datasets=
+                        datasets,
+
+                    ascending=
+                        ascending,
+                )
+            )
+
+
+        if (
+            ranking_metric
+            ==
+            "units"
+        ):
+            return (
+                missing_brief_dataset_result(
+                    request,
+
+                    variables={},
+
+                    analytical_grain=
+                        "product",
+
+                    reason=(
+                        "Le classement par volume "
+                        "vendu reste bloqu\u00e9 tant "
+                        "qu'une quantit\u00e9 fiable "
+                        "n'est pas r\u00e9solue et "
+                        "prise en charge par "
+                        "l'ex\u00e9cuteur."
+                    ),
+                )
+            )
+
+
+        if (
+            ranking_metric
+            !=
+            "revenue"
+        ):
+            return (
+                missing_brief_dataset_result(
+                    request,
+
+                    variables={},
+
+                    analytical_grain=
+                        "product",
+
+                    reason=(
+                        "La m\u00e9trique de "
+                        "classement r\u00e9solue "
+                        "n'est pas prise en charge "
+                        "par l'ex\u00e9cuteur."
+                    ),
+                )
+            )
+
     product_match = (
         request_match(
             request,

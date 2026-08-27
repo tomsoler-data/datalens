@@ -265,7 +265,7 @@ def _require_combination_precondition(
     workflow_id: str,
 ):
     """
-    COMBINE may start only after TRANSFORM has been resolved.
+    COMBINE may start only after CLEAN and TRANSFORM have been resolved.
 
     TRANSFORM may be:
     - PASSED;
@@ -280,6 +280,50 @@ def _require_combination_precondition(
             workflow_id
         )
     )
+
+
+    # COMBINE_CLEAN_GUARD_V0_1
+    clean_stage = (
+        _stage_record(
+            session=(
+                session
+            ),
+
+            stage=(
+                PreparationStage.CLEAN
+            ),
+        )
+    )
+
+
+    if (
+        clean_stage.status
+        not in {
+            PreparationStageStatus.PASSED,
+            PreparationStageStatus.SKIPPED,
+        }
+    ):
+
+        raise HTTPException(
+            status_code=409,
+
+            detail={
+                "error":
+                    "clean_stage_not_resolved",
+
+                "message":
+                    (
+                        "CLEAN must be PASSED or SKIPPED "
+                        "before COMBINE can begin."
+                    ),
+
+                "workflow_id":
+                    workflow_id,
+
+                "clean_status":
+                    clean_stage.status.value,
+            },
+        )
 
 
     transform_stage = (

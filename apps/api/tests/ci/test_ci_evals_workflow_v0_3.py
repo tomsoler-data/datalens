@@ -4,11 +4,16 @@ from pathlib import Path
 
 
 CI_EVALS_GATE_RULE_VERSION = (
-    "datalens_ci_evals_gate_v0.2"
+    "datalens_ci_evals_gate_v0.3"
 )
 
 CI_PYTHON_VERSION = (
     "3.13"
+)
+
+PROMPT_ANALYSIS_E2E_MODULE = (
+    "tests.analysis."
+    "test_analysis_prompt_e2e_deterministic_v0_4"
 )
 
 
@@ -55,7 +60,7 @@ def repository_root(
 
     raise AssertionError(
         "Could not locate the DataLens repository root "
-        "from test_ci_evals_workflow_v0_2.py."
+        "from test_ci_evals_workflow_v0_3.py."
     )
 
 
@@ -199,7 +204,7 @@ def test_workflow_validates_its_contract(
 
     assert (
         "python -m tests.ci."
-        "test_ci_evals_workflow_v0_2"
+        "test_ci_evals_workflow_v0_3"
         in text
     )
 
@@ -236,6 +241,10 @@ def test_workflow_executes_all_eval_layers(
             "python -m tests.evals."
             "test_eval_regression_gate_v0_1"
         ),
+        (
+            "python -m "
+            + PROMPT_ANALYSIS_E2E_MODULE
+        ),
         "python -m app.evals.suite_runner",
         "python -m app.evals.regression_gate",
     ]
@@ -262,7 +271,88 @@ def test_workflow_executes_all_eval_layers(
 
     print(
         "CI eval workflow executes benchmark, suite, "
-        "coverage and gate: PASS"
+        "coverage, prompt E2E and gate: PASS"
+    )
+
+
+def test_workflow_executes_deterministic_prompt_analysis_e2e(
+) -> None:
+    text = workflow_text()
+
+
+    command = (
+        "python -m "
+        + PROMPT_ANALYSIS_E2E_MODULE
+    )
+
+
+    assert (
+        command
+        in text
+    )
+
+
+    assert (
+        "Run deterministic prompt-analysis E2E regression"
+        in text
+    )
+
+
+    print(
+        "CI eval workflow executes deterministic prompt-analysis "
+        "E2E regression: PASS"
+    )
+
+
+def test_prompt_analysis_e2e_runs_before_real_eval_suite(
+) -> None:
+    text = workflow_text()
+
+
+    prompt_command = (
+        "python -m "
+        + PROMPT_ANALYSIS_E2E_MODULE
+    )
+
+    real_eval_command = (
+        "python -m app.evals.suite_runner"
+    )
+
+
+    prompt_index = text.find(
+        prompt_command
+    )
+
+    real_eval_index = text.find(
+        real_eval_command
+    )
+
+
+    assert (
+        prompt_index
+        >=
+        0
+    )
+
+    assert (
+        real_eval_index
+        >=
+        0
+    )
+
+    assert (
+        prompt_index
+        <
+        real_eval_index
+    ), (
+        "Deterministic prompt-analysis E2E regression must "
+        "run before the real eval suite."
+    )
+
+
+    print(
+        "Deterministic prompt-analysis E2E runs before "
+        "the real eval suite: PASS"
     )
 
 
@@ -379,7 +469,7 @@ def test_workflow_scopes_execution_to_backend_changes(
 def main(
 ) -> None:
     print(
-        "=== DATALENS CI EVALS GATE v0.2 ==="
+        "=== DATALENS CI EVALS GATE v0.3 ==="
     )
 
     print()
@@ -397,6 +487,10 @@ def main(
 
     test_workflow_executes_all_eval_layers()
 
+    test_workflow_executes_deterministic_prompt_analysis_e2e()
+
+    test_prompt_analysis_e2e_runs_before_real_eval_suite()
+
     test_workflow_enforces_frozen_baseline()
 
     test_workflow_persists_machine_readable_evidence()
@@ -409,7 +503,7 @@ def main(
     print()
 
     print(
-        "CI Evals Gate v0.2: PASS"
+        "CI Evals Gate v0.3: PASS"
     )
 
 

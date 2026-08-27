@@ -73,6 +73,67 @@ GEOGRAPHIC_SIGNALS = {
 # GENERIC HELPERS
 # ============================================================
 
+def bounded_chart_frame(
+    dataframe: pd.DataFrame,
+    *,
+    max_points: int = MAX_CHART_POINTS,
+) -> pd.DataFrame:
+    """
+    Return a deterministic bounded view for chart rendering.
+
+    Analytical calculations continue to use the complete
+    dataframe. Only the visualization payload is bounded.
+
+    The sampling is position-based and evenly distributed
+    across the already ordered analytical frame, preserving
+    both the first and last observations.
+
+    This prevents high-cardinality analytical results from
+    being materialized as hundreds of thousands of Python
+    dictionaries solely for chart serialization.
+    """
+
+    if (
+        max_points
+        <=
+        0
+    ):
+        raise ValueError(
+            "max_points must be greater than zero."
+        )
+
+
+    if (
+        len(
+            dataframe
+        )
+        <=
+        max_points
+    ):
+        return (
+            dataframe
+        )
+
+
+    indexes = np.linspace(
+        0,
+        len(
+            dataframe
+        )
+        -
+        1,
+        max_points,
+        dtype=int,
+    )
+
+
+    return (
+        dataframe.iloc[
+            indexes
+        ]
+    )
+
+
 def normalize_text(
     value: object,
 ) -> str:
@@ -1123,15 +1184,117 @@ def execute_time_series(
     )
 
 
+    # ========================================================
+    # EXPLICIT TIME BINDING
+    #
+    # The analytical candidate owns the variable binding.
+    #
+    # Observation-structure detection may describe how the
+    # dataframe is organized, but it must never silently
+    # replace the temporal axis declared by Discovery.
+    #
+    # Example:
+    #
+    #     analysis_id = dataset:...:time:birth:price
+    #
+    # must execute with:
+    #
+    #     time_column = birth
+    #
+    # and must never be rebound to another temporal column
+    # such as `date` merely because structure detection
+    # considers it the dataset's primary timeline.
+    # ========================================================
+
+    explicit_time_variables = [
+        variable
+
+        for variable
+        in candidate.variables
+
+        if str(
+            getattr(
+                variable,
+                "semantic_role",
+                "",
+            )
+            or
+            ""
+        )
+        .strip()
+        .lower()
+        in {
+            "time",
+            "date",
+        }
+    ]
+
+
+    # Conservative compatibility fallback:
+    #
+    # if the candidate does not expose an explicit semantic
+    # role but contains exactly one temporal analytical
+    # variable, that variable may still be used.
+    if not explicit_time_variables:
+        explicit_time_variables = [
+            variable
+
+            for variable
+            in candidate.variables
+
+            if str(
+                getattr(
+                    variable,
+                    "analysis_kind",
+                    "",
+                )
+                or
+                ""
+            )
+            .strip()
+            .lower()
+            ==
+            "temporal"
+        ]
+
+
+    if (
+        len(
+            explicit_time_variables
+        )
+        !=
+        1
+    ):
+        return build_result(
+            candidate,
+            dataset_id=
+                dataset_id,
+            dataset_name=
+                dataset_name,
+            execution_status=
+                "failed",
+            warnings=[
+                (
+                    "The time-series candidate must expose "
+                    "exactly one explicit temporal variable. "
+                    "DataLens will not infer or substitute "
+                    "another dataframe time column."
+                )
+            ],
+        )
+
+
+    time_column = str(
+        explicit_time_variables[
+            0
+        ].column
+    )
+
+
     structure = (
         detect_observation_structure(
             dataframe
         )
-    )
-
-
-    time_column = (
-        structure.time_column
     )
 
 
@@ -1433,7 +1596,9 @@ def execute_time_series(
                         ),
                 }
                 for _, row
-                in ordered.iterrows()
+                in bounded_chart_frame(
+                    ordered
+                ).iterrows()
             ],
         )
 
@@ -1643,7 +1808,9 @@ def execute_time_series(
                     ),
             }
             for _, row
-            in grouped.iterrows()
+            in bounded_chart_frame(
+                    grouped
+                ).iterrows()
         ],
         warnings=[
             (
