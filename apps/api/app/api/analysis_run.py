@@ -154,6 +154,12 @@ from app.observability.trace_store import (
     list_ai_traces,
 )
 
+from app.observability.trace_explorer import (
+    TraceExplorerReadError,
+    TraceExplorerResponse,
+    get_request_trace_explorer,
+)
+
 from app.rag_context import (
     RagContextReport,
     retrieve_context_for_report,
@@ -4185,6 +4191,70 @@ def read_local_ai_trace(
 
 
     return trace
+
+
+# ============================================================
+# REQUEST TRACE EXPLORER
+# ============================================================
+
+@router.get(
+    "/observability/requests/{request_id}",
+    response_model=
+        TraceExplorerResponse,
+)
+def read_local_request_trace(
+    request_id: str,
+    response: Response,
+) -> TraceExplorerResponse:
+    """
+    Correlate one server-owned HTTP runtime request with any
+    local AI traces created during the same request.
+
+    The response intentionally contains only diagnostic
+    metadata. It never exposes raw request/response bodies,
+    incoming headers, client IPs, raw dataset rows, uploaded
+    document contents, filesystem paths or raw model output.
+    """
+
+    response.headers[
+        "Cache-Control"
+    ] = "no-store"
+
+    try:
+        explorer = (
+            get_request_trace_explorer(
+                request_id
+            )
+        )
+
+    except ValueError as error:
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                "Invalid DataLens server-owned "
+                "request identifier."
+            ),
+        ) from error
+
+    except TraceExplorerReadError as error:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Local observability data "
+                "is unavailable."
+            ),
+        ) from error
+
+    if explorer is None:
+        raise HTTPException(
+            status_code=404,
+            detail=(
+                "Local request observability "
+                "correlation was not found."
+            ),
+        )
+
+    return explorer
 
 
 # ============================================================
