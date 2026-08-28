@@ -106,6 +106,8 @@ class PreparationWorkflowDeleteResult(
 
     analysis_artifacts_deleted: int
 
+    ml_model_artifacts_deleted: int
+
     preparation_ui_state_deleted: int
 
     report_selection_deleted: int
@@ -180,6 +182,7 @@ _WORKFLOW_TABLE_ALLOWLIST = {
     "preparation_artifacts",
     "report_selection_workflows",
     "analysis_artifacts",
+    "ml_model_artifacts",
 }
 
 
@@ -261,6 +264,24 @@ def _quarantine_root() -> Path:
 
 
 def _analysis_data_root(
+    store_root: str,
+) -> Path:
+    logical_store = (
+        Path(
+            store_root
+        )
+        .expanduser()
+        .resolve()
+    )
+
+    return (
+        logical_store.parent
+        /
+        logical_store.stem
+    ).resolve()
+
+
+def _ml_model_data_root(
     store_root: str,
 ) -> Path:
     logical_store = (
@@ -695,6 +716,20 @@ def _workflow_row_counts(
                 ).fetchone()[0]
             ),
 
+        "ml_model_artifacts":
+            int(
+                connection.execute(
+                    """
+                    SELECT COUNT(*)
+                    FROM ml_model_artifacts
+                    WHERE workflow_id = ?
+                    """,
+                    (
+                        workflow_id,
+                    ),
+                ).fetchone()[0]
+            ),
+
         "preparation_workflow_metadata":
             int(
                 connection.execute(
@@ -766,6 +801,30 @@ def _build_payload_manifest(
             ORDER BY
                 store_root,
                 analysis_id
+            """,
+            (
+                workflow_id,
+            ),
+        )
+        .fetchall()
+    )
+
+    ml_model_rows = (
+        connection.execute(
+            """
+            SELECT
+                store_root,
+                model_id,
+                model_path
+
+            FROM ml_model_artifacts
+
+            WHERE
+                workflow_id = ?
+
+            ORDER BY
+                store_root,
+                model_id
             """,
             (
                 workflow_id,
@@ -897,6 +956,74 @@ def _build_payload_manifest(
             _PayloadMove(
                 kind=
                     "analysis",
+
+                source=
+                    str(
+                        source
+                    ),
+
+                quarantine=
+                    str(
+                        quarantine
+                    ),
+            )
+        )
+
+        index += 1
+
+    for row in ml_model_rows:
+        source = (
+            _resolve_relative_payload(
+                root=
+                    _ml_model_data_root(
+                        str(
+                            row[
+                                "store_root"
+                            ]
+                        )
+                    ),
+
+                relative_path=
+                    str(
+                        row[
+                            "model_path"
+                        ]
+                    ),
+            )
+        )
+
+        if not source.is_file():
+            raise (
+                PreparationWorkflowDeleteIntegrityError(
+                    (
+                        "ML Model Artifact binary file "
+                        "required for deletion is "
+                        "missing. "
+                        f"workflow_id={workflow_id}, "
+                        "model_id="
+                        f"{row['model_id']}, "
+                        f"path={source}"
+                    )
+                )
+            )
+
+        quarantine = (
+            operation_root
+            /
+            "files"
+            /
+            (
+                "ml_model_"
+                f"{index:05d}_"
+                +
+                source.name
+            )
+        )
+
+        entries.append(
+            _PayloadMove(
+                kind=
+                    "ml_model",
 
                 source=
                     str(
@@ -1330,6 +1457,7 @@ def _delete_exact_rows(
 ) -> None:
     for table in [
         "report_selection_workflows",
+        "ml_model_artifacts",
         "analysis_artifacts",
         "preparation_artifacts",
         "preparation_ui_state",
@@ -1761,6 +1889,11 @@ def delete_preparation_workflow(
                 analysis_artifacts_deleted=
                     counts[
                         "analysis_artifacts"
+                    ],
+
+                ml_model_artifacts_deleted=
+                    counts[
+                        "ml_model_artifacts"
                     ],
 
                 preparation_ui_state_deleted=
