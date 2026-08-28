@@ -55,6 +55,16 @@ from sklearn.pipeline import (
 )
 
 
+from app.ml.baseline import (
+    MLBaselineComparisonResult,
+    MLBaselineError,
+    MLBaselineEvaluationResult,
+    build_ml_baseline_evaluation,
+    build_ml_baseline_predictions,
+    compare_model_to_baseline,
+)
+
+
 from app.ml.contracts import (
     MLTrainingContract,
 )
@@ -188,6 +198,16 @@ class ClassicalMLExecutionResult(
         str,
         float,
     ]
+
+
+    baseline: (
+        MLBaselineEvaluationResult
+    )
+
+
+    baseline_comparison: (
+        MLBaselineComparisonResult
+    )
 
 
     model_artifact: MLModelArtifactRecord
@@ -1505,6 +1525,36 @@ def execute_classical_ml(
     )
 
 
+    try:
+        baseline_prediction_bundle = (
+            build_ml_baseline_predictions(
+                problem_type=
+                    contract.problem_type,
+
+                y_train=
+                    y_train,
+
+                test_rows=
+                    int(
+                        len(
+                            y_test
+                        )
+                    ),
+            )
+        )
+
+    except MLBaselineError as error:
+        raise (
+            ClassicalMLExecutorError(
+                (
+                    "Classical ML baseline could not "
+                    "be constructed from the training "
+                    "split."
+                )
+            )
+        ) from error
+
+
     estimator = (
         _build_estimator(
             contract=
@@ -1580,6 +1630,99 @@ def execute_classical_ml(
             metrics
         )
     )
+
+
+    if (
+        contract.problem_type
+        ==
+        "regression"
+    ):
+        baseline_metrics = (
+            _regression_metrics(
+                y_true=
+                    y_test,
+
+                predictions=(
+                    baseline_prediction_bundle
+                    .predictions
+                ),
+            )
+        )
+
+    else:
+        baseline_metrics = (
+            _classification_metrics(
+                y_true=
+                    y_test,
+
+                predictions=(
+                    baseline_prediction_bundle
+                    .predictions
+                ),
+            )
+        )
+
+
+    baseline_metrics = (
+        _validate_metrics(
+            baseline_metrics
+        )
+    )
+
+
+    try:
+        baseline = (
+            build_ml_baseline_evaluation(
+                problem_type=
+                    contract.problem_type,
+
+                strategy=(
+                    baseline_prediction_bundle
+                    .strategy
+                ),
+
+                metrics=
+                    baseline_metrics,
+
+                train_rows=
+                    int(
+                        len(
+                            y_train
+                        )
+                    ),
+
+                test_rows=
+                    int(
+                        len(
+                            y_test
+                        )
+                    ),
+            )
+        )
+
+
+        baseline_comparison = (
+            compare_model_to_baseline(
+                problem_type=
+                    contract.problem_type,
+
+                model_metrics=
+                    metrics,
+
+                baseline_metrics=
+                    baseline.metrics,
+            )
+        )
+
+    except MLBaselineError as error:
+        raise (
+            ClassicalMLExecutorError(
+                (
+                    "Classical ML baseline evaluation "
+                    "or model comparison failed."
+                )
+            )
+        ) from error
 
 
     model_bytes = (
@@ -1660,6 +1803,12 @@ def execute_classical_ml(
 
             metrics=
                 metrics,
+
+            baseline=
+                baseline,
+
+            baseline_comparison=
+                baseline_comparison,
 
             model_artifact=
                 model_artifact,
