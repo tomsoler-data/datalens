@@ -23,9 +23,16 @@ from pydantic import (
 )
 
 
+from sklearn.ensemble import (
+    RandomForestClassifier,
+    RandomForestRegressor,
+)
+
+
 from sklearn.linear_model import (
     LinearRegression,
     LogisticRegression,
+    Ridge,
 )
 
 
@@ -50,6 +57,16 @@ from sklearn.pipeline import (
 
 from app.ml.contracts import (
     MLTrainingContract,
+)
+
+
+from app.ml.estimator_contracts import (
+    MLLinearRegressionHyperparameters,
+    MLLogisticRegressionHyperparameters,
+    MLRandomForestClassifierHyperparameters,
+    MLRandomForestRegressorHyperparameters,
+    MLRidgeRegressionHyperparameters,
+    estimator_problem_type,
 )
 
 
@@ -648,54 +665,166 @@ def _build_estimator(
     contract: MLTrainingContract,
 ) -> Pipeline:
 
+    estimator_key = (
+        contract.estimator_key
+    )
+
+
+    expected_problem_type = (
+        estimator_problem_type(
+            estimator_key
+        )
+    )
+
+
     if (
-        contract.problem_type
-        ==
-        "regression"
+        expected_problem_type
+        is None
     ):
-        if (
-            contract.estimator_key
-            !=
-            "linear_regression"
+        raise (
+            ClassicalMLEstimatorError(
+                (
+                    "Unsupported Classical ML "
+                    "estimator. "
+                    f"estimator_key={estimator_key}"
+                )
+            )
+        )
+
+
+    if (
+        expected_problem_type
+        !=
+        contract.problem_type
+    ):
+        raise (
+            ClassicalMLEstimatorError(
+                (
+                    "Estimator/problem type mismatch. "
+                    f"estimator_key={estimator_key}, "
+                    "estimator_problem_type="
+                    f"{expected_problem_type}, "
+                    "contract_problem_type="
+                    f"{contract.problem_type}"
+                )
+            )
+        )
+
+
+    hyperparameters = (
+        contract
+        .effective_estimator_hyperparameters
+    )
+
+
+    if (
+        hyperparameters
+        is None
+    ):
+        raise (
+            ClassicalMLEstimatorError(
+                (
+                    "No server-validatable "
+                    "hyperparameter contract is "
+                    "available for estimator. "
+                    f"estimator_key={estimator_key}"
+                )
+            )
+        )
+
+
+    # ========================================================
+    # LINEAR REGRESSION
+    # ========================================================
+
+
+    if (
+        estimator_key
+        ==
+        "linear_regression"
+    ):
+        if not isinstance(
+            hyperparameters,
+            MLLinearRegressionHyperparameters,
         ):
             raise (
                 ClassicalMLEstimatorError(
                     (
-                        "Unsupported estimator for "
-                        "regression in Classical ML "
-                        "v0.1. "
-                        "expected=linear_regression, "
-                        "received="
-                        f"{contract.estimator_key}"
+                        "Linear Regression received "
+                        "an incompatible estimator "
+                        "hyperparameter contract."
                     )
                 )
             )
 
 
         estimator = (
-            LinearRegression()
+            LinearRegression(
+                fit_intercept=
+                    hyperparameters
+                    .fit_intercept,
+            )
         )
 
 
+    # ========================================================
+    # RIDGE REGRESSION
+    # ========================================================
+
+
     elif (
-        contract.problem_type
+        estimator_key
         ==
-        "classification"
+        "ridge_regression"
     ):
-        if (
-            contract.estimator_key
-            !=
-            "logistic_regression"
+        if not isinstance(
+            hyperparameters,
+            MLRidgeRegressionHyperparameters,
         ):
             raise (
                 ClassicalMLEstimatorError(
                     (
-                        "Unsupported estimator for "
-                        "classification in Classical "
-                        "ML v0.1. "
-                        "expected=logistic_regression, "
-                        "received="
-                        f"{contract.estimator_key}"
+                        "Ridge Regression received "
+                        "an incompatible estimator "
+                        "hyperparameter contract."
+                    )
+                )
+            )
+
+
+        estimator = (
+            Ridge(
+                alpha=
+                    hyperparameters
+                    .alpha,
+
+                fit_intercept=
+                    hyperparameters
+                    .fit_intercept,
+            )
+        )
+
+
+    # ========================================================
+    # LOGISTIC REGRESSION
+    # ========================================================
+
+
+    elif (
+        estimator_key
+        ==
+        "logistic_regression"
+    ):
+        if not isinstance(
+            hyperparameters,
+            MLLogisticRegressionHyperparameters,
+        ):
+            raise (
+                ClassicalMLEstimatorError(
+                    (
+                        "Logistic Regression received "
+                        "an incompatible estimator "
+                        "hyperparameter contract."
                     )
                 )
             )
@@ -703,8 +832,28 @@ def _build_estimator(
 
         estimator = (
             LogisticRegression(
-                max_iter=1000,
+                C=(
+                    hyperparameters
+                    .inverse_regularization_strength
+                ),
+
+                fit_intercept=(
+                    hyperparameters
+                    .fit_intercept
+                ),
+
+                max_iter=(
+                    hyperparameters
+                    .max_iter
+                ),
+
+                class_weight=(
+                    hyperparameters
+                    .class_weight
+                ),
+
                 solver="lbfgs",
+
                 random_state=(
                     contract
                     .split
@@ -714,15 +863,166 @@ def _build_estimator(
         )
 
 
+    # ========================================================
+    # RANDOM FOREST REGRESSOR
+    # ========================================================
+
+
+    elif (
+        estimator_key
+        ==
+        "random_forest_regressor"
+    ):
+        if not isinstance(
+            hyperparameters,
+            MLRandomForestRegressorHyperparameters,
+        ):
+            raise (
+                ClassicalMLEstimatorError(
+                    (
+                        "Random Forest Regressor "
+                        "received an incompatible "
+                        "estimator hyperparameter "
+                        "contract."
+                    )
+                )
+            )
+
+
+        estimator = (
+            RandomForestRegressor(
+                n_estimators=(
+                    hyperparameters
+                    .n_estimators
+                ),
+
+                max_depth=(
+                    hyperparameters
+                    .max_depth
+                ),
+
+                min_samples_split=(
+                    hyperparameters
+                    .min_samples_split
+                ),
+
+                min_samples_leaf=(
+                    hyperparameters
+                    .min_samples_leaf
+                ),
+
+                max_features=(
+                    hyperparameters
+                    .max_features
+                ),
+
+                bootstrap=(
+                    hyperparameters
+                    .bootstrap
+                ),
+
+                # Server-owned execution controls.
+                random_state=(
+                    contract
+                    .split
+                    .random_seed
+                ),
+
+                n_jobs=1,
+            )
+        )
+
+
+    # ========================================================
+    # RANDOM FOREST CLASSIFIER
+    # ========================================================
+
+
+    elif (
+        estimator_key
+        ==
+        "random_forest_classifier"
+    ):
+        if not isinstance(
+            hyperparameters,
+            MLRandomForestClassifierHyperparameters,
+        ):
+            raise (
+                ClassicalMLEstimatorError(
+                    (
+                        "Random Forest Classifier "
+                        "received an incompatible "
+                        "estimator hyperparameter "
+                        "contract."
+                    )
+                )
+            )
+
+
+        estimator = (
+            RandomForestClassifier(
+                n_estimators=(
+                    hyperparameters
+                    .n_estimators
+                ),
+
+                max_depth=(
+                    hyperparameters
+                    .max_depth
+                ),
+
+                min_samples_split=(
+                    hyperparameters
+                    .min_samples_split
+                ),
+
+                min_samples_leaf=(
+                    hyperparameters
+                    .min_samples_leaf
+                ),
+
+                max_features=(
+                    hyperparameters
+                    .max_features
+                ),
+
+                bootstrap=(
+                    hyperparameters
+                    .bootstrap
+                ),
+
+                class_weight=(
+                    hyperparameters
+                    .class_weight
+                ),
+
+                # Server-owned execution controls.
+                random_state=(
+                    contract
+                    .split
+                    .random_seed
+                ),
+
+                n_jobs=1,
+            )
+        )
+
+
     else:
         raise (
             ClassicalMLEstimatorError(
                 (
                     "Unsupported Classical ML "
-                    "problem type."
+                    "estimator. "
+                    f"estimator_key={estimator_key}"
                 )
             )
         )
+
+
+    # ========================================================
+    # LEAKAGE-SAFE PREPROCESSING
+    # ========================================================
 
 
     try:

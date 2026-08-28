@@ -15,6 +15,12 @@ from pydantic import (
 )
 
 
+from app.ml.estimator_contracts import (
+    MLEstimatorHyperparameters,
+    default_estimator_hyperparameters,
+)
+
+
 # ============================================================
 # VERSION
 # ============================================================
@@ -199,7 +205,8 @@ class MLTrainingContract(
     - predictions;
     - secrets;
     - arbitrary executable code;
-    - learned preprocessing statistics.
+    - learned preprocessing statistics;
+    - arbitrary estimator kwargs.
 
     feature_columns defines the complete ordered model feature
     surface.
@@ -209,8 +216,16 @@ class MLTrainingContract(
 
     Every remaining feature is therefore numeric.
 
-    This explicit role declaration avoids silently guessing model
-    semantics from pandas dtypes.
+    estimator_hyperparameters is optional for backward
+    compatibility.
+
+    When omitted, DataLens can resolve one server-owned default
+    contract for supported estimator keys.
+
+    Unknown estimator keys remain constructible at this layer so
+    that the existing executor continues to own its fail-closed
+    unsupported-estimator behavior until the executor milestone
+    is upgraded.
     """
 
     model_config = ConfigDict(
@@ -254,6 +269,13 @@ class MLTrainingContract(
     estimator_key: str = Field(
         min_length=1,
     )
+
+
+    estimator_hyperparameters: (
+        MLEstimatorHyperparameters
+        |
+        None
+    ) = None
 
 
     preprocessing: MLPreprocessingContract = Field(
@@ -446,6 +468,45 @@ class MLTrainingContract(
 
 
     # ========================================================
+    # EFFECTIVE ESTIMATOR CONFIGURATION
+    # ========================================================
+
+
+    @property
+    def effective_estimator_hyperparameters(
+        self,
+    ) -> (
+        MLEstimatorHyperparameters
+        |
+        None
+    ):
+        """
+        Return an explicitly supplied estimator configuration or
+        the DataLens-owned deterministic default.
+
+        Unknown estimator keys return None.
+
+        This property calculates configuration only. It does not
+        instantiate or execute sklearn objects.
+        """
+
+        if (
+            self.estimator_hyperparameters
+            is not None
+        ):
+            return (
+                self.estimator_hyperparameters
+            )
+
+
+        return (
+            default_estimator_hyperparameters(
+                self.estimator_key
+            )
+        )
+
+
+    # ========================================================
     # CROSS-FIELD CONTRACT
     # ========================================================
 
@@ -505,6 +566,30 @@ class MLTrainingContract(
                     ", ".join(
                         unknown_categorical_columns
                     )
+                )
+            )
+
+
+        # ----------------------------------------------------
+        # ESTIMATOR HYPERPARAMETER IDENTITY
+        # ----------------------------------------------------
+
+        if (
+            self.estimator_hyperparameters
+            is not None
+            and
+            self.estimator_hyperparameters.kind
+            !=
+            self.estimator_key
+        ):
+            raise ValueError(
+                (
+                    "estimator_hyperparameters kind "
+                    "must match estimator_key. "
+                    "estimator_key="
+                    f"{self.estimator_key}, "
+                    "hyperparameters_kind="
+                    f"{self.estimator_hyperparameters.kind}"
                 )
             )
 
