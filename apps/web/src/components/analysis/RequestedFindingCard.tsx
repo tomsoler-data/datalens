@@ -1079,10 +1079,18 @@ export default function RequestedFindingCard({
             null ||
           categoryCount !==
             null ||
-          aggregationPeriodLabel !==
-            null ||
-          movingAverageWindow !==
-            null ||
+          (
+            finding.kind !==
+              "revenue_moving_average" &&
+            aggregationPeriodLabel !==
+              null
+          ) ||
+          (
+            finding.kind !==
+              "revenue_moving_average" &&
+            movingAverageWindow !==
+              null
+          ) ||
           giniCoefficient !==
             null ||
           referenceCount !==
@@ -1287,6 +1295,8 @@ export default function RequestedFindingCard({
 
 
                 {
+                  finding.kind !==
+                    "revenue_moving_average" &&
                   aggregationPeriodLabel !==
                     null
                     ? (
@@ -1313,6 +1323,8 @@ export default function RequestedFindingCard({
 
 
                 {
+                  finding.kind !==
+                    "revenue_moving_average" &&
                   movingAverageWindow !==
                     null
                     ? (
@@ -1594,6 +1606,170 @@ export default function RequestedFindingCard({
                     }
                   </p>
                 </div>
+
+                {
+                  finding.kind ===
+                    "revenue_moving_average" &&
+                  (
+                    aggregationPeriodLabel !==
+                      null ||
+                    currentMovingAverageWindow !==
+                      null
+                  )
+                    ? (
+                        <div
+                          style={{
+                            display:
+                              "grid",
+
+                            gridTemplateColumns:
+                              "repeat(auto-fit, minmax(180px, 1fr))",
+
+                            gap:
+                              "10px",
+
+                            margin:
+                              "12px 0 14px",
+                          }}
+                        >
+                          <article
+                            style={{
+                              display:
+                                "grid",
+
+                              gap:
+                                "5px",
+
+                              padding:
+                                "12px 14px",
+
+                              border:
+                                "1px solid rgba(116, 177, 255, 0.18)",
+
+                              borderRadius:
+                                "10px",
+
+                              background:
+                                "rgba(35, 78, 128, 0.055)",
+                            }}
+                          >
+                            <span
+                              style={{
+                                color:
+                                  "#92a8c5",
+
+                                fontSize:
+                                  "0.66rem",
+
+                                fontWeight:
+                                  600,
+
+                                textTransform:
+                                  "uppercase",
+
+                                letterSpacing:
+                                  "0.06em",
+                              }}
+                            >
+                              P?riode
+                            </span>
+
+                            <strong
+                              style={{
+                                color:
+                                  "#dce6f3",
+
+                                fontSize:
+                                  "0.92rem",
+
+                                fontWeight:
+                                  700,
+                              }}
+                            >
+                              {
+                                aggregationPeriodLabel ??
+                                "Non disponible"
+                              }
+                            </strong>
+                          </article>
+
+
+                          <article
+                            style={{
+                              display:
+                                "grid",
+
+                              gap:
+                                "5px",
+
+                              padding:
+                                "12px 14px",
+
+                              border:
+                                "1px solid rgba(232, 184, 97, 0.36)",
+
+                              borderRadius:
+                                "10px",
+
+                              background:
+                                "linear-gradient(135deg, rgba(232, 184, 97, 0.10), rgba(232, 184, 97, 0.035))",
+
+                              boxShadow:
+                                "0 8px 24px rgba(232, 184, 97, 0.055)",
+                            }}
+                          >
+                            <span
+                              style={{
+                                color:
+                                  "#d8b66f",
+
+                                fontSize:
+                                  "0.66rem",
+
+                                fontWeight:
+                                  650,
+
+                                textTransform:
+                                  "uppercase",
+
+                                letterSpacing:
+                                  "0.06em",
+                              }}
+                            >
+                              Moyenne mobile
+                            </span>
+
+                            <strong
+                              style={{
+                                color:
+                                  "#f0c979",
+
+                                fontSize:
+                                  "0.92rem",
+
+                                fontWeight:
+                                  750,
+                              }}
+                            >
+                              {
+                                currentMovingAverageWindow !==
+                                  null
+                                  ? (
+                                      `${formatNumber(
+                                        currentMovingAverageWindow
+                                      )} p?riodes`
+                                    )
+                                  : (
+                                      "Non disponible"
+                                    )
+                              }
+                            </strong>
+                          </article>
+                        </div>
+                      )
+                    : null
+                }
+
 
                 {
                   canReconfigureTimeSeries &&

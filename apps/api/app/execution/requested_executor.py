@@ -48,7 +48,7 @@ from app.statistics.executor import (
 # ============================================================
 
 REQUESTED_ANALYSIS_EXECUTOR_RULE_VERSION = (
-    "requested_analysis_executor_v0.7"
+    "requested_analysis_executor_v0.8"
 )
 
 
@@ -2671,14 +2671,31 @@ def execute_revenue_moving_average(
     # ADDITIVE-MEASURE CERTIFICATE
     # ========================================================
     #
-    # We deliberately keep monthly_additive_measure as a
-    # capability / semantic certificate. Its values are NOT
-    # reused for the requested temporal aggregation.
+    # monthly_additive_measure is a server-owned semantic
+    # certificate.
     #
-    # This preserves the conservative additive-measure guard:
-    # a browser cannot make an arbitrary numeric column
-    # summable merely by requesting another granularity.
+    # Two safe cases are accepted:
+    #
+    # 1. The planner amount column is itself the certified
+    #    additive measure.
+    #
+    # 2. The certified additive measure is an analytical-only
+    #    line amount derived from exactly the planner-selected
+    #    unit-price column and one strict quantity column.
+    #
+    # In case 2, the monthly materialized values are NOT reused.
+    # The line amount is recomputed deterministically from the
+    # validated event rows using the certified provenance.
     # ========================================================
+
+    effective_measure_column = str(
+        amount_match.column
+    )
+
+    derived_line_amount = False
+
+    derived_quantity_column = None
+
 
     (
         additive_certificate,
@@ -2702,6 +2719,265 @@ def execute_revenue_moving_average(
                 ),
         },
     )
+
+
+    # --------------------------------------------------------
+    # Certified analytical line-amount fallback
+    # --------------------------------------------------------
+
+    if additive_certificate is None:
+        derived_candidates = []
+
+
+        for candidate in datasets:
+            if (
+                str(
+                    candidate.get(
+                        "derivation_type",
+                        "",
+                    )
+                )
+                !=
+                "monthly_additive_measure"
+            ):
+                continue
+
+
+            provenance = (
+                candidate.get(
+                    "provenance"
+                )
+            )
+
+
+            if not isinstance(
+                provenance,
+                dict,
+            ):
+                continue
+
+
+            if (
+                str(
+                    provenance.get(
+                        "fact_dataset_id",
+                        "",
+                    )
+                )
+                !=
+                source_dataset_id
+            ):
+                continue
+
+
+            if (
+                str(
+                    provenance.get(
+                        "source_time_column",
+                        "",
+                    )
+                )
+                !=
+                str(
+                    time_match.column
+                )
+            ):
+                continue
+
+
+            if (
+                str(
+                    provenance.get(
+                        "operation",
+                        "",
+                    )
+                )
+                !=
+                "groupby_sum"
+            ):
+                continue
+
+
+            if (
+                str(
+                    provenance.get(
+                        "aggregation",
+                        "",
+                    )
+                )
+                !=
+                "sum"
+            ):
+                continue
+
+
+            derivation = (
+                provenance.get(
+                    "source_measure_derivation"
+                )
+            )
+
+
+            if not isinstance(
+                derivation,
+                dict,
+            ):
+                continue
+
+
+            if (
+                str(
+                    derivation.get(
+                        "operation",
+                        "",
+                    )
+                )
+                !=
+                "analytical_line_amount_derivation"
+            ):
+                continue
+
+
+            if (
+                derivation.get(
+                    "analytical_only"
+                )
+                is not True
+            ):
+                continue
+
+
+            unit_price_column = str(
+                derivation.get(
+                    "source_unit_price_column",
+                    "",
+                )
+            )
+
+            quantity_column = str(
+                derivation.get(
+                    "source_quantity_column",
+                    "",
+                )
+            )
+
+            derived_column = str(
+                derivation.get(
+                    "derived_column",
+                    "",
+                )
+            )
+
+            certified_measure_column = str(
+                provenance.get(
+                    "source_measure_column",
+                    "",
+                )
+            )
+
+
+            if (
+                not unit_price_column
+                or
+                unit_price_column
+                !=
+                str(
+                    amount_match.column
+                )
+            ):
+                continue
+
+
+            if not quantity_column:
+                continue
+
+
+            if (
+                not derived_column
+                or
+                derived_column
+                !=
+                certified_measure_column
+            ):
+                continue
+
+
+            expected_formula = (
+                f"{quantity_column} * "
+                f"{unit_price_column}"
+            )
+
+
+            if (
+                str(
+                    derivation.get(
+                        "formula",
+                        "",
+                    )
+                )
+                !=
+                expected_formula
+            ):
+                continue
+
+
+            derived_candidates.append(
+                (
+                    candidate,
+                    quantity_column,
+                    certified_measure_column,
+                )
+            )
+
+
+        if (
+            len(
+                derived_candidates
+            )
+            ==
+            1
+        ):
+            (
+                additive_certificate,
+                derived_quantity_column,
+                effective_measure_column,
+            ) = (
+                derived_candidates[
+                    0
+                ]
+            )
+
+
+            additive_error = None
+
+            derived_line_amount = True
+
+
+        elif (
+            len(
+                derived_candidates
+            )
+            >
+            1
+        ):
+            additive_error = (
+                "Plusieurs preuves server-owned "
+                "d'additivit? correspondent ? la "
+                "m?me d?rivation quantity ? "
+                "unit_price. DataLens refuse "
+                "d'en s?lectionner une "
+                "arbitrairement."
+            )
+
+
+        else:
+            additive_error = (
+                "Aucune preuve server-owned "
+                "d'additivit? ne correspond "
+                "exactement ? la mesure du plan, "
+                "ni ? une d?rivation analytique "
+                "certifi?e quantity ? unit_price."
+            )
 
 
     if additive_certificate is None:
@@ -2792,9 +3068,7 @@ def execute_revenue_moving_average(
                         ),
 
                     "value":
-                        str(
-                            amount_match.column
-                        ),
+                        effective_measure_column,
                 },
 
                 analytical_grain=
@@ -2838,8 +3112,66 @@ def execute_revenue_moving_average(
         time_match.column
     )
 
-    amount_column = str(
+    planner_amount_column = str(
         amount_match.column
+    )
+
+    amount_column = (
+        effective_measure_column
+    )
+
+
+    required_source_columns = {
+        time_column,
+        planner_amount_column,
+    }
+
+
+    if derived_line_amount:
+        if not derived_quantity_column:
+            return (
+                missing_brief_dataset_result(
+                    request,
+
+                    variables={
+                        "time":
+                            time_column,
+
+                        "value":
+                            amount_column,
+                    },
+
+                    analytical_grain=
+                        granularity,
+
+                    reason=(
+                        "La preuve d'additivit? "
+                        "n'expose pas une colonne "
+                        "quantity source exploitable."
+                    ),
+                )
+            )
+
+
+        required_source_columns.add(
+            derived_quantity_column
+        )
+
+
+    dataframe_columns = (
+        {
+            str(
+                column
+            )
+
+            for column
+            in dataframe.columns
+        }
+
+        if dataframe
+        is not None
+
+        else set()
     )
 
 
@@ -2848,11 +3180,9 @@ def execute_revenue_moving_average(
         or
         dataframe is None
         or
-        time_column
-        not in dataframe.columns
-        or
-        amount_column
-        not in dataframe.columns
+        not required_source_columns.issubset(
+            dataframe_columns
+        )
     ):
         return (
             missing_brief_dataset_result(
@@ -2872,7 +3202,8 @@ def execute_revenue_moving_average(
                 reason=(
                     "Le dataset transactionnel "
                     "server-owned resolu ne contient "
-                    "pas les colonnes attendues."
+                    "pas les colonnes attendues "
+                    "par la preuve d'additivit?."
                 ),
             )
         )
@@ -2900,21 +3231,69 @@ def execute_revenue_moving_average(
     )
 
 
-    numeric_amount = (
-        pd.to_numeric(
-            dataframe[
-                amount_column
-            ],
-            errors="coerce",
+    if derived_line_amount:
+        numeric_quantity = (
+            pd.to_numeric(
+                dataframe[
+                    derived_quantity_column
+                ],
+                errors="coerce",
+            )
+            .replace(
+                [
+                    np.inf,
+                    -np.inf,
+                ],
+                np.nan,
+            )
         )
-        .replace(
+
+        numeric_unit_price = (
+            pd.to_numeric(
+                dataframe[
+                    planner_amount_column
+                ],
+                errors="coerce",
+            )
+            .replace(
+                [
+                    np.inf,
+                    -np.inf,
+                ],
+                np.nan,
+            )
+        )
+
+
+        numeric_amount = (
+            numeric_quantity
+            *
+            numeric_unit_price
+        ).replace(
             [
                 np.inf,
                 -np.inf,
             ],
             np.nan,
         )
-    )
+
+
+    else:
+        numeric_amount = (
+            pd.to_numeric(
+                dataframe[
+                    planner_amount_column
+                ],
+                errors="coerce",
+            )
+            .replace(
+                [
+                    np.inf,
+                    -np.inf,
+                ],
+                np.nan,
+            )
+        )
 
 
     events = (
@@ -3310,6 +3689,24 @@ def execute_revenue_moving_average(
 
         "measure_column":
             amount_column,
+
+        "measure_source_mode":
+            (
+                "derived_line_amount"
+                if derived_line_amount
+                else
+                "direct_additive_measure"
+            ),
+
+        "planner_amount_column":
+            planner_amount_column,
+
+        "source_quantity_column":
+            (
+                derived_quantity_column
+                if derived_line_amount
+                else None
+            ),
 
         "valid_observations":
             int(

@@ -27,6 +27,7 @@ from app.reporting.analysis_artifact_store import (
 )
 
 from app.reporting.report_selection_store import (
+    add_analysis_to_report,
     delete_report_selection,
     get_report_selection,
     remove_analysis_from_report,
@@ -529,6 +530,23 @@ def main() -> None:
                 select_by_default=
                     True,
             )
+        )
+
+
+        # Report composition is manual-only.
+        #
+        # Registration must never select an analysis merely
+        # because an older call site passes
+        # select_by_default=True.
+        #
+        # Explicitly model the user's selection so this test
+        # can verify that reconfiguration preserves it.
+        add_analysis_to_report(
+            workflow_id=
+                workflow_id,
+
+            analysis_id=
+                before.analysis_id,
         )
 
 

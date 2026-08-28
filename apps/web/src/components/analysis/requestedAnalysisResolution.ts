@@ -593,6 +593,218 @@ export function requestedTimeSeriesResolutionAvailability(
 }
 
 
+
+export type FollowUpRequestedAnalysisRouteView = {
+  workflow_id:
+    string;
+
+  objective:
+    string;
+
+  route_kind:
+    "requested_analysis" |
+    "ai_native";
+
+  analysis_id:
+    string |
+    null;
+
+  request_id:
+    string |
+    null;
+
+  kind:
+    string |
+    null;
+
+  plan_status:
+    string |
+    null;
+
+  source_type:
+    string |
+    null;
+
+  api_version:
+    string;
+};
+
+
+export async function routeFollowUpRequestedAnalysis({
+  apiUrl,
+  workflowId,
+  objective,
+}: {
+  apiUrl:
+    string;
+
+  workflowId:
+    string;
+
+  objective:
+    string;
+}): Promise<
+  FollowUpRequestedAnalysisRouteView
+> {
+  const response =
+    await fetch(
+      `${apiUrl}/analysis/requested/route-follow-up`,
+      {
+        method:
+          "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+
+        body:
+          JSON.stringify(
+            {
+              workflow_id:
+                workflowId,
+
+              objective,
+            }
+          ),
+      }
+    );
+
+
+  let payload:
+    unknown =
+      null;
+
+
+  try {
+    payload =
+      await response.json();
+  } catch {
+    payload =
+      null;
+  }
+
+
+  if (
+    !response.ok
+  ) {
+    let message =
+      "Le routage de la nouvelle demande a ?chou?.";
+
+
+    if (
+      payload !==
+        null &&
+      typeof payload ===
+        "object" &&
+      !Array.isArray(
+        payload
+      )
+    ) {
+      const payloadRecord =
+        payload as Record<
+          string,
+          unknown
+        >;
+
+      const detail =
+        payloadRecord[
+          "detail"
+        ];
+
+
+      if (
+        typeof detail ===
+          "string" &&
+        detail.trim()
+      ) {
+        message =
+          detail.trim();
+      } else if (
+        detail !==
+          null &&
+        typeof detail ===
+          "object" &&
+        !Array.isArray(
+          detail
+        )
+      ) {
+        const detailRecord =
+          detail as Record<
+            string,
+            unknown
+          >;
+
+        const detailMessage =
+          detailRecord[
+            "message"
+          ];
+
+
+        if (
+          typeof detailMessage ===
+            "string" &&
+          detailMessage.trim()
+        ) {
+          message =
+            detailMessage.trim();
+        }
+      }
+    }
+
+
+    throw new Error(
+      message
+    );
+  }
+
+
+  if (
+    payload ===
+      null ||
+    typeof payload !==
+      "object" ||
+    Array.isArray(
+      payload
+    )
+  ) {
+    throw new Error(
+      "Le routeur de suivi a renvoy? une r?ponse invalide."
+    );
+  }
+
+
+  const route =
+    payload as Record<
+      string,
+      unknown
+    >;
+
+
+  const routeKind =
+    route[
+      "route_kind"
+    ];
+
+
+  if (
+    routeKind !==
+      "requested_analysis" &&
+    routeKind !==
+      "ai_native"
+  ) {
+    throw new Error(
+      "Le routeur de suivi a renvoy? un type de route inconnu."
+    );
+  }
+
+
+  return (
+    payload
+  ) as FollowUpRequestedAnalysisRouteView;
+}
+
+
 type RequestedAnalysisResolutionSession = {
   readonly workflow_id?:
     string |
