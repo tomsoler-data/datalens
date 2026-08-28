@@ -30,6 +30,11 @@ from app.ml.contracts import (
 )
 
 
+from app.ml.experiment_provenance import (
+    build_ml_experiment_provenance,
+)
+
+
 from app.ml.model_artifact_data_plane import (
     MLModelArtifactDataPlaneError,
     delete_ml_model_binary,
@@ -237,6 +242,11 @@ def _new_server_model_id(
 def _assert_preparation_authority(
     *,
     contract: MLTrainingContract,
+    preparation_session_revision: (
+        int
+        |
+        None
+    ) = None,
 ) -> None:
     """
     A Model Artifact may only reference a workflow and dataset
@@ -258,7 +268,7 @@ def _assert_preparation_authority(
         workflow_row = (
             connection.execute(
                 """
-                SELECT 1
+                SELECT revision
                 FROM preparation_sessions
 
                 WHERE
@@ -280,6 +290,33 @@ def _assert_preparation_authority(
                         "is not server-owned by Preparation. "
                         "workflow_id="
                         f"{contract.workflow_id}"
+                    )
+                )
+            )
+
+
+        if (
+            preparation_session_revision
+            is not None
+            and
+            int(
+                workflow_row[
+                    "revision"
+                ]
+            )
+            !=
+            preparation_session_revision
+        ):
+            raise (
+                MLModelArtifactAuthorityError(
+                    (
+                        "Preparation session revision "
+                        "changed before Model Artifact "
+                        "persistence. "
+                        "expected_revision="
+                        f"{preparation_session_revision}, "
+                        "current_revision="
+                        f"{workflow_row['revision']}"
                     )
                 )
             )
@@ -385,6 +422,11 @@ def _record_from_index_entry(
                 "training_contract"
             ),
 
+        "experiment_provenance":
+            entry.get(
+                "experiment_provenance"
+            ),
+
         "metrics":
             entry.get(
                 "metrics"
@@ -466,6 +508,11 @@ def register_ml_model_artifact(
     train_rows: int,
     test_rows: int,
     model_bytes: bytes,
+    preparation_session_revision: (
+        int
+        |
+        None
+    ) = None,
     created_at_utc: (
         str
         |
@@ -495,9 +542,67 @@ def register_ml_model_artifact(
     )
 
 
+    normalized_preparation_revision = (
+        None
+    )
+
+
+    if (
+        preparation_session_revision
+        is not None
+    ):
+
+        if isinstance(
+            preparation_session_revision,
+            bool,
+        ):
+            raise (
+                MLModelArtifactStoreError(
+                    (
+                        "preparation_session_revision "
+                        "must be a non-negative integer."
+                    )
+                )
+            )
+
+
+        try:
+            normalized_preparation_revision = int(
+                preparation_session_revision
+            )
+
+        except Exception as error:
+            raise (
+                MLModelArtifactStoreError(
+                    (
+                        "preparation_session_revision "
+                        "must be a non-negative integer."
+                    )
+                )
+            ) from error
+
+
+        if (
+            normalized_preparation_revision
+            <
+            0
+        ):
+            raise (
+                MLModelArtifactStoreError(
+                    (
+                        "preparation_session_revision "
+                        "must be a non-negative integer."
+                    )
+                )
+            )
+
+
     _assert_preparation_authority(
         contract=
-            contract
+            contract,
+
+        preparation_session_revision=
+            normalized_preparation_revision,
     )
 
 
@@ -522,6 +627,36 @@ def register_ml_model_artifact(
 
     store_path = (
         resolve_ml_model_artifact_store_path()
+    )
+
+
+    experiment_provenance = (
+        build_ml_experiment_provenance(
+            training_contract=
+                contract,
+
+            preparation_session_revision=
+                normalized_preparation_revision,
+
+            model_id=
+                model_id,
+
+            train_rows=
+                train_rows,
+
+            test_rows=
+                test_rows,
+
+            metrics=
+                metrics,
+        )
+
+        if (
+            normalized_preparation_revision
+            is not None
+        )
+
+        else None
     )
 
 
@@ -558,6 +693,9 @@ def register_ml_model_artifact(
                     training_contract=
                         contract,
 
+                    experiment_provenance=
+                        experiment_provenance,
+
                     metrics=
                         metrics,
 
@@ -583,6 +721,10 @@ def register_ml_model_artifact(
                     record.model_dump(
                         mode="json"
                     ),
+
+                expected_preparation_session_revision=(
+                    normalized_preparation_revision
+                ),
             )
 
 

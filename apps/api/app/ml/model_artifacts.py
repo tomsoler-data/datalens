@@ -29,6 +29,12 @@ from app.ml.contracts import (
 )
 
 
+from app.ml.experiment_provenance import (
+    MLExperimentProvenanceRecord,
+    ml_training_contract_sha256,
+)
+
+
 # ============================================================
 # VERSION
 # ============================================================
@@ -192,6 +198,13 @@ class MLModelArtifactRecord(
 
 
     training_contract: MLTrainingContract
+
+
+    experiment_provenance: (
+        MLExperimentProvenanceRecord
+        |
+        None
+    ) = None
 
 
     metrics: dict[
@@ -473,6 +486,103 @@ class MLModelArtifactRecord(
                     "ML Training Contract"
                 )
             )
+
+
+        provenance = (
+            self.experiment_provenance
+        )
+
+
+        if provenance is not None:
+
+            if (
+                provenance.workflow_id
+                !=
+                self.workflow_id
+            ):
+                raise ValueError(
+                    (
+                        "Experiment provenance workflow_id "
+                        "does not match Model Artifact."
+                    )
+                )
+
+
+            if (
+                provenance.dataset_id
+                !=
+                self.dataset_id
+            ):
+                raise ValueError(
+                    (
+                        "Experiment provenance dataset_id "
+                        "does not match Model Artifact."
+                    )
+                )
+
+
+            if (
+                provenance.model_id
+                !=
+                self.model_id
+            ):
+                raise ValueError(
+                    (
+                        "Experiment provenance model_id "
+                        "does not match Model Artifact."
+                    )
+                )
+
+
+            if (
+                provenance.train_rows
+                !=
+                self.train_rows
+                or
+                provenance.test_rows
+                !=
+                self.test_rows
+            ):
+                raise ValueError(
+                    (
+                        "Experiment provenance holdout "
+                        "shape does not match Model Artifact."
+                    )
+                )
+
+
+            if (
+                provenance.metrics
+                !=
+                self.metrics
+            ):
+                raise ValueError(
+                    (
+                        "Experiment provenance metrics "
+                        "do not match Model Artifact."
+                    )
+                )
+
+
+            expected_contract_sha256 = (
+                ml_training_contract_sha256(
+                    self.training_contract
+                )
+            )
+
+
+            if (
+                provenance.training_contract_sha256
+                !=
+                expected_contract_sha256
+            ):
+                raise ValueError(
+                    (
+                        "Experiment provenance training "
+                        "contract fingerprint does not "
+                        "match Model Artifact contract."
+                    )
+                )
 
 
         return self
