@@ -90,6 +90,23 @@ def normalize_text(
     )
 
 
+    value = "".join(
+        (
+            " "
+            if
+            unicodedata.category(
+                character
+            ).startswith(
+                "P"
+            )
+            else
+            character
+        )
+        for character
+        in value
+    )
+
+
     value = (
         unicodedata.normalize(
             "NFKD",

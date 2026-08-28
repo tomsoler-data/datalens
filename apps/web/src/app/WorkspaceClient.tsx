@@ -141,6 +141,9 @@ import SelectableNativeAnalysisResult
 import AnalysisFollowUpHistory
   from "../components/analysis/AnalysisFollowUpHistory";
 
+import FollowUpRequestedAnalysisResolver
+  from "../components/analysis/FollowUpRequestedAnalysisResolver";
+
 
 
 import MainFindingsSection
@@ -180,6 +183,7 @@ import {
   requestedLifecycleForAnalysis,
   requestedFindingFromAvailableAnalysis,
   requestedLifecycleOrder,
+  routeFollowUpRequestedAnalysis,
 } from "../components/analysis/requestedAnalysisResolution";
 
 import type {
@@ -1509,6 +1513,42 @@ export default function WorkspaceClient() {
       : null;
 
 
+  const latestUnresolvedFollowUpRequestedAnalysis =
+    useMemo(
+      () =>
+        reportAvailableAnalyses
+          .filter(
+            (
+              analysis
+            ) =>
+              analysis.source_type ===
+                "follow_up_prompt" &&
+              !analysis.executed &&
+              requestedLifecycleForAnalysis(
+                analysis
+              ) !==
+                null
+          )
+          .slice()
+          .sort(
+            (
+              left,
+              right
+            ) =>
+              right.created_at_utc
+                .localeCompare(
+                  left.created_at_utc
+                )
+          )[
+            0
+          ] ??
+        null,
+      [
+        reportAvailableAnalyses,
+      ]
+    );
+
+
   const selectedPromptAnalyses =
     useMemo<
       ReportPromptAnalysisView[]
@@ -1573,6 +1613,26 @@ export default function WorkspaceClient() {
         reportAvailableAnalyses,
       ]
     );
+
+
+  const latestFollowUpAvailableAnalysis =
+    latestAnalysisFollowUp
+      ? (
+          reportAvailableAnalysisById
+            .get(
+              latestAnalysisFollowUp.id
+            ) ??
+          null
+        )
+      : null;
+
+
+  const latestFollowUpRequestedFinding =
+    latestFollowUpAvailableAnalysis
+      ? requestedFindingFromAvailableAnalysis(
+          latestFollowUpAvailableAnalysis
+        )
+      : null;
 
 
   const selectedReportAnalysisIds =
@@ -3268,12 +3328,65 @@ function handleStartNewWorkflow() {
 
 
     try {
-            /*
-      * The validated Preparation workflow is the analytical
-      * source of truth. Browser File objects are intentionally
-      * not required after VALIDATE.
-      */
+      /*
+       * Known Requested Analysis intents are routed through
+       * deterministic Python planning first.
+       *
+       * Unknown intents fall back to the existing local
+       * AI-native planner unchanged.
+       */
+      const followUpRoute =
+        await routeFollowUpRequestedAnalysis({
+          apiUrl:
+            API_URL,
 
+          workflowId,
+
+          objective:
+            normalizedPrompt,
+        });
+
+
+      if (
+        followUpRoute.route_kind ===
+          "requested_analysis"
+      ) {
+        const refreshed =
+          await refreshReportSelection(
+            workflowId
+          );
+
+
+        if (
+          refreshed ===
+            null
+        ) {
+          throw new Error(
+            (
+              "La demande a ?t? reconnue c?t? serveur, "
+              +
+              "mais son ?tat n?a pas pu ?tre recharg?."
+            )
+          );
+        }
+
+
+        setAnalysisFollowUpPrompt(
+          ""
+        );
+
+
+        return;
+      }
+
+
+      /*
+       * AI-native fallback.
+       *
+       * The validated Preparation workflow remains the
+       * analytical source of truth. Browser File objects are
+       * intentionally not required after VALIDATE.
+       */
       const typedPayload =
         await runAiNativeAnalysis({
           workflowId,
@@ -3321,7 +3434,7 @@ function handleStartNewWorkflow() {
               typedPayload,
 
             included_in_report:
-              true,
+              false,
           },
         ]
       );
@@ -5247,13 +5360,9 @@ function handleStartNewWorkflow() {
 
 
                             const requestedFinding =
-                              analysis
-                                .source_type ===
-                                  "document_request"
-                                ? requestedFindingFromAvailableAnalysis(
-                                    analysis
-                                  )
-                                : null;
+                              requestedFindingFromAvailableAnalysis(
+                                analysis
+                              );
 
 
                             return (
@@ -5920,6 +6029,34 @@ function handleStartNewWorkflow() {
 
 
                               {
+                                latestUnresolvedFollowUpRequestedAnalysis
+                                  ? (
+                                      <FollowUpRequestedAnalysisResolver
+                                        analysis={
+                                          latestUnresolvedFollowUpRequestedAnalysis
+                                        }
+                                        loading={
+                                          requestedResolutionLoadingId ===
+                                          latestUnresolvedFollowUpRequestedAnalysis
+                                            .analysis_id
+                                        }
+                                        error={
+                                          requestedResolutionErrors[
+                                            latestUnresolvedFollowUpRequestedAnalysis
+                                              .analysis_id
+                                          ] ??
+                                          null
+                                        }
+                                        onResolveTimeSeries={
+                                          handleResolveRequestedTimeSeries
+                                        }
+                                      />
+                                    )
+                                  : null
+                              }
+
+
+                              {
                                 analysisFollowUpTurns.length >
                                 1
                                   ? (
@@ -5942,38 +6079,104 @@ function handleStartNewWorkflow() {
                               {
                                 latestAnalysisFollowUp
                                   ? (
-                                      <SelectableNativeAnalysisResult
-                                        report={
-                                          latestAnalysisFollowUp.report
-                                        }
-                                        objective={
-                                          latestAnalysisFollowUp.objective
-                                        }
-                                        includedInReport={
-                                          latestAnalysisFollowUp
-                                                        .included_in_report
-                                        }
-                                        reportSelectionLoading={
-                                          reportSelectionLoading
-                                        }
-                                        selectionCopy={{
-                                          sourceLabel: "Question de suivi",
-                                          includedMessage: "Cette analyse sera reprise dans le rapport.",
-                                          excludedMessage: "Cette analyse n’est pas ajoutée au rapport.",
-                                          addLabel: "Ajouter au rapport",
-                                          removeLabel: "Retirer du rapport",
-                                        }}
-                                        onToggleReportSelection={
-                                          () =>
-                                                        toggleFollowUpReportSelection(
-                                                          latestAnalysisFollowUp.id
-                                                        )
-                                        }
-                                        className={
-                                          styles.analysisFollowUpResult
-                                        }
-                                        ariaLive="polite"
-                                      />
+                                      latestFollowUpRequestedFinding &&
+                                      latestFollowUpAvailableAnalysis
+                                        ? (
+                                            <div
+                                              className={
+                                                styles.analysisFollowUpResult
+                                              }
+                                              aria-live="polite"
+                                            >
+                                              <AvailableAnalysisSelectionHeader
+                                                analysis={
+                                                  latestFollowUpAvailableAnalysis
+                                                }
+                                                selected={
+                                                  selectedReportAnalysisIds
+                                                    .has(
+                                                      latestFollowUpAvailableAnalysis
+                                                        .analysis_id
+                                                    )
+                                                }
+                                                reportSelectionLoading={
+                                                  reportSelectionLoading
+                                                }
+                                                setAvailableAnalysisReportSelection={
+                                                  setAvailableAnalysisReportSelection
+                                                }
+                                              />
+
+                                              <RequestedFindingCard
+                                                finding={
+                                                  latestFollowUpRequestedFinding
+                                                }
+                                                index={
+                                                  0
+                                                }
+                                                ragContext={
+                                                  ragContextByAnalysisId
+                                                    .get(
+                                                      latestFollowUpRequestedFinding
+                                                        .analysis_id
+                                                    ) ??
+                                                  null
+                                                }
+                                                reconfigurationAnalysis={
+                                                  latestFollowUpAvailableAnalysis
+                                                }
+                                                reconfigurationLoading={
+                                                  requestedResolutionLoadingId ===
+                                                  latestFollowUpAvailableAnalysis
+                                                    .analysis_id
+                                                }
+                                                reconfigurationError={
+                                                  requestedResolutionErrors[
+                                                    latestFollowUpAvailableAnalysis
+                                                      .analysis_id
+                                                  ] ??
+                                                  null
+                                                }
+                                                onReconfigureTimeSeries={
+                                                  handleReconfigureRequestedTimeSeries
+                                                }
+                                              />
+                                            </div>
+                                          )
+                                        : (
+                                            <SelectableNativeAnalysisResult
+                                              report={
+                                                latestAnalysisFollowUp.report
+                                              }
+                                              objective={
+                                                latestAnalysisFollowUp.objective
+                                              }
+                                              includedInReport={
+                                                latestAnalysisFollowUp
+                                                  .included_in_report
+                                              }
+                                              reportSelectionLoading={
+                                                reportSelectionLoading
+                                              }
+                                              selectionCopy={{
+                                                sourceLabel: "Question de suivi",
+                                                includedMessage: "Cette analyse sera reprise dans le rapport.",
+                                                excludedMessage: "Cette analyse n?est pas ajout?e au rapport.",
+                                                addLabel: "Ajouter au rapport",
+                                                removeLabel: "Retirer du rapport",
+                                              }}
+                                              onToggleReportSelection={
+                                                () =>
+                                                  toggleFollowUpReportSelection(
+                                                    latestAnalysisFollowUp.id
+                                                  )
+                                              }
+                                              className={
+                                                styles.analysisFollowUpResult
+                                              }
+                                              ariaLive="polite"
+                                            />
+                                          )
                                     )
                                   : null
                               }

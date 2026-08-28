@@ -7,6 +7,11 @@ from threading import (
 
 from typing import (
     Any,
+    Literal,
+)
+
+from uuid import (
+    uuid4,
 )
 
 
@@ -29,11 +34,16 @@ from app.api.analysis_run import (
 
 from app.execution.requested_executor import (
     execute_requested_analysis,
+    execute_requested_analysis_plan,
 )
 
 from app.planning.request_resolution import (
     reconfigure_requested_analysis,
     resolve_requested_analysis,
+)
+
+from app.planning.follow_up_request import (
+    plan_follow_up_requested_analysis,
 )
 
 from app.planning.schemas import (
@@ -53,7 +63,9 @@ from app.reporting.requested_adapter import (
 )
 
 from app.reporting.unified_report_artifacts import (
+    REQUESTED_ANALYSIS_SOURCE_TYPES,
     register_requested_report_finding,
+    register_unresolved_requested_analysis_artifacts,
 )
 
 
@@ -71,6 +83,11 @@ REQUESTED_ANALYSIS_RECONFIGURATION_API_VERSION = (
 )
 
 
+FOLLOW_UP_REQUESTED_ANALYSIS_API_VERSION = (
+    "follow_up_requested_analysis_api_v0.1"
+)
+
+
 router = APIRouter()
 
 
@@ -82,6 +99,72 @@ _RESOLUTION_LOCK = (
 # ============================================================
 # HTTP MODELS
 # ============================================================
+
+class FollowUpRequestedAnalysisRouteRequest(
+    BaseModel
+):
+    model_config = ConfigDict(
+        extra="forbid",
+        str_strip_whitespace=True,
+    )
+
+
+    workflow_id: str = Field(
+        min_length=1
+    )
+
+
+    objective: str = Field(
+        min_length=1
+    )
+
+
+class FollowUpRequestedAnalysisRouteResponse(
+    BaseModel
+):
+    model_config = ConfigDict(
+        extra="forbid"
+    )
+
+
+    workflow_id: str
+
+    objective: str
+
+    route_kind: Literal[
+        "requested_analysis",
+        "ai_native",
+    ]
+
+    analysis_id: (
+        str
+        | None
+    ) = None
+
+    request_id: (
+        str
+        | None
+    ) = None
+
+    kind: (
+        str
+        | None
+    ) = None
+
+    plan_status: (
+        str
+        | None
+    ) = None
+
+    source_type: (
+        str
+        | None
+    ) = None
+
+    api_version: str = (
+        FOLLOW_UP_REQUESTED_ANALYSIS_API_VERSION
+    )
+
 
 class RequestedAnalysisResolutionRequest(
     BaseModel
@@ -368,8 +451,8 @@ def _find_requested_artifact(
 
         if (
             artifact.source_type
-            ==
-            "document_request"
+            in
+            REQUESTED_ANALYSIS_SOURCE_TYPES
             and
             _artifact_source_analysis_id(
                 artifact
@@ -1068,6 +1151,411 @@ def _restore_reconfigurable_plan(
     return plan
 
 
+
+# ============================================================
+# FOLLOW-UP REQUEST ROUTER
+# ============================================================
+
+@router.post(
+    "/analysis/requested/route-follow-up",
+
+    response_model=
+        FollowUpRequestedAnalysisRouteResponse,
+)
+def route_follow_up_requested_analysis_http(
+    request:
+        FollowUpRequestedAnalysisRouteRequest,
+) -> FollowUpRequestedAnalysisRouteResponse:
+    """
+    Give known deterministic Requested Analysis intents
+    priority for workspace follow-up prompts.
+
+    Browser trust boundary:
+
+        browser
+            -> workflow_id
+            -> objective
+
+        server
+            -> validated Preparation handoff
+            -> deterministic request classification
+            -> deterministic Requested Analysis plan
+            -> unresolved lifecycle artifact
+
+    Unknown / unsupported follow-up prompts are NOT rejected.
+    They return route_kind=ai_native so the frontend can use
+    the existing local-AI pipeline unchanged.
+
+    No browser-supplied dataset id, column binding, plan,
+    calculation, metric or chart payload is accepted here.
+    """
+    workflow_id = str(
+        request.workflow_id
+    ).strip()
+
+    objective = str(
+        request.objective
+    ).strip()
+
+
+    if not workflow_id:
+        raise HTTPException(
+            status_code=422,
+
+            detail={
+                "error":
+                    "invalid_follow_up_workflow_id",
+
+                "message":
+                    "workflow_id cannot be empty.",
+
+                "api_version":
+                    FOLLOW_UP_REQUESTED_ANALYSIS_API_VERSION,
+            },
+        )
+
+
+    if not objective:
+        raise HTTPException(
+            status_code=422,
+
+            detail={
+                "error":
+                    "invalid_follow_up_objective",
+
+                "message":
+                    "objective cannot be empty.",
+
+                "workflow_id":
+                    workflow_id,
+
+                "api_version":
+                    FOLLOW_UP_REQUESTED_ANALYSIS_API_VERSION,
+            },
+        )
+
+
+    # --------------------------------------------------------
+    # Server-owned validated Preparation source of truth.
+    # --------------------------------------------------------
+
+    handoff = (
+        load_validated_analysis_input_for_http(
+            workflow_id=
+                workflow_id
+        )
+    )
+
+
+    plan_report = (
+        plan_follow_up_requested_analysis(
+            ingestion=
+                handoff.ingestion,
+
+            objective=
+                objective,
+
+            request_key=
+                uuid4().hex,
+        )
+    )
+
+
+    # --------------------------------------------------------
+    # Unsupported deterministic intent -> existing AI-native
+    # fallback. No artifact is created by this route.
+    # --------------------------------------------------------
+
+    if plan_report is None:
+        return (
+            FollowUpRequestedAnalysisRouteResponse(
+                workflow_id=
+                    workflow_id,
+
+                objective=
+                    objective,
+
+                route_kind=
+                    "ai_native",
+
+                analysis_id=
+                    None,
+
+                request_id=
+                    None,
+
+                kind=
+                    None,
+
+                plan_status=
+                    None,
+
+                source_type=
+                    None,
+            )
+        )
+
+
+    if (
+        plan_report.request_count
+        !=
+        1
+        or
+        len(
+            plan_report.requests
+        )
+        !=
+        1
+    ):
+        raise HTTPException(
+            status_code=500,
+
+            detail={
+                "error":
+                    "follow_up_requested_plan_cardinality_error",
+
+                "message":
+                    (
+                        "Deterministic follow-up routing did not "
+                        "produce exactly one requested plan."
+                    ),
+
+                "workflow_id":
+                    workflow_id,
+
+                "api_version":
+                    FOLLOW_UP_REQUESTED_ANALYSIS_API_VERSION,
+            },
+        )
+
+
+    plan = (
+        plan_report.requests[
+            0
+        ]
+    )
+
+
+    # v0.1 routes revenue_moving_average specifically because
+    # it requires a deliberate human parameter choice.
+    #
+    # A future planner regression that unexpectedly returns
+    # ready must fail closed instead of silently executing with
+    # implicit defaults.
+    if (
+        plan.status
+        not in {
+            "ambiguous",
+            "blocked",
+        }
+    ):
+        raise HTTPException(
+            status_code=500,
+
+            detail={
+                "error":
+                    "follow_up_requested_plan_status_error",
+
+                "message":
+                    (
+                        "The deterministic follow-up route "
+                        "returned an unexpected executable "
+                        "plan without explicit user resolution."
+                    ),
+
+                "workflow_id":
+                    workflow_id,
+
+                "request_id":
+                    plan.request_id,
+
+                "kind":
+                    plan.kind,
+
+                "plan_status":
+                    plan.status,
+
+                "api_version":
+                    FOLLOW_UP_REQUESTED_ANALYSIS_API_VERSION,
+            },
+        )
+
+
+    source_dataset_records = [
+        dict(
+            record
+        )
+
+        for record
+        in handoff.dataset_records
+    ]
+
+
+    # Requested-only analytical views are allowed here because
+    # they are still derived from the current validated
+    # Preparation output and remain server-owned.
+    (
+        _,
+        analysis_datasets,
+    ) = (
+        prepare_analysis_datasets(
+            source_datasets=
+                source_dataset_records,
+
+            objective=
+                objective,
+
+            include_requested_context=
+                True,
+        )
+    )
+
+
+    execution_report = (
+        execute_requested_analysis_plan(
+            plan=
+                plan_report,
+
+            datasets=
+                analysis_datasets,
+        )
+    )
+
+
+    registered = (
+        register_unresolved_requested_analysis_artifacts(
+            workflow_id=
+                workflow_id,
+
+            execution_report=
+                execution_report,
+
+            plan_report=
+                plan_report,
+
+            source_type=
+                "follow_up_prompt",
+        )
+    )
+
+
+    if (
+        len(
+            registered
+        )
+        !=
+        1
+    ):
+        raise HTTPException(
+            status_code=500,
+
+            detail={
+                "error":
+                    "follow_up_lifecycle_registration_error",
+
+                "message":
+                    (
+                        "The deterministic follow-up request "
+                        "did not produce exactly one unresolved "
+                        "server-owned lifecycle artifact."
+                    ),
+
+                "workflow_id":
+                    workflow_id,
+
+                "request_id":
+                    plan.request_id,
+
+                "kind":
+                    plan.kind,
+
+                "plan_status":
+                    plan.status,
+
+                "api_version":
+                    FOLLOW_UP_REQUESTED_ANALYSIS_API_VERSION,
+            },
+        )
+
+
+    artifact = (
+        registered[
+            0
+        ]
+    )
+
+
+    if (
+        artifact.source_type
+        !=
+        "follow_up_prompt"
+        or
+        artifact.executed
+    ):
+        raise HTTPException(
+            status_code=500,
+
+            detail={
+                "error":
+                    "follow_up_lifecycle_integrity_error",
+
+                "message":
+                    (
+                        "The persisted follow-up lifecycle "
+                        "artifact failed its source/execution "
+                        "integrity check."
+                    ),
+
+                "workflow_id":
+                    workflow_id,
+
+                "analysis_id":
+                    artifact.analysis_id,
+
+                "request_id":
+                    plan.request_id,
+
+                "source_type":
+                    artifact.source_type,
+
+                "executed":
+                    artifact.executed,
+
+                "api_version":
+                    FOLLOW_UP_REQUESTED_ANALYSIS_API_VERSION,
+            },
+        )
+
+
+    return (
+        FollowUpRequestedAnalysisRouteResponse(
+            workflow_id=
+                workflow_id,
+
+            objective=
+                objective,
+
+            route_kind=
+                "requested_analysis",
+
+            analysis_id=
+                artifact.analysis_id,
+
+            request_id=
+                plan.request_id,
+
+            kind=
+                plan.kind,
+
+            plan_status=
+                plan.status,
+
+            source_type=
+                artifact.source_type,
+        )
+    )
+
+
 # ============================================================
 # PUBLIC ENDPOINT
 # ============================================================
@@ -1560,6 +2048,9 @@ def resolve_requested_analysis_http(
                     expected_analysis_id=
                         artifact.analysis_id,
 
+                    source_type=
+                        artifact.source_type,
+
                     select_by_default=
                         True,
                 )
@@ -1601,7 +2092,7 @@ def resolve_requested_analysis_http(
             or
             registered.source_type
             !=
-            "document_request"
+            artifact.source_type
             or
             not registered.executed
         ):
@@ -2106,7 +2597,7 @@ def reconfigure_requested_analysis_http(
             or
             current_artifact.source_type
             !=
-            "document_request"
+            artifact.source_type
             or
             current_artifact.created_at_utc
             !=
@@ -2172,6 +2663,9 @@ def reconfigure_requested_analysis_http(
                     expected_analysis_id=
                         artifact.analysis_id,
 
+                    source_type=
+                        artifact.source_type,
+
                     select_by_default=
                         False,
                 )
@@ -2212,7 +2706,7 @@ def reconfigure_requested_analysis_http(
             or
             registered.source_type
             !=
-            "document_request"
+            artifact.source_type
             or
             not registered.executed
             or
