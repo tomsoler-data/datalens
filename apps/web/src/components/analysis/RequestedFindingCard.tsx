@@ -1671,7 +1671,7 @@ export default function RequestedFindingCard({
                                   "0.06em",
                               }}
                             >
-                              P?riode
+                              Période
                             </span>
 
                             <strong
@@ -1757,7 +1757,7 @@ export default function RequestedFindingCard({
                                   ? (
                                       `${formatNumber(
                                         currentMovingAverageWindow
-                                      )} p?riodes`
+                                      )} périodes`
                                     )
                                   : (
                                       "Non disponible"
