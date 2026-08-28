@@ -18,6 +18,12 @@ from pydantic import (
 )
 
 
+from app.ml.baseline import (
+    MLBaselineComparisonResult,
+    MLBaselineEvaluationResult,
+)
+
+
 from app.ml.classical_executor import (
     ClassicalMLExecutionResult,
     ClassicalMLExecutorError,
@@ -140,6 +146,11 @@ class MLModelComparisonCandidateResult(
     )
 
 
+    baseline_comparison: (
+        MLBaselineComparisonResult
+    )
+
+
     model_artifact: (
         MLModelArtifactRecord
     )
@@ -201,6 +212,11 @@ class MLModelComparisonExecutionResult(
 
     ranking_policy: (
         MLModelComparisonRankingPolicy
+    )
+
+
+    baseline: (
+        MLBaselineEvaluationResult
     )
 
 
@@ -302,6 +318,156 @@ class MLModelComparisonExecutionResult(
                     "does not match comparison contract."
                 )
             )
+
+
+        # ----------------------------------------------------
+        # SHARED BASELINE
+        # ----------------------------------------------------
+
+        if (
+            self.baseline.problem_type
+            !=
+            self.problem_type
+        ):
+            raise ValueError(
+                (
+                    "Comparison baseline problem type "
+                    "does not match comparison result."
+                )
+            )
+
+
+        if (
+            self.baseline.primary_metric
+            !=
+            self.primary_metric
+        ):
+            raise ValueError(
+                (
+                    "Comparison baseline primary metric "
+                    "does not match comparison result."
+                )
+            )
+
+
+        try:
+            baseline_primary_value = float(
+                self.baseline.metrics[
+                    self.primary_metric
+                ]
+            )
+
+        except (
+            KeyError,
+            TypeError,
+            ValueError,
+        ) as error:
+            raise ValueError(
+                (
+                    "Comparison baseline primary metric "
+                    "is missing or invalid."
+                )
+            ) from error
+
+
+        if not math.isfinite(
+            baseline_primary_value
+        ):
+            raise ValueError(
+                (
+                    "Comparison baseline primary metric "
+                    "must be finite."
+                )
+            )
+
+
+        for candidate in (
+            self.candidates
+        ):
+
+            if (
+                candidate.train_rows
+                !=
+                self.baseline.train_rows
+                or
+                candidate.test_rows
+                !=
+                self.baseline.test_rows
+            ):
+                raise ValueError(
+                    (
+                        "Candidate holdout shape does not "
+                        "match shared comparison baseline."
+                    )
+                )
+
+
+            baseline_comparison = (
+                candidate
+                .baseline_comparison
+            )
+
+
+            if (
+                baseline_comparison.problem_type
+                !=
+                self.problem_type
+            ):
+                raise ValueError(
+                    (
+                        "Candidate baseline comparison "
+                        "problem type does not match."
+                    )
+                )
+
+
+            if (
+                baseline_comparison.primary_metric
+                !=
+                self.primary_metric
+            ):
+                raise ValueError(
+                    (
+                        "Candidate baseline comparison "
+                        "primary metric does not match."
+                    )
+                )
+
+
+            if not math.isclose(
+                (
+                    baseline_comparison
+                    .baseline_primary_metric_value
+                ),
+                baseline_primary_value,
+                rel_tol=1e-12,
+                abs_tol=1e-12,
+            ):
+                raise ValueError(
+                    (
+                        "Candidate baseline comparison "
+                        "does not reference the shared "
+                        "comparison baseline."
+                    )
+                )
+
+
+            if not math.isclose(
+                (
+                    baseline_comparison
+                    .model_primary_metric_value
+                ),
+                candidate.primary_metric_value,
+                rel_tol=1e-12,
+                abs_tol=1e-12,
+            ):
+                raise ValueError(
+                    (
+                        "Candidate baseline comparison "
+                        "does not reference candidate "
+                        "primary metric."
+                    )
+                )
 
 
         # ----------------------------------------------------
@@ -838,6 +1004,180 @@ def _validate_candidate_execution(
         )
 
 
+    # --------------------------------------------------------
+    # BASELINE AUTHORITY
+    # --------------------------------------------------------
+
+    baseline = (
+        execution_result
+        .baseline
+    )
+
+
+    if (
+        baseline.problem_type
+        !=
+        comparison_contract.problem_type
+    ):
+        raise (
+            MLModelComparisonCandidateError(
+                (
+                    "Candidate baseline problem type "
+                    "does not match comparison."
+                )
+            )
+        )
+
+
+    if (
+        baseline.primary_metric
+        !=
+        comparison_contract.primary_metric
+    ):
+        raise (
+            MLModelComparisonCandidateError(
+                (
+                    "Candidate baseline primary metric "
+                    "does not match comparison."
+                )
+            )
+        )
+
+
+    if (
+        baseline.train_rows
+        !=
+        execution_result.train_rows
+        or
+        baseline.test_rows
+        !=
+        execution_result.test_rows
+    ):
+        raise (
+            MLModelComparisonCandidateError(
+                (
+                    "Candidate baseline holdout shape "
+                    "does not match candidate execution."
+                )
+            )
+        )
+
+
+    for metric_name in (
+        _required_metric_names(
+            problem_type=
+                comparison_contract.problem_type
+        )
+    ):
+        _validated_metric(
+            metrics=
+                baseline.metrics,
+
+            metric_name=
+                metric_name,
+        )
+
+
+    candidate_primary_value = (
+        _validated_metric(
+            metrics=
+                execution_result.metrics,
+
+            metric_name=
+                comparison_contract.primary_metric,
+        )
+    )
+
+
+    baseline_primary_value = (
+        _validated_metric(
+            metrics=
+                baseline.metrics,
+
+            metric_name=
+                comparison_contract.primary_metric,
+        )
+    )
+
+
+    baseline_comparison = (
+        execution_result
+        .baseline_comparison
+    )
+
+
+    if (
+        baseline_comparison.problem_type
+        !=
+        comparison_contract.problem_type
+    ):
+        raise (
+            MLModelComparisonCandidateError(
+                (
+                    "Candidate model-to-baseline "
+                    "comparison problem type does "
+                    "not match."
+                )
+            )
+        )
+
+
+    if (
+        baseline_comparison.primary_metric
+        !=
+        comparison_contract.primary_metric
+    ):
+        raise (
+            MLModelComparisonCandidateError(
+                (
+                    "Candidate model-to-baseline "
+                    "comparison primary metric does "
+                    "not match."
+                )
+            )
+        )
+
+
+    if not math.isclose(
+        (
+            baseline_comparison
+            .model_primary_metric_value
+        ),
+        candidate_primary_value,
+        rel_tol=1e-12,
+        abs_tol=1e-12,
+    ):
+        raise (
+            MLModelComparisonCandidateError(
+                (
+                    "Candidate model-to-baseline "
+                    "comparison does not reference "
+                    "candidate metrics."
+                )
+            )
+        )
+
+
+    if not math.isclose(
+        (
+            baseline_comparison
+            .baseline_primary_metric_value
+        ),
+        baseline_primary_value,
+        rel_tol=1e-12,
+        abs_tol=1e-12,
+    ):
+        raise (
+            MLModelComparisonCandidateError(
+                (
+                    "Candidate model-to-baseline "
+                    "comparison does not reference "
+                    "candidate baseline metrics."
+                )
+            )
+        )
+
+
 # ============================================================
 # SPLIT CONSISTENCY
 # ============================================================
@@ -892,6 +1232,74 @@ def _validate_execution_split_sizes(
                     )
                 )
             )
+
+
+# ============================================================
+# SHARED BASELINE CONSISTENCY
+# ============================================================
+
+
+def _validate_shared_baseline(
+    *,
+    execution_results: list[
+        ClassicalMLExecutionResult
+    ],
+) -> MLBaselineEvaluationResult:
+    """
+    All fixed candidates use the same dataset and deterministic
+    split contract.
+
+    Because the baseline is learned exclusively from y_train,
+    every candidate must therefore produce the exact same
+    baseline evaluation.
+
+    Any difference fails closed because candidate metrics would
+    no longer be directly comparable against one common
+    reference.
+    """
+
+    if not execution_results:
+        raise (
+            MLModelComparisonExecutorError(
+                (
+                    "Model Comparison produced no "
+                    "candidate baseline executions."
+                )
+            )
+        )
+
+
+    reference = (
+        execution_results[
+            0
+        ]
+        .baseline
+    )
+
+
+    for execution_result in (
+        execution_results[
+            1:
+        ]
+    ):
+
+        if (
+            execution_result.baseline
+            !=
+            reference
+        ):
+            raise (
+                MLModelComparisonExecutorError(
+                    (
+                        "Comparison candidates did not "
+                        "produce one identical shared "
+                        "baseline."
+                    )
+                )
+            )
+
+
+    return reference
 
 
 # ============================================================
@@ -1228,6 +1636,14 @@ def execute_ml_model_comparison(
     )
 
 
+    shared_baseline = (
+        _validate_shared_baseline(
+            execution_results=
+                execution_results
+        )
+    )
+
+
     # ========================================================
     # DETERMINISTIC RANKING
     # ========================================================
@@ -1301,6 +1717,11 @@ def execute_ml_model_comparison(
                 test_rows=
                     execution_result.test_rows,
 
+                baseline_comparison=(
+                    execution_result
+                    .baseline_comparison
+                ),
+
                 model_artifact=
                     execution_result
                     .model_artifact,
@@ -1337,6 +1758,9 @@ def execute_ml_model_comparison(
 
             ranking_policy=
                 contract.ranking_policy,
+
+            baseline=
+                shared_baseline,
 
             candidates=
                 ranked_candidates,
