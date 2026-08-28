@@ -918,6 +918,8 @@ def train_real_model(
             "mae",
             "rmse",
             "r2",
+            "median_absolute_error",
+            "explained_variance",
         }
     )
 
