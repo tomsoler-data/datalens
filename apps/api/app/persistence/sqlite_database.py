@@ -36,7 +36,7 @@ SQLITE_DATABASE_RULE_VERSION = (
 )
 
 SQLITE_SCHEMA_VERSION = (
-    7
+    8
 )
 
 DATALENS_SQLITE_PATH_ENV = (
@@ -1195,6 +1195,160 @@ def _apply_schema_migrations(
 
                 raise
 
+
+        # ====================================================
+        # SQLITE_SCHEMA_V8_ML_MODEL_ARTIFACT_INDEX
+        # ML_MODEL_ARTIFACT_SQLITE_INDEX_V0_1
+        # ====================================================
+
+
+        if (
+            current_version
+            <
+            8
+        ):
+            connection.execute(
+                "BEGIN IMMEDIATE"
+            )
+
+            try:
+                connection.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS
+                    ml_model_artifacts (
+                        store_root TEXT NOT NULL,
+
+                        model_id TEXT NOT NULL,
+
+                        workflow_id TEXT NOT NULL,
+
+                        dataset_id TEXT NOT NULL,
+
+                        problem_type TEXT NOT NULL
+                            CHECK (
+                                problem_type
+                                IN (
+                                    'regression',
+                                    'classification'
+                                )
+                            ),
+
+                        target_column TEXT NOT NULL,
+
+                        estimator_key TEXT NOT NULL,
+
+                        training_contract_json TEXT NOT NULL,
+
+                        metrics_json TEXT NOT NULL,
+
+                        train_rows INTEGER NOT NULL
+                            CHECK (
+                                train_rows > 0
+                            ),
+
+                        test_rows INTEGER NOT NULL
+                            CHECK (
+                                test_rows > 0
+                            ),
+
+                        created_at_utc TEXT NOT NULL,
+
+                        serialization_format TEXT NOT NULL
+                            CHECK (
+                                serialization_format
+                                =
+                                'joblib'
+                            ),
+
+                        rule_version TEXT NOT NULL,
+
+                        model_path TEXT NOT NULL,
+
+                        model_file_bytes INTEGER NOT NULL
+                            CHECK (
+                                model_file_bytes > 0
+                            ),
+
+                        model_sha256 TEXT NOT NULL
+                            CHECK (
+                                length(
+                                    model_sha256
+                                )
+                                =
+                                64
+                            ),
+
+                        PRIMARY KEY (
+                            store_root,
+                            model_id
+                        )
+                    )
+                    """
+                )
+
+
+                connection.execute(
+                    """
+                    CREATE INDEX IF NOT EXISTS
+                    idx_ml_model_artifacts_scope_workflow
+                    ON ml_model_artifacts (
+                        store_root,
+                        workflow_id,
+                        created_at_utc,
+                        model_id
+                    )
+                    """
+                )
+
+
+                connection.execute(
+                    """
+                    CREATE INDEX IF NOT EXISTS
+                    idx_ml_model_artifacts_scope_dataset
+                    ON ml_model_artifacts (
+                        store_root,
+                        workflow_id,
+                        dataset_id,
+                        created_at_utc,
+                        model_id
+                    )
+                    """
+                )
+
+
+                connection.execute(
+                    """
+                    INSERT INTO schema_migrations (
+                        version,
+                        name,
+                        applied_at
+                    )
+                    VALUES (
+                        ?,
+                        ?,
+                        ?
+                    )
+                    """,
+                    (
+                        8,
+                        "ml_model_artifact_metadata_index",
+                        utc_now_iso(),
+                    ),
+                )
+
+
+                connection.execute(
+                    "COMMIT"
+                )
+
+
+            except Exception:
+                if connection.in_transaction:
+                    connection.execute(
+                        "ROLLBACK"
+                    )
+
+                raise
 
 
 # ============================================================

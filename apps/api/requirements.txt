@@ -18,10 +18,12 @@ httptools==0.8.0
 httpx==0.28.1
 idna==3.18
 Jinja2==3.1.6
+joblib==1.5.3
 lxml==6.1.1
 markdown-it-py==4.2.0
 MarkupSafe==3.0.3
 mdurl==0.1.2
+narwhals==2.25.0
 numpy==2.5.2
 ollama==0.6.2
 pandas==3.0.5
@@ -41,11 +43,13 @@ reportlab==5.0.0
 rich==15.0.0
 rich-toolkit==0.20.3
 rignore==0.8.1
+scikit-learn==1.9.0
 scipy==1.18.0
 sentry-sdk==2.68.0
 shellingham==1.5.4
 six==1.17.0
 starlette==1.6.0
+threadpoolctl==3.6.0
 typer==0.27.1
 typing_extensions==4.16.0
 typing-inspection==0.4.4
