@@ -12,6 +12,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     DATALENS_ANALYSIS_ARTIFACT_STORE_PATH=/app/var/reporting/analysis_artifacts.json \
     DATALENS_REPORT_SELECTION_STORE_PATH=/app/var/reporting/report_selection.json \
     DATALENS_AI_TRACE_PATH=/app/var/observability/ai_traces.jsonl \
+    DATALENS_RUNTIME_TRACE_PATH=/app/var/observability/runtime_requests.jsonl \
     DATALENS_WORKFLOW_DELETE_QUARANTINE_ROOT=/app/var/preparation/deletion-quarantine
 
 WORKDIR /app

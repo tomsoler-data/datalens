@@ -71,6 +71,10 @@ from app.api.routes import (
     router as api_router,
 )
 
+from app.observability.runtime_trace import (
+    RuntimeTraceMiddleware,
+)
+
 
 # ============================================================
 # WORKFLOW DELETE CRASH RECOVERY
@@ -151,6 +155,11 @@ LOCAL_FRONTEND_HEADERS = [
 ]
 
 
+LOCAL_FRONTEND_EXPOSE_HEADERS = [
+    "X-DataLens-Request-ID",
+]
+
+
 LOCAL_FRONTEND_ALLOW_CREDENTIALS = False
 
 
@@ -168,6 +177,19 @@ app.add_middleware(
 
     allow_headers=
         LOCAL_FRONTEND_HEADERS,
+
+    expose_headers=
+        LOCAL_FRONTEND_EXPOSE_HEADERS,
+)
+
+
+# ============================================================
+# RUNTIME OBSERVABILITY
+# ============================================================
+
+
+app.add_middleware(
+    RuntimeTraceMiddleware
 )
 
 
