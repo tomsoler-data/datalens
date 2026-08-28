@@ -25,6 +25,11 @@ ML_TRAINING_CONTRACT_RULE_VERSION = (
 )
 
 
+ML_PREPROCESSING_CONTRACT_RULE_VERSION = (
+    "ml_preprocessing_contract_v0.1"
+)
+
+
 # ============================================================
 # TYPES
 # ============================================================
@@ -38,6 +43,28 @@ MLProblemType = Literal[
 
 MLSplitStrategy = Literal[
     "holdout",
+]
+
+
+MLNumericImputationStrategy = Literal[
+    "error",
+    "median",
+]
+
+
+MLCategoricalImputationStrategy = Literal[
+    "error",
+    "most_frequent",
+]
+
+
+MLCategoricalEncodingStrategy = Literal[
+    "one_hot",
+]
+
+
+MLUnknownCategoryStrategy = Literal[
+    "ignore",
 ]
 
 
@@ -90,6 +117,69 @@ class MLSplitContract(
 
 
 # ============================================================
+# PREPROCESSING CONTRACT
+# ============================================================
+
+
+class MLPreprocessingContract(
+    BaseModel
+):
+    """
+    Deterministic preprocessing policy for Classical ML.
+
+    This contract describes learned preprocessing behavior only.
+
+    Data-dependent statistics such as:
+
+    - numeric medians;
+    - categorical modes;
+    - one-hot vocabularies;
+    - scaling means / variances;
+
+    MUST NOT be supplied by callers.
+
+    Those values are learned by the scikit-learn pipeline from
+    the training split only.
+
+    This prevents train/test leakage and keeps preprocessing
+    reproducible inside the persisted Model Artifact.
+    """
+
+    model_config = ConfigDict(
+        extra="forbid",
+        frozen=True,
+    )
+
+
+    numeric_imputation: (
+        MLNumericImputationStrategy
+    ) = "error"
+
+
+    categorical_imputation: (
+        MLCategoricalImputationStrategy
+    ) = "error"
+
+
+    categorical_encoding: (
+        MLCategoricalEncodingStrategy
+    ) = "one_hot"
+
+
+    handle_unknown_categories: (
+        MLUnknownCategoryStrategy
+    ) = "ignore"
+
+
+    scale_numeric: bool = True
+
+
+    rule_version: Literal[
+        "ml_preprocessing_contract_v0.1"
+    ] = ML_PREPROCESSING_CONTRACT_RULE_VERSION
+
+
+# ============================================================
 # TRAINING CONTRACT
 # ============================================================
 
@@ -108,11 +198,19 @@ class MLTrainingContract(
     - trained model bytes;
     - predictions;
     - secrets;
-    - arbitrary executable code.
+    - arbitrary executable code;
+    - learned preprocessing statistics.
 
-    The future ML executor is responsible for resolving the
-    server-owned Preparation artifact identified by workflow_id
-    and dataset_id.
+    feature_columns defines the complete ordered model feature
+    surface.
+
+    categorical_feature_columns explicitly marks the subset that
+    must be treated as categorical.
+
+    Every remaining feature is therefore numeric.
+
+    This explicit role declaration avoids silently guessing model
+    semantics from pandas dtypes.
     """
 
     model_config = ConfigDict(
@@ -146,8 +244,20 @@ class MLTrainingContract(
     )
 
 
+    categorical_feature_columns: list[
+        str
+    ] = Field(
+        default_factory=list,
+    )
+
+
     estimator_key: str = Field(
         min_length=1,
+    )
+
+
+    preprocessing: MLPreprocessingContract = Field(
+        default_factory=MLPreprocessingContract,
     )
 
 
@@ -201,15 +311,32 @@ class MLTrainingContract(
 
     @field_validator(
         "feature_columns",
+        "categorical_feature_columns",
         mode="before",
     )
     @classmethod
-    def normalize_feature_columns(
+    def normalize_feature_column_lists(
         cls,
         value: object,
+        info,
     ) -> list[
         str
     ]:
+        field_name = str(
+            info.field_name
+        )
+
+
+        if (
+            value is None
+            and
+            field_name
+            ==
+            "categorical_feature_columns"
+        ):
+            return []
+
+
         if not isinstance(
             value,
             (
@@ -219,7 +346,7 @@ class MLTrainingContract(
         ):
             raise ValueError(
                 (
-                    "feature_columns must be "
+                    f"{field_name} must be "
                     "a list of column names"
                 )
             )
@@ -246,7 +373,7 @@ class MLTrainingContract(
             if not column:
                 raise ValueError(
                     (
-                        "feature_columns cannot "
+                        f"{field_name} cannot "
                         "contain an empty name"
                     )
                 )
@@ -255,7 +382,7 @@ class MLTrainingContract(
             if column in seen:
                 raise ValueError(
                     (
-                        "feature_columns cannot "
+                        f"{field_name} cannot "
                         "contain duplicates: "
                         f"{column!r}"
                     )
@@ -272,7 +399,13 @@ class MLTrainingContract(
             )
 
 
-        if not normalized:
+        if (
+            field_name
+            ==
+            "feature_columns"
+            and
+            not normalized
+        ):
             raise ValueError(
                 (
                     "feature_columns must contain "
@@ -282,6 +415,34 @@ class MLTrainingContract(
 
 
         return normalized
+
+
+    # ========================================================
+    # DERIVED FEATURE ROLES
+    # ========================================================
+
+
+    @property
+    def numeric_feature_columns(
+        self,
+    ) -> list[
+        str
+    ]:
+        categorical = set(
+            self.categorical_feature_columns
+        )
+
+
+        return [
+            column
+
+            for column
+            in self.feature_columns
+
+            if column
+            not in
+            categorical
+        ]
 
 
     # ========================================================
@@ -296,6 +457,10 @@ class MLTrainingContract(
         self,
     ) -> "MLTrainingContract":
 
+        # ----------------------------------------------------
+        # TARGET LEAKAGE
+        # ----------------------------------------------------
+
         if (
             self.target_column
             in
@@ -308,6 +473,45 @@ class MLTrainingContract(
                 )
             )
 
+
+        # ----------------------------------------------------
+        # FEATURE ROLE AUTHORITY
+        # ----------------------------------------------------
+
+        feature_columns = set(
+            self.feature_columns
+        )
+
+
+        unknown_categorical_columns = [
+            column
+
+            for column
+            in self.categorical_feature_columns
+
+            if column
+            not in
+            feature_columns
+        ]
+
+
+        if unknown_categorical_columns:
+            raise ValueError(
+                (
+                    "categorical_feature_columns must "
+                    "be a subset of feature_columns. "
+                    "Unknown categorical features: "
+                    +
+                    ", ".join(
+                        unknown_categorical_columns
+                    )
+                )
+            )
+
+
+        # ----------------------------------------------------
+        # REGRESSION SPLIT
+        # ----------------------------------------------------
 
         if (
             self.problem_type
