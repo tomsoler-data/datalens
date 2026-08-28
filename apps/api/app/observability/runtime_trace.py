@@ -15,6 +15,11 @@ from pydantic import BaseModel, ConfigDict, Field
 from starlette.datastructures import MutableHeaders
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
+from app.observability.request_context import (
+    bind_runtime_request_id,
+    reset_runtime_request_id,
+)
+
 
 RUNTIME_TRACE_RULE_VERSION = "runtime_trace_v0.1"
 RUNTIME_TRACE_PRIVACY_RULE_VERSION = "runtime_trace_privacy_v0.1"
@@ -441,6 +446,12 @@ class RuntimeTraceMiddleware:
             new_runtime_request_id()
         )
 
+        request_context_token = (
+            bind_runtime_request_id(
+                request_id
+            )
+        )
+
         started_at = perf_counter()
 
         status_code = 500
@@ -501,6 +512,11 @@ class RuntimeTraceMiddleware:
             )
 
             raise
+
+        finally:
+            reset_runtime_request_id(
+                request_context_token
+            )
 
         duration_ms = (
             perf_counter()
