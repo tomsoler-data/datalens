@@ -48,13 +48,15 @@ from sklearn.pipeline import (
 )
 
 
-from sklearn.preprocessing import (
-    StandardScaler,
+from app.ml.contracts import (
+    MLTrainingContract,
 )
 
 
-from app.ml.contracts import (
-    MLTrainingContract,
+from app.ml.preprocessing import (
+    MLPreprocessingRuntimeError,
+    build_ml_preprocessor,
+    validate_ml_feature_frame,
 )
 
 
@@ -396,45 +398,6 @@ def _validate_and_extract_xy(
     )
 
 
-    missing_counts = (
-        selected
-        .isna()
-        .sum()
-    )
-
-
-    columns_with_missing_values = [
-        str(
-            column
-        )
-
-        for column, count
-        in missing_counts.items()
-
-        if int(
-            count
-        )
-        >
-        0
-    ]
-
-
-    if columns_with_missing_values:
-        raise (
-            ClassicalMLInputError(
-                (
-                    "Classical ML v0.1 requires "
-                    "complete target/features. "
-                    "Missing values remain in: "
-                    +
-                    ", ".join(
-                        columns_with_missing_values
-                    )
-                )
-            )
-        )
-
-
     x = (
         selected.loc[
             :,
@@ -458,90 +421,45 @@ def _validate_and_extract_xy(
 
 
     # ========================================================
-    # FEATURES
+    # TARGET MISSING VALUES
     # ========================================================
 
 
-    for column in (
-        contract.feature_columns
+    if bool(
+        y.isna().any()
     ):
-        dtype = (
-            x[
-                column
-            ].dtype
+        raise (
+            ClassicalMLInputError(
+                (
+                    "ML target contains missing values. "
+                    "Target imputation is never performed "
+                    "by Classical ML."
+                )
+            )
         )
 
 
-        if (
-            pd.api.types
-            .is_bool_dtype(
-                dtype
-            )
-        ):
-            raise (
-                ClassicalMLInputError(
-                    (
-                        "Boolean feature columns "
-                        "are not supported by "
-                        "Classical ML v0.1. "
-                        f"column={column}"
-                    )
-                )
-            )
-
-
-        if not (
-            pd.api.types
-            .is_numeric_dtype(
-                dtype
-            )
-        ):
-            raise (
-                ClassicalMLInputError(
-                    (
-                        "Classical ML v0.1 supports "
-                        "numeric feature columns only. "
-                        f"column={column}, "
-                        f"dtype={dtype}"
-                    )
-                )
-            )
+    # ========================================================
+    # FEATURE STRUCTURE / PREPROCESSING POLICY
+    # ========================================================
 
 
     try:
-        numeric_x = (
-            x.to_numpy(
-                dtype=np.float64,
-                copy=True,
+        x = (
+            validate_ml_feature_frame(
+                features=x,
+                contract=contract,
             )
         )
 
-    except Exception as error:
+    except MLPreprocessingRuntimeError as error:
         raise (
             ClassicalMLInputError(
-                (
-                    "ML feature matrix could not "
-                    "be converted to finite "
-                    "floating-point values."
+                str(
+                    error
                 )
             )
         ) from error
-
-
-    if not (
-        np.isfinite(
-            numeric_x
-        )
-        .all()
-    ):
-        raise (
-            ClassicalMLInputError(
-                (
-                    "ML feature matrix contains "
-                    "non-finite values."
-                )
-            )
-        )
 
 
     # ========================================================
@@ -754,23 +672,12 @@ def _build_estimator(
             )
 
 
-        return (
-            Pipeline(
-                steps=[
-                    (
-                        "scaler",
-                        StandardScaler(),
-                    ),
-                    (
-                        "estimator",
-                        LinearRegression(),
-                    ),
-                ]
-            )
+        estimator = (
+            LinearRegression()
         )
 
 
-    if (
+    elif (
         contract.problem_type
         ==
         "classification"
@@ -794,36 +701,60 @@ def _build_estimator(
             )
 
 
-        return (
-            Pipeline(
-                steps=[
-                    (
-                        "scaler",
-                        StandardScaler(),
-                    ),
-                    (
-                        "estimator",
-                        LogisticRegression(
-                            max_iter=1000,
-                            solver="lbfgs",
-                            random_state=(
-                                contract
-                                .split
-                                .random_seed
-                            ),
-                        ),
-                    ),
-                ]
+        estimator = (
+            LogisticRegression(
+                max_iter=1000,
+                solver="lbfgs",
+                random_state=(
+                    contract
+                    .split
+                    .random_seed
+                ),
             )
         )
 
 
-    raise (
-        ClassicalMLEstimatorError(
-            (
-                "Unsupported Classical ML "
-                "problem type."
+    else:
+        raise (
+            ClassicalMLEstimatorError(
+                (
+                    "Unsupported Classical ML "
+                    "problem type."
+                )
             )
+        )
+
+
+    try:
+        preprocessor = (
+            build_ml_preprocessor(
+                contract=contract
+            )
+        )
+
+    except MLPreprocessingRuntimeError as error:
+        raise (
+            ClassicalMLEstimatorError(
+                (
+                    "Classical ML preprocessing "
+                    "pipeline could not be built."
+                )
+            )
+        ) from error
+
+
+    return (
+        Pipeline(
+            steps=[
+                (
+                    "preprocessor",
+                    preprocessor,
+                ),
+                (
+                    "estimator",
+                    estimator,
+                ),
+            ]
         )
     )
 
