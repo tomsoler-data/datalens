@@ -38,10 +38,15 @@ from sklearn.linear_model import (
 
 from sklearn.metrics import (
     accuracy_score,
+    balanced_accuracy_score,
+    explained_variance_score,
     f1_score,
     mean_absolute_error,
     mean_squared_error,
+    median_absolute_error,
+    precision_score,
     r2_score,
+    recall_score,
 )
 
 
@@ -121,6 +126,11 @@ from app.preparation.analysis_readiness_gate import (
 
 CLASSICAL_ML_EXECUTOR_RULE_VERSION = (
     "classical_ml_executor_v0.1"
+)
+
+
+ML_RICHER_METRICS_RULE_VERSION = (
+    "ml_richer_metrics_v0.1"
 )
 
 
@@ -1295,6 +1305,22 @@ def _regression_metrics(
     )
 
 
+    median_ae = float(
+        median_absolute_error(
+            y_true,
+            predictions,
+        )
+    )
+
+
+    explained_variance = float(
+        explained_variance_score(
+            y_true,
+            predictions,
+        )
+    )
+
+
     return {
         "mae":
             mae,
@@ -1304,6 +1330,12 @@ def _regression_metrics(
 
         "r2":
             r2,
+
+        "median_absolute_error":
+            median_ae,
+
+        "explained_variance":
+            explained_variance,
     }
 
 
@@ -1334,6 +1366,125 @@ def _classification_metrics(
                     zero_division=0,
                 )
             ),
+
+        "precision_macro":
+            float(
+                precision_score(
+                    y_true,
+                    predictions,
+                    average="macro",
+                    zero_division=0,
+                )
+            ),
+
+        "recall_macro":
+            float(
+                recall_score(
+                    y_true,
+                    predictions,
+                    average="macro",
+                    zero_division=0,
+                )
+            ),
+
+        "balanced_accuracy":
+            float(
+                balanced_accuracy_score(
+                    y_true,
+                    predictions,
+                )
+            ),
+    }
+
+
+def _baseline_metrics_v0_1(
+    *,
+    problem_type: str,
+    metrics: dict[
+        str,
+        float,
+    ],
+) -> dict[
+    str,
+    float,
+]:
+    """
+    Project richer runtime metrics onto the exact Baseline
+    v0.1 public metric surface.
+
+    Model metrics are richer.
+
+    Baseline v0.1 remains intentionally compatible:
+    - regression: mae / rmse / r2
+    - classification: accuracy / f1_macro
+    """
+
+    if (
+        problem_type
+        ==
+        "regression"
+    ):
+        required_names = (
+            "mae",
+            "rmse",
+            "r2",
+        )
+
+    elif (
+        problem_type
+        ==
+        "classification"
+    ):
+        required_names = (
+            "accuracy",
+            "f1_macro",
+        )
+
+    else:
+        raise (
+            ClassicalMLExecutorError(
+                (
+                    "Unsupported problem type for "
+                    "Baseline v0.1 metric projection. "
+                    f"problem_type={problem_type}"
+                )
+            )
+        )
+
+
+    missing = [
+        metric_name
+
+        for metric_name
+        in required_names
+
+        if metric_name
+        not in metrics
+    ]
+
+
+    if missing:
+        raise (
+            ClassicalMLExecutorError(
+                (
+                    "Richer ML metric surface is missing "
+                    "metrics required by Baseline v0.1. "
+                    f"missing={missing}"
+                )
+            )
+        )
+
+
+    return {
+        metric_name:
+            float(
+                metrics[
+                    metric_name
+                ]
+            )
+
+        for metric_name
+        in required_names
     }
 
 
@@ -1685,6 +1836,17 @@ def execute_classical_ml(
     baseline_metrics = (
         _validate_metrics(
             baseline_metrics
+        )
+    )
+
+
+    baseline_metrics = (
+        _baseline_metrics_v0_1(
+            problem_type=
+                contract.problem_type,
+
+            metrics=
+                baseline_metrics,
         )
     )
 
