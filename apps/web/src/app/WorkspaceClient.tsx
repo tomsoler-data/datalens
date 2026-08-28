@@ -99,6 +99,10 @@ import {
   persistActivePreparationWorkflowId,
   readActivePreparationWorkflowId,
 } from "../components/preparation/preparationWorkflowStorage";
+
+import {
+  persistActivePreparationSubstep,
+} from "../components/preparation/preparationSubstepStorage";
 import { formatNumber } from "../components/analysis/analysisPresentation";
 import { plannerUiCopy } from "../components/analysis/analysisPlanningPresentation";
 import { nativePipelineHasExecutedResult } from "../components/analysis/analysisExecutionPresentation";
@@ -213,6 +217,7 @@ import ReportSynthesisActions from "./ReportSynthesisActions";
 import {
   deriveRestoredAppliedCleaningActionIds,
   deriveRestoredSelectedCleaningActionIds,
+  resolveRestoredPreparationSubstep,
   resolveRestoredWorkspaceStep,
 } from "./preparationWorkflowRestoration";
 import { deriveReportSelectionRestoration } from "./reportSelectionRestoration";
@@ -1093,7 +1098,8 @@ export default function WorkspaceClient() {
             );
 
             setActivePreparationStep(
-              preparationSubstepFromSession(
+              resolveRestoredPreparationSubstep(
+                storedWorkflowId,
                 restoredSession
               )
             );
@@ -1349,6 +1355,7 @@ export default function WorkspaceClient() {
   useEffect(
     () => {
       if (
+        !activeWorkflowRestoreComplete ||
         !preparationSession
       ) {
         return;
@@ -1356,12 +1363,50 @@ export default function WorkspaceClient() {
 
 
       setActivePreparationStep(
-        preparationSubstepFromSession(
+        resolveRestoredPreparationSubstep(
+          preparationSession
+            .workflow_id,
           preparationSession
         )
       );
     },
     [
+      activeWorkflowRestoreComplete,
+      preparationSession
+        ?.workflow_id,
+    ]
+  );
+
+
+  useEffect(
+    () => {
+      if (
+        !activeWorkflowRestoreComplete
+      ) {
+        return;
+      }
+
+
+      const workflowId =
+        preparationSession
+          ?.workflow_id;
+
+
+      if (
+        !workflowId
+      ) {
+        return;
+      }
+
+
+      persistActivePreparationSubstep(
+        workflowId,
+        activePreparationStep
+      );
+    },
+    [
+      activePreparationStep,
+      activeWorkflowRestoreComplete,
       preparationSession
         ?.workflow_id,
     ]
