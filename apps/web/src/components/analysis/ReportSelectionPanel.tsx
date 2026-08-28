@@ -419,9 +419,6 @@ export default function ReportSelectionPanel({
 
                                               {
                                                 selectedAnalysis
-                                                  .source_type ===
-                                                  "document_request" &&
-                                                selectedAnalysis
                                                   .report
                                                   .requested_finding
                                                   ? (

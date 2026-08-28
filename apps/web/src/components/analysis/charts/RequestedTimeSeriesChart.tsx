@@ -829,10 +829,14 @@ export default function RequestedTimeSeriesChart({
                     y1="0"
                     x2="133"
                     y2="0"
-                    stroke="currentColor"
-                    strokeWidth="3"
-                    strokeDasharray="7 6"
-                    opacity="0.55"
+                    stroke="#e8b861"
+                    strokeWidth="4"
+                    strokeDasharray="10 6"
+                    opacity="1"
+                    style={{
+                      filter:
+                        "drop-shadow(0 0 3px rgba(232, 184, 97, 0.34))",
+                    }}
                   />
 
                   <text
@@ -841,6 +845,13 @@ export default function RequestedTimeSeriesChart({
                     className={
                       styles.chartTick
                     }
+                    style={{
+                      fill:
+                        "#e8b861",
+
+                      fontWeight:
+                        700,
+                    }}
                   >
                     Moyenne mobile
                   </text>

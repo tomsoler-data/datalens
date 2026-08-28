@@ -24,6 +24,35 @@ UNIFIED_REPORT_ARTIFACT_RULE_VERSION = (
 )
 
 
+REQUESTED_ANALYSIS_SOURCE_TYPES = (
+    frozenset(
+        {
+            "document_request",
+            "follow_up_prompt",
+        }
+    )
+)
+
+
+def _require_requested_analysis_source_type(
+    source_type: AnalysisSourceType,
+) -> AnalysisSourceType:
+    if (
+        source_type
+        not in
+        REQUESTED_ANALYSIS_SOURCE_TYPES
+    ):
+        raise ValueError(
+            (
+                "Requested Analysis artifacts support only "
+                "document_request or follow_up_prompt "
+                "source types."
+            )
+        )
+
+    return source_type
+
+
 # ============================================================
 # HELPERS
 # ============================================================
@@ -941,9 +970,11 @@ def _synthetic_native_payload(
                 dict(
                     finding
                 )
-                if source_type
-                ==
-                "document_request"
+                if (
+                    source_type
+                    in
+                    REQUESTED_ANALYSIS_SOURCE_TYPES
+                )
                 else
                 None
             ),
@@ -1091,8 +1122,8 @@ def _register_finding(
 
     if (
         source_type
-        ==
-        "document_request"
+        in
+        REQUESTED_ANALYSIS_SOURCE_TYPES
         and
         requested_plan
         is not None
@@ -1153,6 +1184,7 @@ def register_unresolved_requested_analysis_artifacts(
     workflow_id: str,
     execution_report: Any,
     plan_report: Any,
+    source_type: AnalysisSourceType = "document_request",
 ) -> list[
     AnalysisArtifactRecord
 ]:
@@ -1171,6 +1203,13 @@ def register_unresolved_requested_analysis_artifacts(
     - no blocked or ambiguous request is converted into an
       observed analytical result.
     """
+
+    source_type = (
+        _require_requested_analysis_source_type(
+            source_type
+        )
+    )
+
 
     from app.reporting.requested_adapter import (
         REPORTABLE_REQUESTED_STATUSES,
@@ -1286,7 +1325,7 @@ def register_unresolved_requested_analysis_artifacts(
                     workflow_id,
 
                 source_type=
-                    "document_request",
+                    source_type,
 
                 source_analysis_id=
                     source_analysis_id,
@@ -1399,7 +1438,7 @@ def register_unresolved_requested_analysis_artifacts(
                     ),
 
                 source_type=
-                    "document_request",
+                    source_type,
 
                 objective=
                     objective,
@@ -1433,6 +1472,7 @@ def register_requested_report_finding(
     requested_plan: Any | None = None,
     expected_analysis_id: str | None = None,
     select_by_default: bool = False,
+    source_type: AnalysisSourceType = "document_request",
 ) -> AnalysisArtifactRecord:
     """
     Persist one reportable documentary request finding.
@@ -1456,6 +1496,13 @@ def register_requested_report_finding(
     retained for compatibility with older server call sites but
     is intentionally ignored when this finding is registered.
     """
+    source_type = (
+        _require_requested_analysis_source_type(
+            source_type
+        )
+    )
+
+
     # Compatibility parameter only. A server caller may still
     # pass True, but report composition remains an explicit
     # user action.
@@ -1494,7 +1541,7 @@ def register_requested_report_finding(
                 workflow_id,
 
             source_type=
-                "document_request",
+                source_type,
 
             source_analysis_id=
                 source_analysis_id,
@@ -1528,7 +1575,7 @@ def register_requested_report_finding(
                 workflow_id,
 
             source_type=
-                "document_request",
+                source_type,
 
             finding=
                 finding,
