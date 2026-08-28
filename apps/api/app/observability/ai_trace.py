@@ -29,6 +29,11 @@ from pydantic import (
 )
 
 
+from app.observability.request_context import (
+    current_runtime_request_id,
+)
+
+
 # ============================================================
 # VERSION
 # ============================================================
@@ -250,6 +255,11 @@ class AITraceRecord(
     trace_rule_version: str = (
         AI_TRACE_RULE_VERSION
     )
+
+    request_id: (
+        str
+        | None
+    ) = None
 
     workflow_id: (
         str
@@ -1696,6 +1706,10 @@ def build_ai_trace(
                     timezone.utc
                 )
                 .isoformat()
+            ),
+
+            request_id=(
+                current_runtime_request_id()
             ),
 
             workflow_id=
