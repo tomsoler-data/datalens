@@ -70,6 +70,11 @@ from app.ml.contracts import (
 )
 
 
+from app.ml.experiment_provenance import (
+    MLExperimentProvenanceRecord,
+)
+
+
 from app.ml.estimator_contracts import (
     MLLinearRegressionHyperparameters,
     MLLogisticRegressionHyperparameters,
@@ -210,6 +215,11 @@ class ClassicalMLExecutionResult(
     )
 
 
+    experiment_provenance: (
+        MLExperimentProvenanceRecord
+    )
+
+
     model_artifact: MLModelArtifactRecord
 
 
@@ -226,7 +236,10 @@ class ClassicalMLExecutionResult(
 def _load_authorized_dataframe(
     *,
     contract: MLTrainingContract,
-) -> pd.DataFrame:
+) -> tuple[
+    pd.DataFrame,
+    int,
+]:
     """
     Resolve ML input through the exact same server-owned
     Preparation -> Analysis handoff used by deterministic
@@ -373,7 +386,10 @@ def _load_authorized_dataframe(
     return (
         dataframe.copy(
             deep=True
-        )
+        ),
+        int(
+            handoff.session_revision
+        ),
     )
 
 
@@ -1484,7 +1500,10 @@ def execute_classical_ml(
     )
 
 
-    dataframe = (
+    (
+        dataframe,
+        preparation_session_revision,
+    ) = (
         _load_authorized_dataframe(
             contract=
                 contract
@@ -1757,6 +1776,9 @@ def execute_classical_ml(
 
                 model_bytes=
                     model_bytes,
+
+                preparation_session_revision=
+                    preparation_session_revision,
             )
         )
 
@@ -1771,6 +1793,27 @@ def execute_classical_ml(
                 )
             )
         ) from error
+
+
+    experiment_provenance = (
+        model_artifact
+        .experiment_provenance
+    )
+
+
+    if (
+        experiment_provenance
+        is None
+    ):
+        raise (
+            ClassicalMLExecutorError(
+                (
+                    "Current Classical ML execution "
+                    "did not persist required "
+                    "Experiment Provenance."
+                )
+            )
+        )
 
 
     return (
@@ -1809,6 +1852,9 @@ def execute_classical_ml(
 
             baseline_comparison=
                 baseline_comparison,
+
+            experiment_provenance=
+                experiment_provenance,
 
             model_artifact=
                 model_artifact,

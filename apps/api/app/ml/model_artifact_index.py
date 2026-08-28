@@ -138,6 +138,32 @@ def _decode_json_object(
     return value
 
 
+def _decode_optional_json_object(
+    raw: object,
+    *,
+    field_name: str,
+) -> (
+    dict[
+        str,
+        Any,
+    ]
+    |
+    None
+):
+
+    if raw is None:
+        return None
+
+
+    return (
+        _decode_json_object(
+            raw,
+            field_name=
+                field_name,
+        )
+    )
+
+
 # ============================================================
 # VALIDATION
 # ============================================================
@@ -181,6 +207,34 @@ def validate_ml_model_artifact_index_entry(
     )
 
 
+    provenance = (
+        record
+        .experiment_provenance
+    )
+
+
+    experiment_provenance = (
+        provenance.model_dump(
+            mode="json"
+        )
+
+        if provenance
+        is not None
+
+        else None
+    )
+
+
+    experiment_id = (
+        provenance.experiment_id
+
+        if provenance
+        is not None
+
+        else None
+    )
+
+
     return {
         "model_id":
             record.model_id,
@@ -199,6 +253,12 @@ def validate_ml_model_artifact_index_entry(
 
         "estimator_key":
             record.training_contract.estimator_key,
+
+        "experiment_id":
+            experiment_id,
+
+        "experiment_provenance":
+            experiment_provenance,
 
         "training_contract":
             contract,
@@ -266,6 +326,17 @@ def _row_to_entry(
     )
 
 
+    experiment_provenance = (
+        _decode_optional_json_object(
+            row[
+                "experiment_provenance_json"
+            ],
+            field_name=
+                "experiment_provenance_json",
+        )
+    )
+
+
     entry = {
         "model_id":
             str(
@@ -287,6 +358,9 @@ def _row_to_entry(
                     "dataset_id"
                 ]
             ),
+
+        "experiment_provenance":
+            experiment_provenance,
 
         "training_contract":
             training_contract,
@@ -357,6 +431,39 @@ def _row_to_entry(
             entry
         )
     )
+
+
+    stored_experiment_id = (
+        str(
+            row[
+                "experiment_id"
+            ]
+        )
+
+        if row[
+            "experiment_id"
+        ]
+        is not None
+
+        else None
+    )
+
+
+    if (
+        validated[
+            "experiment_id"
+        ]
+        !=
+        stored_experiment_id
+    ):
+        raise (
+            MLModelArtifactIndexError(
+                (
+                    "Stored experiment_id does not "
+                    "match experiment provenance."
+                )
+            )
+        )
 
 
     if (
@@ -434,6 +541,11 @@ def upsert_ml_model_artifact_index_entry(
     *,
     store_path: Path,
     entry: object,
+    expected_preparation_session_revision: (
+        int
+        |
+        None
+    ) = None,
 ) -> dict[
     str,
     Any,
@@ -444,6 +556,64 @@ def upsert_ml_model_artifact_index_entry(
             entry
         )
     )
+
+
+    normalized_expected_revision = (
+        None
+    )
+
+
+    if (
+        expected_preparation_session_revision
+        is not None
+    ):
+
+        if isinstance(
+            expected_preparation_session_revision,
+            bool,
+        ):
+            raise (
+                MLModelArtifactIndexError(
+                    (
+                        "expected Preparation session "
+                        "revision must be a "
+                        "non-negative integer."
+                    )
+                )
+            )
+
+
+        try:
+            normalized_expected_revision = int(
+                expected_preparation_session_revision
+            )
+
+        except Exception as error:
+            raise (
+                MLModelArtifactIndexError(
+                    (
+                        "expected Preparation session "
+                        "revision must be a "
+                        "non-negative integer."
+                    )
+                )
+            ) from error
+
+
+        if (
+            normalized_expected_revision
+            <
+            0
+        ):
+            raise (
+                MLModelArtifactIndexError(
+                    (
+                        "expected Preparation session "
+                        "revision must be a "
+                        "non-negative integer."
+                    )
+                )
+            )
 
 
     store_root = (
@@ -471,9 +641,101 @@ def upsert_ml_model_artifact_index_entry(
     )
 
 
+    experiment_provenance_json = (
+        _canonical_json(
+            validated[
+                "experiment_provenance"
+            ]
+        )
+
+        if (
+            validated[
+                "experiment_provenance"
+            ]
+            is not None
+        )
+
+        else None
+    )
+
+
     with sqlite_connection(
         write=True
     ) as connection:
+
+        # ====================================================
+        # ATOMIC PREPARATION SNAPSHOT GUARD
+        #
+        # sqlite_connection(write=True) has already acquired
+        # BEGIN IMMEDIATE before yielding this connection.
+        #
+        # No concurrent Preparation writer can therefore change
+        # the revision between this validation and the Model
+        # Artifact metadata upsert below.
+        # ====================================================
+
+        if (
+            normalized_expected_revision
+            is not None
+        ):
+
+            revision_row = (
+                connection.execute(
+                    """
+                    SELECT revision
+                    FROM preparation_sessions
+
+                    WHERE
+                        workflow_id = ?
+                    """,
+                    (
+                        validated[
+                            "workflow_id"
+                        ],
+                    ),
+                )
+                .fetchone()
+            )
+
+
+            if revision_row is None:
+                raise (
+                    MLModelArtifactIndexError(
+                        (
+                            "Preparation workflow disappeared "
+                            "before atomic Model Artifact "
+                            "metadata persistence."
+                        )
+                    )
+                )
+
+
+            current_revision = int(
+                revision_row[
+                    "revision"
+                ]
+            )
+
+
+            if (
+                current_revision
+                !=
+                normalized_expected_revision
+            ):
+                raise (
+                    MLModelArtifactIndexError(
+                        (
+                            "Preparation session revision "
+                            "changed before atomic Model "
+                            "Artifact metadata persistence. "
+                            "expected_revision="
+                            f"{normalized_expected_revision}, "
+                            "current_revision="
+                            f"{current_revision}"
+                        )
+                    )
+                )
+
 
         connection.execute(
             """
@@ -485,6 +747,8 @@ def upsert_ml_model_artifact_index_entry(
                 problem_type,
                 target_column,
                 estimator_key,
+                experiment_id,
+                experiment_provenance_json,
                 training_contract_json,
                 metrics_json,
                 train_rows,
@@ -497,6 +761,8 @@ def upsert_ml_model_artifact_index_entry(
                 model_sha256
             )
             VALUES (
+                ?,
+                ?,
                 ?,
                 ?,
                 ?,
@@ -536,6 +802,12 @@ def upsert_ml_model_artifact_index_entry(
 
                 estimator_key =
                     excluded.estimator_key,
+
+                experiment_id =
+                    excluded.experiment_id,
+
+                experiment_provenance_json =
+                    excluded.experiment_provenance_json,
 
                 training_contract_json =
                     excluded.training_contract_json,
@@ -593,6 +865,12 @@ def upsert_ml_model_artifact_index_entry(
                 validated[
                     "estimator_key"
                 ],
+
+                validated[
+                    "experiment_id"
+                ],
+
+                experiment_provenance_json,
 
                 training_contract_json,
 

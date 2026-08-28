@@ -219,21 +219,21 @@ def expect_index_error(
 # ============================================================
 
 
-def test_schema_v8_is_applied(
+def test_schema_v8_model_artifact_table_remains_present_under_v9(
 ) -> None:
     with isolated_sqlite_database():
 
         assert (
             SQLITE_SCHEMA_VERSION
             ==
-            8
+            9
         )
 
 
         assert (
             sqlite_schema_version()
             ==
-            8
+            9
         )
 
 
@@ -971,10 +971,10 @@ def main(
     print()
 
 
-    test_schema_v8_is_applied()
+    test_schema_v8_model_artifact_table_remains_present_under_v9()
 
     print(
-        "SQLite schema v8 migration: PASS"
+        "SQLite schema v8 Model Artifact migration preserved under v9: PASS"
     )
 
 

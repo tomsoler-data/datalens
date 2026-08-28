@@ -31,6 +31,12 @@ from app.ml.classical_executor import (
 )
 
 
+from app.ml.experiment_provenance import (
+    MLExperimentProvenanceRecord,
+    ml_training_contract_sha256,
+)
+
+
 from app.ml.model_artifacts import (
     MLModelArtifactRecord,
 )
@@ -151,6 +157,11 @@ class MLModelComparisonCandidateResult(
     )
 
 
+    experiment_provenance: (
+        MLExperimentProvenanceRecord
+    )
+
+
     model_artifact: (
         MLModelArtifactRecord
     )
@@ -228,6 +239,11 @@ class MLModelComparisonExecutionResult(
 
 
     selected_estimator_key: str = Field(
+        min_length=1,
+    )
+
+
+    selected_experiment_id: str = Field(
         min_length=1,
     )
 
@@ -471,6 +487,176 @@ class MLModelComparisonExecutionResult(
 
 
         # ----------------------------------------------------
+        # EXPERIMENT PROVENANCE
+        # ----------------------------------------------------
+
+        experiment_ids = []
+
+
+        for candidate in (
+            self.candidates
+        ):
+
+            provenance = (
+                candidate
+                .experiment_provenance
+            )
+
+
+            experiment_ids.append(
+                provenance.experiment_id
+            )
+
+
+            if (
+                provenance.workflow_id
+                !=
+                self.workflow_id
+            ):
+                raise ValueError(
+                    (
+                        "Candidate Experiment Provenance "
+                        "workflow does not match "
+                        "comparison authority."
+                    )
+                )
+
+
+            if (
+                provenance.dataset_id
+                !=
+                self.dataset_id
+            ):
+                raise ValueError(
+                    (
+                        "Candidate Experiment Provenance "
+                        "dataset does not match "
+                        "comparison authority."
+                    )
+                )
+
+
+            if (
+                provenance
+                .preparation_session_revision
+                !=
+                self.preparation_session_revision
+            ):
+                raise ValueError(
+                    (
+                        "Candidate Experiment Provenance "
+                        "does not reference the pinned "
+                        "Preparation revision."
+                    )
+                )
+
+
+            if (
+                provenance.model_id
+                !=
+                candidate
+                .model_artifact
+                .model_id
+            ):
+                raise ValueError(
+                    (
+                        "Candidate Experiment Provenance "
+                        "model_id does not match "
+                        "Model Artifact."
+                    )
+                )
+
+
+            if (
+                provenance.train_rows
+                !=
+                candidate.train_rows
+                or
+                provenance.test_rows
+                !=
+                candidate.test_rows
+            ):
+                raise ValueError(
+                    (
+                        "Candidate Experiment Provenance "
+                        "holdout shape does not match "
+                        "candidate result."
+                    )
+                )
+
+
+            if (
+                provenance.metrics
+                !=
+                candidate.metrics
+            ):
+                raise ValueError(
+                    (
+                        "Candidate Experiment Provenance "
+                        "metrics do not match candidate."
+                    )
+                )
+
+
+            if (
+                candidate
+                .model_artifact
+                .experiment_provenance
+                !=
+                provenance
+            ):
+                raise ValueError(
+                    (
+                        "Candidate result and Model Artifact "
+                        "do not expose identical "
+                        "Experiment Provenance."
+                    )
+                )
+
+
+            expected_contract_sha256 = (
+                ml_training_contract_sha256(
+                    candidate
+                    .model_artifact
+                    .training_contract
+                )
+            )
+
+
+            if (
+                provenance.training_contract_sha256
+                !=
+                expected_contract_sha256
+            ):
+                raise ValueError(
+                    (
+                        "Candidate Experiment Provenance "
+                        "contract fingerprint does not "
+                        "match Model Artifact contract."
+                    )
+                )
+
+
+        if (
+            len(
+                set(
+                    experiment_ids
+                )
+            )
+            !=
+            len(
+                experiment_ids
+            )
+        ):
+            raise ValueError(
+                (
+                    "Model Comparison candidates must "
+                    "have distinct experiment_id values."
+                )
+            )
+
+
+        # ----------------------------------------------------
         # COMPLETE CANDIDATE SET
         # ----------------------------------------------------
 
@@ -577,6 +763,21 @@ class MLModelComparisonExecutionResult(
                 (
                     "selected_estimator_key must match "
                     "ranked candidate #1."
+                )
+            )
+
+
+        if (
+            self.selected_experiment_id
+            !=
+            winner
+            .experiment_provenance
+            .experiment_id
+        ):
+            raise ValueError(
+                (
+                    "selected_experiment_id must match "
+                    "ranked candidate #1 experiment."
                 )
             )
 
@@ -848,6 +1049,7 @@ def _validate_candidate_execution(
     execution_result: (
         ClassicalMLExecutionResult
     ),
+    expected_preparation_session_revision: int,
 ) -> None:
 
     # --------------------------------------------------------
@@ -980,6 +1182,153 @@ def _validate_candidate_execution(
                 (
                     "Candidate Model Artifact metrics "
                     "do not match execution metrics."
+                )
+            )
+        )
+
+
+    # --------------------------------------------------------
+    # EXPERIMENT PROVENANCE
+    # --------------------------------------------------------
+
+    provenance = (
+        execution_result
+        .experiment_provenance
+    )
+
+
+    if (
+        artifact.experiment_provenance
+        !=
+        provenance
+    ):
+        raise (
+            MLModelComparisonCandidateError(
+                (
+                    "Candidate Model Artifact and "
+                    "execution result do not expose "
+                    "identical Experiment Provenance."
+                )
+            )
+        )
+
+
+    if (
+        provenance.workflow_id
+        !=
+        comparison_contract.workflow_id
+    ):
+        raise (
+            MLModelComparisonCandidateError(
+                (
+                    "Candidate Experiment Provenance "
+                    "workflow does not match comparison."
+                )
+            )
+        )
+
+
+    if (
+        provenance.dataset_id
+        !=
+        comparison_contract.dataset_id
+    ):
+        raise (
+            MLModelComparisonCandidateError(
+                (
+                    "Candidate Experiment Provenance "
+                    "dataset does not match comparison."
+                )
+            )
+        )
+
+
+    if (
+        provenance
+        .preparation_session_revision
+        !=
+        expected_preparation_session_revision
+    ):
+        raise (
+            MLModelComparisonCandidateError(
+                (
+                    "Candidate Experiment Provenance "
+                    "does not reference the pinned "
+                    "Preparation revision."
+                )
+            )
+        )
+
+
+    if (
+        provenance.model_id
+        !=
+        artifact.model_id
+    ):
+        raise (
+            MLModelComparisonCandidateError(
+                (
+                    "Candidate Experiment Provenance "
+                    "model_id does not match "
+                    "Model Artifact."
+                )
+            )
+        )
+
+
+    if (
+        provenance.train_rows
+        !=
+        execution_result.train_rows
+        or
+        provenance.test_rows
+        !=
+        execution_result.test_rows
+    ):
+        raise (
+            MLModelComparisonCandidateError(
+                (
+                    "Candidate Experiment Provenance "
+                    "holdout shape does not match "
+                    "execution."
+                )
+            )
+        )
+
+
+    if (
+        provenance.metrics
+        !=
+        execution_result.metrics
+    ):
+        raise (
+            MLModelComparisonCandidateError(
+                (
+                    "Candidate Experiment Provenance "
+                    "metrics do not match execution."
+                )
+            )
+        )
+
+
+    expected_contract_sha256 = (
+        ml_training_contract_sha256(
+            candidate_contract
+        )
+    )
+
+
+    if (
+        provenance.training_contract_sha256
+        !=
+        expected_contract_sha256
+    ):
+        raise (
+            MLModelComparisonCandidateError(
+                (
+                    "Candidate Experiment Provenance "
+                    "contract fingerprint does not "
+                    "match candidate contract."
                 )
             )
         )
@@ -1232,6 +1581,50 @@ def _validate_execution_split_sizes(
                     )
                 )
             )
+
+
+# ============================================================
+# UNIQUE EXPERIMENT IDENTITIES
+# ============================================================
+
+
+def _validate_unique_experiment_ids(
+    *,
+    execution_results: list[
+        ClassicalMLExecutionResult
+    ],
+) -> None:
+
+    experiment_ids = [
+        execution_result
+        .experiment_provenance
+        .experiment_id
+
+        for execution_result
+        in execution_results
+    ]
+
+
+    if (
+        len(
+            set(
+                experiment_ids
+            )
+        )
+        !=
+        len(
+            experiment_ids
+        )
+    ):
+        raise (
+            MLModelComparisonExecutorError(
+                (
+                    "Model Comparison candidates "
+                    "produced duplicate experiment_id "
+                    "values."
+                )
+            )
+        )
 
 
 # ============================================================
@@ -1606,6 +1999,9 @@ def execute_ml_model_comparison(
 
             execution_result=
                 execution_result,
+
+            expected_preparation_session_revision=
+                preparation_session_revision,
         )
 
 
@@ -1631,6 +2027,12 @@ def execute_ml_model_comparison(
     # ========================================================
 
     _validate_execution_split_sizes(
+        execution_results=
+            execution_results
+    )
+
+
+    _validate_unique_experiment_ids(
         execution_results=
             execution_results
     )
@@ -1722,6 +2124,11 @@ def execute_ml_model_comparison(
                     .baseline_comparison
                 ),
 
+                experiment_provenance=(
+                    execution_result
+                    .experiment_provenance
+                ),
+
                 model_artifact=
                     execution_result
                     .model_artifact,
@@ -1767,6 +2174,12 @@ def execute_ml_model_comparison(
 
             selected_estimator_key=
                 winner.estimator_key,
+
+            selected_experiment_id=(
+                winner
+                .experiment_provenance
+                .experiment_id
+            ),
 
             selected_model_id=
                 winner

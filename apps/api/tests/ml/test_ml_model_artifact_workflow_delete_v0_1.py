@@ -109,7 +109,7 @@ with tempfile.TemporaryDirectory(
     assert (
         sqlite_schema_version()
         ==
-        8
+        9
     )
 
 

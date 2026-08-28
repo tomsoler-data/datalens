@@ -36,7 +36,7 @@ SQLITE_DATABASE_RULE_VERSION = (
 )
 
 SQLITE_SCHEMA_VERSION = (
-    8
+    9
 )
 
 DATALENS_SQLITE_PATH_ENV = (
@@ -1332,6 +1332,136 @@ def _apply_schema_migrations(
                     (
                         8,
                         "ml_model_artifact_metadata_index",
+                        utc_now_iso(),
+                    ),
+                )
+
+
+                connection.execute(
+                    "COMMIT"
+                )
+
+
+            except Exception:
+                if connection.in_transaction:
+                    connection.execute(
+                        "ROLLBACK"
+                    )
+
+                raise
+
+
+        # ====================================================
+        # SQLITE_SCHEMA_V9_ML_EXPERIMENT_PROVENANCE
+        # ML_EXPERIMENT_PROVENANCE_V0_1
+        # ====================================================
+
+
+        if (
+            current_version
+            <
+            9
+        ):
+            connection.execute(
+                "BEGIN IMMEDIATE"
+            )
+
+            try:
+                existing_columns = {
+                    str(
+                        row[
+                            "name"
+                        ]
+                    )
+
+                    for row
+                    in connection.execute(
+                        """
+                        PRAGMA table_info(
+                            ml_model_artifacts
+                        )
+                        """
+                    ).fetchall()
+                }
+
+
+                # Legacy v8 Model Artifacts cannot honestly be
+                # assigned a historical Preparation revision
+                # that was never persisted.
+                #
+                # The new columns therefore remain nullable for
+                # backward compatibility. Every Model Artifact
+                # created after Experiment Provenance is wired
+                # into the store will populate both fields.
+
+                if (
+                    "experiment_id"
+                    not in
+                    existing_columns
+                ):
+                    connection.execute(
+                        """
+                        ALTER TABLE
+                            ml_model_artifacts
+
+                        ADD COLUMN
+                            experiment_id TEXT
+                        """
+                    )
+
+
+                if (
+                    "experiment_provenance_json"
+                    not in
+                    existing_columns
+                ):
+                    connection.execute(
+                        """
+                        ALTER TABLE
+                            ml_model_artifacts
+
+                        ADD COLUMN
+                            experiment_provenance_json TEXT
+                        """
+                    )
+
+
+                connection.execute(
+                    """
+                    CREATE UNIQUE INDEX IF NOT EXISTS
+                    idx_ml_model_artifacts_scope_experiment
+
+                    ON ml_model_artifacts (
+                        store_root,
+                        experiment_id
+                    )
+
+                    WHERE
+                        experiment_id
+                        IS NOT NULL
+                    """
+                )
+
+
+                connection.execute(
+                    """
+                    INSERT INTO schema_migrations (
+                        version,
+                        name,
+                        applied_at
+                    )
+                    VALUES (
+                        ?,
+                        ?,
+                        ?
+                    )
+                    """,
+                    (
+                        9,
+                        (
+                            "ml_experiment_"
+                            "provenance_metadata"
+                        ),
                         utc_now_iso(),
                     ),
                 )
