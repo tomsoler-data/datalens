@@ -36,7 +36,7 @@ SQLITE_DATABASE_RULE_VERSION = (
 )
 
 SQLITE_SCHEMA_VERSION = (
-    10
+    11
 )
 
 DATALENS_SQLITE_PATH_ENV = (
@@ -1661,6 +1661,205 @@ def _apply_schema_migrations(
                     )
 
                 raise
+
+
+        # ====================================================
+        # SQLITE_SCHEMA_V11_ML_DRIFT_EVALUATION
+        # ML_DRIFT_EVALUATION_STORE_V0_1
+        # ====================================================
+
+
+        if (
+            current_version
+            <
+            11
+        ):
+            connection.execute(
+                "BEGIN IMMEDIATE"
+            )
+
+            try:
+                connection.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS
+                    ml_drift_evaluations (
+                        store_root TEXT NOT NULL,
+
+                        evaluation_id TEXT NOT NULL,
+
+                        profile_id TEXT NOT NULL,
+
+                        model_id TEXT NOT NULL,
+
+                        workflow_id TEXT NOT NULL,
+
+                        reference_dataset_id TEXT NOT NULL,
+
+                        observed_dataset_id TEXT NOT NULL,
+
+                        experiment_id TEXT NOT NULL,
+
+                        preparation_session_revision
+                            INTEGER NOT NULL
+                            CHECK (
+                                preparation_session_revision
+                                >=
+                                0
+                            ),
+
+                        training_contract_sha256
+                            TEXT NOT NULL
+                            CHECK (
+                                length(
+                                    training_contract_sha256
+                                )
+                                =
+                                64
+                            ),
+
+                        evaluated_at_utc TEXT NOT NULL,
+
+                        observed_row_count INTEGER NOT NULL
+                            CHECK (
+                                observed_row_count
+                                >
+                                0
+                            ),
+
+                        warning_feature_count INTEGER NOT NULL
+                            CHECK (
+                                warning_feature_count
+                                >=
+                                0
+                            ),
+
+                        drift_feature_count INTEGER NOT NULL
+                            CHECK (
+                                drift_feature_count
+                                >=
+                                0
+                            ),
+
+                        overall_status TEXT NOT NULL
+                            CHECK (
+                                overall_status
+                                IN (
+                                    'ok',
+                                    'warning',
+                                    'drift'
+                                )
+                            ),
+
+                        privacy_scope TEXT NOT NULL
+                            CHECK (
+                                privacy_scope
+                                =
+                                'aggregate_only'
+                            ),
+
+                        rule_version TEXT NOT NULL,
+
+                        payload_json TEXT NOT NULL,
+
+                        PRIMARY KEY (
+                            store_root,
+                            evaluation_id
+                        ),
+
+                        FOREIGN KEY (
+                            store_root,
+                            profile_id
+                        )
+                        REFERENCES ml_monitoring_profiles (
+                            store_root,
+                            profile_id
+                        )
+                        ON DELETE CASCADE
+                    )
+                    """
+                )
+
+
+                connection.execute(
+                    """
+                    CREATE INDEX IF NOT EXISTS
+                    idx_ml_drift_evaluations_scope_workflow
+
+                    ON ml_drift_evaluations (
+                        store_root,
+                        workflow_id,
+                        evaluated_at_utc,
+                        evaluation_id
+                    )
+                    """
+                )
+
+
+                connection.execute(
+                    """
+                    CREATE INDEX IF NOT EXISTS
+                    idx_ml_drift_evaluations_scope_model
+
+                    ON ml_drift_evaluations (
+                        store_root,
+                        model_id,
+                        evaluated_at_utc,
+                        evaluation_id
+                    )
+                    """
+                )
+
+
+                connection.execute(
+                    """
+                    CREATE INDEX IF NOT EXISTS
+                    idx_ml_drift_evaluations_scope_observed_dataset
+
+                    ON ml_drift_evaluations (
+                        store_root,
+                        workflow_id,
+                        observed_dataset_id,
+                        evaluated_at_utc,
+                        evaluation_id
+                    )
+                    """
+                )
+
+
+                connection.execute(
+                    """
+                    INSERT INTO schema_migrations (
+                        version,
+                        name,
+                        applied_at
+                    )
+                    VALUES (
+                        ?,
+                        ?,
+                        ?
+                    )
+                    """,
+                    (
+                        11,
+                        "ml_drift_evaluation_metadata",
+                        utc_now_iso(),
+                    ),
+                )
+
+
+                connection.execute(
+                    "COMMIT"
+                )
+
+
+            except Exception:
+                if connection.in_transaction:
+                    connection.execute(
+                        "ROLLBACK"
+                    )
+
+                raise
+
 
 
 # ============================================================

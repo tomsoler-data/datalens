@@ -386,9 +386,11 @@ def test_sqlite_schema_v10(
 
     with isolated_environment():
 
+        # Schema v10 introduced the Monitoring Profile.
+        # Later schemas must preserve that migration.
         assert (
             SQLITE_SCHEMA_VERSION
-            ==
+            >=
             10
         )
 
@@ -396,7 +398,7 @@ def test_sqlite_schema_v10(
         assert (
             sqlite_schema_version()
             ==
-            10
+            SQLITE_SCHEMA_VERSION
         )
 
 
