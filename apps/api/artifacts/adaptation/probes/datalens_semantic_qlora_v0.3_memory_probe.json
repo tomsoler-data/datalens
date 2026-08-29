@@ -1,0 +1,100 @@
+{
+  "base_model_family": "gemma3",
+  "base_model_repository": "google/gemma-3-4b-it",
+  "base_model_revision": "093f9f388b31de276ce2de164bdc2081324b9767",
+  "batch": {
+    "actual_token_count": 256,
+    "final_training_collator": false,
+    "kind": "configured_max_sequence_stress_batch",
+    "shape": [
+      1,
+      256
+    ],
+    "source": "frozen_adaptation_training_dataset_only"
+  },
+  "configuration": {
+    "compute_dtype": "bfloat16",
+    "gradient_accumulation_steps": 8,
+    "gradient_checkpointing": true,
+    "lora_alpha": 32,
+    "lora_dropout": 0.05,
+    "lora_rank": 16,
+    "micro_batch_size": 1,
+    "quantization": "nf4",
+    "sequence_length": 256,
+    "target_module_count": 238,
+    "trainable_parameter_count": 29802496,
+    "trainable_tensor_count": 476
+  },
+  "dataset_length_evidence": {
+    "configured_sequence_length": 256,
+    "example_count": 40,
+    "examples_requiring_truncation": 0,
+    "maximum_real_example_tokens": 85
+  },
+  "device": {
+    "compute_capability": "8.9",
+    "free_vram_before_load_bytes": 7441743872,
+    "name": "NVIDIA GeForce RTX 4060",
+    "total_vram_bytes": 8585216000
+  },
+  "environment": {
+    "bitsandbytes": "0.50.2",
+    "peft": "0.20.0",
+    "torch": "2.11.0+cu128",
+    "transformers": "5.16.1"
+  },
+  "experiment_contract_freeze_sha256": "9e7eaedefe9823bf070e1c4c25574ee42cc0081bd8bf3f1810255609cda4559c",
+  "experiment_contract_sha256": "609954fe4f06ace47000475053dcb011a4337e36122678860fb744eff645f92e",
+  "experiment_id": "datalens-semantic-qlora-v0.3",
+  "final_acceptance_freeze_sha256": "11615352547f152b91e592066142c3431b557c5f620018380b71b931cb77a736",
+  "memory_bytes": {
+    "allocated_after_backward": 4873788416,
+    "allocated_after_forward": 5101081600,
+    "allocated_after_lora_attach": 4462737920,
+    "allocated_after_model_cleanup": 17214464,
+    "allocated_after_zero_grad": 4479941120,
+    "allocated_before_forward": 4462744064,
+    "free_after_backward": 1046712320,
+    "free_after_forward": 1181126656,
+    "free_before_forward": 1204129792,
+    "peak_allocated": 5638081024,
+    "peak_allocated_headroom": 2947134976,
+    "peak_reserved": 5999951872,
+    "peak_reserved_headroom": 2585264128,
+    "physical_used_after_backward": 7538503680,
+    "reserved_after_backward": 5999951872,
+    "reserved_after_forward": 5874122752,
+    "reserved_after_lora_attach": 5867831296,
+    "reserved_after_model_cleanup": 2954887168,
+    "reserved_after_zero_grad": 5999951872,
+    "reserved_before_forward": 5867831296
+  },
+  "memory_classification": "healthy_pre_optimizer_headroom",
+  "passed": true,
+  "probe_id": "datalens-semantic-qlora-v0.3-memory-probe",
+  "result": {
+    "gradient_norm": 27.559787033789906,
+    "gradient_tensor_count": 476,
+    "loss": 8.286471366882324,
+    "loss_finite": true,
+    "nonfinite_gradient_count": 0,
+    "weights_unchanged": true
+  },
+  "rule_version": "qlora_one_batch_memory_probe_v0.2",
+  "safety": {
+    "final_acceptance_cases_loaded": false,
+    "final_acceptance_evaluated": false,
+    "model_weights_saved": false,
+    "optimizer_created": false,
+    "optimizer_step_executed": false,
+    "pre_adaptation_holdouts_executed": false,
+    "scheduler_created": false,
+    "scheduler_step_executed": false,
+    "trainer_created": false,
+    "trainer_train_called": false
+  },
+  "source_v0_2_memory_probe_sha256": "900c321e2c4eb3cf3224ce46dcb3e22fff75e74bdaa8fb1dfdd528b4d965e6f4",
+  "token_length_audit_sha256": "b4e0011edc709f572789a40c659d792b0ea1809eba9b0cfd7fa3507389e40e94",
+  "training_dataset_sha256": "4d7f1d8defeeb956448e31d776e5310795326b08ec5ddaf24091bd493c42f892"
+}
