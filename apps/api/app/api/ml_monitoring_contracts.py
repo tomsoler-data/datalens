@@ -14,6 +14,11 @@ from pydantic import (
 )
 
 
+from app.ml.drift_evaluation import (
+    MLDriftEvaluationRecord,
+)
+
+
 # ============================================================
 # VERSION
 # ============================================================
@@ -171,3 +176,80 @@ class MLMonitoringAPIErrorDetail(
     api_version: Literal[
         "ml_monitoring_api_v0.1"
     ] = "ml_monitoring_api_v0.1"
+
+
+# ============================================================
+# MODEL HISTORY RESPONSE
+# ============================================================
+
+
+class MLMonitoringModelHistoryResponse(
+    BaseModel
+):
+
+    model_config = ConfigDict(
+        extra="forbid",
+        frozen=True,
+    )
+
+
+    workflow_id: str = Field(
+        min_length=1,
+    )
+
+
+    model_id: str = Field(
+        min_length=1,
+    )
+
+
+    evaluation_count: int = Field(
+        ge=0,
+        strict=True,
+    )
+
+
+    evaluations: list[
+        MLDriftEvaluationRecord
+    ]
+
+
+    api_version: Literal[
+        "ml_monitoring_history_api_v0.1"
+    ] = "ml_monitoring_history_api_v0.1"
+
+
+# ============================================================
+# WORKFLOW HISTORY RESPONSE
+# ============================================================
+
+
+class MLMonitoringWorkflowHistoryResponse(
+    BaseModel
+):
+
+    model_config = ConfigDict(
+        extra="forbid",
+        frozen=True,
+    )
+
+
+    workflow_id: str = Field(
+        min_length=1,
+    )
+
+
+    evaluation_count: int = Field(
+        ge=0,
+        strict=True,
+    )
+
+
+    evaluations: list[
+        MLDriftEvaluationRecord
+    ]
+
+
+    api_version: Literal[
+        "ml_monitoring_history_api_v0.1"
+    ] = "ml_monitoring_history_api_v0.1"
