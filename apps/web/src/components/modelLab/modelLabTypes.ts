@@ -900,6 +900,208 @@ export type ModelLabPerformanceStatus =
 
 
 /* ============================================================
+   MONITORING HISTORY
+============================================================ */
+
+
+export type ModelLabDriftEvaluationRecord = {
+  evaluation_id:
+    string;
+
+  profile_id:
+    string;
+
+  model_id:
+    string;
+
+  workflow_id:
+    string;
+
+  reference_dataset_id:
+    string;
+
+  observed_dataset_id:
+    string;
+
+  observed_preparation_session_revision:
+    number
+    | null;
+
+  experiment_id:
+    string;
+
+  preparation_session_revision:
+    number;
+
+  training_contract_sha256:
+    string;
+
+  evaluated_at_utc:
+    string;
+
+  observed_row_count:
+    number;
+
+  feature_results:
+    ModelLabJsonObject[];
+
+  warning_feature_count:
+    number;
+
+  drift_feature_count:
+    number;
+
+  overall_status:
+    ModelLabDriftStatus;
+
+  privacy_scope:
+    ModelLabMonitoringPrivacyScope;
+
+  rule_version:
+    "ml_drift_evaluation_v0.1";
+};
+
+
+export type ModelLabDriftHistoryResponse = {
+  workflow_id:
+    string;
+
+  model_id:
+    string;
+
+  evaluation_count:
+    number;
+
+  evaluations:
+    ModelLabDriftEvaluationRecord[];
+
+  api_version:
+    "ml_monitoring_history_api_v0.1";
+};
+
+
+export type ModelLabPerformanceMetricDirection =
+  | "higher_is_better"
+  | "lower_is_better";
+
+
+export type ModelLabPerformanceMetricComparison = {
+  metric_name:
+    string;
+
+  direction:
+    ModelLabPerformanceMetricDirection;
+
+  reference_value:
+    number;
+
+  observed_value:
+    number;
+
+  delta:
+    number;
+
+  degradation_amount:
+    number;
+};
+
+
+export type ModelLabPerformanceEvaluationRecord = {
+  performance_evaluation_id:
+    string;
+
+  model_id:
+    string;
+
+  workflow_id:
+    string;
+
+  reference_dataset_id:
+    string;
+
+  observed_dataset_id:
+    string;
+
+  experiment_id:
+    string;
+
+  preparation_session_revision:
+    number;
+
+  observed_preparation_session_revision:
+    number;
+
+  training_contract_sha256:
+    string;
+
+  problem_type:
+    ModelLabProblemType;
+
+  target_column:
+    string;
+
+  reference_evaluation_scope:
+    "training_holdout";
+
+  observed_evaluation_scope:
+    "validated_observed_dataset";
+
+  reference_evaluation_row_count:
+    number;
+
+  observed_row_count:
+    number;
+
+  evaluated_at_utc:
+    string;
+
+  metric_results:
+    ModelLabPerformanceMetricComparison[];
+
+  primary_metric:
+    string;
+
+  primary_metric_degradation_amount:
+    number;
+
+  primary_metric_degradation_ratio:
+    number
+    | null;
+
+  degradation_basis:
+    | "absolute_points"
+    | "relative_increase";
+
+  performance_status:
+    ModelLabPerformanceStatus;
+
+  privacy_scope:
+    ModelLabMonitoringPrivacyScope;
+
+  rule_version:
+    "ml_performance_evaluation_v0.1";
+};
+
+
+export type ModelLabPerformanceHistoryResponse = {
+  workflow_id:
+    string;
+
+  model_id:
+    string;
+
+  evaluation_count:
+    number;
+
+  evaluations:
+    ModelLabPerformanceEvaluationRecord[];
+
+  api_version:
+    "ml_performance_monitoring_history_api_v0.1";
+};
+
+
+/* ============================================================
    MODEL HEALTH
 ============================================================ */
 
@@ -1086,5 +1288,7 @@ export type ModelLabApiErrorDetail = {
   api_version:
     | "model_lab_api_v0.1"
     | "ml_model_health_api_v0.1"
-    | "ml_monitoring_alert_api_v0.1";
+    | "ml_monitoring_alert_api_v0.1"
+    | "ml_monitoring_api_v0.1"
+    | "ml_performance_monitoring_api_v0.1";
 };

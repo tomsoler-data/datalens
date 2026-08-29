@@ -25,6 +25,10 @@ import type {
 } from "./modelLabTypes";
 
 
+import ModelMonitoringHistoryPanel
+  from "./ModelMonitoringHistoryPanel";
+
+
 import styles
   from "./ModelObservabilityPanel.module.css";
 
@@ -1267,6 +1271,16 @@ export default function ModelObservabilityPanel({
                     </small>
                   </div>
                 </div>
+
+
+                <ModelMonitoringHistoryPanel
+                  workflowId={
+                    workflowId
+                  }
+                  modelId={
+                    modelId
+                  }
+                />
               </>
             )
           : null
