@@ -89,6 +89,11 @@ from app.api.ml_model_health import (
     router as ml_model_health_router,
 )
 
+
+from app.api.ml_monitoring_alert import (
+    router as ml_monitoring_alert_router,
+)
+
 from app.api.routes import (
     router as api_router,
 )
@@ -418,4 +423,15 @@ app.include_router(
 
 app.include_router(
     ml_model_health_router
+)
+
+
+
+# ============================================================
+# ML MONITORING ALERT
+# ============================================================
+
+
+app.include_router(
+    ml_monitoring_alert_router
 )
