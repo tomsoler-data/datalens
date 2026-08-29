@@ -852,6 +852,215 @@ export type ModelLabPredictResponse = {
 
 
 /* ============================================================
+   MODEL MONITORING ? SHARED
+============================================================ */
+
+
+export type ModelLabMonitoringPrivacyScope =
+  "aggregate_only";
+
+
+export type ModelLabModelHealthStatus =
+  | "insufficient_evidence"
+  | "healthy"
+  | "attention"
+  | "critical";
+
+
+export type ModelLabModelHealthReason =
+  | "no_monitoring_evidence"
+  | "drift_only_ok"
+  | "performance_only_ok"
+  | "aligned_evidence_ok"
+  | "evidence_misaligned"
+  | "evidence_unverifiable"
+  | "drift_signal"
+  | "performance_warning"
+  | "performance_degraded";
+
+
+export type ModelLabEvidenceAlignment =
+  | "none"
+  | "single_source"
+  | "aligned"
+  | "misaligned"
+  | "unverifiable";
+
+
+export type ModelLabDriftStatus =
+  | "ok"
+  | "warning"
+  | "drift";
+
+
+export type ModelLabPerformanceStatus =
+  | "ok"
+  | "warning"
+  | "degraded";
+
+
+/* ============================================================
+   MODEL HEALTH
+============================================================ */
+
+
+export type ModelLabModelHealthSummary = {
+  workflow_id:
+    string;
+
+  model_id:
+    string;
+
+  health_status:
+    ModelLabModelHealthStatus;
+
+  health_reason:
+    ModelLabModelHealthReason;
+
+  evidence_alignment:
+    ModelLabEvidenceAlignment;
+
+  joint_interpretation_allowed:
+    boolean;
+
+  drift_evaluation_id:
+    string
+    | null;
+
+  drift_status:
+    ModelLabDriftStatus
+    | null;
+
+  drift_observed_dataset_id:
+    string
+    | null;
+
+  drift_observed_preparation_session_revision:
+    number
+    | null;
+
+  drift_observed_row_count:
+    number
+    | null;
+
+  drift_evaluated_at_utc:
+    string
+    | null;
+
+  performance_evaluation_id:
+    string
+    | null;
+
+  performance_status:
+    ModelLabPerformanceStatus
+    | null;
+
+  performance_observed_dataset_id:
+    string
+    | null;
+
+  performance_observed_preparation_session_revision:
+    number
+    | null;
+
+  performance_observed_row_count:
+    number
+    | null;
+
+  performance_evaluated_at_utc:
+    string
+    | null;
+
+  privacy_scope:
+    ModelLabMonitoringPrivacyScope;
+
+  rule_version:
+    "ml_model_health_v0.1";
+};
+
+
+/* ============================================================
+   MONITORING ALERT
+============================================================ */
+
+
+export type ModelLabMonitoringAlertCategory =
+  | "none"
+  | "monitoring_gap"
+  | "evidence_alignment_gap"
+  | "data_shift"
+  | "performance_warning"
+  | "performance_degradation";
+
+
+export type ModelLabMonitoringAlertSeverity =
+  | "none"
+  | "info"
+  | "warning"
+  | "critical";
+
+
+export type ModelLabMonitoringAlertAction =
+  | "no_action"
+  | "establish_monitoring_evidence"
+  | "complete_monitoring_evidence"
+  | "align_monitoring_snapshots"
+  | "review_observed_data_distribution"
+  | "review_model_performance"
+  | "investigate_model_degradation";
+
+
+export type ModelLabMonitoringAlertDecision = {
+  workflow_id:
+    string;
+
+  model_id:
+    string;
+
+  health_status:
+    ModelLabModelHealthStatus;
+
+  health_reason:
+    ModelLabModelHealthReason;
+
+  evidence_alignment:
+    ModelLabEvidenceAlignment;
+
+  joint_interpretation_allowed:
+    boolean;
+
+  alert_active:
+    boolean;
+
+  alert_category:
+    ModelLabMonitoringAlertCategory;
+
+  severity:
+    ModelLabMonitoringAlertSeverity;
+
+  recommended_action:
+    ModelLabMonitoringAlertAction;
+
+  notification_recommended:
+    boolean;
+
+  drift_evaluation_id:
+    string
+    | null;
+
+  performance_evaluation_id:
+    string
+    | null;
+
+  privacy_scope:
+    ModelLabMonitoringPrivacyScope;
+
+  rule_version:
+    "ml_monitoring_alert_v0.1";
+};
+
+
+/* ============================================================
    STRUCTURED API ERROR
 ============================================================ */
 
@@ -875,5 +1084,7 @@ export type ModelLabApiErrorDetail = {
     boolean;
 
   api_version:
-    "model_lab_api_v0.1";
+    | "model_lab_api_v0.1"
+    | "ml_model_health_api_v0.1"
+    | "ml_monitoring_alert_api_v0.1";
 };

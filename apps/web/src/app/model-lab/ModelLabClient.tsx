@@ -30,6 +30,10 @@ import {
   predictModelLabRows,
 } from "../../components/modelLab/modelPredictionApi";
 
+
+import ModelObservabilityPanel
+  from "../../components/modelLab/ModelObservabilityPanel";
+
 import type {
   ModelLabEstimatorHyperparameters,
   ModelLabModelCard,
@@ -652,7 +656,7 @@ function evaluationLimitationLabel(
         "Aucun seuil de décision spécifique",
 
       requested_threshold_not_optimized:
-        "Le seuil demand? n'est pas optimis?",
+        "Le seuil demandé n'est pas optimisé",
     };
 
 
@@ -3326,7 +3330,7 @@ export default function ModelLabClient() {
                                   <small>
                                     {
                                       selectedTrainingDataset.row_count
-                                    } lignes ? {
+                                    } lignes · {
                                       selectedTrainingDataset.column_count
                                     } colonnes
                                   </small>
@@ -3426,7 +3430,7 @@ export default function ModelLabClient() {
                                           >
                                             {
                                               column.name
-                                            } ? {
+                                            } · {
                                               trainingColumnKindLabel(
                                                 column.kind
                                               )
@@ -3593,7 +3597,7 @@ export default function ModelLabClient() {
                                                 }
                                                 {
                                                   column.nullable
-                                                    ? " ? valeurs manquantes"
+                                                    ? " · valeurs manquantes"
                                                     : ""
                                                 }
                                               </small>
@@ -4071,7 +4075,7 @@ export default function ModelLabClient() {
                                     >
                                       {
                                         evaluationSubmitting
-                                          ? "évaluation en cours?"
+                                          ? "Évaluation en cours…"
                                           : (
                                               selectedEvaluation
                                                 ? "Réévaluer"
@@ -4165,6 +4169,22 @@ export default function ModelLabClient() {
                                     )
                                   }
                                 </div>
+
+
+                                {
+                                  workflowId
+                                    ? (
+                                        <ModelObservabilityPanel
+                                          workflowId={
+                                            workflowId
+                                          }
+                                          modelId={
+                                            selectedModel.model_id
+                                          }
+                                        />
+                                      )
+                                    : null
+                                }
 
 
                                 {

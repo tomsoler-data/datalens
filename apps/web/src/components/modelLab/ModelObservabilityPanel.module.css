@@ -1,0 +1,709 @@
+.panel {
+  margin-top:
+    22px;
+
+  padding:
+    20px;
+
+  border:
+    1px solid
+    var(
+      --border
+    );
+
+  border-radius:
+    var(
+      --radius-md
+    );
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(
+        115,
+        169,
+        255,
+        0.035
+      ),
+      rgba(
+        255,
+        255,
+        255,
+        0.012
+      )
+    );
+}
+
+
+.header {
+  display:
+    flex;
+
+  align-items:
+    flex-start;
+
+  justify-content:
+    space-between;
+
+  gap:
+    20px;
+}
+
+
+.eyebrow {
+  margin:
+    0 0 8px;
+
+  color:
+    var(
+      --accent
+    );
+
+  font-size:
+    0.7rem;
+
+  font-weight:
+    800;
+
+  letter-spacing:
+    0.12em;
+
+  text-transform:
+    uppercase;
+}
+
+
+.header h3 {
+  margin:
+    0;
+
+  color:
+    var(
+      --text
+    );
+
+  font-size:
+    1.05rem;
+}
+
+
+.subtitle {
+  max-width:
+    650px;
+
+  margin:
+    8px 0 0;
+
+  color:
+    var(
+      --text-soft
+    );
+
+  font-size:
+    0.78rem;
+
+  line-height:
+    1.55;
+}
+
+
+.refreshButton {
+  flex:
+    0 0 auto;
+
+  min-height:
+    36px;
+
+  padding:
+    0 13px;
+
+  border:
+    1px solid
+    var(
+      --border-strong
+    );
+
+  border-radius:
+    10px;
+
+  color:
+    var(
+      --text-soft
+    );
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.02
+    );
+
+  cursor:
+    pointer;
+
+  font-size:
+    0.72rem;
+
+  font-weight:
+    700;
+}
+
+
+.refreshButton:hover:not(
+  :disabled
+) {
+  color:
+    var(
+      --text
+    );
+
+  border-color:
+    rgba(
+      115,
+      169,
+      255,
+      0.35
+    );
+}
+
+
+.refreshButton:disabled {
+  opacity:
+    0.55;
+
+  cursor:
+    default;
+}
+
+
+.loadingState,
+.errorState {
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    12px;
+
+  margin-top:
+    18px;
+
+  padding:
+    14px;
+
+  border:
+    1px solid
+    var(
+      --border
+    );
+
+  border-radius:
+    var(
+      --radius-sm
+    );
+
+  color:
+    var(
+      --text-soft
+    );
+
+  font-size:
+    0.76rem;
+}
+
+
+.loadingDot {
+  flex:
+    0 0 auto;
+
+  width:
+    8px;
+
+  height:
+    8px;
+
+  border-radius:
+    50%;
+
+  background:
+    var(
+      --accent
+    );
+
+  box-shadow:
+    0 0 0 6px
+    rgba(
+      115,
+      169,
+      255,
+      0.08
+    );
+}
+
+
+.errorState {
+  align-items:
+    flex-start;
+
+  flex-direction:
+    column;
+
+  border-color:
+    rgba(
+      255,
+      156,
+      156,
+      0.22
+    );
+}
+
+
+.errorState strong {
+  color:
+    var(
+      --danger
+    );
+}
+
+
+.summaryGrid {
+  display:
+    grid;
+
+  grid-template-columns:
+    repeat(
+      4,
+      minmax(
+        0,
+        1fr
+      )
+    );
+
+  gap:
+    10px;
+
+  margin-top:
+    20px;
+}
+
+
+.summaryCard {
+  min-width:
+    0;
+
+  padding:
+    15px;
+
+  border:
+    1px solid
+    var(
+      --border
+    );
+
+  border-radius:
+    var(
+      --radius-sm
+    );
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.014
+    );
+}
+
+
+.cardLabel {
+  display:
+    block;
+
+  color:
+    var(
+      --text-muted
+    );
+
+  font-size:
+    0.65rem;
+
+  font-weight:
+    700;
+
+  letter-spacing:
+    0.08em;
+
+  text-transform:
+    uppercase;
+}
+
+
+.cardValue {
+  display:
+    block;
+
+  margin-top:
+    9px;
+
+  color:
+    var(
+      --text
+    );
+
+  font-size:
+    0.98rem;
+
+  line-height:
+    1.3;
+}
+
+
+.summaryCard small {
+  display:
+    block;
+
+  margin-top:
+    7px;
+
+  color:
+    var(
+      --text-soft
+    );
+
+  font-size:
+    0.69rem;
+
+  line-height:
+    1.45;
+}
+
+
+.positive {
+  color:
+    var(
+      --success
+    );
+}
+
+
+.warning {
+  color:
+    var(
+      --warning
+    );
+}
+
+
+.critical {
+  color:
+    var(
+      --danger
+    );
+}
+
+
+.info {
+  color:
+    var(
+      --accent-strong
+    );
+}
+
+
+.evidenceMeta {
+  display:
+    grid;
+
+  gap:
+    5px;
+
+  margin-top:
+    8px;
+
+  color:
+    var(
+      --text-muted
+    );
+
+  font-size:
+    0.66rem;
+
+  line-height:
+    1.4;
+}
+
+
+.evidenceMeta code {
+  overflow:
+    hidden;
+
+  color:
+    var(
+      --text-soft
+    );
+
+  font-size:
+    0.62rem;
+
+  text-overflow:
+    ellipsis;
+
+  white-space:
+    nowrap;
+}
+
+
+.interpretation {
+  display:
+    grid;
+
+  grid-template-columns:
+    minmax(
+      170px,
+      0.7fr
+    )
+    minmax(
+      0,
+      1.3fr
+    );
+
+  gap:
+    18px;
+
+  align-items:
+    center;
+
+  margin-top:
+    10px;
+
+  padding:
+    14px 15px;
+
+  border:
+    1px solid
+    rgba(
+      240,
+      196,
+      123,
+      0.18
+    );
+
+  border-radius:
+    var(
+      --radius-sm
+    );
+
+  background:
+    rgba(
+      240,
+      196,
+      123,
+      0.025
+    );
+}
+
+
+.interpretationAligned {
+  border-color:
+    rgba(
+      130,
+      217,
+      182,
+      0.18
+    );
+
+  background:
+    rgba(
+      130,
+      217,
+      182,
+      0.025
+    );
+}
+
+
+.interpretation span,
+.actionCard span {
+  display:
+    block;
+
+  color:
+    var(
+      --text-muted
+    );
+
+  font-size:
+    0.65rem;
+
+  font-weight:
+    700;
+
+  letter-spacing:
+    0.07em;
+
+  text-transform:
+    uppercase;
+}
+
+
+.interpretation strong {
+  display:
+    block;
+
+  margin-top:
+    6px;
+
+  color:
+    var(
+      --text
+    );
+
+  font-size:
+    0.78rem;
+}
+
+
+.interpretation p {
+  margin:
+    0;
+
+  color:
+    var(
+      --text-soft
+    );
+
+  font-size:
+    0.72rem;
+
+  line-height:
+    1.55;
+}
+
+
+.actionGrid {
+  display:
+    grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(
+        0,
+        1fr
+      )
+    );
+
+  gap:
+    10px;
+
+  margin-top:
+    10px;
+}
+
+
+.actionCard {
+  min-width:
+    0;
+
+  padding:
+    14px 15px;
+
+  border:
+    1px solid
+    var(
+      --border
+    );
+
+  border-radius:
+    var(
+      --radius-sm
+    );
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.012
+    );
+}
+
+
+.actionCard strong {
+  display:
+    block;
+
+  margin-top:
+    7px;
+
+  font-size:
+    0.78rem;
+
+  line-height:
+    1.45;
+}
+
+
+.actionCard small {
+  display:
+    block;
+
+  margin-top:
+    6px;
+
+  color:
+    var(
+      --text-muted
+    );
+
+  font-size:
+    0.66rem;
+
+  line-height:
+    1.45;
+}
+
+
+@media (
+  max-width:
+    1150px
+) {
+  .summaryGrid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(
+          0,
+          1fr
+        )
+      );
+  }
+}
+
+
+@media (
+  max-width:
+    720px
+) {
+  .header {
+    flex-direction:
+      column;
+  }
+
+
+  .summaryGrid,
+  .actionGrid,
+  .interpretation {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .refreshButton {
+    align-self:
+      flex-start;
+  }
+}
