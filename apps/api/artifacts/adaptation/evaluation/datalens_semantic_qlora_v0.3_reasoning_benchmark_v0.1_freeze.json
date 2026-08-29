@@ -1,0 +1,98 @@
+{
+  "acceptance_authority": false,
+  "benchmark_id": "adaptation:semantic_reasoning:hotel:v0.1",
+  "benchmark_version": "datalens_adapted_semantic_reasoning_hotel_v0.1",
+  "case_artifact_relative_path": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.3_reasoning_benchmark_v0.1_cases.json",
+  "case_artifact_sha256": "fcf708cd12cad123030527ccebfd85238ee9614ac1b235af74fcab794b5fc3a4",
+  "case_source": {
+    "cases_sha256": "4524eed8210ad67a022f033323bd0c6e3d84a2bda48265dbad983d2b47d57915",
+    "dataset_sha256": "0d5b8790bfb1c4656d23e176b5b5e28f90666e112e0355c6fd3be6bd0aeeffd0",
+    "evaluation_role": "embedding_candidate_retrieval",
+    "holdout_frozen": true,
+    "hotel_holdout_freeze_sha256": "c0bbc151b3357ed2f9be5c9551541436244bb6aed987829a9a7749682ab48d1a",
+    "relation_case_count": 19,
+    "source_benchmark_id": "semantic:hotel_operations:holdout:v0.1",
+    "source_benchmark_version": "hotel_operations_semantic_holdout_v0.1",
+    "source_sha256": "30303a2c30603cdb8a2b727a8f0e286112f123f76c6ac6723a56048610a427cb"
+  },
+  "coverage": {
+    "covered": [
+      "related_distinct_metric",
+      "same_metric_different_state",
+      "same_process_different_stage"
+    ],
+    "covered_training_families": 3,
+    "not_covered": [
+      "safe_uncertainty",
+      "unit_and_quantity_reasoning"
+    ],
+    "total_training_families": 5
+  },
+  "evidence_bindings": {
+    "adapter_bundle_sha256": "ed10297a1d0e6ce504189985d91f46b2f1f37a5a67fe84f0d62a9f09c3940ffe",
+    "training_evidence_git_commit": "09282a64f859563c426073373f9af57c19fbfaac",
+    "training_receipt_sha256": "3ccc1fcf29347a7f95bd4aad1219b1c2ae29f6088a4d915cfb2bd61cc68369b7",
+    "training_report_sha256": "6b551208846de1e36317d504679dee2e5e09b21855d50481d698972e8a8275ee"
+  },
+  "first_post_training_inference_completed": false,
+  "freeze_rule_version": "adapted_semantic_reasoning_benchmark_freeze_v0.1",
+  "frozen_before_first_post_training_inference": true,
+  "metrics": {
+    "adapted_accuracy": "correct_cases / 19",
+    "adapted_macro_accuracy": "mean per-class accuracy over the three frozen relation labels",
+    "base_accuracy": "correct_cases / 19",
+    "base_macro_accuracy": "mean per-class accuracy over the three frozen relation labels",
+    "paired_outcomes": [
+      "both_correct",
+      "both_wrong",
+      "base_only_correct",
+      "adapted_only_correct"
+    ],
+    "primary_delta": "adapted_accuracy - base_accuracy",
+    "secondary_delta": "adapted_macro_accuracy - base_macro_accuracy"
+  },
+  "model_candidates": {
+    "adapted": {
+      "adapter_bundle_sha256": "ed10297a1d0e6ce504189985d91f46b2f1f37a5a67fe84f0d62a9f09c3940ffe",
+      "base_model_repository": "google/gemma-3-4b-it",
+      "base_model_revision": "093f9f388b31de276ce2de164bdc2081324b9767",
+      "candidate_label": "gemma3_4b_qlora_v0.3"
+    },
+    "base": {
+      "base_model_repository": "google/gemma-3-4b-it",
+      "base_model_revision": "093f9f388b31de276ce2de164bdc2081324b9767",
+      "candidate_label": "gemma3_4b_pinned_base"
+    }
+  },
+  "module_relative_path": "app/adaptation/reasoning_benchmark.py",
+  "module_sha256": "7d15b482cd249eae3e2e6a05a55f76b6d3ba2afe94d3f8998fd04b22b59f92af",
+  "preregistered_interpretation": {
+    "negative_signal": "adapted accuracy is lower than base accuracy, or adapted macro accuracy is lower than base macro accuracy",
+    "neutral_signal": "adapted and base accuracy and macro accuracy are identical",
+    "positive_signal": "adapted accuracy is not lower than base accuracy, adapted macro accuracy is not lower than base macro accuracy, and at least one is strictly higher",
+    "training_loss_is_acceptance_evidence": false
+  },
+  "protocol_authored_from_git_commit": "09282a64f859563c426073373f9af57c19fbfaac",
+  "scoring_protocol": {
+    "candidate_selection": "argmax_mean_log_probability",
+    "candidate_surface_sha256": "43e32b5c4bcc3f85ef3465b86351ba6d45ece918af14108277a74c1ccd5f6c2b",
+    "candidate_surfaces": {
+      "related_distinct_metric": "These metrics are related, but they represent distinct measures.",
+      "same_metric_different_state": "These metrics represent the same underlying measure in different states.",
+      "same_process_different_stage": "These metrics represent different stages of the same operational process."
+    },
+    "chat_template_sha256": "7de1c58e208eda46e9c7f86397df37ec49883aeece39fb961e0a6b24088dd3c4",
+    "generation_used": false,
+    "llm_judge_used": false,
+    "model_input_protocol": "Gemma chat template; one user message; candidate is scored as assistant continuation",
+    "prompt_template_sha256": "ccd68cff8cc4b9b5b6a494df85809fbcd14f18c143b89a0331a47534de354390",
+    "score_reduction": "mean log probability over assistant candidate tokens only",
+    "scoring_method": "teacher_forced_candidate_mean_log_probability",
+    "scoring_rule_version": "adapted_semantic_reasoning_scoring_v0.1",
+    "silent_truncation_allowed": false,
+    "ties": "fail_closed"
+  },
+  "status": "frozen",
+  "test_relative_path": "test_adapted_reasoning_benchmark_v0_1.py",
+  "test_sha256": "32e95dad62c1028de89e59a86c79fd4fd88d24d02a6bf0b8b067493dafbb7e57"
+}
