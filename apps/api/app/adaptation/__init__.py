@@ -2,6 +2,20 @@ from app.adaptation.checkpoint_converter import (
     GEMMA3_TEXT_CHECKPOINT_CONVERTER_RULE_VERSION,
     convert_gemma3_text_checkpoint,
 )
+from app.adaptation.data_governance import (
+    CONTAMINATION_REPORT_RULE_VERSION,
+    DEFAULT_NEAR_DUPLICATE_THRESHOLD,
+    PROTECTED_EVIDENCE_CORPUS_RULE_VERSION,
+    AdaptationContaminationReport,
+    ContaminationMatch,
+    ProtectedEvidenceCorpus,
+    ProtectedEvidenceSource,
+    assert_adaptation_dataset_clean,
+    build_protected_evidence_corpus,
+    normalize_evidence_text,
+    scan_adaptation_examples,
+    write_contamination_report,
+)
 from app.adaptation.contracts import (
     ADAPTATION_DATA_GOVERNANCE_RULE_VERSION,
     QLORA_EXPERIMENT_CONTRACT_RULE_VERSION,
@@ -24,6 +38,18 @@ from app.adaptation.target_resolver import (
 
 
 __all__ = [
+    "write_contamination_report",
+    "scan_adaptation_examples",
+    "normalize_evidence_text",
+    "build_protected_evidence_corpus",
+    "assert_adaptation_dataset_clean",
+    "ProtectedEvidenceSource",
+    "ProtectedEvidenceCorpus",
+    "ContaminationMatch",
+    "AdaptationContaminationReport",
+    "PROTECTED_EVIDENCE_CORPUS_RULE_VERSION",
+    "DEFAULT_NEAR_DUPLICATE_THRESHOLD",
+    "CONTAMINATION_REPORT_RULE_VERSION",
     "ADAPTATION_DATA_GOVERNANCE_RULE_VERSION",
     "GEMMA3_TEXT_CHECKPOINT_CONVERTER_RULE_VERSION",
     "QLORA_EXPERIMENT_CONTRACT_RULE_VERSION",
