@@ -75,6 +75,10 @@ from app.api.model_lab import (
     router as model_lab_router,
 )
 
+from app.api.ml_monitoring import (
+    router as ml_monitoring_router,
+)
+
 from app.api.routes import (
     router as api_router,
 )
@@ -372,4 +376,14 @@ app.include_router(
 
 app.include_router(
     model_lab_router
+)
+
+
+# ============================================================
+# ML MONITORING
+# ============================================================
+
+
+app.include_router(
+    ml_monitoring_router
 )
