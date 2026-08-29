@@ -1,0 +1,200 @@
+{
+  "authoring_policy": {
+    "airport_cases_may_be_read_during_authoring": false,
+    "airport_domain_may_appear_in_training_rows": false,
+    "evaluation_artifacts_may_be_used_as_training_sources": false,
+    "final_acceptance_material_may_be_read_during_authoring": false,
+    "hotel_case_material_may_be_read_during_authoring": false,
+    "independent_manual_authoring_required": true,
+    "training_builder_may_bind_holdouts_by_hash_only": true
+  },
+  "contamination_policy": {
+    "contamination_report_required_before_dataset_freeze": true,
+    "exact_match_forbidden": true,
+    "final_acceptance_material_forbidden": true,
+    "near_duplicate_similarity_threshold": 0.92,
+    "normalized_match_forbidden": true,
+    "protected_evidence_corpus_required": true,
+    "structured_record_match_forbidden": true
+  },
+  "contrastive_design": {
+    "focused_group": {
+      "count": 10,
+      "examples_per_group": 3,
+      "relations": [
+        "same_metric_different_state",
+        "same_process_different_stage",
+        "related_distinct_metric"
+      ],
+      "same_anchor_metric_required": true
+    },
+    "full_group": {
+      "count": 40,
+      "examples_per_group": 5,
+      "relations": [
+        "same_metric_different_state",
+        "same_process_different_stage",
+        "related_distinct_metric",
+        "unrelated",
+        "uncertain"
+      ],
+      "same_anchor_metric_required": true
+    },
+    "hard_negative_definition": "A semantically plausible near-neighbor pair whose lexical or process similarity could support an incorrect neighboring relation without careful distinction.",
+    "hard_negative_required": true,
+    "minimum_hard_negatives_per_focused_group": 1,
+    "minimum_hard_negatives_per_full_group": 2,
+    "rule_version": "qlora_v0.4_contrastive_group_v0.1",
+    "total_group_count": 50
+  },
+  "dataset_id": "adaptation:datalens-semantic:training:v0.4",
+  "dataset_version": "datalens_semantic_adaptation_training_v0.4",
+  "domain_plan": {
+    "agricultural_irrigation_operations": {
+      "focused_groups": 0,
+      "full_groups": 3
+    },
+    "construction_site_operations": {
+      "focused_groups": 1,
+      "full_groups": 2
+    },
+    "data_center_facility_operations": {
+      "focused_groups": 0,
+      "full_groups": 3
+    },
+    "food_processing_operations": {
+      "focused_groups": 1,
+      "full_groups": 3
+    },
+    "insurance_claim_operations": {
+      "focused_groups": 1,
+      "full_groups": 2
+    },
+    "laboratory_sample_operations": {
+      "focused_groups": 0,
+      "full_groups": 3
+    },
+    "maritime_terminal_operations": {
+      "focused_groups": 1,
+      "full_groups": 2
+    },
+    "media_streaming_operations": {
+      "focused_groups": 1,
+      "full_groups": 2
+    },
+    "municipal_waste_operations": {
+      "focused_groups": 1,
+      "full_groups": 2
+    },
+    "procurement_operations": {
+      "focused_groups": 0,
+      "full_groups": 3
+    },
+    "rail_freight_operations": {
+      "focused_groups": 0,
+      "full_groups": 3
+    },
+    "renewable_power_operations": {
+      "focused_groups": 1,
+      "full_groups": 3
+    },
+    "retail_store_operations": {
+      "focused_groups": 1,
+      "full_groups": 3
+    },
+    "subscription_billing_operations": {
+      "focused_groups": 1,
+      "full_groups": 3
+    },
+    "telecom_field_service": {
+      "focused_groups": 1,
+      "full_groups": 3
+    }
+  },
+  "expected_example_count": 230,
+  "experiment_id": "datalens-semantic-qlora-v0.4",
+  "forbidden_domains": [
+    "airport_ground_operations",
+    "hotel_operations",
+    "commercial_greenhouse_operations"
+  ],
+  "provenance_policy": {
+    "authoring_method": "independent_manual_semantic_design",
+    "evaluation_case_ids_forbidden": true,
+    "evaluation_dataset_ids_forbidden": true,
+    "evaluation_source_paths_forbidden": true,
+    "per_example_provenance_required": true,
+    "protected_source_material_may_not_be_paraphrased": true,
+    "rule_version": "qlora_v0.4_training_provenance_policy_v0.1",
+    "source_artifact_paths_must_be_empty": true,
+    "source_dataset_ids_must_be_empty": true,
+    "source_ids_required": true
+  },
+  "record_schema": {
+    "additional_properties": false,
+    "fields": {
+      "contrastive_group_id": "string",
+      "domain": "string",
+      "example_id": "string",
+      "hard_negative": "boolean",
+      "left_description": "string",
+      "left_metric": "string",
+      "provenance": {
+        "authoring_method": "string",
+        "source_artifact_paths": "list[string]",
+        "source_dataset_ids": "list[string]",
+        "source_ids": "list[string]"
+      },
+      "right_description": "string",
+      "right_metric": "string",
+      "target": {
+        "reason": "string",
+        "relation": "enum"
+      }
+    },
+    "reason_max_words": 45,
+    "reason_min_words": 6,
+    "required_fields": [
+      "contrastive_group_id",
+      "domain",
+      "example_id",
+      "hard_negative",
+      "left_description",
+      "left_metric",
+      "provenance",
+      "right_description",
+      "right_metric",
+      "target"
+    ],
+    "rule_version": "qlora_v0.4_training_record_schema_v0.1",
+    "target_relations": [
+      "same_metric_different_state",
+      "same_process_different_stage",
+      "related_distinct_metric",
+      "unrelated",
+      "uncertain"
+    ]
+  },
+  "relation_target_counts": {
+    "related_distinct_metric": 50,
+    "same_metric_different_state": 50,
+    "same_process_different_stage": 50,
+    "uncertain": 40,
+    "unrelated": 40
+  },
+  "relations": [
+    "same_metric_different_state",
+    "same_process_different_stage",
+    "related_distinct_metric",
+    "unrelated",
+    "uncertain"
+  ],
+  "rule_version": "qlora_v0.4_training_dataset_design_v0.1",
+  "safety": {
+    "airport_holdout_results_may_be_observed": false,
+    "final_acceptance_may_be_loaded": false,
+    "gpu_required": false,
+    "training_may_execute": false
+  },
+  "status": "frozen_before_training_example_authoring"
+}
