@@ -33,6 +33,14 @@ from app.ml.monitoring_profile_store import (
 )
 
 
+
+from app.ml.observed_dataset_authority import (
+    MLObservedDatasetAuthorityError,
+    MLObservedDatasetNotAuthorizedError,
+    resolve_server_owned_observed_dataframe,
+)
+
+
 from app.preparation.analysis_input_handoff import (
     AnalysisInputHandoffError,
     load_validated_analysis_input,
@@ -117,275 +125,6 @@ def _required_text(
 
 
     return normalized
-
-
-# ============================================================
-# HANDOFF VALIDATION
-# ============================================================
-
-
-def _resolve_observed_dataframe(
-    *,
-    handoff,
-    workflow_id: str,
-    observed_dataset_id: str,
-) -> tuple[
-    pd.DataFrame,
-    int,
-]:
-    """
-    Resolve one observed dataset exclusively from the
-    server-owned validated Analysis Input Handoff.
-
-    Browser-provided raw rows are never accepted here.
-    """
-
-    handoff_workflow_id = (
-        _required_text(
-            getattr(
-                handoff,
-                "workflow_id",
-                None,
-            ),
-            field_name=(
-                "handoff.workflow_id"
-            ),
-        )
-    )
-
-
-    if (
-        handoff_workflow_id
-        !=
-        workflow_id
-    ):
-        raise MLMonitoringServiceAuthorityError(
-            (
-                "Analysis Input Handoff "
-                "workflow does not match "
-                "the requested monitoring "
-                "workflow."
-            )
-        )
-
-
-    raw_revision = getattr(
-        handoff,
-        "session_revision",
-        None,
-    )
-
-
-    if (
-        not isinstance(
-            raw_revision,
-            int,
-        )
-        or
-        isinstance(
-            raw_revision,
-            bool,
-        )
-        or
-        raw_revision < 0
-    ):
-        raise MLMonitoringServiceAuthorityError(
-            (
-                "Analysis Input Handoff has "
-                "no valid Preparation revision."
-            )
-        )
-
-
-    raw_dataset_ids = getattr(
-        handoff,
-        "dataset_ids",
-        None,
-    )
-
-
-    if not isinstance(
-        raw_dataset_ids,
-        tuple,
-    ):
-        raise MLMonitoringServiceAuthorityError(
-            (
-                "Analysis Input Handoff "
-                "dataset scope is invalid."
-            )
-        )
-
-
-    authorized_dataset_ids = []
-
-    for raw_dataset_id in (
-        raw_dataset_ids
-    ):
-        dataset_id = (
-            _required_text(
-                raw_dataset_id,
-                field_name=(
-                    "handoff.dataset_id"
-                ),
-            )
-        )
-
-        authorized_dataset_ids.append(
-            dataset_id
-        )
-
-
-    if (
-        len(
-            authorized_dataset_ids
-        )
-        !=
-        len(
-            set(
-                authorized_dataset_ids
-            )
-        )
-    ):
-        raise MLMonitoringServiceAuthorityError(
-            (
-                "Analysis Input Handoff "
-                "contains duplicate dataset "
-                "identities."
-            )
-        )
-
-
-    if (
-        observed_dataset_id
-        not in
-        authorized_dataset_ids
-    ):
-        raise MLMonitoringObservedDatasetError(
-            (
-                "Requested observed dataset "
-                "is not authorized by the "
-                "current validated Analysis "
-                "Input Handoff. "
-                f"dataset_id={observed_dataset_id}"
-            )
-        )
-
-
-    raw_records = getattr(
-        handoff,
-        "dataset_records",
-        None,
-    )
-
-
-    if not isinstance(
-        raw_records,
-        tuple,
-    ):
-        raise MLMonitoringServiceAuthorityError(
-            (
-                "Analysis Input Handoff "
-                "dataset records are invalid."
-            )
-        )
-
-
-    records_by_id = {}
-
-    for record in raw_records:
-
-        if not isinstance(
-            record,
-            dict,
-        ):
-            raise MLMonitoringServiceAuthorityError(
-                (
-                    "Analysis Input Handoff "
-                    "contains an invalid "
-                    "dataset record."
-                )
-            )
-
-
-        dataset_id = (
-            _required_text(
-                record.get(
-                    "dataset_id"
-                ),
-                field_name=(
-                    "handoff.dataset_record."
-                    "dataset_id"
-                ),
-            )
-        )
-
-
-        if dataset_id in records_by_id:
-            raise MLMonitoringServiceAuthorityError(
-                (
-                    "Analysis Input Handoff "
-                    "contains duplicate dataset "
-                    "records."
-                )
-            )
-
-
-        records_by_id[
-            dataset_id
-        ] = record
-
-
-    if (
-        set(
-            records_by_id
-        )
-        !=
-        set(
-            authorized_dataset_ids
-        )
-    ):
-        raise MLMonitoringServiceAuthorityError(
-            (
-                "Analysis Input Handoff "
-                "dataset identities and "
-                "records are inconsistent."
-            )
-        )
-
-
-    selected_record = (
-        records_by_id[
-            observed_dataset_id
-        ]
-    )
-
-
-    dataframe = (
-        selected_record.get(
-            "dataframe"
-        )
-    )
-
-
-    if not isinstance(
-        dataframe,
-        pd.DataFrame,
-    ):
-        raise MLMonitoringServiceAuthorityError(
-            (
-                "Authorized observed dataset "
-                "does not contain a trusted "
-                "pandas DataFrame."
-            )
-        )
-
-
-    return (
-        dataframe.copy(
-            deep=True
-        ),
-        raw_revision,
-    )
 
 
 # ============================================================
@@ -664,18 +403,40 @@ def run_ml_monitoring(
         ) from error
 
 
-    observed_dataframe, observed_revision = (
-        _resolve_observed_dataframe(
-            handoff=
-                handoff,
+    try:
+        (
+            observed_dataframe,
+            observed_revision,
+        ) = (
+            resolve_server_owned_observed_dataframe(
+                handoff=
+                    handoff,
 
-            workflow_id=
-                normalized_workflow_id,
+                workflow_id=
+                    normalized_workflow_id,
 
-            observed_dataset_id=
-                normalized_observed_dataset_id,
+                observed_dataset_id=
+                    normalized_observed_dataset_id,
+            )
         )
-    )
+
+    except MLObservedDatasetNotAuthorizedError as error:
+        raise MLMonitoringObservedDatasetError(
+            (
+                "Requested observed dataset "
+                "is not authorized by the "
+                "current validated Analysis "
+                "Input Handoff."
+            )
+        ) from error
+
+    except MLObservedDatasetAuthorityError as error:
+        raise MLMonitoringServiceAuthorityError(
+            (
+                "Analysis Input Handoff "
+                "authority is invalid."
+            )
+        ) from error
 
 
     # ========================================================
