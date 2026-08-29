@@ -84,6 +84,11 @@ from app.api.ml_performance_monitoring import (
     router as ml_performance_monitoring_router,
 )
 
+
+from app.api.ml_model_health import (
+    router as ml_model_health_router,
+)
+
 from app.api.routes import (
     router as api_router,
 )
@@ -402,4 +407,15 @@ app.include_router(
 
 app.include_router(
     ml_performance_monitoring_router
+)
+
+
+
+# ============================================================
+# ML MODEL HEALTH
+# ============================================================
+
+
+app.include_router(
+    ml_model_health_router
 )
