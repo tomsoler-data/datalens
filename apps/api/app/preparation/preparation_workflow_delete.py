@@ -195,6 +195,10 @@ _WORKFLOW_TABLE_ALLOWLIST = {
     # Their SQLite foreign keys own the cascade.
     "ml_monitoring_profiles",
     "ml_drift_evaluations",
+
+    # Performance evidence is directly subordinate to the
+    # trusted Model Artifact and cascades on model deletion.
+    "ml_performance_evaluations",
 }
 
 

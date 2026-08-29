@@ -32,6 +32,11 @@ from app.ml.model_explainability import (
 )
 
 
+from app.ml.model_metrics import (
+    ml_model_primary_metric,
+)
+
+
 # ============================================================
 # VERSIONS
 # ============================================================
@@ -184,17 +189,15 @@ def model_evaluation_primary_metric(
     *,
     problem_type: str,
 ) -> MLModelEvaluationPrimaryMetric:
+    """
+    Backward-compatible Model Evaluation wrapper around the
+    canonical ML metric semantics.
+    """
 
-    if problem_type == "regression":
-        return "rmse"
-
-    if problem_type == "classification":
-        return "f1_macro"
-
-    raise ValueError(
-        (
-            "Unsupported Model Evaluation problem type. "
-            f"problem_type={problem_type}"
+    return (
+        ml_model_primary_metric(
+            problem_type=
+                problem_type
         )
     )
 

@@ -36,7 +36,7 @@ SQLITE_DATABASE_RULE_VERSION = (
 )
 
 SQLITE_SCHEMA_VERSION = (
-    12
+    13
 )
 
 DATALENS_SQLITE_PATH_ENV = (
@@ -1929,6 +1929,270 @@ def _apply_schema_migrations(
                     (
                         12,
                         "ml_drift_observed_snapshot_binding",
+                        utc_now_iso(),
+                    ),
+                )
+
+
+                connection.execute(
+                    "COMMIT"
+                )
+
+
+            except Exception:
+                if connection.in_transaction:
+                    connection.execute(
+                        "ROLLBACK"
+                    )
+
+                raise
+
+
+
+
+        # ====================================================
+        # SQLITE_SCHEMA_V13_ML_PERFORMANCE_EVALUATION
+        # ML_PERFORMANCE_EVALUATION_STORE_V0_1
+        # ====================================================
+
+
+        if (
+            current_version
+            <
+            13
+        ):
+            connection.execute(
+                "BEGIN IMMEDIATE"
+            )
+
+            try:
+                connection.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS
+                    ml_performance_evaluations (
+                        store_root TEXT NOT NULL,
+
+                        performance_evaluation_id
+                            TEXT NOT NULL,
+
+                        model_id TEXT NOT NULL,
+
+                        workflow_id TEXT NOT NULL,
+
+                        reference_dataset_id
+                            TEXT NOT NULL,
+
+                        observed_dataset_id
+                            TEXT NOT NULL,
+
+                        experiment_id TEXT NOT NULL,
+
+                        preparation_session_revision
+                            INTEGER NOT NULL
+                            CHECK (
+                                preparation_session_revision
+                                >=
+                                0
+                            ),
+
+                        observed_preparation_session_revision
+                            INTEGER NOT NULL
+                            CHECK (
+                                observed_preparation_session_revision
+                                >=
+                                0
+                            ),
+
+                        training_contract_sha256
+                            TEXT NOT NULL
+                            CHECK (
+                                length(
+                                    training_contract_sha256
+                                )
+                                =
+                                64
+                            ),
+
+                        problem_type TEXT NOT NULL
+                            CHECK (
+                                problem_type
+                                IN (
+                                    'regression',
+                                    'classification'
+                                )
+                            ),
+
+                        target_column TEXT NOT NULL,
+
+                        reference_evaluation_row_count
+                            INTEGER NOT NULL
+                            CHECK (
+                                reference_evaluation_row_count
+                                >
+                                0
+                            ),
+
+                        observed_row_count
+                            INTEGER NOT NULL
+                            CHECK (
+                                observed_row_count
+                                >
+                                0
+                            ),
+
+                        evaluated_at_utc TEXT NOT NULL,
+
+                        primary_metric TEXT NOT NULL,
+
+                        primary_metric_degradation_amount
+                            REAL NOT NULL
+                            CHECK (
+                                primary_metric_degradation_amount
+                                >=
+                                0
+                            ),
+
+                        primary_metric_degradation_ratio
+                            REAL
+                            CHECK (
+                                primary_metric_degradation_ratio
+                                IS NULL
+                                OR
+                                primary_metric_degradation_ratio
+                                >=
+                                0
+                            ),
+
+                        degradation_basis TEXT NOT NULL
+                            CHECK (
+                                degradation_basis
+                                IN (
+                                    'absolute_points',
+                                    'relative_increase'
+                                )
+                            ),
+
+                        performance_status TEXT NOT NULL
+                            CHECK (
+                                performance_status
+                                IN (
+                                    'ok',
+                                    'warning',
+                                    'degraded'
+                                )
+                            ),
+
+                        privacy_scope TEXT NOT NULL
+                            CHECK (
+                                privacy_scope
+                                =
+                                'aggregate_only'
+                            ),
+
+                        rule_version TEXT NOT NULL,
+
+                        payload_json TEXT NOT NULL,
+
+                        PRIMARY KEY (
+                            store_root,
+                            performance_evaluation_id
+                        ),
+
+                        FOREIGN KEY (
+                            store_root,
+                            model_id
+                        )
+                        REFERENCES ml_model_artifacts (
+                            store_root,
+                            model_id
+                        )
+                        ON DELETE CASCADE
+                    )
+                    """
+                )
+
+
+                connection.execute(
+                    """
+                    CREATE INDEX IF NOT EXISTS
+                    idx_ml_performance_evaluations_scope_workflow
+
+                    ON ml_performance_evaluations (
+                        store_root,
+                        workflow_id,
+                        evaluated_at_utc,
+                        performance_evaluation_id
+                    )
+                    """
+                )
+
+
+                connection.execute(
+                    """
+                    CREATE INDEX IF NOT EXISTS
+                    idx_ml_performance_evaluations_scope_model
+
+                    ON ml_performance_evaluations (
+                        store_root,
+                        model_id,
+                        evaluated_at_utc,
+                        performance_evaluation_id
+                    )
+                    """
+                )
+
+
+                connection.execute(
+                    """
+                    CREATE INDEX IF NOT EXISTS
+                    idx_ml_performance_evaluations_observed_dataset
+
+                    ON ml_performance_evaluations (
+                        store_root,
+                        workflow_id,
+                        observed_dataset_id,
+                        evaluated_at_utc,
+                        performance_evaluation_id
+                    )
+                    """
+                )
+
+
+                connection.execute(
+                    """
+                    CREATE INDEX IF NOT EXISTS
+                    idx_ml_performance_evaluations_observed_revision
+
+                    ON ml_performance_evaluations (
+                        store_root,
+                        workflow_id,
+                        observed_preparation_session_revision,
+                        evaluated_at_utc,
+                        performance_evaluation_id
+                    )
+                    """
+                )
+
+
+                connection.execute(
+                    """
+                    INSERT INTO schema_migrations (
+                        version,
+                        name,
+                        applied_at
+                    )
+                    VALUES (
+                        ?,
+                        ?,
+                        ?
+                    )
+                    """,
+                    (
+                        13,
+                        (
+                            "ml_performance_"
+                            "evaluation_metadata"
+                        ),
                         utc_now_iso(),
                     ),
                 )
