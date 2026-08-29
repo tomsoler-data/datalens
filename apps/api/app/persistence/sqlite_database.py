@@ -36,7 +36,7 @@ SQLITE_DATABASE_RULE_VERSION = (
 )
 
 SQLITE_SCHEMA_VERSION = (
-    11
+    12
 )
 
 DATALENS_SQLITE_PATH_ENV = (
@@ -1842,6 +1842,93 @@ def _apply_schema_migrations(
                     (
                         11,
                         "ml_drift_evaluation_metadata",
+                        utc_now_iso(),
+                    ),
+                )
+
+
+                connection.execute(
+                    "COMMIT"
+                )
+
+
+            except Exception:
+                if connection.in_transaction:
+                    connection.execute(
+                        "ROLLBACK"
+                    )
+
+                raise
+
+
+
+        # ====================================================
+        # SQLITE_SCHEMA_V12_ML_DRIFT_OBSERVED_SNAPSHOT
+        # ML_DRIFT_OBSERVED_SNAPSHOT_BINDING_V0_1
+        # ====================================================
+
+
+        if (
+            current_version
+            <
+            12
+        ):
+            connection.execute(
+                "BEGIN IMMEDIATE"
+            )
+
+            try:
+                connection.execute(
+                    """
+                    ALTER TABLE ml_drift_evaluations
+
+                    ADD COLUMN
+                    observed_preparation_session_revision
+                        INTEGER
+                        CHECK (
+                            observed_preparation_session_revision
+                            IS NULL
+                            OR
+                            observed_preparation_session_revision
+                            >=
+                            0
+                        )
+                    """
+                )
+
+
+                connection.execute(
+                    """
+                    CREATE INDEX IF NOT EXISTS
+                    idx_ml_drift_evaluations_observed_revision
+
+                    ON ml_drift_evaluations (
+                        store_root,
+                        workflow_id,
+                        observed_preparation_session_revision,
+                        evaluated_at_utc,
+                        evaluation_id
+                    )
+                    """
+                )
+
+
+                connection.execute(
+                    """
+                    INSERT INTO schema_migrations (
+                        version,
+                        name,
+                        applied_at
+                    )
+                    VALUES (
+                        ?,
+                        ?,
+                        ?
+                    )
+                    """,
+                    (
+                        12,
+                        "ml_drift_observed_snapshot_binding",
                         utc_now_iso(),
                     ),
                 )

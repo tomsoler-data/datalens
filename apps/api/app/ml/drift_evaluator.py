@@ -1060,6 +1060,11 @@ def evaluate_ml_drift(
     *,
     observed_features: pd.DataFrame,
     observed_dataset_id: str,
+    observed_preparation_session_revision: (
+        int
+        |
+        None
+    ) = None,
     monitoring_profile: MLMonitoringProfileRecord,
     model_artifact: MLModelArtifactRecord,
 ) -> MLDriftEvaluationRecord:
@@ -1086,6 +1091,44 @@ def evaluate_ml_drift(
                 "cannot be empty."
             )
         )
+
+    normalized_observed_revision = None
+
+    if (
+        observed_preparation_session_revision
+        is not None
+    ):
+        if isinstance(
+            observed_preparation_session_revision,
+            bool,
+        ):
+            raise MLDriftEvaluatorError(
+                (
+                    "observed_preparation_session_revision "
+                    "must be a non-negative integer."
+                )
+            )
+
+        try:
+            normalized_observed_revision = int(
+                observed_preparation_session_revision
+            )
+
+        except Exception as error:
+            raise MLDriftEvaluatorError(
+                (
+                    "observed_preparation_session_revision "
+                    "must be a non-negative integer."
+                )
+            ) from error
+
+        if normalized_observed_revision < 0:
+            raise MLDriftEvaluatorError(
+                (
+                    "observed_preparation_session_revision "
+                    "must be a non-negative integer."
+                )
+            )
 
     artifact = (
         MLModelArtifactRecord
@@ -1234,6 +1277,9 @@ def evaluate_ml_drift(
             ),
             observed_dataset_id=(
                 normalized_dataset_id
+            ),
+            observed_preparation_session_revision=(
+                normalized_observed_revision
             ),
             experiment_id=(
                 provenance.experiment_id

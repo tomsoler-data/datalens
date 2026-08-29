@@ -114,6 +114,9 @@ def evaluation(
                 observed_dataset_id
             ),
 
+            observed_preparation_session_revision=
+                7,
+
             monitoring_profile=profile,
 
             model_artifact=artifact,
@@ -131,9 +134,11 @@ def test_sqlite_schema_v11(
 
     with isolated_environment():
 
+        # Schema v11 introduced Drift Evaluation history.
+        # Later schemas must preserve it.
         assert (
             SQLITE_SCHEMA_VERSION
-            ==
+            >=
             11
         )
 
@@ -588,8 +593,7 @@ def test_training_fingerprint_binding_blocked(
 # HISTORICAL SNAPSHOT
 # ============================================================
 
-
-def test_current_preparation_revision_does_not_rewrite_history(
+def test_training_history_is_preserved_while_observed_snapshot_tracks_current_revision(
 ) -> None:
 
     with isolated_environment():
@@ -598,6 +602,18 @@ def test_current_preparation_revision_does_not_rewrite_history(
             artifact,
             profile,
         ) = persisted_authority()
+
+
+        # ----------------------------------------------------
+        # The model / Monitoring Profile were created from
+        # Preparation revision 7.
+        #
+        # Preparation subsequently advances to revision 99.
+        #
+        # This must NOT rewrite the historical training
+        # provenance, but a new Drift Evaluation must bind
+        # itself to the exact observed revision 99.
+        # ----------------------------------------------------
 
 
         with sqlite_connection(
@@ -621,9 +637,21 @@ def test_current_preparation_revision_does_not_rewrite_history(
 
 
         drift = (
-            evaluation(
-                artifact=artifact,
-                profile=profile,
+            evaluate_ml_drift(
+                observed_features=
+                    training_frame(),
+
+                observed_dataset_id=
+                    "dataset:observed-revision-99",
+
+                observed_preparation_session_revision=
+                    99,
+
+                monitoring_profile=
+                    profile,
+
+                model_artifact=
+                    artifact,
             )
         )
 
@@ -635,6 +663,7 @@ def test_current_preparation_revision_does_not_rewrite_history(
         )
 
 
+        # Historical TRAINING snapshot remains unchanged.
         assert (
             persisted
             .preparation_session_revision
@@ -642,6 +671,25 @@ def test_current_preparation_revision_does_not_rewrite_history(
             profile
             .preparation_session_revision
         )
+
+
+        assert (
+            persisted
+            .preparation_session_revision
+            ==
+            7
+        )
+
+
+        # OBSERVED snapshot records the current Preparation
+        # revision from which monitoring data was evaluated.
+        assert (
+            persisted
+            .observed_preparation_session_revision
+            ==
+            99
+        )
+
 
 
 # ============================================================
@@ -817,6 +865,9 @@ def test_persisted_payload_is_aggregate_only(
                 observed_dataset_id=(
                     "dataset:privacy-store"
                 ),
+
+                observed_preparation_session_revision=
+                    7,
 
                 monitoring_profile=profile,
 
@@ -1104,8 +1155,8 @@ def main(
             test_training_fingerprint_binding_blocked,
         ),
         (
-            "Historical Preparation snapshot preserved",
-            test_current_preparation_revision_does_not_rewrite_history,
+            "Training history / observed snapshot separation",
+            test_training_history_is_preserved_while_observed_snapshot_tracks_current_revision,
         ),
         (
             "Workflow drift history isolation",

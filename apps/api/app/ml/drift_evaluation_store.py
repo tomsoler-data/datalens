@@ -293,6 +293,22 @@ def _row_to_record(
                 ]
             ),
 
+        "observed_preparation_session_revision":
+            (
+                int(
+                    row[
+                        "observed_preparation_session_revision"
+                    ]
+                )
+
+                if row[
+                    "observed_preparation_session_revision"
+                ]
+                is not None
+
+                else None
+            ),
+
         "experiment_id":
             str(
                 row[
@@ -383,6 +399,9 @@ def _row_to_record(
 
         "observed_dataset_id":
             record.observed_dataset_id,
+
+        "observed_preparation_session_revision":
+            record.observed_preparation_session_revision,
 
         "experiment_id":
             record.experiment_id,
@@ -705,6 +724,85 @@ def register_ml_drift_evaluation(
         )
 
 
+        # ====================================================
+        # OBSERVED PREPARATION SNAPSHOT AUTHORITY
+        #
+        # Registration is the durable commit boundary.
+        #
+        # The revision check therefore occurs inside the same
+        # SQLite write transaction as Drift persistence.
+        # A Preparation change that happened after evaluation
+        # cannot be silently committed as historical evidence.
+        # ====================================================
+
+
+        if (
+            validated
+            .observed_preparation_session_revision
+            is None
+        ):
+            raise MLDriftEvaluationAuthorityError(
+                (
+                    "New ML Drift Evaluations require "
+                    "an observed Preparation revision."
+                )
+            )
+
+
+        observed_session = (
+            connection.execute(
+                """
+                SELECT revision
+                FROM preparation_sessions
+
+                WHERE
+                    workflow_id = ?
+
+                LIMIT 1
+                """,
+                (
+                    validated.workflow_id,
+                ),
+            )
+            .fetchone()
+        )
+
+
+        if observed_session is None:
+            raise MLDriftEvaluationAuthorityError(
+                (
+                    "Observed Preparation workflow "
+                    "is no longer server-owned."
+                )
+            )
+
+
+        current_observed_revision = int(
+            observed_session[
+                "revision"
+            ]
+        )
+
+
+        if (
+            current_observed_revision
+            !=
+            validated
+            .observed_preparation_session_revision
+        ):
+            raise MLDriftEvaluationAuthorityError(
+                (
+                    "Observed Preparation revision "
+                    "changed before Drift Evaluation "
+                    "persistence. "
+                    "expected_revision="
+                    f"{validated.observed_preparation_session_revision}, "
+                    "current_revision="
+                    f"{current_observed_revision}"
+                )
+            )
+
+
         existing = (
             connection.execute(
                 """
@@ -746,6 +844,7 @@ def register_ml_drift_evaluation(
                 workflow_id,
                 reference_dataset_id,
                 observed_dataset_id,
+                observed_preparation_session_revision,
                 experiment_id,
                 preparation_session_revision,
                 training_contract_sha256,
@@ -759,6 +858,7 @@ def register_ml_drift_evaluation(
                 payload_json
             )
             VALUES (
+                ?,
                 ?,
                 ?,
                 ?,
@@ -793,6 +893,9 @@ def register_ml_drift_evaluation(
                 validated.reference_dataset_id,
 
                 validated.observed_dataset_id,
+
+                validated
+                .observed_preparation_session_revision,
 
                 validated.experiment_id,
 

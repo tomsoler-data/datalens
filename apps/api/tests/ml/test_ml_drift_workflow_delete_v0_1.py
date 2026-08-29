@@ -339,6 +339,9 @@ def seed_observability_workflow(
             observed_dataset_id=
                 "dataset:observed",
 
+            observed_preparation_session_revision=
+                session.revision,
+
             monitoring_profile=
                 profile,
 

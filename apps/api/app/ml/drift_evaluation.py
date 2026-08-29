@@ -964,6 +964,20 @@ class MLDriftEvaluationRecord(
         min_length=1,
     )
 
+    # Exact server-owned Preparation snapshot from which the
+    # observed feature surface was loaded.
+    #
+    # None remains accepted only for backward restoration of
+    # pre-v12 Drift Evaluation payloads.
+    observed_preparation_session_revision: (
+        int
+        |
+        None
+    ) = Field(
+        default=None,
+        ge=0,
+    )
+
     experiment_id: str = Field(
         min_length=1,
     )
