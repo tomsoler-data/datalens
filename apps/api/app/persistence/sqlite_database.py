@@ -36,7 +36,7 @@ SQLITE_DATABASE_RULE_VERSION = (
 )
 
 SQLITE_SCHEMA_VERSION = (
-    9
+    10
 )
 
 DATALENS_SQLITE_PATH_ENV = (
@@ -1461,6 +1461,188 @@ def _apply_schema_migrations(
                         (
                             "ml_experiment_"
                             "provenance_metadata"
+                        ),
+                        utc_now_iso(),
+                    ),
+                )
+
+
+                connection.execute(
+                    "COMMIT"
+                )
+
+
+            except Exception:
+                if connection.in_transaction:
+                    connection.execute(
+                        "ROLLBACK"
+                    )
+
+                raise
+
+
+        # ====================================================
+        # SQLITE_SCHEMA_V10_ML_MONITORING_PROFILE
+        # ML_MONITORING_PROFILE_V0_1
+        # ====================================================
+
+
+        if (
+            current_version
+            <
+            10
+        ):
+            connection.execute(
+                "BEGIN IMMEDIATE"
+            )
+
+            try:
+                connection.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS
+                    ml_monitoring_profiles (
+                        store_root TEXT NOT NULL,
+
+                        profile_id TEXT NOT NULL,
+
+                        model_id TEXT NOT NULL,
+
+                        workflow_id TEXT NOT NULL,
+
+                        dataset_id TEXT NOT NULL,
+
+                        experiment_id TEXT NOT NULL,
+
+                        preparation_session_revision
+                            INTEGER NOT NULL
+                            CHECK (
+                                preparation_session_revision
+                                >=
+                                0
+                            ),
+
+                        training_contract_sha256
+                            TEXT NOT NULL
+                            CHECK (
+                                length(
+                                    training_contract_sha256
+                                )
+                                =
+                                64
+                            ),
+
+                        created_at_utc TEXT NOT NULL,
+
+                        reference_scope TEXT NOT NULL
+                            CHECK (
+                                reference_scope
+                                =
+                                'training_split'
+                            ),
+
+                        reference_row_count INTEGER NOT NULL
+                            CHECK (
+                                reference_row_count
+                                >
+                                0
+                            ),
+
+                        privacy_scope TEXT NOT NULL
+                            CHECK (
+                                privacy_scope
+                                =
+                                'aggregate_only'
+                            ),
+
+                        categorical_identity TEXT NOT NULL
+                            CHECK (
+                                categorical_identity
+                                =
+                                'sha256'
+                            ),
+
+                        rule_version TEXT NOT NULL,
+
+                        payload_json TEXT NOT NULL,
+
+                        PRIMARY KEY (
+                            store_root,
+                            model_id
+                        ),
+
+                        UNIQUE (
+                            store_root,
+                            profile_id
+                        ),
+
+                        UNIQUE (
+                            store_root,
+                            experiment_id
+                        ),
+
+                        FOREIGN KEY (
+                            store_root,
+                            model_id
+                        )
+                        REFERENCES ml_model_artifacts (
+                            store_root,
+                            model_id
+                        )
+                        ON DELETE CASCADE
+                    )
+                    """
+                )
+
+
+                connection.execute(
+                    """
+                    CREATE INDEX IF NOT EXISTS
+                    idx_ml_monitoring_profiles_scope_workflow
+
+                    ON ml_monitoring_profiles (
+                        store_root,
+                        workflow_id,
+                        created_at_utc,
+                        model_id
+                    )
+                    """
+                )
+
+
+                connection.execute(
+                    """
+                    CREATE INDEX IF NOT EXISTS
+                    idx_ml_monitoring_profiles_scope_dataset
+
+                    ON ml_monitoring_profiles (
+                        store_root,
+                        workflow_id,
+                        dataset_id,
+                        created_at_utc,
+                        model_id
+                    )
+                    """
+                )
+
+
+                connection.execute(
+                    """
+                    INSERT INTO schema_migrations (
+                        version,
+                        name,
+                        applied_at
+                    )
+                    VALUES (
+                        ?,
+                        ?,
+                        ?
+                    )
+                    """,
+                    (
+                        10,
+                        (
+                            "ml_monitoring_"
+                            "profile_metadata"
                         ),
                         utc_now_iso(),
                     ),

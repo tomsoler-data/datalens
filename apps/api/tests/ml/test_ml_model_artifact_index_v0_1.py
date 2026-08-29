@@ -219,13 +219,16 @@ def expect_index_error(
 # ============================================================
 
 
-def test_schema_v8_model_artifact_table_remains_present_under_v9(
+def test_schema_v8_model_artifact_table_remains_present_under_current_schema(
 ) -> None:
     with isolated_sqlite_database():
 
+        # Model Artifact storage was introduced in
+        # schema v8. Schema v9 and all later schemas must
+        # preserve that table and its indexes.
         assert (
             SQLITE_SCHEMA_VERSION
-            ==
+            >=
             9
         )
 
@@ -233,7 +236,7 @@ def test_schema_v8_model_artifact_table_remains_present_under_v9(
         assert (
             sqlite_schema_version()
             ==
-            9
+            SQLITE_SCHEMA_VERSION
         )
 
 
@@ -971,10 +974,10 @@ def main(
     print()
 
 
-    test_schema_v8_model_artifact_table_remains_present_under_v9()
+    test_schema_v8_model_artifact_table_remains_present_under_current_schema()
 
     print(
-        "SQLite schema v8 Model Artifact migration preserved under v9: PASS"
+        "SQLite schema v8 Model Artifact migration preserved under current schema: PASS"
     )
 
 

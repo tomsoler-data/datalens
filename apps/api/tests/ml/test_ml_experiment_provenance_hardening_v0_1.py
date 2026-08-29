@@ -43,6 +43,7 @@ from app.ml.model_artifact_store import (
 
 
 from app.persistence.sqlite_database import (
+    SQLITE_SCHEMA_VERSION,
     sqlite_connection,
     sqlite_schema_version,
 )
@@ -286,7 +287,7 @@ def test_late_preparation_revision_race_is_atomic_fail_closed(
 # ============================================================
 
 
-def test_real_v8_model_artifact_survives_v9_migration(
+def test_real_v8_model_artifact_survives_current_schema_migration(
 ) -> None:
 
     previous_sqlite = os.environ.get(
@@ -517,13 +518,16 @@ def test_real_v8_model_artifact_survives_v9_migration(
 
         try:
 
-            # Opening DataLens SQLite now upgrades the
-            # pre-existing database from schema 8 to 9.
-
+            # Opening DataLens SQLite upgrades the
+            # pre-existing schema-8 database through all
+            # historical migrations up to the current schema.
+            #
+            # This includes the schema-9 Experiment Provenance
+            # migration and any later additive migrations.
             assert (
                 sqlite_schema_version()
                 ==
-                9
+                SQLITE_SCHEMA_VERSION
             )
 
 
@@ -659,10 +663,10 @@ def main(
     )
 
 
-    test_real_v8_model_artifact_survives_v9_migration()
+    test_real_v8_model_artifact_survives_current_schema_migration()
 
     print(
-        "Real SQLite v8 -> v9 legacy artifact migration: PASS"
+        "Real SQLite v8 -> current schema legacy artifact migration: PASS"
     )
 
 

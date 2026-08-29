@@ -549,9 +549,12 @@ def test_sqlite_schema_v9_experiment_provenance(
 
     with isolated_sqlite_database():
 
+        # Schema v9 introduced Experiment Provenance.
+        # Newer application schemas must preserve that
+        # historical migration and its guarantees.
         assert (
             SQLITE_SCHEMA_VERSION
-            ==
+            >=
             9
         )
 
@@ -559,7 +562,7 @@ def test_sqlite_schema_v9_experiment_provenance(
         assert (
             sqlite_schema_version()
             ==
-            9
+            SQLITE_SCHEMA_VERSION
         )
 
 

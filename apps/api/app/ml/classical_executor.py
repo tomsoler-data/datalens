@@ -99,12 +99,23 @@ from app.ml.preprocessing import (
 
 from app.ml.model_artifact_store import (
     MLModelArtifactStoreError,
+    delete_ml_model_artifact,
     register_ml_model_artifact,
 )
 
 
 from app.ml.model_artifacts import (
     MLModelArtifactRecord,
+)
+
+
+from app.ml.monitoring_profile_builder import (
+    build_ml_monitoring_profile,
+)
+
+
+from app.ml.monitoring_profile_store import (
+    register_ml_monitoring_profile,
 )
 
 
@@ -131,6 +142,11 @@ CLASSICAL_ML_EXECUTOR_RULE_VERSION = (
 
 ML_RICHER_METRICS_RULE_VERSION = (
     "ml_richer_metrics_v0.1"
+)
+
+
+ML_MONITORING_TRAINING_INTEGRATION_RULE_VERSION = (
+    "ml_monitoring_training_integration_v0.1"
 )
 
 
@@ -2045,6 +2061,103 @@ def execute_classical_ml(
                 )
             )
         )
+
+
+    # ========================================================
+    # ML MONITORING REFERENCE
+    #
+    # The exact x_train created by the deterministic holdout
+    # split is reused here.
+    #
+    # No second split.
+    # No second fit.
+    # No holdout observations.
+    # No raw rows persisted.
+    # ========================================================
+
+
+    try:
+        monitoring_profile = (
+            build_ml_monitoring_profile(
+                x_train=
+                    x_train,
+
+                model_artifact=
+                    model_artifact,
+            )
+        )
+
+
+        register_ml_monitoring_profile(
+            profile=
+                monitoring_profile
+        )
+
+
+    except Exception as error:
+
+        # ----------------------------------------------------
+        # The Model Artifact already exists at this point.
+        #
+        # A training execution must not be returned as
+        # successful if its required monitoring reference
+        # could not be created.
+        #
+        # Compensate the newly-created Model Artifact.
+        #
+        # SQLite deletion also cascades any partially-created
+        # Monitoring Profile.
+        # ----------------------------------------------------
+
+
+        cleanup_error = None
+
+
+        try:
+            delete_ml_model_artifact(
+                model_id=
+                    model_artifact.model_id,
+
+                workflow_id=
+                    model_artifact.workflow_id,
+            )
+
+        except Exception as candidate:
+            cleanup_error = (
+                candidate
+            )
+
+
+        if (
+            cleanup_error
+            is not None
+        ):
+            raise (
+                ClassicalMLExecutorError(
+                    (
+                        "Classical ML training "
+                        "completed, but Monitoring "
+                        "Profile persistence failed "
+                        "and Model Artifact "
+                        "compensation could not "
+                        "complete cleanly."
+                    )
+                )
+            ) from error
+
+
+        raise (
+            ClassicalMLExecutorError(
+                (
+                    "Classical ML training "
+                    "completed, but the required "
+                    "Monitoring Profile could not "
+                    "be persisted. The newly "
+                    "created Model Artifact was "
+                    "compensated."
+                )
+            )
+        ) from error
 
 
     return (
