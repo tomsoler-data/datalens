@@ -1,0 +1,17 @@
+{
+  "candidate_dataset_sha256": "dc795557cd351344d5b19e49180a46e8b298ad71fc66a5db8a7a8a1bc47d221c",
+  "candidate_example_count": 37,
+  "contaminated": false,
+  "dataset_id": "final-acceptance:greenhouse:independence-check",
+  "dataset_version": "v0.1",
+  "governance_rule_version": "adaptation_data_governance_v0.1",
+  "match_count": 0,
+  "matches": [],
+  "near_duplicate_threshold": 0.92,
+  "passed": true,
+  "protected_corpus_sha256": "172864c9cbd42639c2b26808934bfe473814648f04d8153d59758e0fa14beefb",
+  "protected_source_count": 41,
+  "protected_structured_fingerprint_count": 154,
+  "protected_text_fingerprint_count": 725,
+  "report_rule_version": "adaptation_contamination_report_v0.1"
+}
