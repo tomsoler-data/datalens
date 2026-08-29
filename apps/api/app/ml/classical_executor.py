@@ -1618,6 +1618,7 @@ def _serialize_fitted_estimator(
 def execute_classical_ml(
     *,
     training_contract: MLTrainingContract,
+    expected_preparation_session_revision: int | None = None,
 ) -> ClassicalMLExecutionResult:
     """
     Execute one deterministic Classical ML training request.
@@ -1641,6 +1642,18 @@ def execute_classical_ml(
         server-owned Model Artifact Store
 
     No raw rows or predictions are persisted in the result.
+
+    expected_preparation_session_revision is an optional
+    server-owned execution guard.
+
+    When supplied, Classical ML refuses to begin schema
+    validation, splitting or fitting if the validated
+    Preparation handoff revision no longer matches the
+    expected revision.
+
+    This is used by Tuned Model Promotion to prevent a
+    tuning result computed on one Preparation snapshot from
+    being promoted against a newer snapshot.
     """
 
     contract = (
@@ -1660,6 +1673,62 @@ def execute_classical_ml(
                 contract
         )
     )
+
+
+    # ========================================================
+    # OPTIONAL SERVER-OWNED PREPARATION REVISION PIN
+    # ========================================================
+
+
+    if (
+        expected_preparation_session_revision
+        is not None
+    ):
+        if (
+            isinstance(
+                expected_preparation_session_revision,
+                bool,
+            )
+            or
+            not isinstance(
+                expected_preparation_session_revision,
+                int,
+            )
+            or
+            expected_preparation_session_revision
+            <
+            0
+        ):
+            raise (
+                ClassicalMLInputError(
+                    (
+                        "Expected Preparation session "
+                        "revision must be a non-negative "
+                        "integer."
+                    )
+                )
+            )
+
+
+        if (
+            int(
+                preparation_session_revision
+            )
+            !=
+            expected_preparation_session_revision
+        ):
+            raise (
+                ClassicalMLInputError(
+                    (
+                        "Classical ML execution refused "
+                        "because the validated Preparation "
+                        "revision changed before training. "
+                        "A server-owned caller requested "
+                        "execution against an earlier "
+                        "Preparation snapshot."
+                    )
+                )
+            )
 
 
     (
