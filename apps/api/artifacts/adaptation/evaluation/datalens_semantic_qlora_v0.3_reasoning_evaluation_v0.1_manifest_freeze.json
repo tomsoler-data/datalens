@@ -1,0 +1,12 @@
+{
+  "acceptance_authority": false,
+  "first_post_training_inference_completed": false,
+  "freeze_rule_version": "adapted_reasoning_evaluation_manifest_freeze_v0.1",
+  "frozen_before_first_post_training_inference": true,
+  "manifest_relative_path": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.3_reasoning_evaluation_v0.1_manifest.json",
+  "manifest_sha256": "11f508f5b65cb3b66bad3947ff1fde5757f8d1ed79438d842ea2b86063d846fc",
+  "protocol_git_commit": "60e50bb435f8e3f8bc8b2d093d711676ed645b6c",
+  "runner_sha256": "b96d70de459d46d996dac84617ba2e3b9c2ca34f17f05d19ff80a1cd0591b7b2",
+  "status": "frozen",
+  "test_sha256": "7a4fa01b08164237a9f8f149bfd31870059c7309d013261de74722240f9eaf1a"
+}
