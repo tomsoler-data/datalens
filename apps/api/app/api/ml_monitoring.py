@@ -681,4 +681,3 @@ def get_monitoring_workflow_history(
         raise AssertionError(
             "unreachable"
         )
-
