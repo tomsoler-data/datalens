@@ -72,7 +72,7 @@ class QLoRATargetResolution(
     The resolver deliberately returns complete paths rather than
     generic suffixes such as "q_proj". This prevents PEFT from
     matching identically named projections outside the language
-    model, including a multimodal vision tower.
+    model, including multimodal vision components.
     """
 
     model_config = ConfigDict(
@@ -152,7 +152,8 @@ class QLoRATargetResolution(
             self.target_modules
         ):
             raise ValueError(
-                "Resolved target modules must be deterministically sorted."
+                "Resolved target modules must be "
+                "deterministically sorted."
             )
 
 
@@ -212,7 +213,75 @@ class QLoRATargetResolution(
 
 
 # ============================================================
-# HELPERS
+# RUNTIME MODEL HELPERS
+# ============================================================
+
+
+def _runtime_model_type(
+    model: object,
+) -> str | None:
+    config = getattr(
+        model,
+        "config",
+        None,
+    )
+
+
+    if config is None:
+        return None
+
+
+    model_type = getattr(
+        config,
+        "model_type",
+        None,
+    )
+
+
+    if (
+        model_type is not None
+        and
+        not isinstance(
+            model_type,
+            str,
+        )
+    ):
+        raise TypeError(
+            "Runtime model_type must be a string when present."
+        )
+
+
+    return model_type
+
+
+def _named_modules(
+    model: object,
+):
+    named_modules = getattr(
+        model,
+        "named_modules",
+        None,
+    )
+
+
+    if (
+        named_modules is None
+        or
+        not callable(
+            named_modules
+        )
+    ):
+        raise TypeError(
+            "QLoRA target resolver requires a torch-compatible "
+            "model exposing named_modules()."
+        )
+
+
+    return named_modules()
+
+
+# ============================================================
+# LINEAR DETECTION
 # ============================================================
 
 
@@ -220,12 +289,11 @@ def _is_supported_linear_module(
     module: object,
 ) -> bool:
     """
-    Detect the linear layer implementations that may appear before
-    or after 4-bit quantization.
+    Detect linear layer implementations that may appear before
+    or after bitsandbytes quantization.
 
-    torch and bitsandbytes are imported lazily so importing
-    app.adaptation contracts does not add training dependencies to
-    the normal FastAPI runtime.
+    torch is imported lazily so importing app.adaptation contracts
+    does not force training dependencies into the normal runtime.
     """
 
     try:
@@ -277,16 +345,19 @@ def _is_supported_linear_module(
     return False
 
 
-def _resolve_language_model_object(
+# ============================================================
+# LANGUAGE ROOT RESOLUTION
+# ============================================================
+
+
+def _resolve_multimodal_language_model_object(
     model: object,
-) -> object:
+) -> object | None:
     """
-    Resolve the server-owned Gemma 3 language model object.
+    Resolve an explicitly exposed language_model from a
+    multimodal wrapper.
 
-    Two layouts are supported because wrappers may expose the
-    language model directly or below a top-level model container.
-
-    Multiple distinct matches are rejected rather than guessed.
+    Multiple distinct candidates are rejected rather than guessed.
     """
 
     candidates: list[
@@ -352,9 +423,7 @@ def _resolve_language_model_object(
 
 
     if not unique_candidates:
-        raise ValueError(
-            "Gemma 3 language model root could not be resolved."
-        )
+        return None
 
 
     if (
@@ -377,6 +446,78 @@ def _resolve_language_model_object(
     )
 
 
+def _resolve_language_model_object(
+    model: object,
+) -> object:
+    """
+    Resolve the server-owned Gemma 3 language-model object.
+
+    Supported layouts:
+
+    1. Multimodal wrapper:
+       model.language_model or model.model.language_model
+
+    2. Preferred DataLens text-only wrapper:
+       Gemma3ForCausalLM.model
+
+       This second form is accepted only when the runtime config
+       explicitly identifies model_type='gemma3_text'.
+
+    Arbitrary objects exposing only a generic .model attribute are
+    therefore not trusted.
+    """
+
+    multimodal_language_model = (
+        _resolve_multimodal_language_model_object(
+            model
+        )
+    )
+
+
+    if (
+        multimodal_language_model
+        is not None
+    ):
+        return multimodal_language_model
+
+
+    runtime_model_type = (
+        _runtime_model_type(
+            model
+        )
+    )
+
+
+    if (
+        runtime_model_type
+        !=
+        "gemma3_text"
+    ):
+        raise ValueError(
+            "Gemma 3 language model root could not be resolved."
+        )
+
+
+    text_model = getattr(
+        model,
+        "model",
+        None,
+    )
+
+
+    if (
+        text_model is None
+    ):
+        raise ValueError(
+            "Gemma 3 text-only runtime declared model_type="
+            "'gemma3_text' but did not expose the expected "
+            "top-level model object."
+        )
+
+
+    return text_model
+
+
 def _resolve_module_path(
     *,
     model: object,
@@ -387,27 +528,6 @@ def _resolve_module_path(
     from the complete model namespace.
     """
 
-    named_modules = getattr(
-        model,
-        "named_modules",
-        None,
-    )
-
-
-    if (
-        named_modules
-        is None
-        or
-        not callable(
-            named_modules
-        )
-    ):
-        raise TypeError(
-            "QLoRA target resolver requires a torch-compatible "
-            "model exposing named_modules()."
-        )
-
-
     matches = [
         name
 
@@ -415,7 +535,9 @@ def _resolve_module_path(
             name,
             module,
         )
-        in named_modules()
+        in _named_modules(
+            model
+        )
 
         if (
             module
@@ -450,12 +572,68 @@ def _resolve_module_path(
 
     if not root:
         raise ValueError(
-            "Language model root may not be the complete "
-            "multimodal model."
+            "Language model root may not be the complete model."
         )
 
 
     return root
+
+
+# ============================================================
+# MULTIMODAL SAFETY
+# ============================================================
+
+
+def _validate_text_only_runtime_surface(
+    model: object,
+) -> None:
+    """
+    For Gemma3ForCausalLM, fail closed if any multimodal namespace
+    unexpectedly appears anywhere in the runtime model.
+
+    This is stronger than merely ignoring those modules.
+    """
+
+    if (
+        _runtime_model_type(
+            model
+        )
+        !=
+        "gemma3_text"
+    ):
+        return
+
+
+    forbidden_modules = [
+        name
+
+        for (
+            name,
+            _,
+        )
+        in _named_modules(
+            model
+        )
+
+        if any(
+            segment
+            in
+            FORBIDDEN_TARGET_NAMESPACE_SEGMENTS
+
+            for segment
+            in name.split(
+                "."
+            )
+        )
+    ]
+
+
+    if forbidden_modules:
+        raise ValueError(
+            "Text-only Gemma 3 runtime unexpectedly exposes "
+            "multimodal namespaces: "
+            f"{forbidden_modules}."
+        )
 
 
 # ============================================================
@@ -477,6 +655,8 @@ def resolve_qlora_target_modules(
 
     - v0.1 supports Gemma 3 only;
     - target strategy must be language_model_all_linear;
+    - the preferred text-only Gemma3ForCausalLM runtime must
+      identify itself as gemma3_text;
     - only modules beneath the resolved language-model root are
       eligible;
     - multimodal namespaces remain forbidden;
@@ -493,6 +673,27 @@ def resolve_qlora_target_modules(
         raise ValueError(
             "QLoRA target resolver v0.1 supports only "
             "model_family='gemma3'."
+        )
+
+
+    if (
+        base_model.modality_scope
+        !=
+        "text_only"
+    ):
+        raise ValueError(
+            "QLoRA target resolver v0.1 requires "
+            "modality_scope='text_only'."
+        )
+
+
+    if (
+        base_model.use_multimodal_inputs
+        is not False
+    ):
+        raise ValueError(
+            "QLoRA target resolver v0.1 forbids "
+            "multimodal training inputs."
         )
 
 
@@ -514,6 +715,32 @@ def resolve_qlora_target_modules(
         raise ValueError(
             "QLoRA target resolver rule version mismatch."
         )
+
+
+    runtime_model_type = (
+        _runtime_model_type(
+            model
+        )
+    )
+
+
+    if (
+        runtime_model_type
+        not in {
+            None,
+            "gemma3",
+            "gemma3_text",
+        }
+    ):
+        raise ValueError(
+            "Unexpected runtime model type for Gemma 3 QLoRA "
+            f"target resolution: {runtime_model_type}."
+        )
+
+
+    _validate_text_only_runtime_surface(
+        model
+    )
 
 
     language_model = (
@@ -543,16 +770,12 @@ def resolve_qlora_target_modules(
     ] = []
 
 
-    named_modules = getattr(
-        model,
-        "named_modules",
-    )
-
-
     for (
         module_name,
         module,
-    ) in named_modules():
+    ) in _named_modules(
+        model
+    ):
         if not module_name.startswith(
             required_prefix
         ):
