@@ -1,0 +1,32 @@
+{
+  "acceptance_authority": false,
+  "adapter_loaded": false,
+  "benchmark_case_scored_count": 0,
+  "error": {
+    "message": "Tokenizer did not return a token list.",
+    "stage": "base_candidate_tokenization",
+    "type": "TypeError"
+  },
+  "failure_rule_version": "adapted_reasoning_evaluation_failed_attempt_v0.1",
+  "final_acceptance_evaluated": false,
+  "final_acceptance_loaded": false,
+  "forward_pass_executed": false,
+  "free_generation_used": false,
+  "llm_judge_used": false,
+  "model_checkpoint_loaded": true,
+  "model_weight_tensor_count_loaded": 444,
+  "predecessor_git_commit": "4ce907ec80a1232c3d730935ad7a866c6dc75996",
+  "published_receipt": false,
+  "published_report": false,
+  "root_cause": {
+    "default_apply_chat_template_return_dict": true,
+    "default_return_type": "BatchEncoding",
+    "explicit_return_dict_false_input_ids_equivalent": true,
+    "explicit_return_dict_false_return_type": "list",
+    "runner_assumption": "list[int]",
+    "transformers_runtime_contract": "GemmaTokenizer.apply_chat_template defaults return_dict=True"
+  },
+  "runner_rule_version": "adapted_reasoning_evaluation_runner_v0.1",
+  "status": "failed_before_forward_pass",
+  "training_executed": false
+}
