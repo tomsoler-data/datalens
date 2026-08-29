@@ -1,0 +1,321 @@
+{
+  "acceptance_authority": "pre_final_independent_gate",
+  "benchmark_role": "v0_4_independent_post_training_holdout",
+  "case_count": 30,
+  "cases": [
+    {
+      "case_id": "airport:holdout:v0.1:001",
+      "expected_relation": "same_metric_different_state",
+      "left_description": "Planned number of minutes from aircraft on-block to scheduled off-block.",
+      "left_metric": "scheduled_turnaround_minutes",
+      "right_description": "Observed number of minutes from aircraft on-block to actual off-block.",
+      "right_metric": "actual_turnaround_minutes"
+    },
+    {
+      "case_id": "airport:holdout:v0.1:002",
+      "expected_relation": "same_metric_different_state",
+      "left_description": "Fuel volume planned to be uplifted into the aircraft during the turnaround.",
+      "left_metric": "planned_fuel_uplift_liters",
+      "right_description": "Fuel volume actually uplifted into the aircraft during the turnaround.",
+      "right_metric": "actual_fuel_uplift_liters"
+    },
+    {
+      "case_id": "airport:holdout:v0.1:003",
+      "expected_relation": "same_metric_different_state",
+      "left_description": "Expected number of baggage pieces for the flight before handling begins.",
+      "left_metric": "forecast_baggage_piece_count",
+      "right_description": "Observed number of baggage pieces handled for the flight after reconciliation.",
+      "right_metric": "actual_baggage_piece_count"
+    },
+    {
+      "case_id": "airport:holdout:v0.1:004",
+      "expected_relation": "same_metric_different_state",
+      "left_description": "Planned clock time at which aircraft pushback should begin.",
+      "left_metric": "scheduled_pushback_time",
+      "right_description": "Observed clock time at which aircraft pushback actually begins.",
+      "right_metric": "actual_pushback_time"
+    },
+    {
+      "case_id": "airport:holdout:v0.1:005",
+      "expected_relation": "same_metric_different_state",
+      "left_description": "Planned number of passenger bus trips required for a remote-stand operation.",
+      "left_metric": "expected_remote_stand_bus_trips",
+      "right_description": "Number of passenger bus trips actually completed for that remote-stand operation.",
+      "right_metric": "completed_remote_stand_bus_trips"
+    },
+    {
+      "case_id": "airport:holdout:v0.1:006",
+      "expected_relation": "same_metric_different_state",
+      "left_description": "Estimated deicing fluid volume required for the aircraft treatment.",
+      "left_metric": "planned_deicing_fluid_liters",
+      "right_description": "Measured deicing fluid volume actually dispensed during the aircraft treatment.",
+      "right_metric": "dispensed_deicing_fluid_liters"
+    },
+    {
+      "case_id": "airport:holdout:v0.1:007",
+      "expected_relation": "same_process_different_stage",
+      "left_description": "Number of arrival bags removed from the aircraft at the unloading stage.",
+      "left_metric": "bags_unloaded_from_aircraft",
+      "right_description": "Number of arrival bags delivered to the passenger reclaim system later in the process.",
+      "right_metric": "bags_delivered_to_reclaim"
+    },
+    {
+      "case_id": "airport:holdout:v0.1:008",
+      "expected_relation": "same_process_different_stage",
+      "left_description": "Number of passenger boarding passes scanned at the gate during boarding.",
+      "left_metric": "boarding_passes_scanned",
+      "right_description": "Number of boarded passengers confirmed seated before cabin closure.",
+      "right_metric": "passengers_seated_confirmed"
+    },
+    {
+      "case_id": "airport:holdout:v0.1:009",
+      "expected_relation": "same_process_different_stage",
+      "left_description": "Number of inbound catering carts removed from the aircraft during servicing.",
+      "left_metric": "catering_carts_removed",
+      "right_description": "Number of outbound catering carts loaded onto the aircraft later in servicing.",
+      "right_metric": "catering_carts_loaded"
+    },
+    {
+      "case_id": "airport:holdout:v0.1:010",
+      "expected_relation": "same_process_different_stage",
+      "left_description": "Number of inbound cargo ULD units unloaded from the arriving aircraft.",
+      "left_metric": "inbound_uld_units_unloaded",
+      "right_description": "Number of outbound cargo ULD units loaded onto the aircraft before departure.",
+      "right_metric": "outbound_uld_units_loaded"
+    },
+    {
+      "case_id": "airport:holdout:v0.1:011",
+      "expected_relation": "same_process_different_stage",
+      "left_description": "Number of deicing trucks dispatched to assigned aircraft treatment positions.",
+      "left_metric": "deicing_trucks_dispatched",
+      "right_description": "Number of aircraft whose deicing treatment was completed after dispatch and servicing.",
+      "right_metric": "aircraft_deicing_completed"
+    },
+    {
+      "case_id": "airport:holdout:v0.1:012",
+      "expected_relation": "same_process_different_stage",
+      "left_description": "Count of successful towbar connection events at the start of conventional pushback.",
+      "left_metric": "towbar_connected_events",
+      "right_description": "Count of pushback operations completed after connection, clearance and aircraft movement.",
+      "right_metric": "pushback_completed_events"
+    },
+    {
+      "case_id": "airport:holdout:v0.1:013",
+      "expected_relation": "related_distinct_metric",
+      "left_description": "Total elapsed aircraft turnaround duration measured in minutes.",
+      "left_metric": "turnaround_duration_minutes",
+      "right_description": "Number of ground-handling employees assigned and present for the turnaround.",
+      "right_metric": "ground_staff_on_duty"
+    },
+    {
+      "case_id": "airport:holdout:v0.1:014",
+      "expected_relation": "related_distinct_metric",
+      "left_description": "Number of reported baggage handling failures associated with the flight.",
+      "left_metric": "baggage_mishandling_reports",
+      "right_description": "Elapsed minutes required to transfer baggage between handling points.",
+      "right_metric": "baggage_transfer_minutes"
+    },
+    {
+      "case_id": "airport:holdout:v0.1:015",
+      "expected_relation": "related_distinct_metric",
+      "left_description": "Measured volume of aviation fuel delivered to the aircraft.",
+      "left_metric": "fuel_uplift_liters",
+      "right_description": "Elapsed time required to complete the aircraft refueling operation.",
+      "right_metric": "refueling_duration_minutes"
+    },
+    {
+      "case_id": "airport:holdout:v0.1:016",
+      "expected_relation": "related_distinct_metric",
+      "left_description": "Elapsed minutes from boarding start until boarding is declared complete.",
+      "left_metric": "boarding_duration_minutes",
+      "right_description": "Number of gate agents assigned to support the boarding operation.",
+      "right_metric": "gate_agent_count"
+    },
+    {
+      "case_id": "airport:holdout:v0.1:017",
+      "expected_relation": "related_distinct_metric",
+      "left_description": "Distance in meters that an aircraft is moved by towing equipment.",
+      "left_metric": "aircraft_tow_distance_meters",
+      "right_description": "Electrical energy consumed by the tug while performing aircraft towing operations.",
+      "right_metric": "tug_energy_kwh"
+    },
+    {
+      "case_id": "airport:holdout:v0.1:018",
+      "expected_relation": "related_distinct_metric",
+      "left_description": "Elapsed minutes required to complete aircraft deicing treatment.",
+      "left_metric": "deicing_duration_minutes",
+      "right_description": "Measured outside air temperature in degrees Celsius during ground operations.",
+      "right_metric": "outside_air_temperature_c"
+    },
+    {
+      "case_id": "airport:holdout:v0.1:019",
+      "expected_relation": "unrelated",
+      "left_description": "Number of meal carts prepared for aircraft catering service.",
+      "left_metric": "catering_meal_cart_count",
+      "right_description": "Measured tire pressure of a remote-stand passenger bus.",
+      "right_metric": "passenger_bus_tire_pressure_kpa"
+    },
+    {
+      "case_id": "airport:holdout:v0.1:020",
+      "expected_relation": "unrelated",
+      "left_description": "Volume of potable water delivered to the aircraft during servicing.",
+      "left_metric": "potable_water_service_liters",
+      "right_description": "Measured temperature of the motor driving a baggage conveyor belt.",
+      "right_metric": "baggage_belt_motor_temperature_c"
+    },
+    {
+      "case_id": "airport:holdout:v0.1:021",
+      "expected_relation": "unrelated",
+      "left_description": "Volume handled during aircraft lavatory servicing operations.",
+      "left_metric": "lavatory_service_volume_liters",
+      "right_description": "Configured brightness percentage of a gate information display.",
+      "right_metric": "gate_display_brightness_percent"
+    },
+    {
+      "case_id": "airport:holdout:v0.1:022",
+      "expected_relation": "unrelated",
+      "left_description": "Battery state of charge of an electric aircraft pushback tug.",
+      "left_metric": "pushback_tug_battery_soc_percent",
+      "right_description": "Number of catering security-seal exceptions recorded during catering preparation.",
+      "right_metric": "catering_seal_exception_count"
+    },
+    {
+      "case_id": "airport:holdout:v0.1:023",
+      "expected_relation": "unrelated",
+      "left_description": "Number of serviceable communication headsets held in ground-equipment inventory.",
+      "left_metric": "headset_inventory_count",
+      "right_description": "Measured concentration percentage of prepared deicing fluid.",
+      "right_metric": "deicing_fluid_concentration_percent"
+    },
+    {
+      "case_id": "airport:holdout:v0.1:024",
+      "expected_relation": "unrelated",
+      "left_description": "Odometer distance accumulated by an airport staff shuttle vehicle.",
+      "left_metric": "staff_shuttle_odometer_km",
+      "right_description": "Number of failed inspections involving aircraft wheel chocks.",
+      "right_metric": "aircraft_chock_inspection_failures"
+    },
+    {
+      "case_id": "airport:holdout:v0.1:025",
+      "expected_relation": "uncertain",
+      "left_description": "Internal ramp-service metric; its operational definition and calculation are not available.",
+      "left_metric": "ramp_service_index_a",
+      "right_description": "Internal ramp-service metric; its operational definition and calculation are not available.",
+      "right_metric": "ramp_service_index_b"
+    },
+    {
+      "case_id": "airport:holdout:v0.1:026",
+      "expected_relation": "uncertain",
+      "left_description": "Composite stand-cycle value whose included components and formula are not documented.",
+      "left_metric": "stand_cycle_value",
+      "right_description": "Composite turnaround-cycle value whose included components and formula are not documented.",
+      "right_metric": "turnaround_cycle_value"
+    },
+    {
+      "case_id": "airport:holdout:v0.1:027",
+      "expected_relation": "uncertain",
+      "left_description": "Baggage-flow measure with no documented unit, population or processing-stage definition.",
+      "left_metric": "bag_flow_metric",
+      "right_description": "Transfer measure with no documented unit, scope or relationship to baggage flow.",
+      "right_metric": "transfer_metric"
+    },
+    {
+      "case_id": "airport:holdout:v0.1:028",
+      "expected_relation": "uncertain",
+      "left_description": "Composite readiness score; contributing equipment variables are not available.",
+      "left_metric": "equipment_ready_score",
+      "right_description": "Composite readiness score; contributing service variables are not available.",
+      "right_metric": "service_ready_score"
+    },
+    {
+      "case_id": "airport:holdout:v0.1:029",
+      "expected_relation": "uncertain",
+      "left_description": "Primary operation count, but the counted event, scope and time window are not documented.",
+      "left_metric": "operation_count_primary",
+      "right_description": "Secondary operation count, but the counted event, scope and time window are not documented.",
+      "right_metric": "operation_count_secondary"
+    },
+    {
+      "case_id": "airport:holdout:v0.1:030",
+      "expected_relation": "uncertain",
+      "left_description": "Delay-related internal measure whose delay cause, unit and aggregation rule are unavailable.",
+      "left_metric": "delay_metric_x",
+      "right_description": "Delay-related internal measure whose delay cause, unit and aggregation rule are unavailable.",
+      "right_metric": "delay_metric_y"
+    }
+  ],
+  "domain": "airport_ground_operations",
+  "experiment_id": "datalens-semantic-qlora-v0.4",
+  "holdout_id": "adaptation:datalens-semantic-qlora-v0.4:airport-ground-operations:holdout:v0.1",
+  "independence_policy": {
+    "airport_domain_forbidden_in_v0_4_training_data": true,
+    "case_material_forbidden_in_training": true,
+    "evaluation_results_may_not_drive_hyperparameter_tuning": true,
+    "if_results_are_observed_then_future_experiments_require_new_holdout": true,
+    "must_not_be_used_for_training": true,
+    "must_not_be_used_for_training_data_authoring": true
+  },
+  "preregistered_acceptance_gate": {
+    "adapted_accuracy_must_not_be_lower_than_base": true,
+    "adapted_macro_accuracy_must_not_be_lower_than_base": true,
+    "minimum_adapted_accuracy": 0.7,
+    "minimum_adapted_macro_accuracy": 0.7,
+    "minimum_per_relation_accuracy": 0.5,
+    "minimum_uncertain_accuracy": 0.666667,
+    "strict_json_validity_rate": 1.0,
+    "training_loss_is_acceptance_evidence": false
+  },
+  "prerequisite_gates": {
+    "candidate_adapter_must_be_frozen": true,
+    "hotel_diagnostic_must_pass_before_holdout_is_consumed": true,
+    "known_regression_and_safety_gates_must_pass": true,
+    "training_must_be_complete": true
+  },
+  "protocol": {
+    "assistant_output": "strict_json_relation_plus_reason",
+    "decoding": {
+      "do_sample": false,
+      "max_new_tokens": 96,
+      "num_beams": 1
+    },
+    "evaluation_order": [
+      "pinned_base",
+      "same_base_plus_frozen_candidate_adapter"
+    ],
+    "generation": "deterministic_greedy",
+    "json_additional_properties_allowed": false,
+    "reason_max_words": 45,
+    "reason_min_words": 6,
+    "relation_values": [
+      "same_metric_different_state",
+      "same_process_different_stage",
+      "related_distinct_metric",
+      "unrelated",
+      "uncertain"
+    ],
+    "scoring": {
+      "primary": "relation_accuracy",
+      "secondary": [
+        "macro_relation_accuracy",
+        "per_relation_accuracy",
+        "strict_json_validity_rate"
+      ]
+    }
+  },
+  "relation_counts": {
+    "related_distinct_metric": 6,
+    "same_metric_different_state": 6,
+    "same_process_different_stage": 6,
+    "uncertain": 6,
+    "unrelated": 6
+  },
+  "relations": [
+    "same_metric_different_state",
+    "same_process_different_stage",
+    "related_distinct_metric",
+    "unrelated",
+    "uncertain"
+  ],
+  "rule_version": "qlora_v0.4_airport_holdout_v0.1",
+  "status": "frozen_before_v0_4_training_data_authoring"
+}
