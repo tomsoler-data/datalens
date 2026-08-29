@@ -67,6 +67,10 @@ from app.api.report_selection import (
     router as report_selection_router,
 )
 
+from app.api.model_lab import (
+    router as model_lab_router,
+)
+
 from app.api.routes import (
     router as api_router,
 )
@@ -345,4 +349,13 @@ app.include_router(
 
 app.include_router(
     preparation_validation_router
+)
+
+# ============================================================
+# MODEL LAB
+# ============================================================
+
+
+app.include_router(
+    model_lab_router
 )
