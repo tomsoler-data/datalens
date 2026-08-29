@@ -79,6 +79,11 @@ from app.api.ml_monitoring import (
     router as ml_monitoring_router,
 )
 
+
+from app.api.ml_performance_monitoring import (
+    router as ml_performance_monitoring_router,
+)
+
 from app.api.routes import (
     router as api_router,
 )
@@ -386,4 +391,15 @@ app.include_router(
 
 app.include_router(
     ml_monitoring_router
+)
+
+
+
+# ============================================================
+# ML PERFORMANCE MONITORING
+# ============================================================
+
+
+app.include_router(
+    ml_performance_monitoring_router
 )
