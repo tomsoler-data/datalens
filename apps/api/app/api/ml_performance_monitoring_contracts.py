@@ -266,4 +266,3 @@ class MLPerformanceMonitoringWorkflowHistoryResponse(
     ] = (
         "ml_performance_monitoring_history_api_v0.1"
     )
-

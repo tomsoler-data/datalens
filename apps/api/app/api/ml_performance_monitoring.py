@@ -746,4 +746,3 @@ def get_performance_monitoring_workflow_history(
         raise AssertionError(
             "unreachable"
         )
-
