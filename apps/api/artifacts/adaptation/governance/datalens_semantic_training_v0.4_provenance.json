@@ -1,0 +1,11 @@
+{
+  "approved_development_artifact_paths": [],
+  "dataset_id": "adaptation:datalens-semantic:training:v0.4",
+  "dataset_version": "datalens_semantic_adaptation_training_v0.4",
+  "example_count": 230,
+  "forbidden_index_sha256": "933a3e9099da44a97fdb0f2b06b4fb4d7dd990d9cc3977dab264df2afc48c688",
+  "passed": true,
+  "rule_version": "adaptation_provenance_guard_v0.1",
+  "violation_count": 0,
+  "violations": []
+}
