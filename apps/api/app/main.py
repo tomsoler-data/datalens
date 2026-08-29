@@ -67,6 +67,10 @@ from app.api.report_selection import (
     router as report_selection_router,
 )
 
+from app.api.model_training import (
+    router as model_training_router,
+)
+
 from app.api.model_lab import (
     router as model_lab_router,
 )
@@ -350,6 +354,16 @@ app.include_router(
 app.include_router(
     preparation_validation_router
 )
+
+# ============================================================
+# MODEL TRAINING
+# ============================================================
+
+
+app.include_router(
+    model_training_router
+)
+
 
 # ============================================================
 # MODEL LAB
