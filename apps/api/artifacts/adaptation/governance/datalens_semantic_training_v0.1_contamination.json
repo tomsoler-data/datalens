@@ -1,0 +1,17 @@
+{
+  "candidate_dataset_sha256": "f9ed4e8a252f4456fff3a48d8708a393b12e4f496584301f23f7d3bc0a1a309c",
+  "candidate_example_count": 40,
+  "contaminated": false,
+  "dataset_id": "adaptation:datalens-semantic:training:v0.1",
+  "dataset_version": "datalens_semantic_adaptation_training_v0.1",
+  "governance_rule_version": "adaptation_data_governance_v0.1",
+  "match_count": 0,
+  "matches": [],
+  "near_duplicate_threshold": 0.92,
+  "passed": true,
+  "protected_corpus_sha256": "537289dadb18e4ed62476e383405b4f0b8d880d84c6275ddb675742e28094425",
+  "protected_source_count": 45,
+  "protected_structured_fingerprint_count": 172,
+  "protected_text_fingerprint_count": 758,
+  "report_rule_version": "adaptation_contamination_report_v0.1"
+}

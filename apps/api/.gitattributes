@@ -1,0 +1,7 @@
+# DataLens immutable experiment artifacts: byte-stable LF
+.gitattributes text eol=lf
+artifacts/adaptation/**/*.json text eol=lf
+artifacts/adaptation/**/*.jsonl text eol=lf
+app/evaluation/benchmarks/*final_acceptance*.py text eol=lf
+artifacts/evaluation/datasets/*final_acceptance*.csv text eol=lf
+artifacts/evaluation/holdouts/*final_acceptance*.json text eol=lf
