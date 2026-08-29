@@ -1,0 +1,282 @@
+{
+  "audit_id": "datalens-semantic-training-v0.1-token-length-audit",
+  "dataset": {
+    "dataset_id": "adaptation:datalens-semantic:training:v0.1",
+    "dataset_sha256": "4d7f1d8defeeb956448e31d776e5310795326b08ec5ddaf24091bd493c42f892",
+    "example_count": 40
+  },
+  "distribution": {
+    "maximum": 85,
+    "mean": 69.225,
+    "median": 68.0,
+    "minimum": 58,
+    "p75": 72,
+    "p90": 77,
+    "p95": 81,
+    "p99": 85,
+    "total_tokens": 2769
+  },
+  "examples": [
+    {
+      "example_id": "adaptation:v0.1:001",
+      "token_count": 78
+    },
+    {
+      "example_id": "adaptation:v0.1:002",
+      "token_count": 77
+    },
+    {
+      "example_id": "adaptation:v0.1:003",
+      "token_count": 72
+    },
+    {
+      "example_id": "adaptation:v0.1:004",
+      "token_count": 68
+    },
+    {
+      "example_id": "adaptation:v0.1:005",
+      "token_count": 70
+    },
+    {
+      "example_id": "adaptation:v0.1:006",
+      "token_count": 66
+    },
+    {
+      "example_id": "adaptation:v0.1:007",
+      "token_count": 71
+    },
+    {
+      "example_id": "adaptation:v0.1:008",
+      "token_count": 69
+    },
+    {
+      "example_id": "adaptation:v0.1:009",
+      "token_count": 63
+    },
+    {
+      "example_id": "adaptation:v0.1:010",
+      "token_count": 64
+    },
+    {
+      "example_id": "adaptation:v0.1:011",
+      "token_count": 67
+    },
+    {
+      "example_id": "adaptation:v0.1:012",
+      "token_count": 63
+    },
+    {
+      "example_id": "adaptation:v0.1:013",
+      "token_count": 67
+    },
+    {
+      "example_id": "adaptation:v0.1:014",
+      "token_count": 60
+    },
+    {
+      "example_id": "adaptation:v0.1:015",
+      "token_count": 61
+    },
+    {
+      "example_id": "adaptation:v0.1:016",
+      "token_count": 58
+    },
+    {
+      "example_id": "adaptation:v0.1:017",
+      "token_count": 69
+    },
+    {
+      "example_id": "adaptation:v0.1:018",
+      "token_count": 74
+    },
+    {
+      "example_id": "adaptation:v0.1:019",
+      "token_count": 67
+    },
+    {
+      "example_id": "adaptation:v0.1:020",
+      "token_count": 68
+    },
+    {
+      "example_id": "adaptation:v0.1:021",
+      "token_count": 69
+    },
+    {
+      "example_id": "adaptation:v0.1:022",
+      "token_count": 67
+    },
+    {
+      "example_id": "adaptation:v0.1:023",
+      "token_count": 68
+    },
+    {
+      "example_id": "adaptation:v0.1:024",
+      "token_count": 64
+    },
+    {
+      "example_id": "adaptation:v0.1:025",
+      "token_count": 67
+    },
+    {
+      "example_id": "adaptation:v0.1:026",
+      "token_count": 69
+    },
+    {
+      "example_id": "adaptation:v0.1:027",
+      "token_count": 68
+    },
+    {
+      "example_id": "adaptation:v0.1:028",
+      "token_count": 68
+    },
+    {
+      "example_id": "adaptation:v0.1:029",
+      "token_count": 63
+    },
+    {
+      "example_id": "adaptation:v0.1:030",
+      "token_count": 67
+    },
+    {
+      "example_id": "adaptation:v0.1:031",
+      "token_count": 67
+    },
+    {
+      "example_id": "adaptation:v0.1:032",
+      "token_count": 66
+    },
+    {
+      "example_id": "adaptation:v0.1:033",
+      "token_count": 71
+    },
+    {
+      "example_id": "adaptation:v0.1:034",
+      "token_count": 73
+    },
+    {
+      "example_id": "adaptation:v0.1:035",
+      "token_count": 81
+    },
+    {
+      "example_id": "adaptation:v0.1:036",
+      "token_count": 73
+    },
+    {
+      "example_id": "adaptation:v0.1:037",
+      "token_count": 81
+    },
+    {
+      "example_id": "adaptation:v0.1:038",
+      "token_count": 73
+    },
+    {
+      "example_id": "adaptation:v0.1:039",
+      "token_count": 85
+    },
+    {
+      "example_id": "adaptation:v0.1:040",
+      "token_count": 77
+    }
+  ],
+  "longest_examples": [
+    {
+      "example_id": "adaptation:v0.1:039",
+      "token_count": 85
+    },
+    {
+      "example_id": "adaptation:v0.1:037",
+      "token_count": 81
+    },
+    {
+      "example_id": "adaptation:v0.1:035",
+      "token_count": 81
+    },
+    {
+      "example_id": "adaptation:v0.1:001",
+      "token_count": 78
+    },
+    {
+      "example_id": "adaptation:v0.1:040",
+      "token_count": 77
+    },
+    {
+      "example_id": "adaptation:v0.1:002",
+      "token_count": 77
+    },
+    {
+      "example_id": "adaptation:v0.1:018",
+      "token_count": 74
+    },
+    {
+      "example_id": "adaptation:v0.1:038",
+      "token_count": 73
+    },
+    {
+      "example_id": "adaptation:v0.1:036",
+      "token_count": 73
+    },
+    {
+      "example_id": "adaptation:v0.1:034",
+      "token_count": 73
+    }
+  ],
+  "passed": true,
+  "recommendation": {
+    "lossless_for_frozen_dataset": true,
+    "reason": "All 40 frozen training examples fit within 256 tokens; the observed maximum is 85 tokens. Using 256 preserves the entire dataset while materially reducing the unnecessary worst-case memory pressure observed at sequence length 1024.",
+    "recommended_max_sequence_length": 256,
+    "tokens_removed": 0,
+    "truncated_examples": 0
+  },
+  "rule_version": "adaptation_token_length_audit_v0.1",
+  "safety": {
+    "backward_executed": false,
+    "final_acceptance_loaded": false,
+    "forward_executed": false,
+    "gpu_computation": false,
+    "model_loaded": false,
+    "optimizer_created": false,
+    "training_dataset_content_embedded": false,
+    "training_executed": false
+  },
+  "thresholds": {
+    "1024": {
+      "coverage_fraction": 1.0,
+      "covered_examples": 40,
+      "tokens_above_limit": 0,
+      "truncated_examples": 0
+    },
+    "256": {
+      "coverage_fraction": 1.0,
+      "covered_examples": 40,
+      "tokens_above_limit": 0,
+      "truncated_examples": 0
+    },
+    "384": {
+      "coverage_fraction": 1.0,
+      "covered_examples": 40,
+      "tokens_above_limit": 0,
+      "truncated_examples": 0
+    },
+    "512": {
+      "coverage_fraction": 1.0,
+      "covered_examples": 40,
+      "tokens_above_limit": 0,
+      "truncated_examples": 0
+    },
+    "768": {
+      "coverage_fraction": 1.0,
+      "covered_examples": 40,
+      "tokens_above_limit": 0,
+      "truncated_examples": 0
+    }
+  },
+  "tokenizer": {
+    "base_vocab_size": 262144,
+    "chat_template_sha256": "7de1c58e208eda46e9c7f86397df37ec49883aeece39fb961e0a6b24088dd3c4",
+    "repository": "google/gemma-3-4b-it",
+    "revision": "093f9f388b31de276ce2de164bdc2081324b9767",
+    "tokenization_path": "apply_chat_template(tokenize=False) -> tokenizer(add_special_tokens=False)",
+    "tokenizer_length": 262145
+  }
+}
