@@ -1,0 +1,223 @@
+{
+  "acceptance_gates": {
+    "all_must_pass": true,
+    "dangerous_false_positives_maximum": 0,
+    "greenhouse_freeze_integrity_must_pass": true,
+    "projected_relation_accuracy_minimum": 0.8,
+    "s3_regression_gate_must_remain_pass": true,
+    "safety_failures_maximum": 0,
+    "strict_json_validity_required": 1.0
+  },
+  "authorization_scope_after_decision": {
+    "execute_greenhouse": false,
+    "observe_greenhouse_results": false,
+    "perform_synthetic_preflight": true,
+    "prepare_greenhouse_execution_manifest": true,
+    "prepare_greenhouse_protocol": true,
+    "prepare_greenhouse_runner": true,
+    "read_greenhouse_cases": false,
+    "read_greenhouse_dataset": false,
+    "read_greenhouse_independence": false,
+    "select_model_using_greenhouse": false,
+    "tune_using_greenhouse": false
+  },
+  "base_model_policy": {
+    "adapted_result_is_acceptance_authority": true,
+    "base_evaluation_permitted_for_diagnostic_comparison": true,
+    "base_result_is_acceptance_authority": false,
+    "greenhouse_may_be_used_for_model_selection": false
+  },
+  "candidate_adapter": {
+    "adapter_bundle_sha256": "0351980df6d86096195c0971deb30c725e155c71aa5de8054b2b37fa42090716",
+    "frozen_candidate": true,
+    "further_tuning_permitted": false
+  },
+  "candidate_output_contract": {
+    "exact_keys": [
+      "relation",
+      "reason"
+    ],
+    "format": "strict_json_object",
+    "invalid_json_is_correct": false,
+    "llm_judge": false,
+    "parser": "deterministic_strict_json",
+    "reason_max_words": 45,
+    "reason_min_words": 6,
+    "relation_values": [
+      "same_metric_different_state",
+      "same_process_different_stage",
+      "related_distinct_metric",
+      "unrelated",
+      "uncertain"
+    ]
+  },
+  "created_at": "2026-08-30T13:36:44Z",
+  "dangerous_false_positive_interpretation": {
+    "definition": {
+      "expected_relation": "anything_other_than_same_metric_different_state",
+      "predicted_relation": "same_metric_different_state"
+    },
+    "historical_gate_name": "maximum_dangerous_false_positives",
+    "historical_threshold": 0,
+    "rationale": "False equivalence is the most dangerous semantic error because it can cause distinct metrics to be treated as the same metric."
+  },
+  "decision_rule_version": "qlora_v0.4_greenhouse_gate_task_interpretation_decision_v0.1",
+  "experiment_id": "adaptation:datalens-semantic-qlora-v0.4",
+  "freeze_integrity_interpretation": {
+    "all_four_frozen_component_hashes_must_match": true,
+    "freeze_sha256": "11615352547f152b91e592066142c3431b557c5f620018380b71b931cb77a736",
+    "historical_gate_name": "require_freeze_integrity",
+    "mismatch_action": "fail_closed_no_reexecution",
+    "protected_component_hashes_may_be_recomputed_after_consumption_marker": true,
+    "protected_component_hashes_may_be_recomputed_before_consumption": false,
+    "required": true
+  },
+  "gold_projection_policy": {
+    "compatible_units_used_for_relation_projection": false,
+    "derived_gap_compatible_used_for_relation_projection": false,
+    "direction": "frozen_greenhouse_pair_assertions_to_candidate_relation",
+    "invariant_violation_action": "fail_closed_before_scoring",
+    "non_projected_fields_remain_historical_evidence": true,
+    "ordered_rules": [
+      {
+        "expected_relation": "same_metric_different_state",
+        "priority": 1,
+        "when": {
+          "distinct_variants": true,
+          "same_concept": true
+        }
+      },
+      {
+        "expected_relation": "related_distinct_metric",
+        "priority": 2,
+        "when": {
+          "same_concept": false,
+          "same_concept_family": true
+        }
+      },
+      {
+        "expected_relation": "unrelated",
+        "priority": 3,
+        "when": {
+          "same_concept": false,
+          "same_concept_family": false,
+          "same_domain": false
+        }
+      },
+      {
+        "expected_relation": "uncertain",
+        "priority": 4,
+        "when": "otherwise_after_consistency_validation"
+      }
+    ],
+    "rule_version": "greenhouse_pair_assertions_to_qlora_relation_projection_v0.1",
+    "same_process_different_stage_gold_projection_supported": false,
+    "same_process_different_stage_reason": "The frozen six-field SemanticPairBenchmarkCase schema does not uniquely encode process-stage identity, so this class cannot be synthesized without post-hoc assumptions.",
+    "semantic_consistency_invariants": [
+      "same_concept=True must not coexist with same_concept_family=False",
+      "same_concept=True must not coexist with same_domain=False",
+      "same_concept_family=True must not coexist with same_domain=False"
+    ]
+  },
+  "governance": {
+    "airport_reexecution_forbidden": true,
+    "decision_created_before_greenhouse_case_read": true,
+    "decision_created_before_greenhouse_dataset_read": true,
+    "decision_created_before_greenhouse_execution": true,
+    "decision_created_before_greenhouse_independence_read": true,
+    "decision_must_be_committed_before_protocol_freeze": true,
+    "greenhouse_is_single_use": true,
+    "greenhouse_model_selection_forbidden": true,
+    "greenhouse_tuning_forbidden": true,
+    "mapping_may_change_after_greenhouse_observation": false,
+    "safety_interpretation_may_change_after_greenhouse_observation": false,
+    "score_interpretation_may_change_after_greenhouse_observation": false
+  },
+  "historical_greenhouse": {
+    "benchmark_repo_path": "apps/api/app/evaluation/benchmarks/greenhouse_operations_final_acceptance.py",
+    "benchmark_sha256": "5653bfb9042f3a17dedf1b3165a3ab11fa2996c0964454094d2bee672991c5b2",
+    "candidate_model_injection_supported": false,
+    "complete_relation_to_pair_bridge_present": false,
+    "declared_relation_tags": [
+      "related_distinct_metric",
+      "same_metric_different_state"
+    ],
+    "final_acceptance_engine_repo_path": "apps/api/app/adaptation/final_acceptance.py",
+    "final_acceptance_engine_sha256": "caf872d011f60075eff9ff83772a27e2bacd387419b5ce5b8de55d8aa30406ed",
+    "freeze_repo_path": "apps/api/artifacts/evaluation/holdouts/greenhouse_operations_final_acceptance_v0.1_freeze.json",
+    "freeze_sha256": "11615352547f152b91e592066142c3431b557c5f620018380b71b931cb77a736",
+    "pair_case_count": 18,
+    "semantic_benchmark_repo_path": "apps/api/app/evaluation/semantic_benchmark.py",
+    "semantic_benchmark_sha256": "33607c50e387d1741ad4e34d35ce0ef8679eb0b75bc110d4e09b95ca0ab399cc"
+  },
+  "mismatch_finding": {
+    "candidate_output_cardinality": 5,
+    "candidate_output_relations": [
+      "same_metric_different_state",
+      "same_process_different_stage",
+      "related_distinct_metric",
+      "unrelated",
+      "uncertain"
+    ],
+    "direct_historical_runner_reuse_allowed": false,
+    "historical_candidate_execution_path_demonstrated": false,
+    "historical_pair_assertion_field_count": 6,
+    "historical_pair_assertion_fields": [
+      "same_concept",
+      "same_concept_family",
+      "same_domain",
+      "distinct_variants",
+      "compatible_units",
+      "derived_gap_compatible"
+    ],
+    "lossless_relation_to_six_field_mapping_demonstrated": false,
+    "reason": "The frozen Greenhouse benchmark evaluates six semantic pair assertions, while the QLoRA candidate produces one of five relation classes. No complete historical deterministic bridge or candidate-model injection path exists. A pre-observation projection is therefore required."
+  },
+  "operational_validity_gate": {
+    "generation_budget_exhaustion_causes_failure": true,
+    "invalid_output_causes_final_acceptance_failure": true,
+    "invalid_output_scored_incorrect": true,
+    "no_llm_judge": true,
+    "strict_json_validity_required": 1.0
+  },
+  "regression_gate_interpretation": {
+    "bound_gate": "qlora_v0.4_s3_post_training_regression_safety_gate",
+    "evidence_commit": "b82e89eadc423aadba247be226fdd7e3a96cc7e4",
+    "historical_gate_name": "require_regression_gate_pass",
+    "must_remain_pass": true,
+    "receipt_repo_path": "apps/api/artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_s3_post_training_gate_v0.1_receipt.json",
+    "receipt_sha256": "fb4d81feb1c20c77e8fe3eaaf491ca7f831c32c96a6dcf29389e7b06dae28b96",
+    "report_repo_path": "apps/api/artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_s3_post_training_gate_v0.1_report.json",
+    "report_sha256": "b0b662c31f7bbc013968cd7a69968aba21621c13cfe8de72bef2f4ddde0c1e6c",
+    "required": true
+  },
+  "role": "candidate_task_to_frozen_final_acceptance_contract_compatibility_decision",
+  "safety_failure_interpretation": {
+    "dangerous_false_positive_is_also_safety_failure_when_applicable": true,
+    "definition": "A safety failure occurs when the candidate predicts a positive semantic relation while the projected gold relation is unrelated or uncertain.",
+    "historical_gate_name": "maximum_safety_failures",
+    "historical_threshold": 0,
+    "negative_or_noncommittal_gold_relations": [
+      "unrelated",
+      "uncertain"
+    ],
+    "positive_relations": [
+      "same_metric_different_state",
+      "same_process_different_stage",
+      "related_distinct_metric"
+    ]
+  },
+  "score_interpretation": {
+    "candidate_metric_definition": "correct_projected_relation_predictions / total_greenhouse_pair_cases",
+    "candidate_metric_name": "projected_relation_accuracy",
+    "compatibility_interpretation_frozen_before_holdout_observation": true,
+    "denominator": 18,
+    "historical_gate_name": "minimum_normalized_score",
+    "historical_six_field_assertion_accuracy_equivalent": false,
+    "historical_threshold": 0.8,
+    "partial_credit": false,
+    "round_decimals": 6
+  },
+  "source_git_commit": "9fcf1b1afca0c94283cd8f8ca56e63d8308de437",
+  "status": "approved_pre_execution_interpretation"
+}
