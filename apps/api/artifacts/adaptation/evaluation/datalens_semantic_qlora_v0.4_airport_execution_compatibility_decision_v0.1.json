@@ -1,0 +1,104 @@
+{
+  "approved_v0_2_change": {
+    "acceptance_gate_changes": false,
+    "adapter_changes": false,
+    "eos_changes": false,
+    "execution_revision": "v0.2",
+    "generation_budget_changes": false,
+    "holdout_changes": false,
+    "model_changes": false,
+    "prompt_changes": false,
+    "relation_changes": false,
+    "runtime_compatibility_change": {
+      "change": "set_return_dict_false_explicitly",
+      "function": "tokenizer.apply_chat_template",
+      "reason": "recover_the_same_2d_input_id_tensor_already_contained_in_the_default_BatchEncoding_without_changing_tokens"
+    },
+    "semantic_protocol_changes": false,
+    "training_changes": false,
+    "versioning_changes": {
+      "new_execution_manifest_revision": "v0.2",
+      "new_runner": "app/adaptation/airport_evaluation_runner_v0_4_v0_2.py",
+      "new_test": "test_airport_evaluation_runner_v0_4_v0_2.py",
+      "preserve_v0_1_files": true
+    }
+  },
+  "decision_rule_version": "qlora_v0.4_airport_execution_compatibility_decision_v0.1",
+  "diagnosis": {
+    "airport_data_used": false,
+    "chat_template_sha256": "7de1c58e208eda46e9c7f86397df37ec49883aeece39fb961e0a6b24088dd3c4",
+    "default_call": {
+      "attention_mask_shape": [
+        1,
+        174
+      ],
+      "input_ids_shape": [
+        1,
+        174
+      ],
+      "observed_container": "BatchEncoding",
+      "return_dict_explicit": false
+    },
+    "explicit_return_dict_false": {
+      "observed_container": "Tensor",
+      "shape": [
+        1,
+        174
+      ],
+      "token_ids_identical_to_default_input_ids": true
+    },
+    "explicit_return_dict_true": {
+      "input_ids_shape": [
+        1,
+        174
+      ],
+      "observed_container": "BatchEncoding"
+    },
+    "root_cause": "current_transformers_chat_template_default_returns_batchencoding_while_v0_1_runner_expected_tensor",
+    "source": "non_protected_synthetic_preflight",
+    "synthetic_prompt_token_count": 174
+  },
+  "experiment_id": "datalens-semantic-qlora-v0.4",
+  "frozen_protocol": {
+    "deterministic_greedy": true,
+    "do_sample": false,
+    "eos_token_ids": [
+      1,
+      106
+    ],
+    "max_new_tokens": 64,
+    "num_beams": 1,
+    "sha256": "a88cb86565c0a3d4daa4d5b2bea3beeed79a7df81155ed4d4ed0c7bfef2e00d1",
+    "unchanged": true
+  },
+  "governance": {
+    "airport_holdout_consumption_budget_available": true,
+    "airport_holdout_still_single_use": true,
+    "airport_results_may_not_drive_v0_2_change": true,
+    "greenhouse_evaluated": false,
+    "greenhouse_opened": false,
+    "hotel_reexecution_permitted": false,
+    "v0_1_must_not_be_executed": true,
+    "v0_2_must_be_frozen_before_new_preflight": true,
+    "v0_2_preflight_must_remain_synthetic": true
+  },
+  "scope": "execution_compatibility_only",
+  "source_git_commit": "9765805b035fd9c594f02ffa8448386f4fc82f40",
+  "status": "approved_before_airport_holdout_consumption",
+  "v0_1_execution": {
+    "adapter_loaded_before_failure": false,
+    "airport_cases_consumed": false,
+    "airport_results_observed": false,
+    "authorization_passed": true,
+    "consumption_marker_created": false,
+    "execution_status": "superseded_before_holdout_consumption",
+    "manifest_freeze_sha256": "f302fa663bb45d16e193582bfebfbef0ea4d0b9f168089e64c3c3a829766d8fa",
+    "manifest_sha256": "663a2e685a17f3759e7d1b258763eeb306a91b84ea3b5698fa6c641758cd6582",
+    "official_evaluation_executed": false,
+    "preflight_failure": "unexpected_chat_template_tensor_shape",
+    "preflight_failure_stage": "synthetic_base_generation_input_preparation",
+    "preflight_passed": false,
+    "runner_sha256": "0acda8d3d009a8aefa89ec7229d47301a92dec335d5e68a0d87f5978164c9b3a",
+    "test_sha256": "7828c0d41dab18c9db5723014b0af2004da89bf6b5d3b5ee74e885af86bece60"
+  }
+}
