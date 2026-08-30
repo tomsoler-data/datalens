@@ -1,0 +1,267 @@
+{
+  "approved_v0_5_execution_change": {
+    "acceptance_gate_changes": false,
+    "adapter_changes": false,
+    "candidate_changes": false,
+    "eos_changes": false,
+    "execution_ordering_change": {
+      "prompt_content_mutation_after_prebuild_permitted": false,
+      "prompt_rebuild_during_adapted_evaluation_permitted": false,
+      "prompt_rebuild_during_base_evaluation_permitted": false,
+      "purpose": "materialize_all_18_frozen_label_blind_user_messages_before_base_model_load",
+      "required_case_count": 18,
+      "required_order": [
+        "build_deterministic_profiles",
+        "build_profile_index",
+        "build_all_18_label_blind_user_messages",
+        "validate_18_prebuilt_prompt_records",
+        "load_frozen_base_model",
+        "evaluate_base_exactly_once_using_prebuilt_messages",
+        "attach_frozen_candidate_adapter",
+        "evaluate_adapted_exactly_once_using_same_prebuilt_messages"
+      ],
+      "same_case_order_for_base_and_adapted": true,
+      "same_prebuilt_messages_for_base_and_adapted": true
+    },
+    "execution_revision": "v0.5",
+    "final_acceptance_output_revision_changes": false,
+    "generation_budget_changes": false,
+    "holdout_changes": false,
+    "input_serializer_changes": false,
+    "launcher_compatibility_change": {
+      "base_and_adapted_must_receive_same_case_identity_sequence": true,
+      "base_and_adapted_must_receive_same_prebuilt_prompt_sequence": true,
+      "base_source": "app/adaptation/greenhouse_final_acceptance_launcher_v0_4_v0_1.py",
+      "base_source_sha256": "9e2d282bc2eba2fd25074b8d2bb5c106b53e22c7c6f459d9ae6609986829d1c6",
+      "evaluation_may_rebuild_prompt": false,
+      "new_launcher_relative_path": "app/adaptation/greenhouse_final_acceptance_launcher_v0_4_v0_2.py",
+      "new_launcher_revision": "v0.2",
+      "new_launcher_test_relative_path": "tests/adaptation/test_greenhouse_final_acceptance_launcher_v0_4_v0_2.py",
+      "permitted_changes": [
+        "prebuild_exactly_18_label_blind_user_messages_after_profile_index_creation_and_before_base_model_load",
+        "bind_each_prebuilt_message_to_its_exact_case_identity",
+        "pass_prebuilt_messages_to_base_and_adapted_evaluation_in_identical_order",
+        "evaluate_using_runner_v0_4_generation_primitive_that_accepts_prebuilt_user_message",
+        "fail_closed_if_prebuilt_message_count_or_identity_order_is_invalid"
+      ]
+    },
+    "model_changes": false,
+    "prompt_content_changes": false,
+    "prompt_serializer_changes": false,
+    "relation_changes": false,
+    "runner_compatibility_change": {
+      "base_source": "app/adaptation/greenhouse_final_acceptance_runner_v0_4_v0_3.py",
+      "base_source_sha256": "24fa4598ef89017cbac3533180494e3db6cab0dda06fcf8b03150bc4d0deb668",
+      "existing_build_label_blind_prompt_record_semantics_must_change": false,
+      "existing_build_label_blind_user_message_semantics_must_change": false,
+      "existing_build_user_message_semantics_must_change": false,
+      "existing_generate_label_blind_case_external_behavior_must_change": false,
+      "existing_process_generated_token_ids_semantics_must_change": false,
+      "new_function_may_access_gold": false,
+      "new_function_may_build_prompt_from_case_identity": false,
+      "new_function_may_change_generated_token_parser": false,
+      "new_function_may_change_generation_parameters": false,
+      "new_function_may_change_tokenizer_chat_template_call": false,
+      "new_runner_relative_path": "app/adaptation/greenhouse_final_acceptance_runner_v0_4_v0_4.py",
+      "new_runner_revision": "v0.4",
+      "new_runner_test_relative_path": "test_greenhouse_final_acceptance_runner_v0_4_v0_4.py",
+      "permitted_changes": [
+        "add_generation_primitive_that_accepts_an_already_materialized_user_message",
+        "refactor_existing_generate_label_blind_case_to_delegate_post_prompt_generation_logic_without_changing_existing_behavior"
+      ],
+      "recommended_new_function": "generate_label_blind_case_from_user_message",
+      "recommended_signature_semantics": {
+        "model": "unchanged_model_object",
+        "tokenizer": "unchanged_frozen_tokenizer",
+        "torch_module": "unchanged_torch_module",
+        "user_message": "already_materialized_label_blind_prompt_string"
+      }
+    },
+    "score_changes": false,
+    "semantic_protocol_changes": false,
+    "training_changes": false,
+    "versioning_changes": {
+      "final_acceptance_output_revision_remains": "v0.1",
+      "final_acceptance_revision_remains": "v0.1",
+      "new_execution_manifest_revision": "v0.5",
+      "new_launcher_revision": "v0.2",
+      "new_runner_revision": "v0.4",
+      "preserve_authorization_v0_2": true,
+      "preserve_compatibility_decision_v0_2": true,
+      "preserve_launcher_v0_1": true,
+      "preserve_manifest_v0_4": true,
+      "preserve_runner_v0_3": true,
+      "required_future_execution_authorization_revision": "v0.3"
+    }
+  },
+  "current_execution_authorities": {
+    "compatibility_decision_v0_2": {
+      "git_commit": "205d43e44f3cd3834532df314de08c560f11b01b",
+      "remains_immutable": true,
+      "sha256": "65a2a5b3849d25e1b4363fcaa3e6ab7ab5043f520b57b0ee3dd64603dc322795"
+    },
+    "execution_authorization_v0_2": {
+      "effective": true,
+      "git_commit": "59db597ca44bd784f19e22eb391370d427012d64",
+      "sha256": "644e27729797c68cd876ac2f8a86c15ce036ebb7024a00e10b017f8cc267fb00",
+      "sufficient_to_launch_after_ordering_mismatch": false
+    },
+    "execution_manifest_freeze_v0_4": {
+      "git_commit": "bae002d95083688d25543229c616f546892491de",
+      "sha256": "dcf445d54324c2222a714b54a0784c09be92e44fcfb8574c8e73be3e4606678f"
+    },
+    "execution_manifest_v0_4": {
+      "git_commit": "bae002d95083688d25543229c616f546892491de",
+      "sha256": "60cd3148c475f02509ba3a674cd7eb5d8c7c5ea5d9e66c06a961f9560eaf6dbb"
+    },
+    "launch_path_decision_v0_1": {
+      "git_commit": "71931b700529a32a4224748816002351f20734b0",
+      "sha256": "ccf9d9127eca9690dc4b8742356bf9673a79bbae9d23e8b0d54b948b776f00c4"
+    },
+    "launcher_v0_1": {
+      "git_commit": "09998281cf6d6319d597a915cd4bf0bf98ddf4b8",
+      "sha256": "9e2d282bc2eba2fd25074b8d2bb5c106b53e22c7c6f459d9ae6609986829d1c6"
+    },
+    "runner_v0_3": {
+      "git_commit": "b0b6743fa3e7a88c6e84bd4cd49873e7f211cb67",
+      "sha256": "24fa4598ef89017cbac3533180494e3db6cab0dda06fcf8b03150bc4d0deb668"
+    },
+    "synthetic_launch_path_preflight_evidence_v0_1": {
+      "git_commit": "9fc623a6f5056c1e578e9a7a9a88e6bf9e9ce0c7",
+      "sha256": "f043e5b3469dabb9ac38807d9c055da34f89af5f42d354836dc7b8c899d5d032"
+    },
+    "synthetic_launch_path_preflight_freeze_v0_1": {
+      "git_commit": "9fc623a6f5056c1e578e9a7a9a88e6bf9e9ce0c7",
+      "sha256": "0d8a60918e54dde538e616595c3a6981090741b5a48649f9969f5ce2282f1559"
+    }
+  },
+  "current_execution_state": {
+    "authorization_v0_2_current_launch_permitted": false,
+    "authorization_v0_2_effective": true,
+    "greenhouse_cases_consumed": false,
+    "greenhouse_dataset_consumed": false,
+    "greenhouse_independence_consumed": false,
+    "greenhouse_results_observed": false,
+    "official_consumption_marker_created": false,
+    "official_evaluation_executed": false,
+    "ordering_governance_mismatch_open": true,
+    "reexecution_attempted": false,
+    "retry_attempted": false
+  },
+  "decision_rule_version": "qlora_v0.4_greenhouse_execution_compatibility_decision_v0.3",
+  "diagnosis": {
+    "adapter_loaded_during_diagnosis": false,
+    "base_model_loaded_during_diagnosis": false,
+    "candidate_changed_during_diagnosis": false,
+    "current_runtime_order": [
+      "build_deterministic_profiles",
+      "load_frozen_base_model",
+      "evaluate_model_once",
+      "generate_label_blind_case",
+      "build_label_blind_user_message"
+    ],
+    "frozen_required_order": [
+      "build_deterministic_profiles",
+      "build_label_blind_case_prompts",
+      "load_frozen_base_model"
+    ],
+    "generation_executed_during_diagnosis": false,
+    "greenhouse_cases_consumed": false,
+    "greenhouse_dataset_consumed": false,
+    "greenhouse_independence_consumed": false,
+    "greenhouse_results_observed": false,
+    "literal_launch_decision_order_compliant": false,
+    "mismatch_detected_before_consumption_marker": true,
+    "official_evaluation_executed": false,
+    "root_cause": "launcher_v0_1_loads_base_model_before_label_blind_prompts_are_materialized",
+    "source": "non_protected_final_prelaunch_ordering_audit_46_A"
+  },
+  "experiment_id": "adaptation:datalens-semantic-qlora-v0.4",
+  "frozen_semantics": {
+    "candidate_adapter_bundle_sha256": "0351980df6d86096195c0971deb30c725e155c71aa5de8054b2b37fa42090716",
+    "case_count": 18,
+    "deterministic_input_serializer_sha256": "df54af3e32dc97b5fd43573c8c2a8caf1335976fde3b39faa51afc48ab5244e3",
+    "do_sample": false,
+    "eos_token_ids": [
+      1,
+      106
+    ],
+    "final_acceptance_output_revision": "v0.1",
+    "final_acceptance_protocol_sha256": "056272cca075a6f8c48c38f5296c0ddacaaeb29e64f08048a43a80ea3dab0b16",
+    "final_acceptance_revision": "v0.1",
+    "input_truncation_permitted": false,
+    "max_new_tokens": 64,
+    "num_beams": 1,
+    "projected_relation_accuracy_minimum": 0.8,
+    "reason_max_words": 45,
+    "reason_min_words": 6,
+    "reexecution_permitted": false,
+    "retry_permitted": false,
+    "safety_failures_maximum": 0,
+    "same_metric_different_state_dangerous_false_positive_maximum": 0,
+    "strict_json_exact_keys": [
+      "relation",
+      "reason"
+    ],
+    "strict_json_validity_required": 1.0,
+    "task_interpretation_sha256": "9f097f8b8e7e2dd182cc86cc5ed12fc74ded18262bac2af3639d2bf07bdf61a2"
+  },
+  "governance": {
+    "acceptance_gate_change_permitted": false,
+    "authorization_v0_2_must_remain_immutable": true,
+    "authorization_v0_3_must_be_committed_before_official_execution": true,
+    "candidate_replacement_permitted": false,
+    "compatibility_decision_v0_2_must_remain_immutable": true,
+    "compatibility_revision_occurs_before_greenhouse_consumption": true,
+    "generation_policy_change_permitted": false,
+    "greenhouse_holdout_consumption_budget_available": true,
+    "greenhouse_holdout_still_single_use": true,
+    "greenhouse_results_may_not_drive_v0_5_change": true,
+    "greenhouse_tuning_permitted": false,
+    "launcher_v0_1_must_remain_immutable": true,
+    "manifest_v0_4_must_remain_immutable": true,
+    "new_launch_path_preflight_must_pass_before_authorization_v0_3": true,
+    "new_launch_path_preflight_must_remain_synthetic": true,
+    "new_manifest_v0_5_must_be_frozen_before_new_launch_path_preflight": true,
+    "new_runner_and_launcher_must_be_frozen_before_new_manifest": true,
+    "official_greenhouse_must_not_execute_under_authorization_v0_2": true,
+    "prompt_content_change_permitted": false,
+    "protocol_change_permitted": false,
+    "runner_v0_3_must_remain_immutable": true,
+    "serializer_change_permitted": false
+  },
+  "required_remediation_sequence": [
+    "freeze_compatibility_decision_v0.3",
+    "create_runner_v0.4_and_runner_tests",
+    "create_launcher_v0.2_and_launcher_tests",
+    "prove_all_18_prompts_materialized_before_base_model_load",
+    "prove_base_and_adapted_use_same_prebuilt_prompts_and_case_order",
+    "freeze_runner_v0.4_and_launcher_v0.2",
+    "create_and_freeze_execution_manifest_v0.5",
+    "rerun_synthetic_launch_path_preflight",
+    "freeze_new_synthetic_launch_path_preflight_evidence",
+    "create_and_commit_execution_authorization_v0.3",
+    "run_final_non_destructive_launch_checklist",
+    "only_then_allow_official_greenhouse_execution"
+  ],
+  "runner_v0_3_discovery": {
+    "current_generate_function": "generate_label_blind_case",
+    "current_generate_function_builds_prompt_internally": true,
+    "existing_prompt_builders_must_remain_semantically_unchanged": true,
+    "frozen_generated_token_processor": "process_generated_token_ids",
+    "frozen_prompt_message_builder": "build_label_blind_user_message",
+    "frozen_prompt_record_builder": "build_label_blind_prompt_record",
+    "frozen_user_message_builder": "build_user_message"
+  },
+  "scope": "execution_compatibility_only",
+  "source_git_commit": "59db597ca44bd784f19e22eb391370d427012d64",
+  "status": "approved_before_greenhouse_holdout_consumption",
+  "supersession": {
+    "historical_compatibility_decision_v0_2_deletion_permitted": false,
+    "historical_compatibility_decision_v0_2_git_commit": "205d43e44f3cd3834532df314de08c560f11b01b",
+    "historical_compatibility_decision_v0_2_remains_immutable": true,
+    "historical_compatibility_decision_v0_2_rewrite_permitted": false,
+    "historical_compatibility_decision_v0_2_sha256": "65a2a5b3849d25e1b4363fcaa3e6ab7ab5043f520b57b0ee3dd64603dc322795",
+    "supersedes_compatibility_decision_revision_for_current_remediation": "v0.2"
+  }
+}
