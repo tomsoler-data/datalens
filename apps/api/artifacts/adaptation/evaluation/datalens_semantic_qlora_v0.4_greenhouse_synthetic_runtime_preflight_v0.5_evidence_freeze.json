@@ -1,0 +1,29 @@
+{
+  "adapter_bundle_sha256": "0351980df6d86096195c0971deb30c725e155c71aa5de8054b2b37fa42090716",
+  "authorizes_greenhouse_execution": false,
+  "evidence_relative_path": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_synthetic_runtime_preflight_v0.5_evidence.json",
+  "evidence_sha256": "fc1269a6aa1d5ad9ff5716baa6dad64f1ecd0c6a9cb23e59e82fb478988b99dc",
+  "execution_manifest": {
+    "git_commit": "92a90fd3eb6b03e308ec66139c8d87323c8d92eb",
+    "relative_path": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_final_acceptance_v0.3_manifest.json",
+    "sha256": "fee31119671221e0cd2345c906cbcafc138000a57b63bddb87d87febab4217a7"
+  },
+  "execution_revision": "v0.3",
+  "freeze_rule_version": "qlora_v0.4_greenhouse_synthetic_runtime_preflight_evidence_freeze_v0.1",
+  "generation_count": 1,
+  "greenhouse_consumed": false,
+  "greenhouse_evaluation_executed": false,
+  "greenhouse_results_observed": false,
+  "preflight_revision": "v0.5",
+  "preflight_status": "pass",
+  "reexecution_or_retry_performed": false,
+  "runner": {
+    "git_commit": "b0b6743fa3e7a88c6e84bd4cd49873e7f211cb67",
+    "relative_path": "app/adaptation/greenhouse_final_acceptance_runner_v0_4_v0_3.py",
+    "sha256": "24fa4598ef89017cbac3533180494e3db6cab0dda06fcf8b03150bc4d0deb668"
+  },
+  "separate_execution_authorization_required": true,
+  "source_git_commit": "92a90fd3eb6b03e308ec66139c8d87323c8d92eb",
+  "status": "frozen_candidate",
+  "strict_json_valid": true
+}
