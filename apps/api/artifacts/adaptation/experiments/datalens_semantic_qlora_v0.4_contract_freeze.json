@@ -1,0 +1,95 @@
+{
+  "airport_evaluated_at_contract_freeze": false,
+  "airport_independent_holdout": {
+    "cases_sha256": "7d9454d0d59dd047050bd72d195feb1390ca0edc2c83584af0cbfec951cf3939",
+    "evaluation_executed_at_contract_freeze": false,
+    "freeze_relative_path": "artifacts/adaptation/holdouts/datalens_semantic_qlora_v0.4_airport_ground_operations_holdout_v0.1_freeze.json",
+    "freeze_sha256": "46accf23eeae32f0fdc926f7b0a9e73115a1413ddbc28efa84472f0571ee2f09",
+    "holdout_id": "adaptation:datalens-semantic-qlora-v0.4:airport-ground-operations:holdout:v0.1",
+    "independent_holdout": true,
+    "results_observed_at_contract_freeze": false,
+    "used_for_hyperparameter_tuning": false,
+    "used_for_training": false
+  },
+  "authorities": {
+    "experiment_design": {
+      "freeze_relative_path": "artifacts/adaptation/design/datalens_semantic_qlora_v0.4_experiment_design_v0.1_freeze.json",
+      "freeze_sha256": "84d64a1406ce0e6648de54e4830eb96dd99b87a980108085906eb57875ef978a",
+      "relative_path": "artifacts/adaptation/design/datalens_semantic_qlora_v0.4_experiment_design_v0.1.json",
+      "sha256": "dd36103a01cadc49101dfeffa006bba9e9cf6cdfc3599a3f0967beff14765cf9"
+    },
+    "optimization_policy": {
+      "freeze_relative_path": "artifacts/adaptation/design/datalens_semantic_qlora_v0.4_optimization_policy_v0.1_freeze.json",
+      "freeze_sha256": "3a5cf4123cefa25afe597ab057e86307e4b51505f4e7d0d98927f9a42476259c",
+      "relative_path": "artifacts/adaptation/design/datalens_semantic_qlora_v0.4_optimization_policy_v0.1.json",
+      "sha256": "01a8fc993a8699e1ae6511f5ce73c642c7b1c1bf1d974b147ba5e6542d48824d"
+    },
+    "token_length_evidence": {
+      "relative_path": "artifacts/adaptation/probes/datalens_semantic_training_v0.4_token_length_audit.json",
+      "sha256": "add94bd50fc89120a7626fa7533af2996765d25c7c64d2d866dd7178674d40c1"
+    }
+  },
+  "contract_relative_path": "artifacts/adaptation/experiments/datalens_semantic_qlora_v0.4_contract.json",
+  "contract_sha256": "22f3c38d4165dc34d9a210605ebfb65c1c50c5839ed6607a21206fbe8313a287",
+  "experiment_contract_rule_version": "qlora_experiment_contract_v0.1",
+  "experiment_id": "datalens-semantic-qlora-v0.4",
+  "final_acceptance": {
+    "cases_loaded_at_contract_freeze": false,
+    "evaluated_at_contract_freeze": false,
+    "freeze_relative_path": "artifacts/evaluation/holdouts/greenhouse_operations_final_acceptance_v0.1_freeze.json",
+    "freeze_sha256": "11615352547f152b91e592066142c3431b557c5f620018380b71b931cb77a736",
+    "tuning_input": false
+  },
+  "final_acceptance_evaluated_at_contract_freeze": false,
+  "final_acceptance_loaded_at_contract_freeze": false,
+  "freeze_id": "experiment-contract-freeze:datalens-semantic-qlora:v0.4",
+  "frozen_at": "2026-08-30T00:13:08Z",
+  "frozen_before_resource_preflight": true,
+  "frozen_before_training": true,
+  "model_loaded_at_contract_freeze": false,
+  "optimization_execution_plan": {
+    "cross_epoch_accumulation": false,
+    "discarded_example_presentations": 0,
+    "example_presentations": 460,
+    "full_accumulation_groups_per_epoch": 28,
+    "micro_batches_per_epoch": 230,
+    "optimizer_steps_per_epoch": 29,
+    "partial_accumulation_group_size": 6,
+    "partial_group_policy": "flush_partial_group_at_epoch_end",
+    "total_micro_batches": 460,
+    "total_optimizer_steps": 58
+  },
+  "optimizer_created_at_contract_freeze": false,
+  "pre_adaptation_holdout_sha256": [
+    "9231548867ceac9832d455a03e01b3db6617b9ea61b4e83b5e07a4d87f63ef8d",
+    "0520ab2b34f772352bf7de3d1941bb3ba0ab9f1c432df41c9fef9599fd839e0f",
+    "d27e58c93208f6b28abd5e699ccb65ad520cc36c49512909aa60a44f9887ce4d",
+    "1093f35d6f30870bf128226ecfa32ea7851aaa1ab5cc2d2a603fccca61735cd2",
+    "6ab32e5e6551555e05d02ed8d7a4e0b9bbfa980d6ca9984b8d71dd6e12b87402"
+  ],
+  "regression_baseline_sha256": [
+    "fdb5510e9426b857aa9e52feb4d3282f367e10af1d8ae4335c727673506960ac"
+  ],
+  "rule_version": "qlora_v0.4_experiment_contract_freeze_v0.1",
+  "source_git_commit": "b27e2ef560d1a93a4f078b7825ce3b7bd2c8f589",
+  "status": "frozen",
+  "supersedes": {
+    "contract_freeze_relative_path": "artifacts/adaptation/experiments/datalens_semantic_qlora_v0.3_contract_freeze.json",
+    "contract_freeze_sha256": "9e7eaedefe9823bf070e1c4c25574ee42cc0081bd8bf3f1810255609cda4559c",
+    "contract_relative_path": "artifacts/adaptation/experiments/datalens_semantic_qlora_v0.3_contract.json",
+    "contract_sha256": "609954fe4f06ace47000475053dcb011a4337e36122678860fb744eff645f92e",
+    "experiment_id": "datalens-semantic-qlora-v0.3"
+  },
+  "training_dataset": {
+    "contamination_match_count": 0,
+    "contamination_report_sha256": "2436e108ded2f0b9b3a8dc74b4aecc15680956418b37cd853066d1bfb18a57ec",
+    "dataset_sha256": "4fd00586f2d53d6de57f5cbc5f1d7bfb2e512960e60b30c28596aaefbac322b7",
+    "example_count": 230,
+    "freeze_relative_path": "artifacts/adaptation/datasets/datalens_semantic_training_v0.4_freeze.json",
+    "freeze_sha256": "c9ae4421becea37ee07bf964f82e2e4fffd9328f2920cda7d371fe57e0eb1f70",
+    "provenance_report_sha256": "1ee13d5e95a6b072f719afcb104741acec8d1255d97500c7e1f425ea4c3d015a",
+    "provenance_violation_count": 0,
+    "relative_path": "artifacts/adaptation/datasets/datalens_semantic_training_v0.4.jsonl"
+  },
+  "training_started_at_contract_freeze": false
+}

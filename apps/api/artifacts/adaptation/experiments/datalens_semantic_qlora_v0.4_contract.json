@@ -1,0 +1,112 @@
+{
+  "adaptation_method": "qlora",
+  "base_model": {
+    "modality_scope": "text_only",
+    "model_family": "gemma3",
+    "repository": "google/gemma-3-4b-it",
+    "revision": "093f9f388b31de276ce2de164bdc2081324b9767",
+    "tokenizer_revision": "093f9f388b31de276ce2de164bdc2081324b9767",
+    "trust_remote_code": false,
+    "use_multimodal_inputs": false
+  },
+  "evaluation": {
+    "final_acceptance_holdout_must_be_frozen_before_training": true,
+    "final_acceptance_holdout_must_not_be_used_for_tuning": true,
+    "maximum_dangerous_false_positive_increase": 0,
+    "require_independent_final_acceptance_holdout": true,
+    "require_regression_gate_pass": true,
+    "require_safety_gate_pass": true,
+    "training_loss_is_acceptance_evidence": false
+  },
+  "experiment_id": "datalens-semantic-qlora-v0.4",
+  "final_acceptance_holdout": {
+    "artifact_id": "final-acceptance:greenhouse-operations:v0.1",
+    "phase": "final_acceptance_holdout_freeze",
+    "relative_path": "artifacts/evaluation/holdouts/greenhouse_operations_final_acceptance_v0.1_freeze.json",
+    "sha256": "11615352547f152b91e592066142c3431b557c5f620018380b71b931cb77a736"
+  },
+  "lora": {
+    "alpha": 32,
+    "bias": "none",
+    "dropout": 0.05,
+    "rank": 16,
+    "target_resolver_rule_version": "qlora_target_resolver_v0.1",
+    "target_strategy": "language_model_all_linear",
+    "task_type": "CAUSAL_LM"
+  },
+  "pre_adaptation_holdouts": [
+    {
+      "artifact_id": "semantic-s0-manufacturing-holdout",
+      "phase": "pre_adaptation_holdout",
+      "relative_path": "artifacts/evaluation/experiments/semantic_s0_manufacturing_holdout.json",
+      "sha256": "9231548867ceac9832d455a03e01b3db6617b9ea61b4e83b5e07a4d87f63ef8d"
+    },
+    {
+      "artifact_id": "semantic-s1-logistics-holdout",
+      "phase": "pre_adaptation_holdout",
+      "relative_path": "artifacts/evaluation/experiments/semantic_s1_logistics_holdout.json",
+      "sha256": "0520ab2b34f772352bf7de3d1941bb3ba0ab9f1c432df41c9fef9599fd839e0f"
+    },
+    {
+      "artifact_id": "semantic-s2-cloud-holdout",
+      "phase": "pre_adaptation_holdout",
+      "relative_path": "artifacts/evaluation/experiments/semantic_s2_cloud_holdout.json",
+      "sha256": "d27e58c93208f6b28abd5e699ccb65ad520cc36c49512909aa60a44f9887ce4d"
+    },
+    {
+      "artifact_id": "semantic-s3-customer-support-holdout",
+      "phase": "pre_adaptation_holdout",
+      "relative_path": "artifacts/evaluation/experiments/semantic_s3_customer_support_holdout.json",
+      "sha256": "1093f35d6f30870bf128226ecfa32ea7851aaa1ab5cc2d2a603fccca61735cd2"
+    },
+    {
+      "artifact_id": "semantic-s3-electric-mobility-holdout",
+      "phase": "pre_adaptation_holdout",
+      "relative_path": "artifacts/evaluation/experiments/semantic_s3_electric_mobility_holdout.json",
+      "sha256": "6ab32e5e6551555e05d02ed8d7a4e0b9bbfa980d6ca9984b8d71dd6e12b87402"
+    }
+  ],
+  "quantization": {
+    "compute_dtype": "bfloat16",
+    "load_in_4bit": true,
+    "quantization_type": "nf4",
+    "use_double_quantization": true
+  },
+  "regression_baselines": [
+    {
+      "artifact_id": "semantic-s3-regression-249",
+      "phase": "regression_baseline",
+      "relative_path": "artifacts/evaluation/experiments/semantic_s3_regression_249.json",
+      "sha256": "fdb5510e9426b857aa9e52feb4d3282f367e10af1d8ae4335c727673506960ac"
+    }
+  ],
+  "rule_version": "qlora_experiment_contract_v0.1",
+  "training": {
+    "bf16": true,
+    "fp16": false,
+    "gradient_accumulation_steps": 8,
+    "gradient_checkpointing": true,
+    "learning_rate": 0.0002,
+    "max_sequence_length": 256,
+    "num_train_epochs": 2.0,
+    "optimizer": "paged_adamw_8bit",
+    "per_device_train_batch_size": 1,
+    "random_seed": 42,
+    "scheduler": "cosine",
+    "warmup_ratio": 0.03,
+    "weight_decay": 0.0
+  },
+  "training_dataset": {
+    "contains_pre_adaptation_holdout_material": false,
+    "contains_rag_holdout_material": false,
+    "contains_regression_expected_answers": false,
+    "contamination_report_sha256": "2436e108ded2f0b9b3a8dc74b4aecc15680956418b37cd853066d1bfb18a57ec",
+    "dataset_id": "adaptation:datalens-semantic:training:v0.4",
+    "dataset_sha256": "4fd00586f2d53d6de57f5cbc5f1d7bfb2e512960e60b30c28596aaefbac322b7",
+    "dataset_version": "datalens_semantic_adaptation_training_v0.4",
+    "example_count": 230,
+    "frozen": true,
+    "governance_rule_version": "adaptation_data_governance_v0.1",
+    "scope": "adaptation_training"
+  }
+}
