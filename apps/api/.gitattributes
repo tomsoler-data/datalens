@@ -5,3 +5,5 @@ artifacts/adaptation/**/*.jsonl text eol=lf
 app/evaluation/benchmarks/*final_acceptance*.py text eol=lf
 artifacts/evaluation/datasets/*final_acceptance*.csv text eol=lf
 artifacts/evaluation/holdouts/*final_acceptance*.json text eol=lf
+# QLoRA v0.4 adapter metadata: preserve training-produced bytes exactly
+artifacts/adaptation/adapters/datalens_semantic_qlora_v0.4_adapter/adapter_config.json -text !eol whitespace=cr-at-eol

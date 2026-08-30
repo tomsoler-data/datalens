@@ -1,0 +1,48 @@
+{
+  "adapter": {
+    "bundle_sha256": "0351980df6d86096195c0971deb30c725e155c71aa5de8054b2b37fa42090716",
+    "file_count": 3,
+    "files": [
+      {
+        "relative_path": "adapter_config.json",
+        "sha256": "3ae14896612f6bf74ee7786a450e2ac0f08f3da9f33391505cb1a7dc823dcdb8",
+        "size_bytes": 1302
+      },
+      {
+        "relative_path": "adapter_model.safetensors",
+        "sha256": "4f145b0bf37f67841c09f02b86679634a9532491d2f560b0e7c5c328009e4610",
+        "size_bytes": 119273568
+      },
+      {
+        "relative_path": "README.md",
+        "sha256": "6ecdbb662eaed8010ab0e012a2b95b79543884cf294406dc6da2cde64f98389d",
+        "size_bytes": 5380
+      }
+    ],
+    "safetensor_tensor_count": 476
+  },
+  "airport_evaluated": false,
+  "created_at": "2026-08-30T01:19:36Z",
+  "experiment_id": "datalens-semantic-qlora-v0.4",
+  "final_acceptance_evaluated": false,
+  "manifest_commit": "45b67d1b689637c4551ebb612e408605894b7ad4",
+  "manifest_freeze_commit": "45b67d1b689637c4551ebb612e408605894b7ad4",
+  "manifest_freeze_sha256": "b8fc28e8f1b99f981570243a00609677536e7ccc7997d6d74db4b427274b6de0",
+  "manifest_sha256": "824770d7827a732df78121fe4fc515f83bfeb8314f524188ce5fe89f43730756",
+  "micro_batches_executed": 460,
+  "optimizer_steps_executed": 58,
+  "passed": true,
+  "receipt_id": "training-receipt:datalens-semantic-qlora:v0.4:0001",
+  "rule_version": "qlora_training_receipt_v0.4_v0.1",
+  "runner_blob_sha256": "a67e1bc4046ab1c784c4415eafcf1d53c2f118202a82b41e5acba747dfdebc36",
+  "runner_commit": "bda45972e37b7dcee56727250f8cba82ec7d1d49",
+  "runner_test_blob_sha256": "9836df632c2d4d19c2f78f5cc5157cd10c22170eb9e0ef1e6a66e057f2c8770c",
+  "runner_test_commit": "bda45972e37b7dcee56727250f8cba82ec7d1d49",
+  "scheduler_steps_executed": 58,
+  "shared_runtime_sha256": "20e41ab00606296893276a84e53746c06618b8cabca74fef77cb743c5e80ab7c",
+  "training_loss_is_acceptance_evidence": false,
+  "training_report_sha256": "759ba4957806daab8b7a14d3aeb2b06859e0bcd6193d30cb877b63748617e04d",
+  "training_run_id": "training-run:datalens-semantic-qlora:v0.4:0001",
+  "training_start_head": "bda45972e37b7dcee56727250f8cba82ec7d1d49",
+  "weights_changed": true
+}
