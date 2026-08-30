@@ -1,0 +1,120 @@
+{
+  "adapter": {
+    "files": {
+      "README.md": "6ecdbb662eaed8010ab0e012a2b95b79543884cf294406dc6da2cde64f98389d",
+      "adapter_config.json": "3ae14896612f6bf74ee7786a450e2ac0f08f3da9f33391505cb1a7dc823dcdb8",
+      "adapter_model.safetensors": "4f145b0bf37f67841c09f02b86679634a9532491d2f560b0e7c5c328009e4610"
+    },
+    "logical_cache_path": "artifacts/adaptation/adapters/datalens_semantic_qlora_v0.4_adapter",
+    "official_bundle_sha256": "0351980df6d86096195c0971deb30c725e155c71aa5de8054b2b37fa42090716"
+  },
+  "benchmark": {
+    "benchmark_id": "adaptation:semantic_reasoning:hotel:v0.1",
+    "benchmark_version": "datalens_adapted_semantic_reasoning_hotel_v0.1",
+    "case_count": 19,
+    "covered_training_families": 3,
+    "total_training_families": 5
+  },
+  "converted_base_model": {
+    "files": {
+      "config.json": "92d1975005be74a96582b41f59e846fe5f9ab7bd829d9b14a9afbe26708cba8f",
+      "datalens_checkpoint_manifest.json": "3958e7c849597bd3f0bb4db930fb4d329d5e2bc207afd3157dfcd22c83bab994",
+      "model-00001-of-00002.safetensors": "bacf289ba8e7cb2d5a1d154a51d706b97ed1277b713e38d72797c6c654335b96",
+      "model-00002-of-00002.safetensors": "0e412c790323463c40ccd6f3fd5ec028a02ecff7c6fe2269ab0e436afca42606",
+      "model.safetensors.index.json": "2cc9b808d15ac36a4ef5d12dc1df774c5bfa5c186a108671612a85265d3d2b64"
+    },
+    "logical_cache_path": ".cache/datalens/adaptation/base-models/gemma-3-4b-it-text-093f9f388b31de276ce2de164bdc2081324b9767",
+    "repository": "google/gemma-3-4b-it",
+    "revision": "093f9f388b31de276ce2de164bdc2081324b9767"
+  },
+  "diagnostic_role": {
+    "acceptance_evidence": false,
+    "historical_scoring_reused": true,
+    "independent_holdout": false,
+    "purpose": "diagnostic comparison against the historical Hotel reasoning benchmark",
+    "tuning_evidence": false
+  },
+  "evaluation_order": [
+    "pinned_base",
+    "same_base_plus_frozen_adapter"
+  ],
+  "execution_code": {
+    "git_commit": "76a8c94b4ce1bfee928bb5798e03f2677b561d87",
+    "runner_relative_path": "app/adaptation/reasoning_evaluation_runner_v0_4.py",
+    "runner_sha256": "da626f1ec13b3a5438dfeafd5738e8160f2d88379a1294446a0748b6763a6dd8",
+    "test_relative_path": "test_reasoning_evaluation_runner_v0_4_v0_1.py",
+    "test_sha256": "fd5fc355b53d3cfa5e2113b5c40bd2e20a35c646d6d9eeb9dfc5340816c08bee"
+  },
+  "final_acceptance": {
+    "evaluation_allowed": false,
+    "load_allowed": false
+  },
+  "historical_comparison": {
+    "adapted_correct_count": 3,
+    "base_correct_count": 6,
+    "case_count": 19,
+    "experiment": "datalens-semantic-qlora-v0.3",
+    "historical_receipt_sha256": "e3b00fa6daa64d0fda37b0896ca63162706e0b717fd1b0ce0563634358231fb5",
+    "historical_report_sha256": "1194baabef17891f84f2879a135586c7da95363cbac49c4258a8133d81c6206b",
+    "role": "diagnostic_reference_only"
+  },
+  "manifest_rule_version": "adapted_reasoning_evaluation_manifest_v0.4",
+  "outputs": {
+    "receipt_relative_path": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_reasoning_evaluation_v0.1_receipt.json",
+    "report_relative_path": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_reasoning_evaluation_v0.1_report.json"
+  },
+  "post_training_prerequisite": {
+    "dangerous_false_positive_count": 0,
+    "evidence_commit": "b82e89eadc423aadba247be226fdd7e3a96cc7e4",
+    "gate": "semantic_s3_post_training_regression_safety_v0.1",
+    "normalized_failure_count": 0,
+    "overall_gate_passed": true,
+    "receipt_sha256": "fb4d81feb1c20c77e8fe3eaaf491ca7f831c32c96a6dcf29389e7b06dae28b96",
+    "report_sha256": "b0b662c31f7bbc013968cd7a69968aba21621c13cfe8de72bef2f4ddde0c1e6c"
+  },
+  "protocol": {
+    "git_commit": "60e50bb435f8e3f8bc8b2d093d711676ed645b6c",
+    "sha256": {
+      "cases": "fcf708cd12cad123030527ccebfd85238ee9614ac1b235af74fcab794b5fc3a4",
+      "freeze": "b62d681b2ed94cc544ed2ac7d8270f38482266e130448254b6a4c8633dd5abab",
+      "module": "7d15b482cd249eae3e2e6a05a55f76b6d3ba2afe94d3f8998fd04b22b59f92af",
+      "test": "32e95dad62c1028de89e59a86c79fd4fd88d24d02a6bf0b8b067493dafbb7e57"
+    }
+  },
+  "runtime": {
+    "cuda_required": true,
+    "minimum_free_cuda_gib": 5.0,
+    "seed": 42
+  },
+  "runtime_revision": {
+    "change": "Set return_dict=False explicitly on both Gemma apply_chat_template tokenization calls.",
+    "input_ids_equivalence_verified": true,
+    "revision": "v0.2",
+    "scoring_rule_changed": false,
+    "semantic_benchmark_changed": false,
+    "tokenizer_default_return_type": "BatchEncoding",
+    "tokenizer_explicit_return_type": "list"
+  },
+  "scoring": {
+    "assistant_span_definition": "all full-chat token IDs after the exact user-only add_generation_prompt=True prefix",
+    "candidate_selection": "argmax_mean_log_probability",
+    "generation_used": false,
+    "llm_judge_used": false,
+    "max_sequence_length": 256,
+    "rule_version": "adapted_semantic_reasoning_scoring_v0.1",
+    "score_reduction": "mean log probability over the frozen assistant continuation token span",
+    "silent_truncation_allowed": false,
+    "ties": "fail_closed"
+  },
+  "tokenizer": {
+    "chat_template_sha256": "7de1c58e208eda46e9c7f86397df37ec49883aeece39fb961e0a6b24088dd3c4",
+    "repository": "google/gemma-3-4b-it",
+    "revision": "093f9f388b31de276ce2de164bdc2081324b9767"
+  },
+  "training_evidence": {
+    "adapter_bundle_sha256": "0351980df6d86096195c0971deb30c725e155c71aa5de8054b2b37fa42090716",
+    "receipt_sha256": "f412062f78432d7c432d4b36beed9d84d527d5990279240030a0a31227dffaee",
+    "report_sha256": "759ba4957806daab8b7a14d3aeb2b06859e0bcd6193d30cb877b63748617e04d",
+    "training_evidence_commit": "f5ec307f134eadbfc70f282a840fef3e7d5987a4"
+  }
+}
