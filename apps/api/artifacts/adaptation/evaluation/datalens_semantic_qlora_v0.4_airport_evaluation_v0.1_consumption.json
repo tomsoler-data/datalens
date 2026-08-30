@@ -1,0 +1,16 @@
+{
+  "cases_opened_before_marker": false,
+  "cases_sha256_expected": "7d9454d0d59dd047050bd72d195feb1390ca0edc2c83584af0cbfec951cf3939",
+  "created_at": "2026-08-30T12:54:33.671180+00:00",
+  "experiment_id": "datalens-semantic-qlora-v0.4",
+  "git_head": "456ba7c191cfd6e40869a6a50cc6420876a34f44",
+  "greenhouse_opened": false,
+  "holdout_id": "adaptation:datalens-semantic-qlora-v0.4:airport-ground-operations:holdout:v0.1",
+  "manifest_sha256": "334b5d49ff56ccccec43b0816d745ad51048ba9cc86acd8dfa88e840085b65bd",
+  "marker_rule_version": "qlora_v0.4_airport_holdout_consumption_v0.1",
+  "protocol_sha256": "a88cb86565c0a3d4daa4d5b2bea3beeed79a7df81155ed4d4ed0c7bfef2e00d1",
+  "reexecution_permitted": false,
+  "results_observed_before_marker": false,
+  "single_use_consumption_started": true,
+  "status": "consumption_started"
+}
