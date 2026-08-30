@@ -1,0 +1,12 @@
+{
+  "evaluation_executed": false,
+  "freeze_rule_version": "qlora_v0.4_s3_post_training_gate_freeze_v0.1",
+  "frozen": true,
+  "frozen_at": "2026-08-30T10:26:55Z",
+  "manifest_relative_path": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_s3_post_training_gate_v0.1_manifest.json",
+  "manifest_sha256": "acc09043ab885b72166064477c7809d682a2b857f4485bf97f9b965d4b152689",
+  "prepared_from_git_commit": "589f2348ce6219a3f8c6f7532bfd6547c7c8ed2e",
+  "receipt_published": false,
+  "report_published": false,
+  "training_evidence_commit": "f5ec307f134eadbfc70f282a840fef3e7d5987a4"
+}
