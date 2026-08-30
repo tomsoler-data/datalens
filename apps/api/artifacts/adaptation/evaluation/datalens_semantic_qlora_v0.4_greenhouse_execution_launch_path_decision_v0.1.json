@@ -1,0 +1,159 @@
+{
+  "approved_change": {
+    "launcher_may_attach_frozen_candidate_adapter": true,
+    "launcher_may_create_consumption_marker_atomically": true,
+    "launcher_may_execute_frozen_base_and_adapted_evaluations": true,
+    "launcher_may_import_frozen_runner_core": true,
+    "launcher_may_load_frozen_base_model": true,
+    "launcher_may_parse_protected_cases_only_after_marker": true,
+    "launcher_may_read_protected_material_only_after_marker": true,
+    "launcher_may_recompute_protected_hashes_only_after_marker": true,
+    "launcher_may_require_all_final_outputs_absent": true,
+    "launcher_may_require_clean_repository_before_execution": true,
+    "launcher_may_validate_committed_execution_authorization": true,
+    "launcher_may_validate_frozen_manifest_and_preflight": true,
+    "launcher_may_validate_protected_independence_only_after_marker": true,
+    "launcher_may_write_v0_1_report_and_receipt": true,
+    "launcher_revision": "v0.1",
+    "launcher_role": "single_use_greenhouse_final_acceptance_orchestrator",
+    "modify_runner_test_v0_3": false,
+    "modify_runner_v0_3": false,
+    "strategy": "separate_launcher"
+  },
+  "atomic_consumption_contract": {
+    "exclusive_create_required": true,
+    "existing_marker_must_abort": true,
+    "failure_after_marker_is_terminal": true,
+    "marker_created_means_greenhouse_consumed": true,
+    "marker_creation_failure_must_abort": true,
+    "must_happen_before_first_protected_read": true,
+    "permitted_implementation": "os.open(path, O_WRONLY | O_CREAT | O_EXCL)",
+    "required": true
+  },
+  "authority_bindings": {
+    "execution_authorization": {
+      "git_commit": "dca4919a35cb4373258b92ba1d6ad1703686348f",
+      "relative_path": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_final_acceptance_execution_authorization_v0.1.json",
+      "sha256": "3c4c57ff605e7ea0ad41a15b0173881162b72500cfb07a1ab1138630c10b12f3"
+    },
+    "manifest": {
+      "relative_path": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_final_acceptance_v0.3_manifest.json",
+      "sha256": "fee31119671221e0cd2345c906cbcafc138000a57b63bddb87d87febab4217a7"
+    },
+    "manifest_freeze": {
+      "relative_path": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_final_acceptance_v0.3_manifest_freeze.json",
+      "sha256": "d2630e1415c8509bb9ba4baa4dcfd580a3b5012b66636d1cedc5914114c6a63c"
+    },
+    "preflight_evidence": {
+      "relative_path": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_synthetic_runtime_preflight_v0.5_evidence.json",
+      "sha256": "fc1269a6aa1d5ad9ff5716baa6dad64f1ecd0c6a9cb23e59e82fb478988b99dc"
+    },
+    "preflight_freeze": {
+      "relative_path": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_synthetic_runtime_preflight_v0.5_evidence_freeze.json",
+      "sha256": "a88c52ea96946430b6ac4ce77530c93e37ad035b80cee43f4e69ac2b877ca76d"
+    },
+    "protocol": {
+      "relative_path": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_final_acceptance_protocol_v0.1.json",
+      "sha256": "056272cca075a6f8c48c38f5296c0ddacaaeb29e64f08048a43a80ea3dab0b16"
+    }
+  },
+  "decision_rule_version": "qlora_v0.4_greenhouse_execution_launch_path_decision_v0.1",
+  "experiment_id": "adaptation:datalens-semantic-qlora-v0.4",
+  "experimental_invariants": {
+    "acceptance_gate_change": false,
+    "adapter_bytes_change": false,
+    "base_model_change": false,
+    "eos_change": false,
+    "generation_policy_change": false,
+    "holdout_change": false,
+    "prompt_change": false,
+    "relation_ontology_change": false,
+    "safety_policy_change": false,
+    "score_policy_change": false,
+    "serializer_change": false,
+    "training_change": false
+  },
+  "final_acceptance_contract": {
+    "adapted_evaluation_count_per_case": 1,
+    "base_evaluation_count_per_case": 1,
+    "candidate_replacement_permitted": false,
+    "case_count": 18,
+    "consumption_output_revision": "v0.1",
+    "post_result_tuning_permitted": false,
+    "receipt_output_revision": "v0.1",
+    "reexecution_permitted": false,
+    "report_output_revision": "v0.1",
+    "retry_permitted": false,
+    "revision": "v0.1"
+  },
+  "future_freeze_requirements": {
+    "execution_authorization_must_be_rebound_after_launcher_freeze": true,
+    "execution_manifest_must_be_revised_to_bind_launcher": true,
+    "launcher_must_be_committed_before_execution": true,
+    "launcher_must_be_tested_without_protected_material": true,
+    "no_greenhouse_execution_before_rebound_authorization_commit": true,
+    "synthetic_launch_path_preflight_required": true
+  },
+  "governance": {
+    "consumption_marker_created_by_decision": false,
+    "decision_does_not_itself_authorize_immediate_execution": true,
+    "existing_execution_authorization_requires_future_launcher_rebind": true,
+    "greenhouse_evaluation_executed_by_decision": false,
+    "greenhouse_remains_sealed_after_this_decision": true,
+    "greenhouse_results_observed_by_decision": false,
+    "protected_hashes_recomputed_by_decision": false,
+    "protected_reads_performed_by_decision": false
+  },
+  "problem_statement": {
+    "finding": "The frozen Runner v0.3 intentionally contains only the deterministic profiling and inference core. A separate single-use execution launcher is required to implement the already-frozen execution lifecycle.",
+    "greenhouse_consumed": false,
+    "greenhouse_results_observed": false,
+    "runner_atomic_consumption_marker_primitive_present": false,
+    "runner_execution_authorization_reference_present": false,
+    "runner_is_frozen": true,
+    "runner_is_pure_runtime_core": true,
+    "runner_main_present": false,
+    "runner_protected_holdout_reader_present": false,
+    "runner_revision": "v0.3"
+  },
+  "required_launcher_sequence": [
+    "validate_committed_execution_authorization",
+    "validate_non_protected_frozen_authorities",
+    "require_clean_repository",
+    "require_consumption_report_receipt_absent",
+    "atomically_create_v0_1_consumption_marker",
+    "verify_consumption_marker_exists",
+    "first_protected_read",
+    "recompute_protected_hashes_and_sizes",
+    "parse_protected_cases_and_independence",
+    "validate_protected_schema_and_independence",
+    "build_deterministic_profiles",
+    "build_label_blind_case_prompts",
+    "load_frozen_base_model",
+    "evaluate_base_exactly_once_on_all_18_cases",
+    "attach_frozen_candidate_adapter",
+    "evaluate_adapted_exactly_once_on_same_18_cases",
+    "apply_frozen_acceptance_gates",
+    "write_v0_1_report",
+    "write_v0_1_receipt"
+  ],
+  "role": "pre_consumption_execution_orchestration_completion_decision",
+  "runner_core_contract": {
+    "must_remain_byte_identical": true,
+    "permitted_imported_functions": [
+      "validate_non_protected_runner_authorities",
+      "prepare_runtime_authority",
+      "build_greenhouse_deterministic_profile",
+      "build_profile_index",
+      "generate_label_blind_case",
+      "load_base_model",
+      "attach_adapter",
+      "cuda_barrier"
+    ],
+    "relative_path": "app/adaptation/greenhouse_final_acceptance_runner_v0_4_v0_3.py",
+    "sha256": "24fa4598ef89017cbac3533180494e3db6cab0dda06fcf8b03150bc4d0deb668"
+  },
+  "scope": "execution_orchestration_only",
+  "source_git_commit": "dca4919a35cb4373258b92ba1d6ad1703686348f",
+  "status": "approved_before_greenhouse_holdout_consumption"
+}
