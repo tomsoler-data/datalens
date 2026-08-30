@@ -1,0 +1,267 @@
+{
+  "authority_bindings": {
+    "greenhouse_benchmark": {
+      "repo_path": "apps/api/app/evaluation/benchmarks/greenhouse_operations_final_acceptance.py",
+      "sha256": "5653bfb9042f3a17dedf1b3165a3ab11fa2996c0964454094d2bee672991c5b2"
+    },
+    "greenhouse_protocol": {
+      "commit": "fa16cad4fa2bc657799dff26932481e07519cf00",
+      "repo_path": "apps/api/artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_final_acceptance_protocol_v0.1.json",
+      "sha256": "056272cca075a6f8c48c38f5296c0ddacaaeb29e64f08048a43a80ea3dab0b16"
+    },
+    "semantic_normalizer": {
+      "repo_path": "apps/api/app/semantics/normalizer.py",
+      "sha256": "90ce9442abc041649d9f72683b5b5cabba120d097ec5a6354cd0ea261962d3e2"
+    },
+    "semantic_profiler": {
+      "repo_path": "apps/api/app/semantics/profiler.py",
+      "sha256": "54542f6e0d8709ea5990596427e9c1d99996db1a27e68ccbd9b2c40c9e0d39e7"
+    },
+    "semantic_provider": {
+      "repo_path": "apps/api/app/semantics/provider.py",
+      "sha256": "9fcc8fd0188ea04947ccced2698153d8dac184cf94fb00dd9f640fd27bceaa9e"
+    },
+    "semantic_schemas": {
+      "repo_path": "apps/api/app/semantics/schemas.py",
+      "sha256": "1aab9c75bdbebad424c01b065ce256d62223a638dd6333f5d4dcbf59a7b49776"
+    },
+    "training_task_prompt_canonicalizer": {
+      "repo_path": "apps/api/app/adaptation/training_dataset_canonicalizer_v0_4.py",
+      "sha256": "075d6c22cf4473b414221a0766ca831f4da1e19597a0a5b2b5efd3e5755c9356"
+    }
+  },
+  "authorization_scope_after_decision": {
+    "execute_greenhouse": false,
+    "observe_greenhouse_results": false,
+    "perform_synthetic_preflight": true,
+    "prepare_execution_manifest": true,
+    "prepare_greenhouse_runner": true,
+    "prepare_greenhouse_runner_tests": true,
+    "read_greenhouse_cases": false,
+    "read_greenhouse_dataset": false,
+    "read_greenhouse_independence": false
+  },
+  "case_identity_policy": {
+    "allowed_case_fields_for_lookup": [
+      "case_id",
+      "left_dataset_id",
+      "right_dataset_id",
+      "left_column",
+      "right_column"
+    ],
+    "case_id_is_runtime_audit_only": true,
+    "forbidden_gold_fields_for_prompt": [
+      "same_concept",
+      "same_concept_family",
+      "same_domain",
+      "distinct_variants",
+      "compatible_units",
+      "derived_gap_compatible"
+    ],
+    "prompt_construction_must_complete_without_gold_access": true
+  },
+  "created_at": "2026-08-30T14:13:12Z",
+  "decision_id": "adaptation:datalens-semantic-qlora-v0.4:greenhouse-deterministic-input-serializer:decision:v0.1",
+  "decision_rule_version": "qlora_v0.4_greenhouse_deterministic_input_serializer_decision_v0.1",
+  "description_serializer": {
+    "confidence_or_provenance_in_description": false,
+    "excluded_profile_fields": [
+      "dataset_id",
+      "filename",
+      "column",
+      "domain",
+      "confidence",
+      "source",
+      "quantity_rule_version",
+      "semantic_rule_version"
+    ],
+    "fields": [
+      "data_type",
+      "concept",
+      "semantic_group",
+      "variant",
+      "measure_kind",
+      "unit_kind",
+      "quantity_dimension",
+      "quantity_unit",
+      "entity_role",
+      "qualifiers"
+    ],
+    "forbidden_context_or_gold_inputs": [
+      "sample_values",
+      "numeric_summary",
+      "dtype",
+      "row_count",
+      "missing_ratio",
+      "unique_count",
+      "peer_columns",
+      "same_concept",
+      "same_concept_family",
+      "same_domain",
+      "distinct_variants",
+      "compatible_units",
+      "derived_gap_compatible",
+      "projected_gold_relation",
+      "independence_material"
+    ],
+    "format": "canonical_compact_json_object",
+    "gold_assertions_in_description": false,
+    "input_state": "after_normalize_dataset_semantics",
+    "input_type": "ColumnSemanticProfile",
+    "missingness_statistics_in_description": false,
+    "numeric_summary_in_description": false,
+    "qualifiers_normalization": "sorted_lexicographically_before_serialization",
+    "raw_cell_values_in_description": false,
+    "raw_sample_values_in_description": false,
+    "rule_version": "greenhouse_normalized_semantic_profile_description_serializer_v0.1",
+    "serialization_function": "json.dumps",
+    "serialization_options": {
+      "ensure_ascii": true,
+      "separators": [
+        ",",
+        ":"
+      ],
+      "sort_keys": true
+    }
+  },
+  "deterministic_profile_wrapper": {
+    "allowed_profile_sources": [
+      "deterministic",
+      "deterministic_fallback"
+    ],
+    "column_name_requirement": "all_column_names_must_be_unique_strings",
+    "dataset_column_order": "original_dataframe_column_order",
+    "dataset_profile_constructor": "DatasetSemanticProfile",
+    "dataset_profile_fields": [
+      "dataset_id",
+      "filename",
+      "columns"
+    ],
+    "forbidden_functions": [
+      "profile_column_semantics",
+      "profile_dataset_semantics",
+      "call_column_semantic_model",
+      "classified_llm_chat"
+    ],
+    "network_or_external_llm_enrichment_permitted": false,
+    "normalization_operation": "normalize_dataset_semantics",
+    "raw_dataframe_values_may_leave_local_runtime": false,
+    "rule_version": "greenhouse_deterministic_semantic_profile_wrapper_v0.1",
+    "serializer_input": "normalized_column_semantic_profile",
+    "steps_per_column": [
+      {
+        "arguments": [
+          "dataset_id",
+          "filename",
+          "column",
+          "series",
+          "peer_columns"
+        ],
+        "operation": "build_column_context",
+        "priority": 1
+      },
+      {
+        "input": "column_context",
+        "operation": "build_deterministic_structural_profile",
+        "priority": 2
+      },
+      {
+        "condition": "structural_profile_is_none",
+        "input": "column_context",
+        "operation": "build_fallback_profile",
+        "priority": 3
+      },
+      {
+        "operation": "collect_column_semantic_profile",
+        "priority": 4
+      }
+    ]
+  },
+  "experiment_id": "adaptation:datalens-semantic-qlora-v0.4",
+  "failure_policy": {
+    "duplicate_or_non_string_column_name": "fail_closed",
+    "gold_or_independence_material_reaches_prompt_builder": "fail_closed",
+    "missing_case_column": "fail_closed",
+    "missing_dataset_profile": "fail_closed",
+    "post_consumption_failure": "terminal_no_reexecution",
+    "profile_source_outside_allowed_set": "fail_closed",
+    "provider_or_network_path_reached": "fail_closed",
+    "serializer_field_missing": "fail_closed",
+    "serializer_value_invalid": "fail_closed"
+  },
+  "governance": {
+    "decision_created_before_greenhouse_case_read": true,
+    "decision_created_before_greenhouse_dataset_read": true,
+    "decision_created_before_greenhouse_execution": true,
+    "decision_created_before_greenhouse_independence_read": true,
+    "decision_must_be_committed_before_runner_creation": true,
+    "greenhouse_model_selection_forbidden": true,
+    "greenhouse_reexecution_forbidden": true,
+    "greenhouse_tuning_forbidden": true,
+    "profiling_path_may_change_after_greenhouse_observation": false,
+    "prompt_input_fields_may_change_after_greenhouse_observation": false,
+    "serializer_may_change_after_greenhouse_observation": false
+  },
+  "historical_profiler_finding": {
+    "historical_profiler_allowed_for_greenhouse_candidate_input": false,
+    "profile_column_semantics_calls_model_provider": true,
+    "profile_dataset_semantics_is_model_aware": true,
+    "provider_calls_classified_llm_chat": true,
+    "reason": "Final Acceptance candidate inputs must not depend on a second LLM or semantic provider. Greenhouse therefore uses the existing deterministic structural and fallback helpers directly."
+  },
+  "privacy_policy": {
+    "missing_ratio_may_enter_candidate_prompt": false,
+    "numeric_summary_may_enter_candidate_prompt": false,
+    "only_normalized_semantic_metadata_sent_to_candidate": true,
+    "raw_dataframe_remains_local": true,
+    "row_count_may_enter_candidate_prompt": false,
+    "sample_values_may_enter_candidate_prompt": false,
+    "unique_count_may_enter_candidate_prompt": false
+  },
+  "prompt_record_contract": {
+    "case_id_visible_to_model": false,
+    "dataset_ids_visible_to_model": false,
+    "domain": {
+      "authority": "frozen_greenhouse_benchmark_suite_domain",
+      "gold_derived": false,
+      "value": "commercial_greenhouse_operations"
+    },
+    "gold_fields_visible_to_model": false,
+    "independence_material_visible_to_model": false,
+    "left_description_source": "canonical_serializer(normalized_profile[left_dataset_id,left_column])",
+    "left_metric_source": "case_identity.left_column",
+    "projected_gold_relation_visible_to_model": false,
+    "prompt_builder": "build_user_message",
+    "right_description_source": "canonical_serializer(normalized_profile[right_dataset_id,right_column])",
+    "right_metric_source": "case_identity.right_column"
+  },
+  "role": "greenhouse_label_blind_candidate_input_authority",
+  "runner_requirements_added_by_decision": {
+    "bind_normalizer_sha256": true,
+    "bind_profiler_sha256": true,
+    "bind_prompt_canonicalizer_sha256": true,
+    "bind_semantic_schema_sha256": true,
+    "bind_this_decision_sha256": true,
+    "forbid_call_column_semantic_model": true,
+    "forbid_classified_llm_chat": true,
+    "forbid_profile_column_semantics": true,
+    "forbid_profile_dataset_semantics": true,
+    "implement_deterministic_profile_wrapper": true,
+    "implement_exact_description_serializer": true,
+    "verify_prompt_contains_no_gold_fields": true,
+    "verify_prompt_contains_no_raw_values": true
+  },
+  "source_git_commit": "fa16cad4fa2bc657799dff26932481e07519cf00",
+  "status": "approved_pre_execution_input_contract",
+  "synthetic_preflight_requirements": {
+    "protected_greenhouse_material_permitted": false,
+    "test_fallback_profile_path": true,
+    "test_gold_fields_not_serialized": true,
+    "test_normalization": true,
+    "test_prompt_record_exact_output": true,
+    "test_provider_path_not_called": true,
+    "test_raw_values_not_serialized": true,
+    "test_serializer_exact_output": true,
+    "test_structural_profile_path": true
+  }
+}
