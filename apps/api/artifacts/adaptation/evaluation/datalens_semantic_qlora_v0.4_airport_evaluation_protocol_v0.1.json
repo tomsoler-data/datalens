@@ -1,0 +1,234 @@
+{
+  "acceptance_gates": {
+    "all_gates_required": true,
+    "failure_action": "stop_v0.4_before_greenhouse",
+    "greenhouse_open_condition": "all_airport_absolute_gates_and_both_non_regression_gates_pass_and_airport_evidence_is_committed",
+    "post_hotel_non_regression_gates": {
+      "accuracy_delta_minimum": 0.0,
+      "macro_accuracy_delta_minimum": 0.0
+    },
+    "pretraining_frozen_airport_absolute_gates": {
+      "adapted_accuracy_minimum": 0.7,
+      "adapted_macro_accuracy_minimum": 0.7,
+      "adapted_per_relation_accuracy_minimum": 0.5,
+      "adapted_strict_json_validity_rate": 1.0,
+      "adapted_uncertain_accuracy_minimum": 0.666667,
+      "training_loss_is_acceptance_evidence": false
+    }
+  },
+  "authority": {
+    "airport_holdout": {
+      "case_count": 30,
+      "cases_sha256": "7d9454d0d59dd047050bd72d195feb1390ca0edc2c83584af0cbfec951cf3939",
+      "evaluation_executed_before_protocol": false,
+      "freeze_sha256": "46accf23eeae32f0fdc926f7b0a9e73115a1413ddbc28efa84472f0571ee2f09",
+      "holdout_id": "adaptation:datalens-semantic-qlora-v0.4:airport-ground-operations:holdout:v0.1",
+      "module_sha256": "4326564a101321f49ec375aca1d67e05735841c298132843ff774f8f013ec961",
+      "results_observed_before_protocol": false,
+      "test_sha256": "54e426a2d2b432395f4660e5e591070cb48b8b1e3deed0faf75ac4bb9cb1b9bc"
+    },
+    "experiment_design": {
+      "freeze_sha256": "84d64a1406ce0e6648de54e4830eb96dd99b87a980108085906eb57875ef978a",
+      "sha256": "dd36103a01cadc49101dfeffa006bba9e9cf6cdfc3599a3f0967beff14765cf9"
+    },
+    "generation_config": {
+      "bos_token_id": 2,
+      "end_of_turn_token": "<end_of_turn>",
+      "end_of_turn_token_id": 106,
+      "eos_token": "<eos>",
+      "eos_token_ids": [
+        1,
+        106
+      ],
+      "pad_token_id": 0,
+      "sha256": "fd9324becc53c4be610db39e13a613006f09fd6ef71a95fb6320dc33157490a3"
+    },
+    "model": {
+      "model_type": "gemma3_text",
+      "repository": "google/gemma-3-4b-it",
+      "revision": "093f9f388b31de276ce2de164bdc2081324b9767",
+      "text_checkpoint_manifest_sha256": "3958e7c849597bd3f0bb4db930fb4d329d5e2bc207afd3157dfcd22c83bab994",
+      "text_model_config_sha256": "92d1975005be74a96582b41f59e846fe5f9ab7bd829d9b14a9afbe26708cba8f"
+    },
+    "post_hotel_decision": {
+      "git_commit": "6a612e8b4b629afe513e7aa0e9b67d527d20d8f8",
+      "sha256": "54a8a880c37359d9734fb2e08dce3418a94014d8dde5a1fd7f49e26ec4173c6f"
+    },
+    "prompt_builder": {
+      "function": "build_user_message",
+      "module": "app.adaptation.training_dataset_canonicalizer_v0_4",
+      "module_sha256": "075d6c22cf4473b414221a0766ca831f4da1e19597a0a5b2b5efd3e5755c9356"
+    },
+    "token_length_audit": {
+      "assistant_token_maximum": 39,
+      "assistant_token_p99": 38,
+      "sha256": "add94bd50fc89120a7626fa7533af2996765d25c7c64d2d866dd7178674d40c1"
+    },
+    "tokenizer": {
+      "added_tokens_sha256": "50b2f405ba56a26d4913fd772089992252d7f942123cc0a034d96424221ba946",
+      "chat_template_sha256": "7de1c58e208eda46e9c7f86397df37ec49883aeece39fb961e0a6b24088dd3c4",
+      "repository": "google/gemma-3-4b-it",
+      "revision": "093f9f388b31de276ce2de164bdc2081324b9767",
+      "special_tokens_map_sha256": "2f7b0adf4fb469770bb1490e3e35df87b1dc578246c5e7e6fc76ecf33213a397",
+      "tokenizer_config_sha256": "bfe25c2735e395407beb78456ea9a6984a1f00d8c16fa04a8b75f2a614cf53e1"
+    },
+    "training_target_builder": {
+      "function": "build_assistant_message",
+      "module": "app.adaptation.training_dataset_canonicalizer_v0_4",
+      "module_sha256": "075d6c22cf4473b414221a0766ca831f4da1e19597a0a5b2b5efd3e5755c9356"
+    }
+  },
+  "execution_preconditions": {
+    "airport_protocol_must_be_committed_before_cases_are_opened": true,
+    "candidate_adapter_frozen": true,
+    "greenhouse_must_remain_closed": true,
+    "hotel_diagnostic_completed_and_committed": true,
+    "hotel_performance_is_acceptance_gate": false,
+    "known_regression_and_safety_gate_complete_and_passed": true,
+    "post_hotel_decision_committed": true,
+    "training_complete": true
+  },
+  "experiment_id": "datalens-semantic-qlora-v0.4",
+  "generated_output_processing": {
+    "decode_scope": "new_tokens_only",
+    "decode_skip_special_tokens": false,
+    "entire_decoded_output_must_be_one_json_value": true,
+    "exact_key_set_required": true,
+    "invalid_json_behavior": {
+      "counts_as_correct": false,
+      "predicted_relation": null,
+      "strict_json_valid": false
+    },
+    "json_value_must_be_object": true,
+    "llm_judge_used": false,
+    "parser": "json.loads",
+    "terminal_stop_token_handling": {
+      "allowed_terminal_eos_token_ids": [
+        1,
+        106
+      ],
+      "other_special_tokens_silently_removed": false,
+      "remove_exactly_one_terminal_eos_token_before_decode": true
+    },
+    "validity_checks": [
+      "json_parse_success",
+      "object_type",
+      "exact_relation_reason_keys",
+      "relation_is_allowed",
+      "reason_is_string",
+      "reason_word_count_between_6_and_45"
+    ],
+    "whitespace_normalization": "strip_outer_whitespace_only"
+  },
+  "generation": {
+    "do_sample": false,
+    "eos_authority": "pinned_snapshot_generation_config",
+    "eos_token_ids": [
+      1,
+      106
+    ],
+    "evaluation_order": [
+      "pinned_base",
+      "same_base_plus_frozen_candidate_adapter"
+    ],
+    "generation_budget_exhaustion": "fail_closed",
+    "input_truncation_permitted": false,
+    "max_new_tokens": 64,
+    "max_new_tokens_basis": {
+      "assistant_token_maximum": 39,
+      "assistant_token_p99": 38,
+      "headroom_tokens": 25,
+      "source": "non_protected_v0.4_training_token_audit"
+    },
+    "mode": "deterministic_greedy",
+    "num_beams": 1,
+    "sampling_controls_passed": false
+  },
+  "metric_contract": {
+    "balanced_cases_per_relation": 6,
+    "case_count": 30,
+    "decimal_places": 6,
+    "invalid_output_counts_as_incorrect": true,
+    "macro_accuracy_relation_set": [
+      "same_metric_different_state",
+      "same_process_different_stage",
+      "related_distinct_metric",
+      "unrelated",
+      "uncertain"
+    ],
+    "metrics": [
+      "strict_json_validity_rate",
+      "accuracy",
+      "macro_accuracy",
+      "per_relation_accuracy",
+      "uncertain_accuracy",
+      "base_adapted_accuracy_delta",
+      "base_adapted_macro_accuracy_delta"
+    ],
+    "round_before_gate_comparison": true
+  },
+  "protected_boundaries": {
+    "airport_cases_hashed_by_protocol_builder": false,
+    "airport_cases_parsed_by_protocol_builder": false,
+    "airport_cases_read_by_protocol_builder": false,
+    "airport_results_observed": false,
+    "greenhouse_evaluated": false,
+    "greenhouse_opened": false,
+    "hotel_reexecution_permitted": false
+  },
+  "record_rule_version": "qlora_v0.4_airport_evaluation_protocol_v0.1",
+  "role": "independent_holdout_gate_before_final_acceptance",
+  "single_use_policy": {
+    "airport_holdout_single_use_for_v0_4": true,
+    "failure_requires_new_experiment_version": true,
+    "hyperparameter_tuning_from_airport_results": false,
+    "model_selection_from_airport_results": false,
+    "reexecution_after_results_observed": false,
+    "retraining_after_results_then_retesting_same_holdout": false,
+    "same_holdout_used_for_base_and_adapted_in_one_official_run": true
+  },
+  "source_git_commit": "6a612e8b4b629afe513e7aa0e9b67d527d20d8f8",
+  "status": "preregistered_before_holdout_consumption",
+  "task": {
+    "domain": "airport_ground_operations",
+    "output_contract": {
+      "additional_properties": false,
+      "format": "strict_json_object",
+      "reason_type": "string",
+      "reason_unknown_fact_constraint": "design_requirement_not_separately_llm_judged",
+      "reason_word_count_maximum": 45,
+      "reason_word_count_minimum": 6,
+      "relation_allowed_values": [
+        "same_metric_different_state",
+        "same_process_different_stage",
+        "related_distinct_metric",
+        "unrelated",
+        "uncertain"
+      ],
+      "required_keys": [
+        "relation",
+        "reason"
+      ],
+      "word_count_rule": "len(reason.split())"
+    },
+    "prompt_contract": {
+      "builder": "build_user_message",
+      "fields_supplied": [
+        "domain",
+        "left_metric",
+        "left_description",
+        "right_metric",
+        "right_description"
+      ],
+      "holdout_label_supplied_to_model": false,
+      "same_builder_as_v0_4_training": true
+    },
+    "relations": [
+      "same_metric_different_state",
+      "same_process_different_stage",
+      "related_distinct_metric",
+      "unrelated",
+      "uncertain"
+    ]
+  }
+}
