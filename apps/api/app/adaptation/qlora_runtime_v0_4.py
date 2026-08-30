@@ -1017,13 +1017,22 @@ def prepare_training_dataset(
             )
         )
 
-    if any(
-        example.truncated
-        for example
-        in examples
+    # build_assistant_only_training_example() is
+    # fail-closed when a rendered example exceeds the
+    # configured sequence limit. AssistantOnlyTrainingExample
+    # therefore has no synthetic ``truncated`` attribute.
+    #
+    # The frozen token audit independently proves that the
+    # v0.4 dataset requires zero truncation. At runtime we
+    # preserve that invariant through the exact observed
+    # maximum token count.
+    if (
+        max_example_tokens
+        >
+        EXPECTED_MAX_SEQUENCE_LENGTH
     ):
         raise RuntimeError(
-            "Silent dataset truncation detected."
+            "Training example exceeds sequence limit."
         )
 
     return PreparedDataset(

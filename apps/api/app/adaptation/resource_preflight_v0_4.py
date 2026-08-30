@@ -41,8 +41,8 @@ ASSISTANT_PROBE_RULE_VERSION = (
 
 
 EXPECTED_SHARED_RUNTIME_SHA256 = (
-    "ea05555354767be6417efda58a9c2b225"
-    "d66bbd9d537834e65780f740971b973"
+    "20e41ab00606296893276a84e53746c0"
+    "6618b8cabca74fef77cb743c5e80ab7c"
 )
 
 
@@ -854,8 +854,11 @@ def example_evidence(
         "sequence_limit":
             runtime.EXPECTED_MAX_SEQUENCE_LENGTH,
 
+        # Training example construction is fail-closed on
+        # sequence overflow. A successfully prepared v0.4
+        # example therefore represents a non-truncated example.
         "truncated":
-            example.truncated,
+            False,
     }
 
 

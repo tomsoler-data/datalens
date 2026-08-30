@@ -325,6 +325,37 @@ if optimizer_step_calls:
     )
 
 
+truncated_attribute_reads = [
+    node.lineno
+
+    for node
+    in ast.walk(
+        tree
+    )
+
+    if (
+        isinstance(
+            node,
+            ast.Attribute,
+        )
+        and
+        node.attr
+        ==
+        "truncated"
+    )
+]
+
+
+if truncated_attribute_reads:
+    raise RuntimeError(
+        (
+            "Shared runtime depends on unsupported "
+            "AssistantOnlyTrainingExample.truncated. "
+            f"Lines={truncated_attribute_reads}"
+        )
+    )
+
+
 for forbidden in (
     "airport_ground_operations_holdout_v0.1_cases.json",
     "greenhouse_operations_final_acceptance_v0_1_cases",
@@ -419,6 +450,10 @@ print(
 
 print(
     "optimizer.step() absent: PASS"
+)
+
+print(
+    "Unsupported .truncated attribute dependency absent: PASS"
 )
 
 print(
