@@ -1,0 +1,14 @@
+{
+  "acceptance_authority": false,
+  "first_post_training_forward_pass_completed": false,
+  "first_post_training_inference_completed": false,
+  "freeze_rule_version": "adapted_reasoning_evaluation_manifest_freeze_v0.4",
+  "frozen_before_first_post_training_inference": true,
+  "frozen_before_first_successful_forward_pass": true,
+  "manifest_relative_path": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_reasoning_evaluation_v0.1_manifest.json",
+  "manifest_sha256": "860bc2089151c49ec7c90d0cbf940965463d38f8f531516484421d895519b4ff",
+  "protocol_git_commit": "60e50bb435f8e3f8bc8b2d093d711676ed645b6c",
+  "runner_sha256": "da626f1ec13b3a5438dfeafd5738e8160f2d88379a1294446a0748b6763a6dd8",
+  "status": "frozen",
+  "test_sha256": "fd5fc355b53d3cfa5e2113b5c40bd2e20a35c646d6d9eeb9dfc5340816c08bee"
+}

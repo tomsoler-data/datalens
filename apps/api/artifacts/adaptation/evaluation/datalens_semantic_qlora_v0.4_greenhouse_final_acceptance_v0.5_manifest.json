@@ -1,0 +1,286 @@
+{
+  "evaluation": {
+    "acceptance_gates": {
+      "adapted_dangerous_false_positives_maximum": 0,
+      "adapted_projected_relation_accuracy_minimum": 0.8,
+      "adapted_safety_failures_maximum": 0,
+      "adapted_strict_json_validity_required": 1.0,
+      "all_gates_must_pass": true,
+      "greenhouse_freeze_integrity_must_pass": true,
+      "s3_regression_gate_must_remain_pass": true
+    },
+    "evaluation_models": {
+      "adapted": {
+        "acceptance_authority": true,
+        "adapter_bundle_sha256": "0351980df6d86096195c0971deb30c725e155c71aa5de8054b2b37fa42090716",
+        "evaluated": true,
+        "role": "final_acceptance_candidate"
+      },
+      "base": {
+        "acceptance_authority": false,
+        "evaluated": true,
+        "may_trigger_model_selection": false,
+        "role": "diagnostic_only"
+      },
+      "base_to_adapted_result_comparison_is_acceptance_gate": false,
+      "same_case_order_required": true,
+      "same_prompt_inputs_required": true
+    },
+    "generation_policy": {
+      "chat_template_return_dict": false,
+      "do_sample": false,
+      "eos_token_ids": [
+        1,
+        106
+      ],
+      "generation_budget_exhaustion": "final_acceptance_failure",
+      "generation_contract_source": "airport_protocol_v0.1",
+      "input_truncation_permitted": false,
+      "max_new_tokens": 64,
+      "num_beams": 1,
+      "retry_after_model_output_permitted": false,
+      "stochastic_retry_permitted": false
+    },
+    "output_contract": {
+      "deterministic_parser": true,
+      "exact_keys": [
+        "relation",
+        "reason"
+      ],
+      "format": "strict_json_object",
+      "invalid_json_causes_final_acceptance_failure": true,
+      "invalid_json_scored_incorrect": true,
+      "llm_judge": false,
+      "reason_max_words": 45,
+      "reason_min_words": 6
+    },
+    "safety_policy": {
+      "dangerous_false_positives_maximum": 0,
+      "definitions_authority": "task_interpretation.dangerous_false_positive_interpretation_and_safety_failure_interpretation",
+      "no_post_observation_redefinition": true,
+      "safety_failures_maximum": 0
+    },
+    "score_policy": {
+      "definition": "correct_projected_relation_predictions / total_greenhouse_pair_cases",
+      "denominator": 18,
+      "historical_six_field_accuracy_equivalence_claimed": false,
+      "metric": "projected_relation_accuracy",
+      "minimum": 0.8,
+      "partial_credit": false,
+      "round_decimals": 6
+    }
+  },
+  "execution_code": {
+    "execution_revision": "v0.5",
+    "git_commit": "4e2810c43372aadeb453afe18be7d297c9eeb4b4",
+    "launcher": {
+      "git_commit": "bd9a3e1106b698757a975ce7607d36486c1c169a",
+      "launcher_revision": "v0.2",
+      "may_execute_on_import": false,
+      "must_remain_byte_identical": true,
+      "relative_path": "app/adaptation/greenhouse_final_acceptance_launcher_v0_4_v0_2.py",
+      "requires_rebound_execution_authorization_v0_3": true,
+      "role": "single_use_greenhouse_final_acceptance_orchestrator",
+      "sha256": "a47f823f3c625b1780435ddcf4f2fa2df03cb6c5d95aad78501db80cf11f6d0a"
+    },
+    "launcher_test": {
+      "git_commit": "bd9a3e1106b698757a975ce7607d36486c1c169a",
+      "launcher_revision": "v0.2",
+      "protected_greenhouse_material_used": false,
+      "relative_path": "tests/adaptation/test_greenhouse_final_acceptance_launcher_v0_4_v0_2.py",
+      "role": "synthetic_single_use_launcher_contract_test",
+      "sha256": "e89e79bfab8211ea6c2c73772ebda5906b3cc5a5e9a97bdb92dd5b655c71eb51",
+      "synthetic_only": true,
+      "test_count": 27
+    },
+    "runner": {
+      "execution_revision": "v0.4",
+      "git_commit": "4e2810c43372aadeb453afe18be7d297c9eeb4b4",
+      "must_remain_byte_identical": true,
+      "relative_path": "app/adaptation/greenhouse_final_acceptance_runner_v0_4_v0_4.py",
+      "role": "frozen_greenhouse_runtime_core",
+      "sha256": "8e922f46d65048ab6bcebeab8eca7e52b8bf83100524bea84658530039b40cea"
+    },
+    "runner_repo_path": "apps/api/app/adaptation/greenhouse_final_acceptance_runner_v0_4_v0_4.py",
+    "runner_sha256": "8e922f46d65048ab6bcebeab8eca7e52b8bf83100524bea84658530039b40cea",
+    "test_repo_path": "apps/api/test_greenhouse_final_acceptance_runner_v0_4_v0_4.py",
+    "test_sha256": "6f1f6708f5a63830a8cbd858c44137095135f6ef8043e37930bcae8f0c8b99ed"
+  },
+  "execution_compatibility": {
+    "decision_rule_version": "qlora_v0.4_greenhouse_execution_compatibility_decision_v0.3",
+    "git_commit": "d36bb451bea498420d53f36495f53b37d7fb90cc",
+    "repo_path": "apps/api/artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_execution_compatibility_decision_v0.3.json",
+    "scope": "execution_compatibility_only",
+    "sha256": "77a6d2ff87526b1e8325c12fe15e93c1b7c3caeb8c000c3d009331ea9aa5c608",
+    "status": "approved_before_greenhouse_holdout_consumption",
+    "superseded_execution_revision": "v0.4",
+    "superseded_manifest_freeze_sha256": "dcf445d54324c2222a714b54a0784c09be92e44fcfb8574c8e73be3e4606678f",
+    "superseded_manifest_sha256": "60cd3148c475f02509ba3a674cd7eb5d8c7c5ea5d9e66c06a961f9560eaf6dbb",
+    "supersession_stage": "before_greenhouse_holdout_consumption"
+  },
+  "execution_revision": "v0.5",
+  "experiment_id": "adaptation:datalens-semantic-qlora-v0.4",
+  "final_acceptance_revision": "v0.1",
+  "governance": {
+    "airport_reexecution_permitted": false,
+    "greenhouse_cases_read_by_manifest_builder": false,
+    "greenhouse_dataset_read_by_manifest_builder": false,
+    "greenhouse_evaluation_executed": false,
+    "greenhouse_independence_read_by_manifest_builder": false,
+    "greenhouse_model_selection_permitted": false,
+    "greenhouse_protected_hashes_recomputed_by_manifest_builder": false,
+    "greenhouse_results_observed": false,
+    "greenhouse_tuning_permitted": false,
+    "manifest_must_be_committed_before_synthetic_preflight": true,
+    "protected_metadata_copied_from_frozen_protocol": true,
+    "protocol_frozen_before_manifest": true,
+    "runner_frozen_before_manifest": true,
+    "separate_execution_authorization_required": true,
+    "synthetic_preflight_required_before_execution_authorization": true,
+    "test_frozen_before_manifest": true
+  },
+  "input_contract": {
+    "decision_id": "adaptation:datalens-semantic-qlora-v0.4:greenhouse-deterministic-input-serializer:decision:v0.1",
+    "description_serializer_rule_version": "greenhouse_normalized_semantic_profile_description_serializer_v0.1",
+    "deterministic_profile_wrapper_rule_version": "greenhouse_deterministic_semantic_profile_wrapper_v0.1",
+    "git_commit": "db7ae1ab0d4d9d8f58f7c3a8c5d5ab6ae874cba0",
+    "label_blind": true,
+    "provider_or_external_llm_enrichment_permitted": false,
+    "repo_path": "apps/api/artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_deterministic_input_serializer_decision_v0.1.json",
+    "sha256": "df54af3e32dc97b5fd43573c8c2a8caf1335976fde3b39faa51afc48ab5244e3"
+  },
+  "launch_path_decision": {
+    "decision_rule_version": "qlora_v0.4_greenhouse_execution_launch_path_decision_v0.1",
+    "git_commit": "71931b700529a32a4224748816002351f20734b0",
+    "relative_path": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_execution_launch_path_decision_v0.1.json",
+    "runner_mutation_permitted": false,
+    "sha256": "ccf9d9127eca9690dc4b8742356bf9673a79bbae9d23e8b0d54b948b776f00c4",
+    "strategy": "separate_launcher"
+  },
+  "manifest_build_governance": {
+    "adapter_attached": false,
+    "built_from_manifest_revision": "v0.4",
+    "built_from_manifest_sha256": "60cd3148c475f02509ba3a674cd7eb5d8c7c5ea5d9e66c06a961f9560eaf6dbb",
+    "consumption_marker_created": false,
+    "generation_executed": false,
+    "greenhouse_results_observed": false,
+    "launcher_freeze_commit": "bd9a3e1106b698757a975ce7607d36486c1c169a",
+    "model_loaded": false,
+    "protected_cases_bytes_read": false,
+    "protected_csv_parsed": false,
+    "protected_dataset_bytes_read": false,
+    "protected_hashes_recomputed": false,
+    "protected_independence_bytes_read": false,
+    "protected_json_parsed": false,
+    "training_executed": false
+  },
+  "manifest_rule_version": "qlora_v0.4_greenhouse_final_acceptance_manifest_v0.5",
+  "outputs": {
+    "consumption_marker": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_final_acceptance_v0.1_consumption.json",
+    "receipt": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_final_acceptance_v0.1_receipt.json",
+    "report": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_final_acceptance_v0.1_report.json"
+  },
+  "protected_holdout": {
+    "case_count": 18,
+    "components": [
+      {
+        "protected_before_consumption": true,
+        "repo_path": "apps/api/artifacts/evaluation/datasets/synthetic_greenhouse_operations_final_acceptance.csv",
+        "role": "dataset_definition",
+        "sha256": "17dcd1969b9f64f356e74fc0ca599c6a20ef4a68ad7abe050b7309c160035073",
+        "size_bytes": 1521
+      },
+      {
+        "protected_before_consumption": true,
+        "repo_path": "apps/api/artifacts/evaluation/holdouts/greenhouse_operations_final_acceptance_v0.1_cases.json",
+        "role": "case_manifest",
+        "sha256": "bb798ba453a0acb08bc5f22fe640197b0ab3fc69b32c7eee143960a2124f5593",
+        "size_bytes": 1826
+      },
+      {
+        "protected_before_consumption": true,
+        "repo_path": "apps/api/artifacts/evaluation/holdouts/greenhouse_operations_final_acceptance_v0.1_independence.json",
+        "role": "supporting_definition",
+        "sha256": "d05acb7045afde0bd7a129f231bf39ccd472a3710c12b161f58126232fbba5b7",
+        "size_bytes": 695
+      }
+    ],
+    "frozen_metadata_source": "apps/api/artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_final_acceptance_protocol_v0.1.json",
+    "independent_final_evidence": true,
+    "protected_bytes_read_before_manifest": false,
+    "protected_content_parsed_before_manifest": false,
+    "protected_hashes_recomputed_before_manifest": false,
+    "single_use": true,
+    "technical_split": "holdout"
+  },
+  "protocol": {
+    "git_commit": "fa16cad4fa2bc657799dff26932481e07519cf00",
+    "protocol_id": "adaptation:datalens-semantic-qlora-v0.4:greenhouse-final-acceptance:protocol:v0.1",
+    "repo_path": "apps/api/artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_final_acceptance_protocol_v0.1.json",
+    "sha256": "056272cca075a6f8c48c38f5296c0ddacaaeb29e64f08048a43a80ea3dab0b16"
+  },
+  "release_authority": {
+    "authorization": {
+      "git_commit": "9fcf1b1afca0c94283cd8f8ca56e63d8308de437",
+      "repo_path": "apps/api/artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_final_acceptance_authorization_v0.1.json",
+      "sha256": "bed6243c2995a5376f57d1ae2bd3135ec6e6e91a71de0e1d2e74becd9e7849c9",
+      "status": "approved_to_prepare_greenhouse_final_acceptance_execution"
+    },
+    "task_interpretation": {
+      "git_commit": "0220291de7db1f41e055e9d754f3c2dbefe11a83",
+      "repo_path": "apps/api/artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_gate_task_interpretation_decision_v0.1.json",
+      "sha256": "9f097f8b8e7e2dd182cc86cc5ed12fc74ded18262bac2af3639d2bf07bdf61a2",
+      "status": "approved_pre_execution_interpretation"
+    }
+  },
+  "role": "single_use_final_acceptance_execution_manifest",
+  "runtime_authority": {
+    "adapter_bundle_sha256": "0351980df6d86096195c0971deb30c725e155c71aa5de8054b2b37fa42090716",
+    "base_model_repository": "google/gemma-3-4b-it",
+    "base_model_revision": "093f9f388b31de276ce2de164bdc2081324b9767",
+    "canonicalizer_sha256": "075d6c22cf4473b414221a0766ca831f4da1e19597a0a5b2b5efd3e5755c9356",
+    "random_seed": 42,
+    "shared_runtime_sha256": "20e41ab00606296893276a84e53746c06618b8cabca74fef77cb743c5e80ab7c",
+    "training_receipt_sha256": "f412062f78432d7c432d4b36beed9d84d527d5990279240030a0a31227dffaee",
+    "training_report_sha256": "759ba4957806daab8b7a14d3aeb2b06859e0bcd6193d30cb877b63748617e04d"
+  },
+  "single_use_execution_orchestration": {
+    "adapted_evaluation_count_per_case": 1,
+    "authorization_present_at_manifest_build": false,
+    "authorization_required": "datalens_semantic_qlora_v0.4_greenhouse_final_acceptance_execution_authorization_v0.3",
+    "base_and_adapted_use_same_cases": true,
+    "base_evaluation_count_per_case": 1,
+    "candidate_replacement_after_results_permitted": false,
+    "consumption_marker_creation": {
+      "atomic": true,
+      "exclusive_create": true,
+      "implementation": "os.open(path, O_WRONLY | O_CREAT | O_EXCL)",
+      "must_exist_before_first_protected_read": true
+    },
+    "failure_after_marker_is_terminal": true,
+    "final_acceptance_revision": "v0.1",
+    "immediately_executable": false,
+    "outputs_revision": "v0.1",
+    "protected_case_count": 18,
+    "reexecution_permitted": false,
+    "retry_permitted": false,
+    "tuning_after_results_permitted": false
+  },
+  "single_use_policy": {
+    "consumption_marker_written_before_first_protected_read": true,
+    "greenhouse_used_for_model_selection": false,
+    "greenhouse_used_for_tuning": false,
+    "new_experiment_required_after_failure": true,
+    "reexecution_after_consumption_started": false,
+    "reexecution_permitted": false
+  },
+  "source_git_commit": "bd9a3e1106b698757a975ce7607d36486c1c169a",
+  "status": "preregistered_before_greenhouse_consumption",
+  "supersedes_manifest": {
+    "execution_revision": "v0.4",
+    "git_commit": "bae002d95083688d25543229c616f546892491de",
+    "relative_path": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_final_acceptance_v0.4_manifest.json",
+    "sha256": "60cd3148c475f02509ba3a674cd7eb5d8c7c5ea5d9e66c06a961f9560eaf6dbb",
+    "supersession_reason": "Bind the frozen Runner v0.4 and Launcher v0.2 execution implementation, including pre-materialized label-blind prompts before model loading, without changing the Final Acceptance v0.1 holdout, candidate, runtime authority, prompt semantics, serializer, generation policy, acceptance gates, or final output revision."
+  }
+}

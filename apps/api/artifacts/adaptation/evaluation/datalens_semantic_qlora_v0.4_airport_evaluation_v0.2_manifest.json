@@ -1,0 +1,94 @@
+{
+  "compatibility_decision": {
+    "git_commit": "67f6225c00a8fb2c6f5b305231a7ec2e3fe06c5e",
+    "repo_path": "apps/api/artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_airport_execution_compatibility_decision_v0.1.json",
+    "sha256": "0810a44dd55f41d10e739876b6aa15613fc921446c2e1d1ff63971c4d1f980d1"
+  },
+  "evaluation": {
+    "do_sample": false,
+    "eos_token_ids": [
+      1,
+      106
+    ],
+    "generation_mode": "deterministic_greedy",
+    "input_truncation_permitted": false,
+    "llm_judge_used": false,
+    "max_new_tokens": 64,
+    "num_beams": 1,
+    "order": [
+      "pinned_base",
+      "same_base_plus_frozen_candidate_adapter"
+    ],
+    "strict_json_required": true
+  },
+  "execution_code": {
+    "git_commit": "436b559ced6ad0ba0cde53b40b47b62d4730fb85",
+    "runner_repo_path": "apps/api/app/adaptation/airport_evaluation_runner_v0_4_v0_2.py",
+    "runner_sha256": "fda934f45a98c10905cd857109df6c3f927d0ae025e9fb41150d85872001fe23",
+    "test_repo_path": "apps/api/test_airport_evaluation_runner_v0_4_v0_2.py",
+    "test_sha256": "30d567af27907fadf6ad41144bf12f5f2d611d0f156d410508d4e8cbd6b17b52"
+  },
+  "experiment_id": "datalens-semantic-qlora-v0.4",
+  "governance": {
+    "airport_cases_hashed_by_manifest_builder": false,
+    "airport_cases_parsed_by_manifest_builder": false,
+    "airport_cases_read_by_manifest_builder": false,
+    "airport_results_observed": false,
+    "compatibility_decision_committed_before_manifest": true,
+    "greenhouse_evaluated": false,
+    "greenhouse_opened": false,
+    "hotel_reexecution_permitted": false,
+    "manifest_must_be_committed_before_authorization": true,
+    "protocol_frozen_before_manifest": true,
+    "runner_frozen_before_manifest": true,
+    "test_frozen_before_manifest": true,
+    "v0_1_execution_superseded_before_consumption": true
+  },
+  "holdout": {
+    "balanced_cases_per_relation": 6,
+    "case_count": 30,
+    "cases_consumed_before_manifest": false,
+    "cases_relative_path": "artifacts/adaptation/holdouts/datalens_semantic_qlora_v0.4_airport_ground_operations_holdout_v0.1_cases.json",
+    "cases_sha256": "7d9454d0d59dd047050bd72d195feb1390ca0edc2c83584af0cbfec951cf3939",
+    "evaluation_executed_before_manifest": false,
+    "freeze_relative_path": "artifacts/adaptation/holdouts/datalens_semantic_qlora_v0.4_airport_ground_operations_holdout_v0.1_freeze.json",
+    "freeze_sha256": "46accf23eeae32f0fdc926f7b0a9e73115a1413ddbc28efa84472f0571ee2f09",
+    "holdout_id": "adaptation:datalens-semantic-qlora-v0.4:airport-ground-operations:holdout:v0.1",
+    "independent_holdout": true,
+    "module_sha256": "4326564a101321f49ec375aca1d67e05735841c298132843ff774f8f013ec961",
+    "results_observed_before_manifest": false,
+    "single_use": true,
+    "test_sha256": "54e426a2d2b432395f4660e5e591070cb48b8b1e3deed0faf75ac4bb9cb1b9bc"
+  },
+  "manifest_rule_version": "qlora_v0.4_airport_evaluation_manifest_v0.2",
+  "outputs": {
+    "consumption_marker": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_airport_evaluation_v0.1_consumption.json",
+    "receipt": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_airport_evaluation_v0.1_receipt.json",
+    "report": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_airport_evaluation_v0.1_report.json"
+  },
+  "protocol": {
+    "git_commit": "f6b8063808badc05a4cc93abe80323d1d745f17d",
+    "repo_path": "apps/api/artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_airport_evaluation_protocol_v0.1.json",
+    "sha256": "a88cb86565c0a3d4daa4d5b2bea3beeed79a7df81155ed4d4ed0c7bfef2e00d1"
+  },
+  "role": "single_use_independent_holdout_execution_manifest",
+  "runtime_authority": {
+    "adapter_bundle_sha256": "0351980df6d86096195c0971deb30c725e155c71aa5de8054b2b37fa42090716",
+    "base_model_repository": "google/gemma-3-4b-it",
+    "base_model_revision": "093f9f388b31de276ce2de164bdc2081324b9767",
+    "canonicalizer_sha256": "075d6c22cf4473b414221a0766ca831f4da1e19597a0a5b2b5efd3e5755c9356",
+    "random_seed": 42,
+    "shared_runtime_sha256": "20e41ab00606296893276a84e53746c06618b8cabca74fef77cb743c5e80ab7c",
+    "training_receipt_sha256": "f412062f78432d7c432d4b36beed9d84d527d5990279240030a0a31227dffaee",
+    "training_report_sha256": "759ba4957806daab8b7a14d3aeb2b06859e0bcd6193d30cb877b63748617e04d"
+  },
+  "single_use_policy": {
+    "airport_used_for_model_selection": false,
+    "airport_used_for_tuning": false,
+    "consumption_marker_written_before_case_read": true,
+    "new_experiment_required_after_failure": true,
+    "reexecution_after_consumption_started": false
+  },
+  "source_git_commit": "436b559ced6ad0ba0cde53b40b47b62d4730fb85",
+  "status": "preregistered_before_airport_case_consumption"
+}

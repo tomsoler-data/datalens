@@ -1,0 +1,76 @@
+{
+  "authorization_v0_2_may_not_exist_before_this_freeze_is_committed": true,
+  "evidence_binding": {
+    "relative_path": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_synthetic_launch_path_preflight_evidence_v0.1.json",
+    "result": "PASS",
+    "sha256": "f043e5b3469dabb9ac38807d9c055da34f89af5f42d354836dc7b8c899d5d032",
+    "successful_harness_revision": "v0.3"
+  },
+  "execution_bindings": {
+    "execution_manifest": {
+      "git_commit": "bae002d95083688d25543229c616f546892491de",
+      "revision": "v0.4",
+      "sha256": "60cd3148c475f02509ba3a674cd7eb5d8c7c5ea5d9e66c06a961f9560eaf6dbb"
+    },
+    "execution_manifest_freeze": {
+      "git_commit": "bae002d95083688d25543229c616f546892491de",
+      "revision": "v0.4",
+      "sha256": "dcf445d54324c2222a714b54a0784c09be92e44fcfb8574c8e73be3e4606678f"
+    },
+    "launch_path_decision": {
+      "revision": "v0.1",
+      "sha256": "ccf9d9127eca9690dc4b8742356bf9673a79bbae9d23e8b0d54b948b776f00c4"
+    },
+    "launcher": {
+      "git_commit": "09998281cf6d6319d597a915cd4bf0bf98ddf4b8",
+      "revision": "v0.1",
+      "sha256": "9e2d282bc2eba2fd25074b8d2bb5c106b53e22c7c6f459d9ae6609986829d1c6"
+    },
+    "runner": {
+      "revision": "v0.3",
+      "sha256": "24fa4598ef89017cbac3533180494e3db6cab0dda06fcf8b03150bc4d0deb668"
+    }
+  },
+  "execution_revision": "v0.4",
+  "experiment_id": "datalens-semantic-qlora-v0.4",
+  "final_acceptance_revision": "v0.1",
+  "freeze_governance": {
+    "official_consumption_marker_created": false,
+    "official_evaluation_executed": false,
+    "official_receipt_created": false,
+    "official_report_created": false,
+    "official_results_observed": false,
+    "protected_greenhouse_cases_read": false,
+    "protected_greenhouse_csv_parsed": false,
+    "protected_greenhouse_dataset_read": false,
+    "protected_greenhouse_hashes_recomputed": false,
+    "protected_greenhouse_independence_read": false,
+    "protected_greenhouse_json_parsed": false,
+    "real_adapter_attached_during_launch_path_preflight": false,
+    "real_llm_generation_during_launch_path_preflight": false,
+    "real_model_loaded_during_launch_path_preflight": false,
+    "training_executed": false
+  },
+  "freeze_rule_version": "qlora_v0.4_greenhouse_synthetic_launch_path_preflight_freeze_v0.1",
+  "preflight_id": "adaptation:datalens-semantic-qlora-v0.4:greenhouse:synthetic-launch-path-preflight:v0.1",
+  "required_pre_authorization_conditions": {
+    "adapted_generation_boundary_calls": 18,
+    "base_generation_boundary_calls": 18,
+    "exclusive_marker_contract_pass": true,
+    "execution_authorization_v0_2_present": false,
+    "gold_leakage_detected": false,
+    "official_greenhouse_consumed": false,
+    "official_greenhouse_results_observed": false,
+    "protected_read_requires_marker": true,
+    "reexecution_permitted": false,
+    "retry_permitted": false,
+    "same_base_adapted_case_identity_order": true,
+    "successful_synthetic_case_count": 18,
+    "synthetic_launch_path_preflight_pass": true,
+    "terminal_failure_after_marker_contract_pass": true,
+    "total_generation_boundary_calls": 36
+  },
+  "result": "PASS",
+  "source_git_commit": "bae002d95083688d25543229c616f546892491de",
+  "status": "frozen_pre_authorization"
+}

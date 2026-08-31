@@ -1,0 +1,245 @@
+{
+  "adapter": {
+    "adapter_tensor_count": 476,
+    "bundle_sha256": "ed10297a1d0e6ce504189985d91f46b2f1f37a5a67fe84f0d62a9f09c3940ffe",
+    "file_count": 3,
+    "files": [
+      {
+        "relative_path": "adapter_config.json",
+        "sha256": "7c171386861d76e821b838dbc6c1a73a63c99698ac3aba2d60f94a28d623a5c2",
+        "size_bytes": 1302
+      },
+      {
+        "relative_path": "adapter_model.safetensors",
+        "sha256": "44b4d669a975c0a144f834dae0cbb4e0d56fa8525d6aa717007eebf4d44e6f6a",
+        "size_bytes": 119273568
+      },
+      {
+        "relative_path": "README.md",
+        "sha256": "6ecdbb662eaed8010ab0e012a2b95b79543884cf294406dc6da2cde64f98389d",
+        "size_bytes": 5380
+      }
+    ],
+    "published_path": "C:\\Users\\tomas\\.cache\\datalens\\adaptation\\runs\\datalens-semantic-qlora-v0.3-training-v0.1\\adapter",
+    "storage_scope": "local_cache",
+    "total_bytes": 119280250
+  },
+  "dataset": {
+    "example_count": 40,
+    "full_tokens_per_epoch": 2769,
+    "supervised_token_presentations": 2952,
+    "supervised_tokens_per_epoch": 1476,
+    "training_text_recorded": false
+  },
+  "device": {
+    "compute_capability": "8.9",
+    "free_vram_before_load_bytes": 7441743872,
+    "name": "NVIDIA GeForce RTX 4060",
+    "peak_allocated_bytes": 5013916160,
+    "peak_reserved_bytes": 6085935104,
+    "total_vram_bytes": 8585216000
+  },
+  "environment": {
+    "bitsandbytes": "0.50.2",
+    "peft": "0.20.0",
+    "torch": "2.11.0+cu128",
+    "transformers": "5.16.1"
+  },
+  "epoch_order_sha256": [
+    {
+      "epoch": 1,
+      "sha256": "254475433985ac4b434e954c54674a03f49d58a8bf2863ce1568f55496e1e6b9"
+    },
+    {
+      "epoch": 2,
+      "sha256": "0bf0afe33cbc261644c3c1c6453fd3e77c8ce17e09287c2a0e59add0b24b8eca"
+    }
+  ],
+  "evaluation": {
+    "evaluation_during_training": false,
+    "final_acceptance_cases_loaded": false,
+    "final_acceptance_evaluated": false,
+    "pre_adaptation_holdouts_executed": false,
+    "training_loss_is_acceptance_evidence": false
+  },
+  "execution": {
+    "assistant_only_loss": true,
+    "duration_seconds": 37.007056500006,
+    "epochs": 2,
+    "finished_at": "2026-08-29T22:22:37Z",
+    "gradient_accumulation_steps": 8,
+    "gradient_accumulation_weighting": "supervised_token_weighted",
+    "gradient_checkpoint_use_reentrant": false,
+    "micro_batches_executed": 80,
+    "optimizer_steps_executed": 10,
+    "started_at": "2026-08-29T22:22:00Z",
+    "training_executed": true
+  },
+  "experiment_id": "datalens-semantic-qlora-v0.3",
+  "manifest_freeze_sha256": "096759f95ebea93df270628157afc904ee3b7c46ba2170e823a61f117f700a6e",
+  "manifest_sha256": "5c6edc1f91f1c5fe53a5402d01873f9f0e3b9ce7a7ef4cb0aa4087a926552664",
+  "model_change": {
+    "trainable_parameter_count": 29802496,
+    "trainable_tensor_count": 476,
+    "weights_changed": true
+  },
+  "optimizer_steps": [
+    {
+      "cuda_allocated_bytes": 4507273728,
+      "cuda_reserved_bytes": 6052380672,
+      "epoch": 1,
+      "global_micro_batch": 8,
+      "global_optimizer_step": 1,
+      "gradient_norm": 29.44289472292395,
+      "gradient_tensor_count": 476,
+      "group_example_count": 8,
+      "group_supervised_tokens": 289,
+      "group_weighted_loss": 8.51548317641948,
+      "learning_rate_after_scheduler_step": 0.0002,
+      "learning_rate_before_optimizer_step": 0.0,
+      "optimizer_step_in_epoch": 1
+    },
+    {
+      "cuda_allocated_bytes": 4507273728,
+      "cuda_reserved_bytes": 6081740800,
+      "epoch": 1,
+      "global_micro_batch": 16,
+      "global_optimizer_step": 2,
+      "gradient_norm": 29.505006357398404,
+      "gradient_tensor_count": 476,
+      "group_example_count": 8,
+      "group_supervised_tokens": 295,
+      "group_weighted_loss": 8.512178264229984,
+      "learning_rate_after_scheduler_step": 0.00019396926207859084,
+      "learning_rate_before_optimizer_step": 0.0002,
+      "optimizer_step_in_epoch": 2
+    },
+    {
+      "cuda_allocated_bytes": 4507273728,
+      "cuda_reserved_bytes": 6081740800,
+      "epoch": 1,
+      "global_micro_batch": 24,
+      "global_optimizer_step": 3,
+      "gradient_norm": 7.267930965013483,
+      "gradient_tensor_count": 476,
+      "group_example_count": 8,
+      "group_supervised_tokens": 295,
+      "group_weighted_loss": 4.921476554870606,
+      "learning_rate_after_scheduler_step": 0.0001766044443118978,
+      "learning_rate_before_optimizer_step": 0.00019396926207859084,
+      "optimizer_step_in_epoch": 3
+    },
+    {
+      "cuda_allocated_bytes": 4507273728,
+      "cuda_reserved_bytes": 6081740800,
+      "epoch": 1,
+      "global_micro_batch": 32,
+      "global_optimizer_step": 4,
+      "gradient_norm": 3.888291544160197,
+      "gradient_tensor_count": 476,
+      "group_example_count": 8,
+      "group_supervised_tokens": 310,
+      "group_weighted_loss": 3.6982490924096876,
+      "learning_rate_after_scheduler_step": 0.00015000000000000001,
+      "learning_rate_before_optimizer_step": 0.0001766044443118978,
+      "optimizer_step_in_epoch": 4
+    },
+    {
+      "cuda_allocated_bytes": 4507273728,
+      "cuda_reserved_bytes": 6081740800,
+      "epoch": 1,
+      "global_micro_batch": 40,
+      "global_optimizer_step": 5,
+      "gradient_norm": 3.3327822368073585,
+      "gradient_tensor_count": 476,
+      "group_example_count": 8,
+      "group_supervised_tokens": 287,
+      "group_weighted_loss": 3.299964096488022,
+      "learning_rate_after_scheduler_step": 0.00011736481776669306,
+      "learning_rate_before_optimizer_step": 0.00015000000000000001,
+      "optimizer_step_in_epoch": 5
+    },
+    {
+      "cuda_allocated_bytes": 4507273728,
+      "cuda_reserved_bytes": 6081740800,
+      "epoch": 2,
+      "global_micro_batch": 48,
+      "global_optimizer_step": 6,
+      "gradient_norm": 3.7256566370128437,
+      "gradient_tensor_count": 476,
+      "group_example_count": 8,
+      "group_supervised_tokens": 287,
+      "group_weighted_loss": 3.299713506931212,
+      "learning_rate_after_scheduler_step": 8.263518223330697e-05,
+      "learning_rate_before_optimizer_step": 0.00011736481776669306,
+      "optimizer_step_in_epoch": 1
+    },
+    {
+      "cuda_allocated_bytes": 4507273728,
+      "cuda_reserved_bytes": 6081740800,
+      "epoch": 2,
+      "global_micro_batch": 56,
+      "global_optimizer_step": 7,
+      "gradient_norm": 3.1054210742448403,
+      "gradient_tensor_count": 476,
+      "group_example_count": 8,
+      "group_supervised_tokens": 288,
+      "group_weighted_loss": 3.308608417709668,
+      "learning_rate_after_scheduler_step": 5.000000000000002e-05,
+      "learning_rate_before_optimizer_step": 8.263518223330697e-05,
+      "optimizer_step_in_epoch": 2
+    },
+    {
+      "cuda_allocated_bytes": 4507273728,
+      "cuda_reserved_bytes": 6083837952,
+      "epoch": 2,
+      "global_micro_batch": 64,
+      "global_optimizer_step": 8,
+      "gradient_norm": 3.585018232533112,
+      "gradient_tensor_count": 476,
+      "group_example_count": 8,
+      "group_supervised_tokens": 285,
+      "group_weighted_loss": 3.458848064824154,
+      "learning_rate_after_scheduler_step": 2.339555568810221e-05,
+      "learning_rate_before_optimizer_step": 5.000000000000002e-05,
+      "optimizer_step_in_epoch": 3
+    },
+    {
+      "cuda_allocated_bytes": 4507273728,
+      "cuda_reserved_bytes": 6085935104,
+      "epoch": 2,
+      "global_micro_batch": 72,
+      "global_optimizer_step": 9,
+      "gradient_norm": 3.1583442106737865,
+      "gradient_tensor_count": 476,
+      "group_example_count": 8,
+      "group_supervised_tokens": 315,
+      "group_weighted_loss": 2.8825268177759082,
+      "learning_rate_after_scheduler_step": 6.030737921409169e-06,
+      "learning_rate_before_optimizer_step": 2.339555568810221e-05,
+      "optimizer_step_in_epoch": 4
+    },
+    {
+      "cuda_allocated_bytes": 4507273728,
+      "cuda_reserved_bytes": 6085935104,
+      "epoch": 2,
+      "global_micro_batch": 80,
+      "global_optimizer_step": 10,
+      "gradient_norm": 3.19606886250718,
+      "gradient_tensor_count": 476,
+      "group_example_count": 8,
+      "group_supervised_tokens": 301,
+      "group_weighted_loss": 3.2411092650454703,
+      "learning_rate_after_scheduler_step": 0.0,
+      "learning_rate_before_optimizer_step": 6.030737921409169e-06,
+      "optimizer_step_in_epoch": 5
+    }
+  ],
+  "passed": true,
+  "report_id": "training-report:datalens-semantic-qlora:v0.1",
+  "rule_version": "qlora_training_report_v0.1",
+  "runner_git_blob_sha256": "e3e525696c83f69817b6c013f51fb005482a918765b24a6ea24121720ea69ef9",
+  "runner_test_git_blob_sha256": "e76dd9e000949905e96dda734d7b40acb03a85acc4957fcc9ca80aa60024f7ed",
+  "training_run_id": "datalens-semantic-qlora-v0.3-training-v0.1",
+  "training_start_git_commit": "370338e12a86a130087c971cf0c010500d32bb4a"
+}

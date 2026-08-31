@@ -1,0 +1,141 @@
+{
+  "adapter_authority": {
+    "bundle_sha256": "0351980df6d86096195c0971deb30c725e155c71aa5de8054b2b37fa42090716",
+    "bytes_unchanged_after_generation": true,
+    "files": {
+      "README.md": {
+        "sha256": "6ecdbb662eaed8010ab0e012a2b95b79543884cf294406dc6da2cde64f98389d",
+        "size": 5380
+      },
+      "adapter_config.json": {
+        "sha256": "3ae14896612f6bf74ee7786a450e2ac0f08f3da9f33391505cb1a7dc823dcdb8",
+        "size": 1302
+      },
+      "adapter_model.safetensors": {
+        "sha256": "4f145b0bf37f67841c09f02b86679634a9532491d2f560b0e7c5c328009e4610",
+        "size": 119273568
+      }
+    },
+    "relative_path": "artifacts/adaptation/adapters/datalens_semantic_qlora_v0.4_adapter"
+  },
+  "authorization_semantics": {
+    "authorizes_greenhouse_execution": false,
+    "requires_separate_execution_authorization": true,
+    "single_use_greenhouse_remains_sealed": true
+  },
+  "evidence_rule_version": "qlora_v0.4_greenhouse_synthetic_runtime_preflight_evidence_v0.1",
+  "execution_authorities": {
+    "execution_compatibility_decision": {
+      "git_commit": "205d43e44f3cd3834532df314de08c560f11b01b",
+      "relative_path": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_execution_compatibility_decision_v0.2.json",
+      "sha256": "65a2a5b3849d25e1b4363fcaa3e6ab7ab5043f520b57b0ee3dd64603dc322795"
+    },
+    "manifest": {
+      "git_commit": "92a90fd3eb6b03e308ec66139c8d87323c8d92eb",
+      "relative_path": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_final_acceptance_v0.3_manifest.json",
+      "sha256": "fee31119671221e0cd2345c906cbcafc138000a57b63bddb87d87febab4217a7"
+    },
+    "manifest_freeze": {
+      "git_commit": "92a90fd3eb6b03e308ec66139c8d87323c8d92eb",
+      "relative_path": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_final_acceptance_v0.3_manifest_freeze.json",
+      "sha256": "d2630e1415c8509bb9ba4baa4dcfd580a3b5012b66636d1cedc5914114c6a63c"
+    },
+    "runner": {
+      "git_commit": "b0b6743fa3e7a88c6e84bd4cd49873e7f211cb67",
+      "relative_path": "app/adaptation/greenhouse_final_acceptance_runner_v0_4_v0_3.py",
+      "sha256": "24fa4598ef89017cbac3533180494e3db6cab0dda06fcf8b03150bc4d0deb668"
+    },
+    "shared_runtime": {
+      "relative_path": "app/adaptation/qlora_runtime_v0_4.py",
+      "sha256": "20e41ab00606296893276a84e53746c06618b8cabca74fef77cb743c5e80ab7c"
+    },
+    "test": {
+      "relative_path": "test_greenhouse_final_acceptance_runner_v0_4_v0_3.py",
+      "sha256": "0044bddfaed6f75dc010b12d2c66a070c18e49665bab822a39155e748f7aac08"
+    }
+  },
+  "execution_revision": "v0.3",
+  "generation_observation": {
+    "base_comparison_generation_executed": false,
+    "decoded_output": "{\"relation\":\"same_process_different_stage\",\"reason\":\"Both metrics belong to the same operational process, but they describe different stages rather than the same underlying quantity.\"}",
+    "decoded_output_sha256": "1679cb2df148d135eb89ab53908e465833496b9e62bd673a2269046a3541afc1",
+    "generated_token_count": 36,
+    "generation_budget_exhausted": false,
+    "generation_count": 1,
+    "generation_retry_executed": false,
+    "invalid_reason": null,
+    "prompt_token_count": 271,
+    "reason": "Both metrics belong to the same operational process, but they describe different stages rather than the same underlying quantity.",
+    "reason_word_count": 19,
+    "relation": "same_process_different_stage",
+    "strict_json_valid": true,
+    "terminal_stop_token_id": 106
+  },
+  "greenhouse_barrier": {
+    "consumption_marker_created": false,
+    "final_acceptance_outputs_created": false,
+    "greenhouse_evaluation_executed": false,
+    "greenhouse_results_observed": false,
+    "protected_cases_read": false,
+    "protected_dataset_read": false,
+    "protected_hashes_recomputed": false,
+    "protected_independence_read": false
+  },
+  "post_generation_recovery_audit": {
+    "additional_adapter_attach": false,
+    "additional_generation": false,
+    "additional_model_load": false,
+    "frozen_parser_accepted_observed_output": true,
+    "original_exact_two_key_audit_assumption_rejected": true,
+    "parsed_reason_exact_match": true,
+    "parsed_relation_exact_match": true,
+    "rich_generation_result_schema_confirmed": true,
+    "status": "pass"
+  },
+  "preflight_revision": "v0.5",
+  "purpose": "Freeze the successful synthetic-only runtime preflight performed before Greenhouse final-acceptance execution.",
+  "runtime_checks": {
+    "adapted_model_class": "PeftModelForCausalLM",
+    "base_model_4bit": true,
+    "base_model_class": "Gemma3ForCausalLM",
+    "base_model_loaded": true,
+    "inference_only": true,
+    "official_adapter_attached": true,
+    "peft_adapter_present": true,
+    "pinned_tokenizer_authority": true,
+    "runtime_authority_prepared": true,
+    "trainable_parameter_count_after_attach": 0,
+    "trainable_tensor_count_after_attach": 0,
+    "zero_argument_checkpoint_resolution": true
+  },
+  "runtime_environment_observed": {
+    "bf16_supported": true,
+    "cuda_device": "NVIDIA GeForce RTX 4060",
+    "cuda_runtime": "12.8",
+    "torch": "2.11.0+cu128"
+  },
+  "source_git_commit": "92a90fd3eb6b03e308ec66139c8d87323c8d92eb",
+  "status": "pass",
+  "synthetic_case": {
+    "dataset_id": "synthetic:greenhouse-runtime-preflight:v0.5",
+    "filename": "synthetic_greenhouse_runtime_preflight_v0_5.csv",
+    "gold_relation_present_in_case_identity": false,
+    "left_column": "inside_air_temperature_c",
+    "prompt_fields": [
+      "domain",
+      "left_description",
+      "left_metric",
+      "right_description",
+      "right_metric"
+    ],
+    "prompt_sha256": "24ca67ebc986c45600a229364eec2a00ba5768a296d7c20b5ddfd057c214c02c",
+    "raw_values_in_label_blind_prompt": false,
+    "raw_values_in_normalized_profiles": false,
+    "right_column": "target_air_temperature_c"
+  },
+  "training_safety": {
+    "backward_executed": false,
+    "optimizer_created": false,
+    "training_executed": false
+  }
+}

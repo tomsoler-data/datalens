@@ -47,6 +47,7 @@ from app.ml.model_artifact_index import (
     MLModelArtifactIndexError,
     get_ml_model_artifact_index_entry,
     load_ml_model_artifact_index_workflow,
+    ml_model_artifact_store_scope,
     upsert_ml_model_artifact_index_entry,
 )
 
@@ -933,6 +934,209 @@ def load_ml_model_artifact_binary(
                 )
             )
         ) from error
+
+
+# ============================================================
+# DELETE / COMPENSATION
+# ============================================================
+
+
+def delete_ml_model_artifact(
+    *,
+    model_id: str,
+    workflow_id: (
+        str
+        |
+        None
+    ) = None,
+) -> None:
+    """
+    Remove one server-owned Model Artifact.
+
+    This primitive exists primarily for transactional
+    compensation across higher-level ML workflows.
+
+    Authority is removed from SQLite first.
+
+    Any dependent Monitoring Profile is deleted by the
+    SQLite foreign-key cascade.
+
+    The binary is deleted only after authoritative metadata
+    has been removed. If binary cleanup subsequently fails,
+    the orphaned file is no longer reachable through the
+    trusted Model Artifact control plane.
+    """
+
+    normalized_model_id = (
+        _required_text(
+            model_id,
+            field_name=
+                "model_id",
+        )
+    )
+
+
+    normalized_workflow_id = (
+        _required_text(
+            workflow_id,
+            field_name=
+                "workflow_id",
+        )
+
+        if workflow_id
+        is not None
+
+        else None
+    )
+
+
+    store_path = (
+        resolve_ml_model_artifact_store_path()
+    )
+
+
+    store_root = (
+        ml_model_artifact_store_scope(
+            store_path
+        )
+    )
+
+
+    model_path = None
+
+
+    with _STORE_LOCK:
+
+        with sqlite_connection(
+            write=True
+        ) as connection:
+
+            row = (
+                connection.execute(
+                    """
+                    SELECT
+                        workflow_id,
+                        model_path
+
+                    FROM ml_model_artifacts
+
+                    WHERE
+                        store_root = ?
+                        AND
+                        model_id = ?
+
+                    LIMIT 1
+                    """,
+                    (
+                        store_root,
+                        normalized_model_id,
+                    ),
+                )
+                .fetchone()
+            )
+
+
+            if row is None:
+                raise (
+                    MLModelArtifactNotFoundError(
+                        (
+                            "ML Model Artifact was "
+                            "not found. "
+                            "model_id="
+                            f"{normalized_model_id}"
+                        )
+                    )
+                )
+
+
+            stored_workflow_id = str(
+                row[
+                    "workflow_id"
+                ]
+            )
+
+
+            if (
+                normalized_workflow_id
+                is not None
+                and
+                stored_workflow_id
+                !=
+                normalized_workflow_id
+            ):
+                raise (
+                    MLModelArtifactWorkflowMismatchError(
+                        (
+                            "ML Model Artifact does "
+                            "not belong to the "
+                            "requested workflow."
+                        )
+                    )
+                )
+
+
+            model_path = str(
+                row[
+                    "model_path"
+                ]
+            ).strip()
+
+
+            if not model_path:
+                raise (
+                    MLModelArtifactStoreError(
+                        (
+                            "Persisted ML Model "
+                            "Artifact has no valid "
+                            "model_path."
+                        )
+                    )
+                )
+
+
+            connection.execute(
+                """
+                DELETE FROM ml_model_artifacts
+
+                WHERE
+                    store_root = ?
+                    AND
+                    model_id = ?
+                """,
+                (
+                    store_root,
+                    normalized_model_id,
+                ),
+            )
+
+
+        # ----------------------------------------------------
+        # SQLite has committed before filesystem cleanup.
+        #
+        # The Model Artifact is therefore no longer trusted /
+        # reachable even if the physical file deletion fails.
+        # ----------------------------------------------------
+
+
+        try:
+            delete_ml_model_binary(
+                store_path=
+                    store_path,
+
+                model_path=
+                    model_path,
+            )
+
+        except Exception as error:
+            raise (
+                MLModelArtifactStoreError(
+                    (
+                        "ML Model Artifact metadata "
+                        "was removed but binary "
+                        "cleanup failed."
+                    )
+                )
+            ) from error
 
 
 # ============================================================

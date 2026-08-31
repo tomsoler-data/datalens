@@ -1,9 +1,13 @@
 import type {
   ModelLabApiErrorDetail,
   ModelLabEvaluationOptions,
+  ModelLabDriftHistoryResponse,
   ModelLabEvaluationSummary,
   ModelLabModelDetail,
+  ModelLabModelHealthSummary,
   ModelLabModelListResponse,
+  ModelLabMonitoringAlertDecision,
+  ModelLabPerformanceHistoryResponse,
   ModelLabPredictionRow,
   ModelLabPredictResponse,
 } from "./modelLabTypes";
@@ -125,8 +129,17 @@ function structuredErrorDetail(
       "string" ||
     typeof detailRecord.retryable !==
       "boolean" ||
-    detailRecord.api_version !==
-      "model_lab_api_v0.1"
+    typeof detailRecord.api_version !==
+      "string" ||
+    ![
+      "model_lab_api_v0.1",
+      "ml_model_health_api_v0.1",
+      "ml_monitoring_alert_api_v0.1",
+      "ml_monitoring_api_v0.1",
+      "ml_performance_monitoring_api_v0.1",
+    ].includes(
+      detailRecord.api_version
+    )
   ) {
     return null;
   }
@@ -543,6 +556,270 @@ export async function evaluateModelLabModel(
   return (
     requireSuccessfulJson<
       ModelLabEvaluationSummary
+    >(
+      response
+    )
+  );
+}
+
+
+/* ============================================================
+   DRIFT HISTORY
+============================================================ */
+
+
+export async function getModelLabDriftHistory(
+  workflowId:
+    string,
+
+  modelId:
+    string,
+
+  signal?:
+    AbortSignal
+): Promise<
+  ModelLabDriftHistoryResponse
+> {
+  const workflowIdNormalized =
+    normalizeIdentifier(
+      workflowId,
+      "workflow_id"
+    );
+
+  const modelIdNormalized =
+    normalizeIdentifier(
+      modelId,
+      "model_id"
+    );
+
+
+  const query =
+    new URLSearchParams({
+      workflow_id:
+        workflowIdNormalized,
+    });
+
+
+  const response =
+    await fetch(
+      (
+        `${API_URL}/ml-monitoring/models/` +
+        `${encodeURIComponent(modelIdNormalized)}/history?` +
+        query.toString()
+      ),
+      {
+        method:
+          "GET",
+
+        cache:
+          "no-store",
+
+        signal,
+      }
+    );
+
+
+  return (
+    requireSuccessfulJson<
+      ModelLabDriftHistoryResponse
+    >(
+      response
+    )
+  );
+}
+
+
+/* ============================================================
+   PERFORMANCE HISTORY
+============================================================ */
+
+
+export async function getModelLabPerformanceHistory(
+  workflowId:
+    string,
+
+  modelId:
+    string,
+
+  signal?:
+    AbortSignal
+): Promise<
+  ModelLabPerformanceHistoryResponse
+> {
+  const workflowIdNormalized =
+    normalizeIdentifier(
+      workflowId,
+      "workflow_id"
+    );
+
+  const modelIdNormalized =
+    normalizeIdentifier(
+      modelId,
+      "model_id"
+    );
+
+
+  const query =
+    new URLSearchParams({
+      workflow_id:
+        workflowIdNormalized,
+    });
+
+
+  const response =
+    await fetch(
+      (
+        `${API_URL}/ml-monitoring/performance/models/` +
+        `${encodeURIComponent(modelIdNormalized)}/history?` +
+        query.toString()
+      ),
+      {
+        method:
+          "GET",
+
+        cache:
+          "no-store",
+
+        signal,
+      }
+    );
+
+
+  return (
+    requireSuccessfulJson<
+      ModelLabPerformanceHistoryResponse
+    >(
+      response
+    )
+  );
+}
+
+
+/* ============================================================
+   MODEL HEALTH
+============================================================ */
+
+
+export async function getModelLabModelHealth(
+  workflowId:
+    string,
+
+  modelId:
+    string,
+
+  signal?:
+    AbortSignal
+): Promise<
+  ModelLabModelHealthSummary
+> {
+  const workflowIdNormalized =
+    normalizeIdentifier(
+      workflowId,
+      "workflow_id"
+    );
+
+  const modelIdNormalized =
+    normalizeIdentifier(
+      modelId,
+      "model_id"
+    );
+
+
+  const query =
+    new URLSearchParams({
+      workflow_id:
+        workflowIdNormalized,
+    });
+
+
+  const response =
+    await fetch(
+      (
+        `${API_URL}/ml-monitoring/models/` +
+        `${encodeURIComponent(modelIdNormalized)}/health?` +
+        query.toString()
+      ),
+      {
+        method:
+          "GET",
+
+        cache:
+          "no-store",
+
+        signal,
+      }
+    );
+
+
+  return (
+    requireSuccessfulJson<
+      ModelLabModelHealthSummary
+    >(
+      response
+    )
+  );
+}
+
+
+/* ============================================================
+   MONITORING ALERT
+============================================================ */
+
+
+export async function getModelLabMonitoringAlert(
+  workflowId:
+    string,
+
+  modelId:
+    string,
+
+  signal?:
+    AbortSignal
+): Promise<
+  ModelLabMonitoringAlertDecision
+> {
+  const workflowIdNormalized =
+    normalizeIdentifier(
+      workflowId,
+      "workflow_id"
+    );
+
+  const modelIdNormalized =
+    normalizeIdentifier(
+      modelId,
+      "model_id"
+    );
+
+
+  const query =
+    new URLSearchParams({
+      workflow_id:
+        workflowIdNormalized,
+    });
+
+
+  const response =
+    await fetch(
+      (
+        `${API_URL}/ml-monitoring/models/` +
+        `${encodeURIComponent(modelIdNormalized)}/alert?` +
+        query.toString()
+      ),
+      {
+        method:
+          "GET",
+
+        cache:
+          "no-store",
+
+        signal,
+      }
+    );
+
+
+  return (
+    requireSuccessfulJson<
+      ModelLabMonitoringAlertDecision
     >(
       response
     )

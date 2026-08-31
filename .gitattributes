@@ -1,0 +1,6 @@
+# DataLens QLoRA v0.4 official training evidence
+.gitattributes text eol=lf
+apps/api/artifacts/adaptation/adapters/datalens_semantic_qlora_v0.4_adapter/README.md text eol=lf
+apps/api/artifacts/adaptation/adapters/datalens_semantic_qlora_v0.4_adapter/adapter_model.safetensors filter=lfs diff=lfs merge=lfs -text
+apps/api/artifacts/adaptation/training/datalens_semantic_qlora_v0.4_training_v0.1_report.json text eol=lf
+apps/api/artifacts/adaptation/training/datalens_semantic_qlora_v0.4_training_v0.1_receipt.json text eol=lf

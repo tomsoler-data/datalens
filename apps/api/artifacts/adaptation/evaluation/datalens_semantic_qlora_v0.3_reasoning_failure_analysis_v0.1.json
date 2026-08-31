@@ -1,0 +1,313 @@
+{
+  "analysis": {
+    "argmax_changes": [
+      {
+        "adapted_correct": false,
+        "adapted_margin": -0.18217992,
+        "adapted_prediction": "same_process_different_stage",
+        "base_correct": true,
+        "base_margin": 0.25364685,
+        "base_prediction": "related_distinct_metric",
+        "case_id": "target_checkin_elevator_downtime",
+        "expected_relation": "related_distinct_metric",
+        "margin_delta": -0.43582677
+      },
+      {
+        "adapted_correct": false,
+        "adapted_margin": -0.26047539,
+        "adapted_prediction": "same_process_different_stage",
+        "base_correct": true,
+        "base_margin": 0.40572071,
+        "base_prediction": "related_distinct_metric",
+        "case_id": "observed_service_elevator_downtime",
+        "expected_relation": "related_distinct_metric",
+        "margin_delta": -0.6661961
+      },
+      {
+        "adapted_correct": false,
+        "adapted_margin": -0.14309454,
+        "adapted_prediction": "same_process_different_stage",
+        "base_correct": true,
+        "base_margin": 0.54683971,
+        "base_prediction": "related_distinct_metric",
+        "case_id": "occupancy_cancellation_rate",
+        "expected_relation": "related_distinct_metric",
+        "margin_delta": -0.68993425
+      }
+    ],
+    "by_expected_relation": {
+      "related_distinct_metric": {
+        "adapted_correct": 2,
+        "adapted_mean_margin": -0.11392587,
+        "base_correct": 5,
+        "base_mean_margin": -0.30099597,
+        "case_count": 13,
+        "margin_improved_count": 7,
+        "mean_margin_delta": 0.1870701
+      },
+      "same_metric_different_state": {
+        "adapted_correct": 0,
+        "adapted_mean_margin": -0.24104895,
+        "base_correct": 0,
+        "base_mean_margin": -0.71084995,
+        "case_count": 5,
+        "margin_improved_count": 4,
+        "mean_margin_delta": 0.469801
+      },
+      "same_process_different_stage": {
+        "adapted_correct": 1,
+        "adapted_mean_margin": 0.28608442,
+        "base_correct": 1,
+        "base_mean_margin": 1.39947843,
+        "case_count": 1,
+        "margin_improved_count": 0,
+        "mean_margin_delta": -1.11339401
+      }
+    },
+    "distributions": {
+      "adapted_predictions": {
+        "related_distinct_metric": 2,
+        "same_process_different_stage": 17
+      },
+      "base_predictions": {
+        "related_distinct_metric": 5,
+        "same_process_different_stage": 14
+      },
+      "expected": {
+        "related_distinct_metric": 13,
+        "same_metric_different_state": 5,
+        "same_process_different_stage": 1
+      }
+    },
+    "expected_answer_score_shift": {
+      "decreased_count": 0,
+      "increased_count": 19,
+      "mean_delta": 7.29228282
+    },
+    "expected_margin_analysis": {
+      "adapted_mean": -0.12632614,
+      "base_mean": -0.31935363,
+      "improved_count": 11,
+      "mean_delta": 0.19302749,
+      "negative_or_zero_to_positive_count": 0,
+      "positive_to_non_positive_count": 3,
+      "unchanged_count": 0,
+      "worsened_count": 8
+    },
+    "observed_result": {
+      "accuracy_delta": -0.157894,
+      "adapted_accuracy": 0.157895,
+      "adapted_correct_count": 3,
+      "adapted_macro_accuracy": 0.384615,
+      "adapted_only_correct": 0,
+      "base_accuracy": 0.315789,
+      "base_correct_count": 6,
+      "base_macro_accuracy": 0.461538,
+      "base_only_correct": 3,
+      "both_correct": 3,
+      "both_wrong": 13,
+      "changed_prediction_count": 3,
+      "macro_accuracy_delta": -0.076923,
+      "preregistered_signal": "negative_signal"
+    },
+    "pairwise_preference_gap_shift_mean": {
+      "related_distinct_metric__minus__same_metric_different_state": -0.27852621,
+      "same_process_different_stage__minus__related_distinct_metric": -0.40831676,
+      "same_process_different_stage__minus__same_metric_different_state": -0.68684296
+    },
+    "prediction_transitions": [
+      {
+        "adapted_prediction": "related_distinct_metric",
+        "base_prediction": "related_distinct_metric",
+        "count": 2
+      },
+      {
+        "adapted_prediction": "same_process_different_stage",
+        "base_prediction": "related_distinct_metric",
+        "count": 3
+      },
+      {
+        "adapted_prediction": "same_process_different_stage",
+        "base_prediction": "same_process_different_stage",
+        "count": 14
+      }
+    ],
+    "raw_candidate_score_shifts": {
+      "related_distinct_metric": {
+        "max": 9.99480462,
+        "mean": 7.57001721,
+        "median": 7.47703552,
+        "min": 6.33581185
+      },
+      "same_metric_different_state": {
+        "max": 9.73244595,
+        "mean": 7.84854342,
+        "median": 7.92571974,
+        "min": 5.35269141
+      },
+      "same_process_different_stage": {
+        "max": 11.12909054,
+        "mean": 7.16170046,
+        "median": 7.37333345,
+        "min": 5.13773119
+      }
+    },
+    "relative_candidate_preference_shift_mean": {
+      "related_distinct_metric": 0.04326352,
+      "same_metric_different_state": 0.32178972,
+      "same_process_different_stage": -0.36505324
+    },
+    "top_margin_improvements": [
+      {
+        "adapted_margin": -0.23484135,
+        "adapted_prediction": "same_process_different_stage",
+        "base_margin": -2.622612,
+        "base_prediction": "same_process_different_stage",
+        "case_id": "realized_revenue_maintenance_spend",
+        "expected_relation": "related_distinct_metric",
+        "margin_delta": 2.38777065
+      },
+      {
+        "adapted_margin": -0.30156982,
+        "adapted_prediction": "same_process_different_stage",
+        "base_margin": -2.36798572,
+        "base_prediction": "same_process_different_stage",
+        "case_id": "housekeepers_elevators",
+        "expected_relation": "related_distinct_metric",
+        "margin_delta": 2.0664159
+      },
+      {
+        "adapted_margin": -0.43955219,
+        "adapted_prediction": "same_process_different_stage",
+        "base_margin": -1.41023207,
+        "base_prediction": "same_process_different_stage",
+        "case_id": "planned_linen_measured_laundry_weight",
+        "expected_relation": "same_metric_different_state",
+        "margin_delta": 0.97067988
+      },
+      {
+        "adapted_margin": -0.14691711,
+        "adapted_prediction": "same_process_different_stage",
+        "base_margin": -0.94105435,
+        "base_prediction": "same_process_different_stage",
+        "case_id": "reservation_requests_guest_complaints",
+        "expected_relation": "related_distinct_metric",
+        "margin_delta": 0.79413724
+      },
+      {
+        "adapted_margin": -0.40627312,
+        "adapted_prediction": "same_process_different_stage",
+        "base_margin": -0.99272346,
+        "base_prediction": "same_process_different_stage",
+        "case_id": "target_checkin_observed_service_time",
+        "expected_relation": "same_metric_different_state",
+        "margin_delta": 0.58645034
+      }
+    ],
+    "top_margin_regressions": [
+      {
+        "adapted_margin": 0.09824109,
+        "adapted_prediction": "related_distinct_metric",
+        "base_margin": 1.29005909,
+        "base_prediction": "related_distinct_metric",
+        "case_id": "occupancy_guest_satisfaction",
+        "expected_relation": "related_distinct_metric",
+        "margin_delta": -1.191818
+      },
+      {
+        "adapted_margin": 0.28608442,
+        "adapted_prediction": "same_process_different_stage",
+        "base_margin": 1.39947843,
+        "base_prediction": "same_process_different_stage",
+        "case_id": "reservation_requests_stays_booked",
+        "expected_relation": "same_process_different_stage",
+        "margin_delta": -1.11339401
+      },
+      {
+        "adapted_margin": 0.34115005,
+        "adapted_prediction": "related_distinct_metric",
+        "base_margin": 1.38307667,
+        "base_prediction": "related_distinct_metric",
+        "case_id": "satisfaction_cancellation_rate",
+        "expected_relation": "related_distinct_metric",
+        "margin_delta": -1.04192662
+      },
+      {
+        "adapted_margin": -0.14309454,
+        "adapted_prediction": "same_process_different_stage",
+        "base_margin": 0.54683971,
+        "base_prediction": "related_distinct_metric",
+        "case_id": "occupancy_cancellation_rate",
+        "expected_relation": "related_distinct_metric",
+        "margin_delta": -0.68993425
+      },
+      {
+        "adapted_margin": -0.26047539,
+        "adapted_prediction": "same_process_different_stage",
+        "base_margin": 0.40572071,
+        "base_prediction": "related_distinct_metric",
+        "case_id": "observed_service_elevator_downtime",
+        "expected_relation": "related_distinct_metric",
+        "margin_delta": -0.6661961
+      }
+    ]
+  },
+  "artifact_id": "adaptation:datalens-semantic-qlora-v0.3:reasoning-failure-analysis:v0.1",
+  "conclusions": {
+    "causal_root_cause_established": false,
+    "diagnostic_gate_passed": false,
+    "final_acceptance_eligible": false,
+    "learning_signal_observed": true,
+    "observed_failure_mode": "frozen_reasoning_benchmark_decision_regression",
+    "preregistered_signal": "negative_signal"
+  },
+  "evaluation_policy": {
+    "final_acceptance_remains_closed": true,
+    "hotel_reusable_as_new_independent_holdout": false,
+    "hotel_role_for_future_adaptation": "diagnostic_regression_only",
+    "new_independent_holdout_required_before_next_training": true,
+    "training_loss_is_acceptance_evidence": false
+  },
+  "interpretation": {
+    "causal_hypotheses_are_not_proven": true,
+    "observed_facts": [
+      "The adapted candidate produced fewer correct argmax decisions than the base candidate on the frozen 19-case benchmark.",
+      "All three argmax changes were regressions: three base-correct cases became adapted-wrong.",
+      "No base-wrong case became adapted-correct.",
+      "The expected-class margin improved on 11 of 19 cases but no non-positive margin crossed into positive territory.",
+      "Three positive expected-class margins crossed to non-positive after adaptation.",
+      "The same_metric_different_state expected class improved its mean margin but remained 0-for-5 correct.",
+      "All expected-answer absolute scores increased after adaptation.",
+      "Absolute score increases do not establish improved relative classification quality."
+    ],
+    "permitted_hypotheses_for_next_experiment": [
+      "small_dataset_or_overfitting",
+      "training_evaluation_task_alignment_mismatch",
+      "insufficient_contrastive_decision_boundary_supervision",
+      "candidate_probability_calibration_shift"
+    ]
+  },
+  "rule_version": "qlora_reasoning_failure_analysis_v0.1",
+  "safety": {
+    "adapter_loaded": false,
+    "benchmark_modified": false,
+    "cuda_requested": false,
+    "final_acceptance_evaluated": false,
+    "final_acceptance_loaded": false,
+    "free_generation_used": false,
+    "inference_executed": false,
+    "llm_judge_used": false,
+    "model_loaded": false,
+    "new_evaluation_executed": false,
+    "training_executed": false
+  },
+  "source": {
+    "adapter_bundle_sha256": "ed10297a1d0e6ce504189985d91f46b2f1f37a5a67fe84f0d62a9f09c3940ffe",
+    "benchmark_git_commit": "60e50bb435f8e3f8bc8b2d093d711676ed645b6c",
+    "evaluation_evidence_git_commit": "87bfdb0ce7ccec60539517968d6d95a03e12d87f",
+    "evaluation_execution_git_commit": "2cb1dff0a771f6c89f72a9e24a0b17994d325391",
+    "evaluation_report_relative_path": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.3_reasoning_evaluation_v0.2_report.json",
+    "evaluation_report_sha256": "1194baabef17891f84f2879a135586c7da95363cbac49c4258a8133d81c6206b"
+  },
+  "status": "derived_post_evaluation_analysis"
+}

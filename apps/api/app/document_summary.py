@@ -38,7 +38,7 @@ from app.rag_relevance import (
 # ============================================================
 
 DOCUMENT_SUMMARY_RULE_VERSION = (
-    "document_summary_v0.5"
+    "document_summary_v0.6"
 )
 
 
@@ -596,6 +596,27 @@ EXPLICIT_RELATION_CUES = {
 }
 
 
+EXPLICIT_CALCULATION_CUES = {
+    "calcul",
+    "calcule",
+    "calculer",
+    "calculez",
+    "calculons",
+    "compte",
+    "compter",
+    "comptez",
+}
+
+
+EXPLICIT_QUESTION_CONTEXT_CUES = {
+    "analyse",
+    "analytique",
+    "demande",
+    "demander",
+    "question",
+}
+
+
 GENERAL_OBJECTIVE_CUES = {
     "comprendre",
     "objectif",
@@ -624,17 +645,50 @@ LIST_PARENT_CUES = {
 def looks_like_explicit_relation_request(
     value: str,
 ) -> bool:
+    normalized = (
+        normalize_for_matching(
+            value
+        )
+    )
+
     tokens = (
         content_tokens(
             value
         )
     )
 
-    return bool(
+
+    if (
         tokens
         &
         EXPLICIT_RELATION_CUES
-    )
+    ):
+        return True
+
+
+    if (
+        tokens
+        &
+        EXPLICIT_CALCULATION_CUES
+    ):
+        return True
+
+
+    if "combien" in tokens:
+        if normalized.startswith(
+            "combien "
+        ):
+            return True
+
+        if (
+            tokens
+            &
+            EXPLICIT_QUESTION_CONTEXT_CUES
+        ):
+            return True
+
+
+    return False
 
 
 def looks_like_general_objective(

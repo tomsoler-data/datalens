@@ -1,0 +1,113 @@
+{
+  "approved_v0_3_change": {
+    "acceptance_gate_changes": false,
+    "adapter_changes": false,
+    "eos_changes": false,
+    "execution_revision": "v0.3",
+    "generation_budget_changes": false,
+    "holdout_changes": false,
+    "input_serializer_changes": false,
+    "model_changes": false,
+    "prior_checkpoint_path_fix_preserved": true,
+    "prompt_changes": false,
+    "relation_changes": false,
+    "runtime_compatibility_change": {
+      "change": "replace_incorrect_greenhouse_adapter_path_with_frozen_official_adapter_path",
+      "function": "module_level_ADAPTER_PATH_used_by_attach_adapter",
+      "new_path": "artifacts/adaptation/adapters/datalens_semantic_qlora_v0.4_adapter",
+      "old_path": "artifacts/adaptation/training/datalens-semantic-qlora-v0.4-training-v0.1/adapter",
+      "reason": "align Greenhouse execution with the frozen official QLoRA adapter bundle already bound by the training receipt and Airport execution without changing any adapter bytes"
+    },
+    "score_changes": false,
+    "semantic_protocol_changes": false,
+    "training_changes": false,
+    "versioning_changes": {
+      "new_execution_manifest_revision": "v0.3",
+      "new_runner": "app/adaptation/greenhouse_final_acceptance_runner_v0_4_v0_3.py",
+      "new_test": "test_greenhouse_final_acceptance_runner_v0_4_v0_3.py",
+      "preserve_v0_1_files": true,
+      "preserve_v0_2_files": true
+    }
+  },
+  "decision_rule_version": "qlora_v0.4_greenhouse_execution_compatibility_decision_v0.2",
+  "diagnosis": {
+    "adapter_loaded_before_failure": false,
+    "base_model_loaded_before_failure": true,
+    "generation_executed_before_failure": false,
+    "greenhouse_data_used": false,
+    "greenhouse_results_observed": false,
+    "official_adapter_bundle_present": true,
+    "official_adapter_bundle_sha256": "0351980df6d86096195c0971deb30c725e155c71aa5de8054b2b37fa42090716",
+    "official_adapter_path": "artifacts/adaptation/adapters/datalens_semantic_qlora_v0.4_adapter",
+    "root_cause": "greenhouse_v0_2_runner_points_ADAPTER_PATH_to_nonexistent_training_subdirectory_instead_of_frozen_official_adapter_directory",
+    "source": "non_protected_synthetic_preflight_and_static_adapter_authority_diagnostics",
+    "synthetic_preflight_error": "ValueError: Can't find 'adapter_config.json' at frozen Greenhouse v0.2 ADAPTER_PATH",
+    "synthetic_preflight_failure_stage": "synthetic_adapter_attachment",
+    "v0_1_checkpoint_path_compatibility_defect_resolved": true
+  },
+  "experiment_id": "adaptation:datalens-semantic-qlora-v0.4",
+  "frozen_adapter_authority": {
+    "airport_runner_repo_path": "apps/api/app/adaptation/airport_evaluation_runner_v0_4_v0_2.py",
+    "airport_runner_sha256": "fda934f45a98c10905cd857109df6c3f927d0ae025e9fb41150d85872001fe23",
+    "bundle_sha256": "0351980df6d86096195c0971deb30c725e155c71aa5de8054b2b37fa42090716",
+    "files": {
+      "README.md": "6ecdbb662eaed8010ab0e012a2b95b79543884cf294406dc6da2cde64f98389d",
+      "adapter_config.json": "3ae14896612f6bf74ee7786a450e2ac0f08f3da9f33391505cb1a7dc823dcdb8",
+      "adapter_model.safetensors": "4f145b0bf37f67841c09f02b86679634a9532491d2f560b0e7c5c328009e4610"
+    },
+    "official_relative_path": "artifacts/adaptation/adapters/datalens_semantic_qlora_v0.4_adapter",
+    "training_receipt_repo_path": "apps/api/artifacts/adaptation/training/datalens_semantic_qlora_v0.4_training_v0.1_receipt.json",
+    "training_receipt_sha256": "f412062f78432d7c432d4b36beed9d84d527d5990279240030a0a31227dffaee",
+    "unchanged": true
+  },
+  "frozen_protocol": {
+    "deterministic_greedy": true,
+    "do_sample": false,
+    "eos_token_ids": [
+      1,
+      106
+    ],
+    "max_new_tokens": 64,
+    "num_beams": 1,
+    "sha256": "056272cca075a6f8c48c38f5296c0ddacaaeb29e64f08048a43a80ea3dab0b16",
+    "unchanged": true
+  },
+  "governance": {
+    "airport_reexecution_permitted": false,
+    "greenhouse_holdout_consumption_budget_available": true,
+    "greenhouse_holdout_still_single_use": true,
+    "greenhouse_results_may_not_drive_v0_3_change": true,
+    "greenhouse_tuning_permitted": false,
+    "v0_2_must_not_be_executed": true,
+    "v0_3_must_be_frozen_before_new_preflight": true,
+    "v0_3_preflight_must_remain_synthetic": true
+  },
+  "prior_compatibility_decision": {
+    "git_commit": "89a701ac26a036b507a12175738188baec48878b",
+    "repo_path": "apps/api/artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_execution_compatibility_decision_v0.1.json",
+    "sha256": "82a4b1e05f1fea862205c4e957b0d53ddc3d73972f76a5f2fec45bb221ce87dd",
+    "status": "superseded_by_additional_pre_consumption_execution_compatibility_decision"
+  },
+  "scope": "execution_compatibility_only",
+  "source_git_commit": "9551d413355f4240f9978621c4b0d5e579944a21",
+  "status": "approved_before_greenhouse_holdout_consumption",
+  "v0_2_execution": {
+    "adapter_loaded_before_failure": false,
+    "base_model_loaded_before_failure": true,
+    "consumption_marker_created": false,
+    "execution_status": "superseded_before_holdout_consumption",
+    "greenhouse_cases_consumed": false,
+    "greenhouse_dataset_consumed": false,
+    "greenhouse_independence_consumed": false,
+    "greenhouse_results_observed": false,
+    "manifest_freeze_sha256": "1377c54ee5d3ce93a9c6e39c67a2ab36bac702b64185919c27d9ddd9b32d3612",
+    "manifest_sha256": "d0f57fe2c476641e598c938e98cd24636b24906924cd6997784c05be37802ad8",
+    "official_evaluation_executed": false,
+    "preflight_failure": "incorrect_adapter_path",
+    "preflight_failure_stage": "synthetic_adapter_attachment",
+    "preflight_passed": false,
+    "runner_git_commit": "698cd368ac224713a3b666bae2d98ccf94e98f7a",
+    "runner_sha256": "eecfc2240be5c9b1c7d79e4caee5d07fb77854c069625dd392bbd0de0f37e8cf",
+    "test_sha256": "7128cc48c78dd8247133375948aa04ce57bf1a48aea6e6c4fa9d343ce32601dd"
+  }
+}

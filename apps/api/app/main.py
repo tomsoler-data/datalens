@@ -75,6 +75,25 @@ from app.api.model_lab import (
     router as model_lab_router,
 )
 
+from app.api.ml_monitoring import (
+    router as ml_monitoring_router,
+)
+
+
+from app.api.ml_performance_monitoring import (
+    router as ml_performance_monitoring_router,
+)
+
+
+from app.api.ml_model_health import (
+    router as ml_model_health_router,
+)
+
+
+from app.api.ml_monitoring_alert import (
+    router as ml_monitoring_alert_router,
+)
+
 from app.api.routes import (
     router as api_router,
 )
@@ -372,4 +391,47 @@ app.include_router(
 
 app.include_router(
     model_lab_router
+)
+
+
+# ============================================================
+# ML MONITORING
+# ============================================================
+
+
+app.include_router(
+    ml_monitoring_router
+)
+
+
+
+# ============================================================
+# ML PERFORMANCE MONITORING
+# ============================================================
+
+
+app.include_router(
+    ml_performance_monitoring_router
+)
+
+
+
+# ============================================================
+# ML MODEL HEALTH
+# ============================================================
+
+
+app.include_router(
+    ml_model_health_router
+)
+
+
+
+# ============================================================
+# ML MONITORING ALERT
+# ============================================================
+
+
+app.include_router(
+    ml_monitoring_alert_router
 )

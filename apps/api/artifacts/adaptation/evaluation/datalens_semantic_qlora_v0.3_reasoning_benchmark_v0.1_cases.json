@@ -1,0 +1,139 @@
+{
+  "benchmark_id": "adaptation:semantic_reasoning:hotel:v0.1",
+  "benchmark_version": "datalens_adapted_semantic_reasoning_hotel_v0.1",
+  "candidate_surface_sha256": "43e32b5c4bcc3f85ef3465b86351ba6d45ece918af14108277a74c1ccd5f6c2b",
+  "candidate_surfaces": {
+    "related_distinct_metric": "These metrics are related, but they represent distinct measures.",
+    "same_metric_different_state": "These metrics represent the same underlying measure in different states.",
+    "same_process_different_stage": "These metrics represent different stages of the same operational process."
+  },
+  "case_artifact_rule_version": "adapted_semantic_reasoning_case_artifact_v0.1",
+  "case_source": {
+    "benchmark_id": "semantic:hotel_operations:holdout:v0.1",
+    "benchmark_version": "hotel_operations_semantic_holdout_v0.1",
+    "cases_sha256": "4524eed8210ad67a022f033323bd0c6e3d84a2bda48265dbad983d2b47d57915",
+    "dataset_id": "hotel_operations:0001",
+    "dataset_sha256": "0d5b8790bfb1c4656d23e176b5b5e28f90666e112e0355c6fd3be6bd0aeeffd0",
+    "evaluation_role": "embedding_candidate_retrieval",
+    "holdout_frozen": true,
+    "relation_case_count": 19,
+    "source_sha256": "30303a2c30603cdb8a2b727a8f0e286112f123f76c6ac6723a56048610a427cb"
+  },
+  "cases": [
+    {
+      "case_id": "reservation_requests_stays_booked",
+      "expected_relation": "same_process_different_stage",
+      "left_column": "Reservation requests received",
+      "right_column": "Stays booked"
+    },
+    {
+      "case_id": "housekeepers_rostered_cleaning_staff_present",
+      "expected_relation": "same_metric_different_state",
+      "left_column": "Housekeepers rostered",
+      "right_column": "Cleaning staff present"
+    },
+    {
+      "case_id": "projected_lodging_revenue_realized_room_revenue",
+      "expected_relation": "same_metric_different_state",
+      "left_column": "Projected lodging revenue",
+      "right_column": "Realized room revenue"
+    },
+    {
+      "case_id": "target_checkin_observed_service_time",
+      "expected_relation": "same_metric_different_state",
+      "left_column": "Target check-in duration (minutes)",
+      "right_column": "Observed front-desk service time (minutes)"
+    },
+    {
+      "case_id": "planned_linen_measured_laundry_weight",
+      "expected_relation": "same_metric_different_state",
+      "left_column": "Planned linen load (kg)",
+      "right_column": "Measured laundry weight (kg)"
+    },
+    {
+      "case_id": "forecast_occupied_rooms_actual_occupied_rooms",
+      "expected_relation": "same_metric_different_state",
+      "left_column": "Forecast occupied rooms",
+      "right_column": "Rooms actually occupied"
+    },
+    {
+      "case_id": "reservation_requests_guest_complaints",
+      "expected_relation": "related_distinct_metric",
+      "left_column": "Reservation requests received",
+      "right_column": "Guest complaints resolved"
+    },
+    {
+      "case_id": "stays_booked_rooms_out_of_service",
+      "expected_relation": "related_distinct_metric",
+      "left_column": "Stays booked",
+      "right_column": "Rooms out of service"
+    },
+    {
+      "case_id": "housekeepers_elevators",
+      "expected_relation": "related_distinct_metric",
+      "left_column": "Housekeepers rostered",
+      "right_column": "Elevators operational"
+    },
+    {
+      "case_id": "projected_revenue_restaurant_revenue",
+      "expected_relation": "related_distinct_metric",
+      "left_column": "Projected lodging revenue",
+      "right_column": "Restaurant revenue"
+    },
+    {
+      "case_id": "realized_revenue_maintenance_spend",
+      "expected_relation": "related_distinct_metric",
+      "left_column": "Realized room revenue",
+      "right_column": "Maintenance spend"
+    },
+    {
+      "case_id": "target_checkin_elevator_downtime",
+      "expected_relation": "related_distinct_metric",
+      "left_column": "Target check-in duration (minutes)",
+      "right_column": "Elevator downtime (minutes)"
+    },
+    {
+      "case_id": "observed_service_elevator_downtime",
+      "expected_relation": "related_distinct_metric",
+      "left_column": "Observed front-desk service time (minutes)",
+      "right_column": "Elevator downtime (minutes)"
+    },
+    {
+      "case_id": "planned_linen_waste_weight",
+      "expected_relation": "related_distinct_metric",
+      "left_column": "Planned linen load (kg)",
+      "right_column": "Waste collected (kg)"
+    },
+    {
+      "case_id": "measured_laundry_waste_weight",
+      "expected_relation": "related_distinct_metric",
+      "left_column": "Measured laundry weight (kg)",
+      "right_column": "Waste collected (kg)"
+    },
+    {
+      "case_id": "forecast_occupied_rooms_out_of_service",
+      "expected_relation": "related_distinct_metric",
+      "left_column": "Forecast occupied rooms",
+      "right_column": "Rooms out of service"
+    },
+    {
+      "case_id": "occupancy_guest_satisfaction",
+      "expected_relation": "related_distinct_metric",
+      "left_column": "Occupancy rate (%)",
+      "right_column": "Guest satisfaction (%)"
+    },
+    {
+      "case_id": "occupancy_cancellation_rate",
+      "expected_relation": "related_distinct_metric",
+      "left_column": "Occupancy rate (%)",
+      "right_column": "Booking cancellation rate (%)"
+    },
+    {
+      "case_id": "satisfaction_cancellation_rate",
+      "expected_relation": "related_distinct_metric",
+      "left_column": "Guest satisfaction (%)",
+      "right_column": "Booking cancellation rate (%)"
+    }
+  ],
+  "prompt_template_sha256": "ccd68cff8cc4b9b5b6a494df85809fbcd14f18c143b89a0331a47534de354390"
+}

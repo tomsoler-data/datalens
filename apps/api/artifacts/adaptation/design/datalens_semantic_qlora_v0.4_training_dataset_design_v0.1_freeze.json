@@ -1,0 +1,20 @@
+{
+  "airport_cases_sha256": "7d9454d0d59dd047050bd72d195feb1390ca0edc2c83584af0cbfec951cf3939",
+  "airport_freeze_sha256": "46accf23eeae32f0fdc926f7b0a9e73115a1413ddbc28efa84472f0571ee2f09",
+  "airport_results_observed": false,
+  "dataset_design_relative_path": "artifacts/adaptation/design/datalens_semantic_qlora_v0.4_training_dataset_design_v0.1.json",
+  "dataset_design_sha256": "ce3f855c0563fba08561e4fced8a3cd06910570a928483c1d7cc7358d6aab56c",
+  "experiment_design_freeze_sha256": "84d64a1406ce0e6648de54e4830eb96dd99b87a980108085906eb57875ef978a",
+  "experiment_design_sha256": "dd36103a01cadc49101dfeffa006bba9e9cf6cdfc3599a3f0967beff14765cf9",
+  "final_acceptance_opened": false,
+  "freeze_rule_version": "qlora_v0.4_training_dataset_design_freeze_v0.1",
+  "frozen_before_training_dataset_build": true,
+  "frozen_before_training_example_authoring": true,
+  "frozen_before_v0_4_training": true,
+  "module_sha256": "09e474e2ee6342cac505cbdf5b881d6c628dbb6d7cc2c9fe4679cd7bcb756460",
+  "parent_git_commit": "19dc4937243b96e85205684c9f9a4feed2a71481",
+  "status": "frozen",
+  "test_sha256": "0b8bdd9e4e1982e66a8807d5cb45c3102b4f4c40e74cc51eb6a86d1522427836",
+  "training_examples_authored": false,
+  "training_executed": false
+}

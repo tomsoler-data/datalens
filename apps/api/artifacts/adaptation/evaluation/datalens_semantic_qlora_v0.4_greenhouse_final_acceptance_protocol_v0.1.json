@@ -1,0 +1,291 @@
+{
+  "acceptance_gates": {
+    "adapted_dangerous_false_positives_maximum": 0,
+    "adapted_projected_relation_accuracy_minimum": 0.8,
+    "adapted_safety_failures_maximum": 0,
+    "adapted_strict_json_validity_required": 1.0,
+    "all_gates_must_pass": true,
+    "greenhouse_freeze_integrity_must_pass": true,
+    "s3_regression_gate_must_remain_pass": true
+  },
+  "authority_bindings": {
+    "airport_protocol": {
+      "repo_path": "apps/api/artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_airport_evaluation_protocol_v0.1.json",
+      "reuse_role": "generation_and_output_contract_authority",
+      "sha256": "a88cb86565c0a3d4daa4d5b2bea3beeed79a7df81155ed4d4ed0c7bfef2e00d1"
+    },
+    "airport_runner": {
+      "repo_path": "apps/api/app/adaptation/airport_evaluation_runner_v0_4_v0_2.py",
+      "reuse_role": "runtime_compatibility_reference",
+      "sha256": "fda934f45a98c10905cd857109df6c3f927d0ae025e9fb41150d85872001fe23"
+    },
+    "base_model": {
+      "modality": "text_only",
+      "repository": "google/gemma-3-4b-it",
+      "revision": "093f9f388b31de276ce2de164bdc2081324b9767"
+    },
+    "candidate_adapter": {
+      "adapter_bundle_sha256": "0351980df6d86096195c0971deb30c725e155c71aa5de8054b2b37fa42090716",
+      "frozen": true
+    },
+    "chat_template": {
+      "sha256": "7de1c58e208eda46e9c7f86397df37ec49883aeece39fb961e0a6b24088dd3c4"
+    },
+    "historical_benchmark": {
+      "repo_path": "apps/api/app/evaluation/benchmarks/greenhouse_operations_final_acceptance.py",
+      "sha256": "5653bfb9042f3a17dedf1b3165a3ab11fa2996c0964454094d2bee672991c5b2"
+    },
+    "historical_greenhouse_freeze": {
+      "component_bundle_sha256": "c1a7978818fb6ac3ecbd46d80998f6bf9a7989d5e0b4757eadfa836d184dcd64",
+      "contract_identity_sha256": "38cc6aae5d169794faf130cb2ab157db7c9a08ac83e056278a816b0226c97826",
+      "repo_path": "apps/api/artifacts/evaluation/holdouts/greenhouse_operations_final_acceptance_v0.1_freeze.json",
+      "sha256": "11615352547f152b91e592066142c3431b557c5f620018380b71b931cb77a736"
+    },
+    "preparation_authorization": {
+      "repo_path": "apps/api/artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_final_acceptance_authorization_v0.1.json",
+      "sha256": "bed6243c2995a5376f57d1ae2bd3135ec6e6e91a71de0e1d2e74becd9e7849c9"
+    },
+    "prompt_canonicalizer": {
+      "repo_path": "apps/api/app/adaptation/training_dataset_canonicalizer_v0_4.py",
+      "reuse_role": "candidate_task_prompt_contract_reference",
+      "sha256": "075d6c22cf4473b414221a0766ca831f4da1e19597a0a5b2b5efd3e5755c9356"
+    },
+    "s3_regression_gate": {
+      "evidence_commit": "b82e89eadc423aadba247be226fdd7e3a96cc7e4",
+      "must_remain_pass": true,
+      "receipt_sha256": "fb4d81feb1c20c77e8fe3eaaf491ca7f831c32c96a6dcf29389e7b06dae28b96",
+      "report_sha256": "b0b662c31f7bbc013968cd7a69968aba21621c13cfe8de72bef2f4ddde0c1e6c"
+    },
+    "task_interpretation": {
+      "commit": "0220291de7db1f41e055e9d754f3c2dbefe11a83",
+      "repo_path": "apps/api/artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_gate_task_interpretation_decision_v0.1.json",
+      "sha256": "9f097f8b8e7e2dd182cc86cc5ed12fc74ded18262bac2af3639d2bf07bdf61a2"
+    }
+  },
+  "candidate_task": {
+    "gold_projection_authority": "greenhouse_pair_assertions_to_qlora_relation_projection_v0.1",
+    "gold_projection_definition_location": "task_interpretation.gold_projection_policy",
+    "gold_projection_may_be_modified": false,
+    "partial_credit": false,
+    "relation_values": [
+      "same_metric_different_state",
+      "same_process_different_stage",
+      "related_distinct_metric",
+      "unrelated",
+      "uncertain"
+    ]
+  },
+  "created_at": "2026-08-30T13:44:49Z",
+  "current_authorization_scope": {
+    "execute_greenhouse": false,
+    "observe_greenhouse_results": false,
+    "perform_synthetic_preflight": true,
+    "prepare_execution_manifest": true,
+    "prepare_runner": true,
+    "read_greenhouse_cases": false,
+    "read_greenhouse_dataset": false,
+    "read_greenhouse_independence": false
+  },
+  "evaluation_models": {
+    "adapted": {
+      "acceptance_authority": true,
+      "adapter_bundle_sha256": "0351980df6d86096195c0971deb30c725e155c71aa5de8054b2b37fa42090716",
+      "evaluated": true,
+      "role": "final_acceptance_candidate"
+    },
+    "base": {
+      "acceptance_authority": false,
+      "evaluated": true,
+      "may_trigger_model_selection": false,
+      "role": "diagnostic_only"
+    },
+    "base_to_adapted_result_comparison_is_acceptance_gate": false,
+    "same_case_order_required": true,
+    "same_prompt_inputs_required": true
+  },
+  "evaluation_role": "single_use_final_acceptance",
+  "execution_lifecycle": {
+    "acceptance_gate_failure": "final_candidate_rejected_no_tuning_on_greenhouse",
+    "failure_after_consumption_marker": "terminal_no_reexecution",
+    "protected_integrity_failure_after_marker": "terminal_no_reexecution",
+    "runtime_failure_after_marker": "terminal_no_reexecution",
+    "stage_1": "validate_all_non_protected_committed_authorities_and_clean_repository",
+    "stage_10": "atomically_publish_report_and_receipt",
+    "stage_2": "verify_consumption_report_and_receipt_do_not_already_exist",
+    "stage_3": "atomically_create_consumption_marker_before_first_protected_read",
+    "stage_4": "after_marker_recompute_all_protected_component_hashes_and_sizes",
+    "stage_5": "after_integrity_pass_parse_protected_greenhouse_material",
+    "stage_6": "validate_case_count_schema_independence_and_gold_projection_consistency",
+    "stage_7": "construct_label_blind_deterministic_candidate_prompts",
+    "stage_8": "evaluate_base_and_adapted_once_on_the_same_18_cases",
+    "stage_9": "apply_pre_registered_projection_score_safety_and_operational_gates"
+  },
+  "experiment_id": "adaptation:datalens-semantic-qlora-v0.4",
+  "generation_policy": {
+    "chat_template_return_dict": false,
+    "do_sample": false,
+    "eos_token_ids": [
+      1,
+      106
+    ],
+    "generation_budget_exhaustion": "final_acceptance_failure",
+    "generation_contract_source": "airport_protocol_v0.1",
+    "input_truncation_permitted": false,
+    "max_new_tokens": 64,
+    "num_beams": 1,
+    "retry_after_model_output_permitted": false,
+    "stochastic_retry_permitted": false
+  },
+  "governance": {
+    "airport_reexecution_forbidden": true,
+    "execution_manifest_must_be_committed_before_synthetic_preflight": true,
+    "greenhouse_model_selection_forbidden": true,
+    "greenhouse_remains_sealed_after_protocol_commit": true,
+    "greenhouse_single_use": true,
+    "greenhouse_tuning_forbidden": true,
+    "post_observation_gate_change_permitted": false,
+    "post_observation_prompt_change_permitted": false,
+    "post_observation_protocol_change_permitted": false,
+    "protocol_created_before_greenhouse_execution": true,
+    "protocol_created_before_greenhouse_observation": true,
+    "protocol_must_be_committed_before_runner_freeze": true,
+    "runner_must_be_committed_before_execution_manifest": true,
+    "separate_execution_authorization_required": true,
+    "synthetic_preflight_must_pass_before_execution_authorization": true
+  },
+  "output_contract": {
+    "deterministic_parser": true,
+    "exact_keys": [
+      "relation",
+      "reason"
+    ],
+    "format": "strict_json_object",
+    "invalid_json_causes_final_acceptance_failure": true,
+    "invalid_json_scored_incorrect": true,
+    "llm_judge": false,
+    "reason_max_words": 45,
+    "reason_min_words": 6
+  },
+  "prompt_policy": {
+    "allowed_information_classes": [
+      "pair_identity",
+      "column_identity",
+      "domain_identity",
+      "deterministically_derived_non_label_dataset_evidence"
+    ],
+    "exact_prompt_serialization": "must_be_defined_by_future_runner_and_frozen_before_greenhouse_consumption",
+    "forbidden_prompt_information": [
+      "same_concept_gold",
+      "same_concept_family_gold",
+      "same_domain_gold",
+      "distinct_variants_gold",
+      "compatible_units_gold",
+      "derived_gap_compatible_gold",
+      "projected_gold_relation",
+      "independence_material",
+      "acceptance_outcome"
+    ],
+    "gold_label_leakage_permitted": false,
+    "independence_material_visible_to_model": false,
+    "post_observation_prompt_change_permitted": false,
+    "prompt_builder_must_be_bound_in_execution_manifest": true,
+    "prompt_builder_must_be_committed_before_execution": true,
+    "prompt_builder_must_be_deterministic": true
+  },
+  "protected_material": {
+    "case_count": 18,
+    "components": [
+      {
+        "protected_before_consumption": true,
+        "repo_path": "apps/api/artifacts/evaluation/datasets/synthetic_greenhouse_operations_final_acceptance.csv",
+        "role": "dataset_definition",
+        "sha256": "17dcd1969b9f64f356e74fc0ca599c6a20ef4a68ad7abe050b7309c160035073",
+        "size_bytes": 1521
+      },
+      {
+        "protected_before_consumption": true,
+        "repo_path": "apps/api/artifacts/evaluation/holdouts/greenhouse_operations_final_acceptance_v0.1_cases.json",
+        "role": "case_manifest",
+        "sha256": "bb798ba453a0acb08bc5f22fe640197b0ab3fc69b32c7eee143960a2124f5593",
+        "size_bytes": 1826
+      },
+      {
+        "protected_before_consumption": true,
+        "repo_path": "apps/api/artifacts/evaluation/holdouts/greenhouse_operations_final_acceptance_v0.1_independence.json",
+        "role": "supporting_definition",
+        "sha256": "d05acb7045afde0bd7a129f231bf39ccd472a3710c12b161f58126232fbba5b7",
+        "size_bytes": 695
+      }
+    ],
+    "pre_consumption_allowed_operations": [
+      "git_index_path_existence_check",
+      "frozen_metadata_binding"
+    ],
+    "pre_consumption_forbidden_operations": [
+      "open",
+      "read_bytes",
+      "read_text",
+      "git_show_blob",
+      "hash_recomputation",
+      "json_parse",
+      "csv_parse",
+      "import_or_execute_code_that_materializes_protected_content"
+    ]
+  },
+  "protocol_id": "adaptation:datalens-semantic-qlora-v0.4:greenhouse-final-acceptance:protocol:v0.1",
+  "protocol_rule_version": "qlora_v0.4_greenhouse_final_acceptance_protocol_v0.1",
+  "runner_requirements": {
+    "must_be_committed_before_execution_manifest": true,
+    "must_bind_adapter_bundle_sha256": true,
+    "must_bind_airport_runtime_authority": true,
+    "must_bind_interpretation_sha256": true,
+    "must_bind_this_protocol_sha256": true,
+    "must_enforce_pre_consumption_read_barrier": true,
+    "must_fail_closed_on_projection_invariant_violation": true,
+    "must_not_call_backward": true,
+    "must_not_create_optimizer": true,
+    "must_not_train": true,
+    "must_not_use_greenhouse_for_model_selection": true,
+    "must_not_use_llm_judge": true,
+    "must_validate_protected_hashes_only_after_marker": true,
+    "must_write_consumption_marker_atomically": true
+  },
+  "safety_policy": {
+    "dangerous_false_positives_maximum": 0,
+    "definitions_authority": "task_interpretation.dangerous_false_positive_interpretation_and_safety_failure_interpretation",
+    "no_post_observation_redefinition": true,
+    "safety_failures_maximum": 0
+  },
+  "score_policy": {
+    "definition": "correct_projected_relation_predictions / total_greenhouse_pair_cases",
+    "denominator": 18,
+    "historical_six_field_accuracy_equivalence_claimed": false,
+    "metric": "projected_relation_accuracy",
+    "minimum": 0.8,
+    "partial_credit": false,
+    "round_decimals": 6
+  },
+  "single_use_outputs": {
+    "consumption_marker": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_final_acceptance_v0.1_consumption.json",
+    "consumption_marker_written_before_first_protected_read": true,
+    "outputs_must_be_absent_before_execution": true,
+    "receipt": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_final_acceptance_v0.1_receipt.json",
+    "reexecution_permitted": false,
+    "report": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_final_acceptance_v0.1_report.json"
+  },
+  "source_git_commit": "0220291de7db1f41e055e9d754f3c2dbefe11a83",
+  "status": "prepared_pre_execution_protocol",
+  "synthetic_preflight_policy": {
+    "adapter_load_permitted": true,
+    "authorized": true,
+    "backward_permitted": false,
+    "base_model_load_permitted": true,
+    "generation_smoke_permitted": true,
+    "must_complete_before_execution_authorization": true,
+    "optimizer_permitted": false,
+    "protected_greenhouse_material_permitted": false,
+    "synthetic_cases_only": true,
+    "synthetic_prompt_only": true,
+    "training_permitted": false
+  }
+}

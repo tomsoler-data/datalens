@@ -19,11 +19,15 @@ from app.ml.classical_executor import (
     ClassicalMLExecutorError,
     ClassicalMLInputError,
     _build_estimator,
-    _classification_metrics,
     _load_authorized_dataframe,
-    _regression_metrics,
     _validate_and_extract_xy,
     _validate_metrics,
+)
+
+
+from app.ml.model_metrics import (
+    compute_ml_classification_metrics,
+    compute_ml_regression_metrics,
 )
 
 
@@ -264,7 +268,7 @@ def _fold_metrics(
         "regression"
     ):
         metrics = (
-            _regression_metrics(
+            compute_ml_regression_metrics(
                 y_true=
                     y_true,
 
@@ -275,7 +279,7 @@ def _fold_metrics(
 
     else:
         metrics = (
-            _classification_metrics(
+            compute_ml_classification_metrics(
                 y_true=
                     y_true,
 

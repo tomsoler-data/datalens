@@ -1,0 +1,93 @@
+{
+  "assistant_masking": {
+    "assistant_supervised": true,
+    "ignore_index": -100,
+    "padding_supervised": false,
+    "prompt_supervised": false,
+    "rule_version": "assistant_only_masking_v0.1",
+    "silent_truncation_allowed": false,
+    "source_sha256": "217880970e8d08cf6f23391c2ac7f3d0178f9b00d3aee1acf4f06eae020f3ccf",
+    "test_sha256": "8a1a903e6da9ba6ab2d677c1053debf296cf59e0a6cccb0f4ac52696e8807132"
+  },
+  "configuration": {
+    "actual_sequence_length": 85,
+    "configured_max_sequence_length": 256,
+    "gradient_checkpoint_use_reentrant": false,
+    "gradient_checkpointing": true,
+    "lora_alpha": 32,
+    "lora_dropout": 0.05,
+    "lora_rank": 16,
+    "micro_batch_size": 1,
+    "target_module_count": 238,
+    "trainable_parameter_count": 29802496,
+    "trainable_tensor_count": 476
+  },
+  "device": {
+    "compute_capability": "8.9",
+    "free_vram_before_load_bytes": 7441743872,
+    "name": "NVIDIA GeForce RTX 4060",
+    "total_vram_bytes": 8585216000
+  },
+  "environment": {
+    "bitsandbytes": "0.50.2",
+    "peft": "0.20.0",
+    "torch": "2.11.0+cu128",
+    "transformers": "5.16.1"
+  },
+  "experiment_contract_freeze_sha256": "9e7eaedefe9823bf070e1c4c25574ee42cc0081bd8bf3f1810255609cda4559c",
+  "experiment_contract_sha256": "609954fe4f06ace47000475053dcb011a4337e36122678860fb744eff645f92e",
+  "experiment_id": "datalens-semantic-qlora-v0.3",
+  "final_acceptance_freeze_sha256": "11615352547f152b91e592066142c3431b557c5f620018380b71b931cb77a736",
+  "git_head": "8f0b401d4e1430d2ee6814dce11258c3d98bea61",
+  "memory_bytes": {
+    "allocated_after_backward": 4689882624,
+    "allocated_after_forward": 4680388608,
+    "allocated_after_lora_attach": 4462737920,
+    "allocated_before_forward": 4462740992,
+    "free_after_backward": 1064726528,
+    "peak_allocated": 4858689536,
+    "peak_allocated_headroom": 3726526464,
+    "peak_reserved": 6014631936,
+    "peak_reserved_headroom": 2570584064,
+    "reserved_after_backward": 6014631936,
+    "reserved_after_forward": 5909774336,
+    "reserved_after_lora_attach": 5867831296,
+    "reserved_before_forward": 5867831296
+  },
+  "memory_classification": "healthy_real_example_headroom",
+  "optimizer_memory_probe_sha256": "16f36e609e506518822b0a6f95d2f28114cb4608208a29f8eff120965faf0719",
+  "passed": true,
+  "probe_id": "datalens-semantic-qlora-v0.3-assistant-only-gpu-probe",
+  "result": {
+    "gradient_norm": 27.711468066262785,
+    "gradient_tensor_count": 476,
+    "loss": 6.062636852264404,
+    "loss_finite": true,
+    "nonfinite_gradient_count": 0,
+    "weights_unchanged": true
+  },
+  "rule_version": "qlora_assistant_only_gpu_probe_v0.1",
+  "safety": {
+    "final_acceptance_cases_loaded": false,
+    "final_acceptance_evaluated": false,
+    "model_weights_saved": false,
+    "optimizer_created": false,
+    "optimizer_step_executed": false,
+    "pre_adaptation_holdouts_executed": false,
+    "real_training_labels_used": true,
+    "scheduler_created": false,
+    "trainer_created": false,
+    "trainer_train_called": false,
+    "training_executed": false
+  },
+  "selected_training_example": {
+    "example_id": "adaptation:v0.1:039",
+    "masked_prompt_token_count": 39,
+    "sequence_limit": 256,
+    "supervised_assistant_token_count": 46,
+    "total_token_count": 85,
+    "truncated": false
+  },
+  "token_length_audit_sha256": "b4e0011edc709f572789a40c659d792b0ea1809eba9b0cfd7fa3507389e40e94",
+  "training_dataset_sha256": "4d7f1d8defeeb956448e31d776e5310795326b08ec5ddaf24091bd493c42f892"
+}

@@ -1,0 +1,119 @@
+{
+  "accumulation": {
+    "cross_epoch_accumulation": false,
+    "discard_incomplete_group": false,
+    "discarded_example_presentations": 0,
+    "effective_group_objective": "mean_cross_entropy_over_all_supervised_assistant_tokens_in_accumulation_group",
+    "example_presentations": 460,
+    "full_groups_per_epoch": 28,
+    "gradient_accumulation_weighting": "supervised_token_weighted",
+    "micro_batch_model_loss_reduction": "mean_over_supervised_assistant_tokens",
+    "micro_batches_per_epoch": 230,
+    "nominal_effective_batch_size": 8,
+    "optimizer_steps_per_epoch": 29,
+    "partial_group_count_per_epoch": 1,
+    "partial_group_effective_batch_size": 6,
+    "partial_group_size": 6,
+    "policy": "flush_partial_group_at_epoch_end",
+    "total_micro_batches": 460,
+    "total_optimizer_steps": 58
+  },
+  "adaptation": {
+    "lora_alpha": 32,
+    "lora_dropout": 0.05,
+    "lora_rank": 16,
+    "quantization": "nf4_double_quant_bf16",
+    "target_strategy": "language_model_all_linear"
+  },
+  "authority": {
+    "continuity_reference": {
+      "contract_freeze_relative_path": "artifacts/adaptation/experiments/datalens_semantic_qlora_v0.3_contract_freeze.json",
+      "contract_freeze_sha256": "9e7eaedefe9823bf070e1c4c25574ee42cc0081bd8bf3f1810255609cda4559c",
+      "contract_relative_path": "artifacts/adaptation/experiments/datalens_semantic_qlora_v0.3_contract.json",
+      "contract_sha256": "609954fe4f06ace47000475053dcb011a4337e36122678860fb744eff645f92e",
+      "experiment_id": "datalens-semantic-qlora-v0.3"
+    },
+    "decision": "Re-authorize the v0.3 optimizer hyperparameters explicitly for v0.4 to preserve experimental comparability while changing the training dataset and supervision objective.",
+    "implicit_pydantic_defaults_allowed": false,
+    "implicit_v0_3_inheritance_allowed": false,
+    "policy_role": "Explicitly authorize v0.4 optimization parameters before resource preflight and GPU training."
+  },
+  "evaluation_boundary": {
+    "airport_evaluated_before_training": false,
+    "airport_used_for_training": false,
+    "early_stopping_from_independent_holdout": false,
+    "final_acceptance_evaluated_before_training": false,
+    "final_acceptance_loaded_before_training": false,
+    "training_loss_is_acceptance_evidence": false
+  },
+  "evidence": {
+    "experiment_design": {
+      "freeze_relative_path": "artifacts/adaptation/design/datalens_semantic_qlora_v0.4_experiment_design_v0.1_freeze.json",
+      "freeze_sha256": "84d64a1406ce0e6648de54e4830eb96dd99b87a980108085906eb57875ef978a",
+      "relative_path": "artifacts/adaptation/design/datalens_semantic_qlora_v0.4_experiment_design_v0.1.json",
+      "sha256": "dd36103a01cadc49101dfeffa006bba9e9cf6cdfc3599a3f0967beff14765cf9"
+    },
+    "token_length": {
+      "maximum_observed_tokens": 206,
+      "recommended_max_sequence_length": 256,
+      "relative_path": "artifacts/adaptation/probes/datalens_semantic_training_v0.4_token_length_audit.json",
+      "sha256": "add94bd50fc89120a7626fa7533af2996765d25c7c64d2d866dd7178674d40c1",
+      "truncated_examples": 0
+    },
+    "training_dataset": {
+      "example_count": 230,
+      "freeze_relative_path": "artifacts/adaptation/datasets/datalens_semantic_training_v0.4_freeze.json",
+      "freeze_sha256": "c9ae4421becea37ee07bf964f82e2e4fffd9328f2920cda7d371fe57e0eb1f70",
+      "relative_path": "artifacts/adaptation/datasets/datalens_semantic_training_v0.4.jsonl",
+      "sha256": "4fd00586f2d53d6de57f5cbc5f1d7bfb2e512960e60b30c28596aaefbac322b7"
+    }
+  },
+  "experiment_id": "datalens-semantic-qlora-v0.4",
+  "implementation_requirement": {
+    "historical_training_runner_v0_1_may_be_modified": false,
+    "v0_4_runner_must_flush_partial_group_per_epoch": true,
+    "v0_4_runner_must_not_carry_gradients_across_epochs": true,
+    "v0_4_runner_must_present_all_examples_each_epoch": true,
+    "v0_4_runner_must_support_partial_accumulation": true
+  },
+  "policy_id": "optimization-policy:datalens-semantic-qlora:v0.4",
+  "rule_version": "qlora_v0.4_optimization_policy_v0.1",
+  "safety": {
+    "adapter_loaded": false,
+    "airport_case_content_read": false,
+    "airport_evaluated": false,
+    "backward_executed": false,
+    "cuda_requested": false,
+    "final_acceptance_evaluated": false,
+    "final_acceptance_loaded": false,
+    "model_loaded": false,
+    "optimizer_created": false,
+    "training_executed": false
+  },
+  "schedule": {
+    "scheduler": "cosine",
+    "total_optimizer_steps": 58,
+    "warmup_step_rounding": "ceil_with_minimum_one",
+    "warmup_steps": 2
+  },
+  "status": "pre_training_policy",
+  "training": {
+    "assistant_only_loss": true,
+    "bf16": true,
+    "fp16": false,
+    "gradient_accumulation_steps": 8,
+    "gradient_checkpoint_use_reentrant": false,
+    "gradient_checkpointing": true,
+    "initial_epoch_budget": 2,
+    "learning_rate": 0.0002,
+    "max_sequence_length": 256,
+    "micro_batch_size": 1,
+    "optimizer": "paged_adamw_8bit",
+    "packing": false,
+    "random_seed": 42,
+    "scheduler": "cosine",
+    "sequence_truncation": "fail_closed",
+    "warmup_ratio": 0.03,
+    "weight_decay": 0.0
+  }
+}

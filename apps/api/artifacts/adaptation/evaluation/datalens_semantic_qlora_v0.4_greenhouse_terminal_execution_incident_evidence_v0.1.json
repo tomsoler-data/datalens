@@ -1,0 +1,116 @@
+{
+  "artifact_kind": "terminal_execution_incident_evidence",
+  "artifact_rule_version": "datalens_semantic_qlora_v0.4_greenhouse_terminal_execution_incident_evidence_v0.1",
+  "authority_bindings": {
+    "benchmark_source_sha256": "5653bfb9042f3a17dedf1b3165a3ab11fa2996c0964454094d2bee672991c5b2",
+    "execution_authorization_sha256": "634b90f5e5016dbff9f1c840e616bc4129d68a72f487031f5641dc5e30481afd",
+    "execution_manifest_v0_5_sha256": "760f58467677328e1be8e4899cd56bbce12c77b07fdcdf2a581879c3faf6c341",
+    "final_acceptance_protocol_sha256": "056272cca075a6f8c48c38f5296c0ddacaaeb29e64f08048a43a80ea3dab0b16",
+    "launcher_v0_2_sha256": "a47f823f3c625b1780435ddcf4f2fa2df03cb6c5d95aad78501db80cf11f6d0a"
+  },
+  "canonical_case_source": {
+    "benchmark_relative_path": "apps/api/app/evaluation/benchmarks/greenhouse_operations_final_acceptance.py",
+    "benchmark_sha256": "5653bfb9042f3a17dedf1b3165a3ab11fa2996c0964454094d2bee672991c5b2",
+    "builder_function": "build_greenhouse_final_acceptance_pair_cases",
+    "dataset_column_count": 18,
+    "dataset_row_count": 12,
+    "pair_case_count": 18,
+    "source": "frozen_benchmark_python_PAIR_CASES",
+    "unique_case_id_count": 18
+  },
+  "consumption_marker": {
+    "failure_after_marker_is_terminal": true,
+    "reexecution_permitted": false,
+    "relative_path": "apps/api/artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_final_acceptance_v0.1_consumption.json",
+    "retry_permitted": false,
+    "sha256": "654196ad4c4e9d9e492ff498003ee568e0f536b40e94ede0c8df0d880bb60baa",
+    "single_use_consumption_started": true,
+    "size_bytes": 1590,
+    "tuning_permitted": false
+  },
+  "consumption_started_at": "2026-08-30T23:05:00.297422+00:00",
+  "execution_revision": "v0.5",
+  "experiment_id": "adaptation:datalens-semantic-qlora-v0.4",
+  "final_acceptance_revision": "v0.1",
+  "git_head": "e88c62a638f345635595dd3406d91d1593f904c0",
+  "governance": {
+    "may_be_used_to_reexecute_greenhouse": false,
+    "may_be_used_to_replace_candidate_based_on_greenhouse": false,
+    "may_be_used_to_tune_candidate": false,
+    "must_not_create_retroactive_official_result": true,
+    "must_preserve_consumption_marker": true,
+    "official_final_acceptance_receipt": false,
+    "official_final_acceptance_report": false,
+    "postmortem_only": true
+  },
+  "holdout_id": "adaptation:datalens-semantic-qlora-v0.4:greenhouse-operations:final-acceptance:v0.1",
+  "launcher_contract": {
+    "case_extraction_function": "extract_protected_case_entries",
+    "case_identity_validation": "_is_case_identity_dict",
+    "case_list_length_gate": "len(value) == CASE_COUNT",
+    "case_search_function": "_find_case_lists",
+    "gold_record_function": "build_gold_case_records",
+    "gold_record_source": "frozen benchmark build_greenhouse_final_acceptance_pair_cases",
+    "launcher_relative_path": "apps/api/app/adaptation/greenhouse_final_acceptance_launcher_v0_4_v0_2.py",
+    "launcher_sha256": "a47f823f3c625b1780435ddcf4f2fa2df03cb6c5d95aad78501db80cf11f6d0a",
+    "requires_exactly_one_unique_18_case_identity_list": true,
+    "unique_candidate_gate": "len(unique) != 1 => RuntimeError"
+  },
+  "model_outcome_classification": {
+    "adapted_model_evaluated": false,
+    "base_model_evaluated": false,
+    "model_evaluation_started": false,
+    "model_fail_determined": false,
+    "model_failure": false,
+    "model_pass_determined": false,
+    "reason": "Terminal orchestration failure occurred before model loading/evaluation."
+  },
+  "official_execution_state": {
+    "candidate_replacement_based_on_greenhouse_permitted": false,
+    "further_tuning_permitted": false,
+    "greenhouse_consumed": true,
+    "official_final_acceptance_completed": false,
+    "official_final_acceptance_error": true,
+    "official_final_acceptance_fail": false,
+    "official_final_acceptance_pass": false,
+    "official_receipt_created": false,
+    "official_report_created": false,
+    "reexecution_permitted": false,
+    "retry_permitted": false
+  },
+  "protected_cases_integrity": {
+    "column_case_count": 0,
+    "contains_18_case_identity_list": false,
+    "contains_any_json_list": false,
+    "corrupted": false,
+    "frozen_integrity_pass": true,
+    "pair_case_count": 18,
+    "relative_path": "apps/api/artifacts/evaluation/holdouts/greenhouse_operations_final_acceptance_v0.1_cases.json",
+    "sha256": "bb798ba453a0acb08bc5f22fe640197b0ab3fc69b32c7eee143960a2124f5593",
+    "size_bytes": 1826,
+    "top_level_type": "dict",
+    "total_case_count": 18
+  },
+  "root_cause": {
+    "description": "The frozen protected cases artifact is a metadata-only object with zero JSON lists, while Launcher v0.2 requires an 18-case identity list before binding the canonical PAIR_CASES from the frozen benchmark.",
+    "launcher_protected_artifact_schema_compatible": false,
+    "primary_class": "FROZEN_LAUNCH_PATH_PROTECTED_ARTIFACT_SCHEMA_MISMATCH",
+    "protected_artifact_corruption": false
+  },
+  "secondary_control_gap": {
+    "class": "SYNTHETIC_PREFLIGHT_DID_NOT_MIRROR_OFFICIAL_CASE_ARTIFACT_SCHEMA",
+    "description": "Synthetic launch-path testing exercised a case container that did not reproduce the metadata-only schema of the official protected cases artifact.",
+    "synthetic_preflight_evidence_relative_path": "apps/api/artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_synthetic_launch_path_preflight_evidence_v0.2.json",
+    "synthetic_preflight_evidence_sha256": "05d94deb0016439f89f769b87a0b05c2ab8c3106e3935b04807fe86c494a9952"
+  },
+  "terminal_error": {
+    "adapted_model_evaluation_started": false,
+    "base_model_evaluation_started": false,
+    "exception_type": "RuntimeError",
+    "greenhouse_model_results_observed": false,
+    "launcher_function": "extract_protected_case_entries",
+    "message": "Expected exactly one unique protected 18-case identity list; found 0.",
+    "model_loading_started": false,
+    "stage": "post_consumption_protected_case_identity_extraction"
+  }
+}

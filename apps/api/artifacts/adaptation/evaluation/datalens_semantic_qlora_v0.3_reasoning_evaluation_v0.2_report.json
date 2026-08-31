@@ -1,0 +1,488 @@
+{
+  "acceptance_authority": false,
+  "adapted": {
+    "accuracy": 0.157895,
+    "case_count": 19,
+    "correct_count": 3,
+    "macro_accuracy": 0.384615,
+    "per_class_accuracy": {
+      "related_distinct_metric": 0.153846,
+      "same_metric_different_state": 0.0,
+      "same_process_different_stage": 1.0
+    },
+    "results": [
+      {
+        "case_id": "reservation_requests_stays_booked",
+        "correct": true,
+        "expected_relation": "same_process_different_stage",
+        "predicted_relation": "same_process_different_stage",
+        "scores": {
+          "related_distinct_metric": -2.38196254,
+          "same_metric_different_state": -2.38703609,
+          "same_process_different_stage": -2.09587812
+        }
+      },
+      {
+        "case_id": "housekeepers_rostered_cleaning_staff_present",
+        "correct": false,
+        "expected_relation": "same_metric_different_state",
+        "predicted_relation": "same_process_different_stage",
+        "scores": {
+          "related_distinct_metric": -2.17851353,
+          "same_metric_different_state": -2.21172309,
+          "same_process_different_stage": -1.98334396
+        }
+      },
+      {
+        "case_id": "projected_lodging_revenue_realized_room_revenue",
+        "correct": false,
+        "expected_relation": "same_metric_different_state",
+        "predicted_relation": "same_process_different_stage",
+        "scores": {
+          "related_distinct_metric": -2.42279482,
+          "same_metric_different_state": -2.13485169,
+          "same_process_different_stage": -2.10811567
+        }
+      },
+      {
+        "case_id": "target_checkin_observed_service_time",
+        "correct": false,
+        "expected_relation": "same_metric_different_state",
+        "predicted_relation": "same_process_different_stage",
+        "scores": {
+          "related_distinct_metric": -2.06738138,
+          "same_metric_different_state": -2.18957257,
+          "same_process_different_stage": -1.78329945
+        }
+      },
+      {
+        "case_id": "planned_linen_measured_laundry_weight",
+        "correct": false,
+        "expected_relation": "same_metric_different_state",
+        "predicted_relation": "same_process_different_stage",
+        "scores": {
+          "related_distinct_metric": -2.24818969,
+          "same_metric_different_state": -2.36504436,
+          "same_process_different_stage": -1.92549217
+        }
+      },
+      {
+        "case_id": "forecast_occupied_rooms_actual_occupied_rooms",
+        "correct": false,
+        "expected_relation": "same_metric_different_state",
+        "predicted_relation": "same_process_different_stage",
+        "scores": {
+          "related_distinct_metric": -2.49251127,
+          "same_metric_different_state": -2.34930634,
+          "same_process_different_stage": -2.24500203
+        }
+      },
+      {
+        "case_id": "reservation_requests_guest_complaints",
+        "correct": false,
+        "expected_relation": "related_distinct_metric",
+        "predicted_relation": "same_process_different_stage",
+        "scores": {
+          "related_distinct_metric": -2.25193787,
+          "same_metric_different_state": -2.48761177,
+          "same_process_different_stage": -2.10502076
+        }
+      },
+      {
+        "case_id": "stays_booked_rooms_out_of_service",
+        "correct": false,
+        "expected_relation": "related_distinct_metric",
+        "predicted_relation": "same_process_different_stage",
+        "scores": {
+          "related_distinct_metric": -2.21568561,
+          "same_metric_different_state": -2.37987328,
+          "same_process_different_stage": -2.02539682
+        }
+      },
+      {
+        "case_id": "housekeepers_elevators",
+        "correct": false,
+        "expected_relation": "related_distinct_metric",
+        "predicted_relation": "same_process_different_stage",
+        "scores": {
+          "related_distinct_metric": -2.19201851,
+          "same_metric_different_state": -2.63380265,
+          "same_process_different_stage": -1.89044869
+        }
+      },
+      {
+        "case_id": "projected_revenue_restaurant_revenue",
+        "correct": false,
+        "expected_relation": "related_distinct_metric",
+        "predicted_relation": "same_process_different_stage",
+        "scores": {
+          "related_distinct_metric": -2.17855263,
+          "same_metric_different_state": -2.55914235,
+          "same_process_different_stage": -2.17757869
+        }
+      },
+      {
+        "case_id": "realized_revenue_maintenance_spend",
+        "correct": false,
+        "expected_relation": "related_distinct_metric",
+        "predicted_relation": "same_process_different_stage",
+        "scores": {
+          "related_distinct_metric": -2.42332149,
+          "same_metric_different_state": -2.73806739,
+          "same_process_different_stage": -2.18848014
+        }
+      },
+      {
+        "case_id": "target_checkin_elevator_downtime",
+        "correct": false,
+        "expected_relation": "related_distinct_metric",
+        "predicted_relation": "same_process_different_stage",
+        "scores": {
+          "related_distinct_metric": -2.27443194,
+          "same_metric_different_state": -2.41010284,
+          "same_process_different_stage": -2.09225202
+        }
+      },
+      {
+        "case_id": "observed_service_elevator_downtime",
+        "correct": false,
+        "expected_relation": "related_distinct_metric",
+        "predicted_relation": "same_process_different_stage",
+        "scores": {
+          "related_distinct_metric": -2.19402456,
+          "same_metric_different_state": -2.45839024,
+          "same_process_different_stage": -1.93354917
+        }
+      },
+      {
+        "case_id": "planned_linen_waste_weight",
+        "correct": false,
+        "expected_relation": "related_distinct_metric",
+        "predicted_relation": "same_process_different_stage",
+        "scores": {
+          "related_distinct_metric": -2.31935048,
+          "same_metric_different_state": -2.70256352,
+          "same_process_different_stage": -2.12819052
+        }
+      },
+      {
+        "case_id": "measured_laundry_waste_weight",
+        "correct": false,
+        "expected_relation": "related_distinct_metric",
+        "predicted_relation": "same_process_different_stage",
+        "scores": {
+          "related_distinct_metric": -2.0889957,
+          "same_metric_different_state": -2.60246778,
+          "same_process_different_stage": -2.02638721
+        }
+      },
+      {
+        "case_id": "forecast_occupied_rooms_out_of_service",
+        "correct": false,
+        "expected_relation": "related_distinct_metric",
+        "predicted_relation": "same_process_different_stage",
+        "scores": {
+          "related_distinct_metric": -2.22422123,
+          "same_metric_different_state": -2.41210604,
+          "same_process_different_stage": -2.01790309
+        }
+      },
+      {
+        "case_id": "occupancy_guest_satisfaction",
+        "correct": true,
+        "expected_relation": "related_distinct_metric",
+        "predicted_relation": "related_distinct_metric",
+        "scores": {
+          "related_distinct_metric": -2.08211207,
+          "same_metric_different_state": -2.39685059,
+          "same_process_different_stage": -2.18035316
+        }
+      },
+      {
+        "case_id": "occupancy_cancellation_rate",
+        "correct": false,
+        "expected_relation": "related_distinct_metric",
+        "predicted_relation": "same_process_different_stage",
+        "scores": {
+          "related_distinct_metric": -2.12996912,
+          "same_metric_different_state": -2.42168665,
+          "same_process_different_stage": -1.98687458
+        }
+      },
+      {
+        "case_id": "satisfaction_cancellation_rate",
+        "correct": true,
+        "expected_relation": "related_distinct_metric",
+        "predicted_relation": "related_distinct_metric",
+        "scores": {
+          "related_distinct_metric": -2.13692665,
+          "same_metric_different_state": -2.4780767,
+          "same_process_different_stage": -2.52676082
+        }
+      }
+    ]
+  },
+  "adapter_bundle_sha256": "ed10297a1d0e6ce504189985d91f46b2f1f37a5a67fe84f0d62a9f09c3940ffe",
+  "base": {
+    "accuracy": 0.315789,
+    "case_count": 19,
+    "correct_count": 6,
+    "macro_accuracy": 0.461538,
+    "per_class_accuracy": {
+      "related_distinct_metric": 0.384615,
+      "same_metric_different_state": 0.0,
+      "same_process_different_stage": 1.0
+    },
+    "results": [
+      {
+        "case_id": "reservation_requests_stays_booked",
+        "correct": true,
+        "expected_relation": "same_process_different_stage",
+        "predicted_relation": "same_process_different_stage",
+        "scores": {
+          "related_distinct_metric": -9.87464142,
+          "same_metric_different_state": -9.30845642,
+          "same_process_different_stage": -7.90897799
+        }
+      },
+      {
+        "case_id": "housekeepers_rostered_cleaning_staff_present",
+        "correct": false,
+        "expected_relation": "same_metric_different_state",
+        "predicted_relation": "same_process_different_stage",
+        "scores": {
+          "related_distinct_metric": -8.81552124,
+          "same_metric_different_state": -7.5644145,
+          "same_process_different_stage": -7.41043711
+        }
+      },
+      {
+        "case_id": "projected_lodging_revenue_realized_room_revenue",
+        "correct": false,
+        "expected_relation": "same_metric_different_state",
+        "predicted_relation": "same_process_different_stage",
+        "scores": {
+          "related_distinct_metric": -9.70529079,
+          "same_metric_different_state": -8.50042915,
+          "same_process_different_stage": -7.90596724
+        }
+      },
+      {
+        "case_id": "target_checkin_observed_service_time",
+        "correct": false,
+        "expected_relation": "same_metric_different_state",
+        "predicted_relation": "same_process_different_stage",
+        "scores": {
+          "related_distinct_metric": -9.70637226,
+          "same_metric_different_state": -9.71417427,
+          "same_process_different_stage": -8.72145081
+        }
+      },
+      {
+        "case_id": "planned_linen_measured_laundry_weight",
+        "correct": false,
+        "expected_relation": "same_metric_different_state",
+        "predicted_relation": "same_process_different_stage",
+        "scores": {
+          "related_distinct_metric": -8.58400154,
+          "same_metric_different_state": -8.47345543,
+          "same_process_different_stage": -7.06322336
+        }
+      },
+      {
+        "case_id": "forecast_occupied_rooms_actual_occupied_rooms",
+        "correct": false,
+        "expected_relation": "same_metric_different_state",
+        "predicted_relation": "same_process_different_stage",
+        "scores": {
+          "related_distinct_metric": -9.40474415,
+          "same_metric_different_state": -8.20718956,
+          "same_process_different_stage": -7.80433464
+        }
+      },
+      {
+        "case_id": "reservation_requests_guest_complaints",
+        "correct": false,
+        "expected_relation": "related_distinct_metric",
+        "predicted_relation": "same_process_different_stage",
+        "scores": {
+          "related_distinct_metric": -11.25593281,
+          "same_metric_different_state": -12.00386333,
+          "same_process_different_stage": -10.31487846
+        }
+      },
+      {
+        "case_id": "stays_booked_rooms_out_of_service",
+        "correct": false,
+        "expected_relation": "related_distinct_metric",
+        "predicted_relation": "same_process_different_stage",
+        "scores": {
+          "related_distinct_metric": -8.99537659,
+          "same_metric_different_state": -9.37137318,
+          "same_process_different_stage": -8.39092255
+        }
+      },
+      {
+        "case_id": "housekeepers_elevators",
+        "correct": false,
+        "expected_relation": "related_distinct_metric",
+        "predicted_relation": "same_process_different_stage",
+        "scores": {
+          "related_distinct_metric": -10.3957262,
+          "same_metric_different_state": -10.52637482,
+          "same_process_different_stage": -8.02774048
+        }
+      },
+      {
+        "case_id": "projected_revenue_restaurant_revenue",
+        "correct": false,
+        "expected_relation": "related_distinct_metric",
+        "predicted_relation": "same_process_different_stage",
+        "scores": {
+          "related_distinct_metric": -10.20828247,
+          "same_metric_different_state": -10.56572342,
+          "same_process_different_stage": -9.77498627
+        }
+      },
+      {
+        "case_id": "realized_revenue_maintenance_spend",
+        "correct": false,
+        "expected_relation": "related_distinct_metric",
+        "predicted_relation": "same_process_different_stage",
+        "scores": {
+          "related_distinct_metric": -12.41812611,
+          "same_metric_different_state": -12.47051334,
+          "same_process_different_stage": -9.79551411
+        }
+      },
+      {
+        "case_id": "target_checkin_elevator_downtime",
+        "correct": true,
+        "expected_relation": "related_distinct_metric",
+        "predicted_relation": "related_distinct_metric",
+        "scores": {
+          "related_distinct_metric": -9.46280098,
+          "same_metric_different_state": -11.65165043,
+          "same_process_different_stage": -9.71644783
+        }
+      },
+      {
+        "case_id": "observed_service_elevator_downtime",
+        "correct": true,
+        "expected_relation": "related_distinct_metric",
+        "predicted_relation": "related_distinct_metric",
+        "scores": {
+          "related_distinct_metric": -9.7396431,
+          "same_metric_different_state": -11.77421951,
+          "same_process_different_stage": -10.14536381
+        }
+      },
+      {
+        "case_id": "planned_linen_waste_weight",
+        "correct": false,
+        "expected_relation": "related_distinct_metric",
+        "predicted_relation": "same_process_different_stage",
+        "scores": {
+          "related_distinct_metric": -9.73029232,
+          "same_metric_different_state": -11.40237904,
+          "same_process_different_stage": -9.50152397
+        }
+      },
+      {
+        "case_id": "measured_laundry_waste_weight",
+        "correct": false,
+        "expected_relation": "related_distinct_metric",
+        "predicted_relation": "same_process_different_stage",
+        "scores": {
+          "related_distinct_metric": -9.11558056,
+          "same_metric_different_state": -10.52165604,
+          "same_process_different_stage": -8.64709759
+        }
+      },
+      {
+        "case_id": "forecast_occupied_rooms_out_of_service",
+        "correct": false,
+        "expected_relation": "related_distinct_metric",
+        "predicted_relation": "same_process_different_stage",
+        "scores": {
+          "related_distinct_metric": -9.70125675,
+          "same_metric_different_state": -10.43780327,
+          "same_process_different_stage": -9.5756197
+        }
+      },
+      {
+        "case_id": "occupancy_guest_satisfaction",
+        "correct": true,
+        "expected_relation": "related_distinct_metric",
+        "predicted_relation": "related_distinct_metric",
+        "scores": {
+          "related_distinct_metric": -9.90479851,
+          "same_metric_different_state": -11.1948576,
+          "same_process_different_stage": -11.29220295
+        }
+      },
+      {
+        "case_id": "occupancy_cancellation_rate",
+        "correct": true,
+        "expected_relation": "related_distinct_metric",
+        "predicted_relation": "related_distinct_metric",
+        "scores": {
+          "related_distinct_metric": -9.29325581,
+          "same_metric_different_state": -10.34740639,
+          "same_process_different_stage": -9.84009552
+        }
+      },
+      {
+        "case_id": "satisfaction_cancellation_rate",
+        "correct": true,
+        "expected_relation": "related_distinct_metric",
+        "predicted_relation": "related_distinct_metric",
+        "scores": {
+          "related_distinct_metric": -10.02158451,
+          "same_metric_different_state": -11.40466118,
+          "same_process_different_stage": -13.65585136
+        }
+      }
+    ]
+  },
+  "benchmark_id": "adaptation:semantic_reasoning:hotel:v0.1",
+  "benchmark_version": "datalens_adapted_semantic_reasoning_hotel_v0.1",
+  "created_at": "2026-08-29T22:56:18.301209+00:00",
+  "execution_git_commit": "2cb1dff0a771f6c89f72a9e24a0b17994d325391",
+  "final_acceptance_evaluated": false,
+  "final_acceptance_loaded": false,
+  "generation_used": false,
+  "llm_judge_used": false,
+  "manifest_sha256": "55ba611d2ef9409999eb2968b3ffe834fc8db6378fd65f29b0e48502625d83da",
+  "memory": {
+    "cuda_total_bytes": 8585216000,
+    "free_cuda_bytes_before_load": 7441743872,
+    "peak_allocated_bytes": 3678658560,
+    "peak_reserved_bytes": 4647288832
+  },
+  "paired": {
+    "accuracy_delta": -0.157894,
+    "adapted_only_correct": 0,
+    "base_only_correct": 3,
+    "both_correct": 3,
+    "both_wrong": 13,
+    "changed_prediction_count": 3,
+    "macro_accuracy_delta": -0.076923,
+    "preregistered_signal": "negative_signal"
+  },
+  "protocol_commit": "60e50bb435f8e3f8bc8b2d093d711676ed645b6c",
+  "protocol_freeze_sha256": "b62d681b2ed94cc544ed2ac7d8270f38482266e130448254b6a4c8633dd5abab",
+  "runner_rule_version": "adapted_reasoning_evaluation_runner_v0.2",
+  "scoring": {
+    "assistant_span_definition": "all full-chat token IDs after the exact add_generation_prompt=True user-only prefix",
+    "candidate_selection": "argmax_mean_log_probability",
+    "generation_used": false,
+    "llm_judge_used": false,
+    "max_sequence_length": 256,
+    "rule_version": "adapted_semantic_reasoning_scoring_v0.1",
+    "silent_truncation_allowed": false,
+    "ties": "fail_closed"
+  },
+  "status": "completed",
+  "training_loss_used_as_acceptance_evidence": false
+}

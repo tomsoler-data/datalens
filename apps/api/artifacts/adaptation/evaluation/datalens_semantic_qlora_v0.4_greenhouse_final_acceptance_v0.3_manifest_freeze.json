@@ -1,0 +1,38 @@
+{
+  "authorization_sha256": "bed6243c2995a5376f57d1ae2bd3135ec6e6e91a71de0e1d2e74becd9e7849c9",
+  "execution_compatibility": {
+    "decision_git_commit": "205d43e44f3cd3834532df314de08c560f11b01b",
+    "decision_sha256": "65a2a5b3849d25e1b4363fcaa3e6ab7ab5043f520b57b0ee3dd64603dc322795",
+    "scope": "execution_compatibility_only",
+    "status": "approved_before_greenhouse_holdout_consumption"
+  },
+  "execution_revision": "v0.3",
+  "experiment_id": "adaptation:datalens-semantic-qlora-v0.4",
+  "freeze_rule_version": "qlora_v0.4_greenhouse_final_acceptance_manifest_freeze_v0.3",
+  "frozen_before_greenhouse_evaluation": true,
+  "frozen_before_greenhouse_protected_read": true,
+  "greenhouse_cases_consumed": false,
+  "greenhouse_dataset_consumed": false,
+  "greenhouse_evaluation_executed": false,
+  "greenhouse_independence_consumed": false,
+  "greenhouse_results_observed": false,
+  "historical_greenhouse_freeze_sha256": "11615352547f152b91e592066142c3431b557c5f620018380b71b931cb77a736",
+  "input_contract_sha256": "df54af3e32dc97b5fd43573c8c2a8caf1335976fde3b39faa51afc48ab5244e3",
+  "manifest_relative_path": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_final_acceptance_v0.3_manifest.json",
+  "manifest_sha256": "fee31119671221e0cd2345c906cbcafc138000a57b63bddb87d87febab4217a7",
+  "protocol_sha256": "056272cca075a6f8c48c38f5296c0ddacaaeb29e64f08048a43a80ea3dab0b16",
+  "reexecution_permitted": false,
+  "runner_git_commit": "b0b6743fa3e7a88c6e84bd4cd49873e7f211cb67",
+  "runner_sha256": "24fa4598ef89017cbac3533180494e3db6cab0dda06fcf8b03150bc4d0deb668",
+  "single_use_final_acceptance": true,
+  "source_git_commit": "b0b6743fa3e7a88c6e84bd4cd49873e7f211cb67",
+  "status": "frozen_pre_execution",
+  "superseded_execution": {
+    "execution_revision": "v0.2",
+    "manifest_freeze_sha256": "1377c54ee5d3ce93a9c6e39c67a2ab36bac702b64185919c27d9ddd9b32d3612",
+    "manifest_sha256": "d0f57fe2c476641e598c938e98cd24636b24906924cd6997784c05be37802ad8",
+    "superseded_before_greenhouse_consumption": true
+  },
+  "task_interpretation_sha256": "9f097f8b8e7e2dd182cc86cc5ed12fc74ded18262bac2af3639d2bf07bdf61a2",
+  "test_sha256": "0044bddfaed6f75dc010b12d2c66a070c18e49665bab822a39155e748f7aac08"
+}

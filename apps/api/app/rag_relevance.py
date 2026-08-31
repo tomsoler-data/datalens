@@ -31,7 +31,7 @@ from app.security.llm_payload import (
 # ============================================================
 
 RELEVANCE_RULE_VERSION = (
-    "rag_relevance_v0.7"
+    "rag_relevance_v0.8"
 )
 
 
@@ -1581,6 +1581,101 @@ def build_negative_decision(
 
 
 # ============================================================
+# EXPLICIT REQUEST RELATION GUARD
+# ============================================================
+
+EXPLICIT_REQUEST_RELATION_PHRASES = {
+    "analyse à réaliser",
+    "analyse a realiser",
+    "analyse à effectuer",
+    "analyse a effectuer",
+    "j'aimerais que",
+    "je souhaite",
+    "nous souhaitons",
+    "veuillez",
+}
+
+
+EXPLICIT_REQUEST_RELATION_ACTIONS = {
+    "calcule",
+    "calculer",
+    "calculez",
+    "compte",
+    "compter",
+    "comptez",
+    "combien",
+    "analyser",
+    "analysez",
+    "étudier",
+    "etudier",
+    "étudiez",
+    "etudiez",
+    "comparer",
+    "comparez",
+}
+
+
+def evidence_is_exact_explicit_request(
+    *,
+    finding: str,
+    evidence: str,
+) -> bool:
+    """
+    Promote a selected evidence unit to explicit_request only
+    when:
+
+    1. it is exactly the finding title;
+    2. the title itself contains an explicit analytical
+       request/action cue.
+
+    Exact equality prevents definitions, business rules and
+    interpretation sentences from being promoted only because
+    they share vocabulary with the analytical request.
+    """
+
+    title = extract_contract_field(
+        finding=
+            finding,
+
+        label=
+            "Titre du finding",
+    )
+
+
+    if title is None:
+        return False
+
+
+    if (
+        normalize_for_matching(
+            title
+        )
+        !=
+        normalize_for_matching(
+            evidence
+        )
+    ):
+        return False
+
+
+    if contains_any_phrase(
+        title,
+        EXPLICIT_REQUEST_RELATION_PHRASES,
+    ):
+        return True
+
+
+    if contains_any_token(
+        title,
+        EXPLICIT_REQUEST_RELATION_ACTIONS,
+    ):
+        return True
+
+
+    return False
+
+
+# ============================================================
 # DETERMINISTIC DECISION VERIFICATION
 # ============================================================
 
@@ -1700,18 +1795,56 @@ def verify_decision(
         )
 
 
+    verified_relation_type = (
+        decision.relation_type
+    )
+
+    verified_strength = (
+        decision.strength
+    )
+
+    verified_reason = (
+        reason
+        or
+        (
+            "Une unité documentaire validée par "
+            "Python couvre le contrat analytique."
+        )
+    )
+
+
+    if evidence_is_exact_explicit_request(
+        finding=
+            finding,
+
+        evidence=
+            evidence_quote,
+    ):
+        verified_relation_type = (
+            "explicit_request"
+        )
+
+        verified_strength = (
+            "direct"
+        )
+
+        verified_reason = (
+            "La preuve sélectionnée correspond "
+            "exactement au titre d'une demande "
+            "analytique explicite."
+        )
+
+
     return (
         RelevanceDecision(
             verdict=
                 "relevant",
 
             relation_type=
-                decision
-                .relation_type,
+                verified_relation_type,
 
             strength=
-                decision
-                .strength,
+                verified_strength,
 
             evidence_unit_id=
                 decision
@@ -1720,14 +1853,8 @@ def verify_decision(
             evidence_quote=
                 evidence_quote,
 
-            reason=(
-                reason
-                or
-                (
-                    "Une unité documentaire validée par "
-                    "Python couvre le contrat analytique."
-                )
-            ),
+            reason=
+                verified_reason,
         )
     )
 

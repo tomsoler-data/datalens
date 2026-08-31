@@ -36,20 +36,6 @@ from sklearn.linear_model import (
 )
 
 
-from sklearn.metrics import (
-    accuracy_score,
-    balanced_accuracy_score,
-    explained_variance_score,
-    f1_score,
-    mean_absolute_error,
-    mean_squared_error,
-    median_absolute_error,
-    precision_score,
-    r2_score,
-    recall_score,
-)
-
-
 from sklearn.model_selection import (
     train_test_split,
 )
@@ -99,12 +85,31 @@ from app.ml.preprocessing import (
 
 from app.ml.model_artifact_store import (
     MLModelArtifactStoreError,
+    delete_ml_model_artifact,
     register_ml_model_artifact,
 )
 
 
 from app.ml.model_artifacts import (
     MLModelArtifactRecord,
+)
+
+
+from app.ml.model_metrics import (
+    MLModelMetricsError,
+    compute_ml_classification_metrics,
+    compute_ml_regression_metrics,
+    project_ml_baseline_metrics_v0_1,
+)
+
+
+from app.ml.monitoring_profile_builder import (
+    build_ml_monitoring_profile,
+)
+
+
+from app.ml.monitoring_profile_store import (
+    register_ml_monitoring_profile,
 )
 
 
@@ -131,6 +136,11 @@ CLASSICAL_ML_EXECUTOR_RULE_VERSION = (
 
 ML_RICHER_METRICS_RULE_VERSION = (
     "ml_richer_metrics_v0.1"
+)
+
+
+ML_MONITORING_TRAINING_INTEGRATION_RULE_VERSION = (
+    "ml_monitoring_training_integration_v0.1"
 )
 
 
@@ -1273,70 +1283,22 @@ def _regression_metrics(
     str,
     float,
 ]:
+    """
+    Backward-compatible private alias.
 
-    mae = float(
-        mean_absolute_error(
-            y_true,
-            predictions,
+    New production code must import the canonical public helper
+    from app.ml.model_metrics.
+    """
+
+    return (
+        compute_ml_regression_metrics(
+            y_true=
+                y_true,
+
+            predictions=
+                predictions,
         )
     )
-
-
-    mse = float(
-        mean_squared_error(
-            y_true,
-            predictions,
-        )
-    )
-
-
-    rmse = float(
-        math.sqrt(
-            mse
-        )
-    )
-
-
-    r2 = float(
-        r2_score(
-            y_true,
-            predictions,
-        )
-    )
-
-
-    median_ae = float(
-        median_absolute_error(
-            y_true,
-            predictions,
-        )
-    )
-
-
-    explained_variance = float(
-        explained_variance_score(
-            y_true,
-            predictions,
-        )
-    )
-
-
-    return {
-        "mae":
-            mae,
-
-        "rmse":
-            rmse,
-
-        "r2":
-            r2,
-
-        "median_absolute_error":
-            median_ae,
-
-        "explained_variance":
-            explained_variance,
-    }
 
 
 def _classification_metrics(
@@ -1347,54 +1309,22 @@ def _classification_metrics(
     str,
     float,
 ]:
+    """
+    Backward-compatible private alias.
 
-    return {
-        "accuracy":
-            float(
-                accuracy_score(
-                    y_true,
-                    predictions,
-                )
-            ),
+    New production code must import the canonical public helper
+    from app.ml.model_metrics.
+    """
 
-        "f1_macro":
-            float(
-                f1_score(
-                    y_true,
-                    predictions,
-                    average="macro",
-                    zero_division=0,
-                )
-            ),
+    return (
+        compute_ml_classification_metrics(
+            y_true=
+                y_true,
 
-        "precision_macro":
-            float(
-                precision_score(
-                    y_true,
-                    predictions,
-                    average="macro",
-                    zero_division=0,
-                )
-            ),
-
-        "recall_macro":
-            float(
-                recall_score(
-                    y_true,
-                    predictions,
-                    average="macro",
-                    zero_division=0,
-                )
-            ),
-
-        "balanced_accuracy":
-            float(
-                balanced_accuracy_score(
-                    y_true,
-                    predictions,
-                )
-            ),
-    }
+            predictions=
+                predictions,
+        )
+    )
 
 
 def _baseline_metrics_v0_1(
@@ -1409,83 +1339,27 @@ def _baseline_metrics_v0_1(
     float,
 ]:
     """
-    Project richer runtime metrics onto the exact Baseline
-    v0.1 public metric surface.
-
-    Model metrics are richer.
-
-    Baseline v0.1 remains intentionally compatible:
-    - regression: mae / rmse / r2
-    - classification: accuracy / f1_macro
+    Backward-compatible private alias preserving the historical
+    ClassicalMLExecutorError boundary.
     """
 
-    if (
-        problem_type
-        ==
-        "regression"
-    ):
-        required_names = (
-            "mae",
-            "rmse",
-            "r2",
-        )
+    try:
+        return (
+            project_ml_baseline_metrics_v0_1(
+                problem_type=
+                    problem_type,
 
-    elif (
-        problem_type
-        ==
-        "classification"
-    ):
-        required_names = (
-            "accuracy",
-            "f1_macro",
-        )
-
-    else:
-        raise (
-            ClassicalMLExecutorError(
-                (
-                    "Unsupported problem type for "
-                    "Baseline v0.1 metric projection. "
-                    f"problem_type={problem_type}"
-                )
+                metrics=
+                    metrics,
             )
         )
 
-
-    missing = [
-        metric_name
-
-        for metric_name
-        in required_names
-
-        if metric_name
-        not in metrics
-    ]
-
-
-    if missing:
-        raise (
-            ClassicalMLExecutorError(
-                (
-                    "Richer ML metric surface is missing "
-                    "metrics required by Baseline v0.1. "
-                    f"missing={missing}"
-                )
+    except MLModelMetricsError as error:
+        raise ClassicalMLExecutorError(
+            str(
+                error
             )
-        )
-
-
-    return {
-        metric_name:
-            float(
-                metrics[
-                    metric_name
-                ]
-            )
-
-        for metric_name
-        in required_names
-    }
+        ) from error
 
 
 def _validate_metrics(
@@ -2045,6 +1919,103 @@ def execute_classical_ml(
                 )
             )
         )
+
+
+    # ========================================================
+    # ML MONITORING REFERENCE
+    #
+    # The exact x_train created by the deterministic holdout
+    # split is reused here.
+    #
+    # No second split.
+    # No second fit.
+    # No holdout observations.
+    # No raw rows persisted.
+    # ========================================================
+
+
+    try:
+        monitoring_profile = (
+            build_ml_monitoring_profile(
+                x_train=
+                    x_train,
+
+                model_artifact=
+                    model_artifact,
+            )
+        )
+
+
+        register_ml_monitoring_profile(
+            profile=
+                monitoring_profile
+        )
+
+
+    except Exception as error:
+
+        # ----------------------------------------------------
+        # The Model Artifact already exists at this point.
+        #
+        # A training execution must not be returned as
+        # successful if its required monitoring reference
+        # could not be created.
+        #
+        # Compensate the newly-created Model Artifact.
+        #
+        # SQLite deletion also cascades any partially-created
+        # Monitoring Profile.
+        # ----------------------------------------------------
+
+
+        cleanup_error = None
+
+
+        try:
+            delete_ml_model_artifact(
+                model_id=
+                    model_artifact.model_id,
+
+                workflow_id=
+                    model_artifact.workflow_id,
+            )
+
+        except Exception as candidate:
+            cleanup_error = (
+                candidate
+            )
+
+
+        if (
+            cleanup_error
+            is not None
+        ):
+            raise (
+                ClassicalMLExecutorError(
+                    (
+                        "Classical ML training "
+                        "completed, but Monitoring "
+                        "Profile persistence failed "
+                        "and Model Artifact "
+                        "compensation could not "
+                        "complete cleanly."
+                    )
+                )
+            ) from error
+
+
+        raise (
+            ClassicalMLExecutorError(
+                (
+                    "Classical ML training "
+                    "completed, but the required "
+                    "Monitoring Profile could not "
+                    "be persisted. The newly "
+                    "created Model Artifact was "
+                    "compensated."
+                )
+            )
+        ) from error
 
 
     return (

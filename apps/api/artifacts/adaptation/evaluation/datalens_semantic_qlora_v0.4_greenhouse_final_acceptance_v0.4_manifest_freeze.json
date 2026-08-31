@@ -1,0 +1,98 @@
+{
+  "authorization_sha256": "bed6243c2995a5376f57d1ae2bd3135ec6e6e91a71de0e1d2e74becd9e7849c9",
+  "execution_compatibility": {
+    "decision_git_commit": "205d43e44f3cd3834532df314de08c560f11b01b",
+    "decision_sha256": "65a2a5b3849d25e1b4363fcaa3e6ab7ab5043f520b57b0ee3dd64603dc322795",
+    "scope": "execution_compatibility_only",
+    "status": "approved_before_greenhouse_holdout_consumption"
+  },
+  "execution_revision": "v0.4",
+  "execution_state": {
+    "authorization_v0_2_present": false,
+    "greenhouse_consumed": false,
+    "greenhouse_evaluated": false,
+    "greenhouse_results_observed": false,
+    "immediately_executable": false,
+    "reexecution_permitted": false,
+    "retry_permitted": false,
+    "single_use": true
+  },
+  "experiment_id": "adaptation:datalens-semantic-qlora-v0.4",
+  "final_acceptance_revision": "v0.1",
+  "freeze_build_governance": {
+    "adapter_attached": false,
+    "consumption_marker_created": false,
+    "generation_executed": false,
+    "greenhouse_evaluation_executed": false,
+    "greenhouse_results_observed": false,
+    "model_loaded": false,
+    "protected_cases_bytes_read": false,
+    "protected_csv_parsed": false,
+    "protected_dataset_bytes_read": false,
+    "protected_hashes_recomputed": false,
+    "protected_independence_bytes_read": false,
+    "protected_json_parsed": false,
+    "training_executed": false
+  },
+  "freeze_rule_version": "qlora_v0.4_greenhouse_final_acceptance_manifest_freeze_v0.4",
+  "frozen_before_greenhouse_evaluation": true,
+  "frozen_before_greenhouse_protected_read": true,
+  "greenhouse_cases_consumed": false,
+  "greenhouse_dataset_consumed": false,
+  "greenhouse_evaluation_executed": false,
+  "greenhouse_independence_consumed": false,
+  "greenhouse_results_observed": false,
+  "historical_greenhouse_freeze_sha256": "11615352547f152b91e592066142c3431b557c5f620018380b71b931cb77a736",
+  "input_contract_sha256": "df54af3e32dc97b5fd43573c8c2a8caf1335976fde3b39faa51afc48ab5244e3",
+  "launch_path_decision_binding": {
+    "git_commit": "71931b700529a32a4224748816002351f20734b0",
+    "relative_path": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_execution_launch_path_decision_v0.1.json",
+    "sha256": "ccf9d9127eca9690dc4b8742356bf9673a79bbae9d23e8b0d54b948b776f00c4"
+  },
+  "launcher_binding": {
+    "git_commit": "09998281cf6d6319d597a915cd4bf0bf98ddf4b8",
+    "launcher_revision": "v0.1",
+    "relative_path": "app/adaptation/greenhouse_final_acceptance_launcher_v0_4_v0_1.py",
+    "sha256": "9e2d282bc2eba2fd25074b8d2bb5c106b53e22c7c6f459d9ae6609986829d1c6"
+  },
+  "launcher_test_binding": {
+    "git_commit": "09998281cf6d6319d597a915cd4bf0bf98ddf4b8",
+    "launcher_revision": "v0.1",
+    "relative_path": "tests/adaptation/test_greenhouse_final_acceptance_launcher_v0_4_v0_1.py",
+    "sha256": "49cfd6d6a2038ed232f4ce25f75e3d8bd19cc459362bd85924381de604f0b5ed"
+  },
+  "manifest_binding": {
+    "execution_revision": "v0.4",
+    "relative_path": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_final_acceptance_v0.4_manifest.json",
+    "sha256": "60cd3148c475f02509ba3a674cd7eb5d8c7c5ea5d9e66c06a961f9560eaf6dbb"
+  },
+  "manifest_relative_path": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_final_acceptance_v0.4_manifest.json",
+  "manifest_sha256": "60cd3148c475f02509ba3a674cd7eb5d8c7c5ea5d9e66c06a961f9560eaf6dbb",
+  "protocol_sha256": "056272cca075a6f8c48c38f5296c0ddacaaeb29e64f08048a43a80ea3dab0b16",
+  "reexecution_permitted": false,
+  "runner_binding": {
+    "execution_revision": "v0.3",
+    "git_commit": "b0b6743fa3e7a88c6e84bd4cd49873e7f211cb67",
+    "relative_path": "app/adaptation/greenhouse_final_acceptance_runner_v0_4_v0_3.py",
+    "sha256": "24fa4598ef89017cbac3533180494e3db6cab0dda06fcf8b03150bc4d0deb668"
+  },
+  "runner_git_commit": "b0b6743fa3e7a88c6e84bd4cd49873e7f211cb67",
+  "runner_sha256": "24fa4598ef89017cbac3533180494e3db6cab0dda06fcf8b03150bc4d0deb668",
+  "single_use_final_acceptance": true,
+  "source_git_commit": "09998281cf6d6319d597a915cd4bf0bf98ddf4b8",
+  "status": "frozen_pre_execution",
+  "superseded_execution": {
+    "execution_revision": "v0.2",
+    "manifest_freeze_sha256": "1377c54ee5d3ce93a9c6e39c67a2ab36bac702b64185919c27d9ddd9b32d3612",
+    "manifest_sha256": "d0f57fe2c476641e598c938e98cd24636b24906924cd6997784c05be37802ad8",
+    "superseded_before_greenhouse_consumption": true
+  },
+  "supersedes_manifest_freeze": {
+    "execution_revision": "v0.3",
+    "git_commit": "92a90fd3eb6b03e308ec66139c8d87323c8d92eb",
+    "relative_path": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_final_acceptance_v0.3_manifest_freeze.json",
+    "sha256": "d2630e1415c8509bb9ba4baa4dcfd580a3b5012b66636d1cedc5914114c6a63c"
+  },
+  "task_interpretation_sha256": "9f097f8b8e7e2dd182cc86cc5ed12fc74ded18262bac2af3639d2bf07bdf61a2",
+  "test_sha256": "0044bddfaed6f75dc010b12d2c66a070c18e49665bab822a39155e748f7aac08"
+}

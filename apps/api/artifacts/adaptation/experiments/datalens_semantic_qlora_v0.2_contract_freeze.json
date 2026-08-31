@@ -1,0 +1,40 @@
+{
+  "contract_relative_path": "artifacts/adaptation/experiments/datalens_semantic_qlora_v0.2_contract.json",
+  "contract_sha256": "7478581526c168ccc5f7f797803eb3f125f1e5753247dcf0568e7f25e98f90bd",
+  "correction": {
+    "base_model_repository_changed": false,
+    "base_model_revision_changed": false,
+    "corrected_value": "gemma3",
+    "evaluation_evidence_changed": false,
+    "field": "base_model.model_family",
+    "final_acceptance_changed": false,
+    "kind": "contract_compatibility_correction",
+    "previous_value": "gemma-3-4b-it",
+    "reason": "qlora_target_resolver_v0.1 requires the canonical model family identifier 'gemma3'.",
+    "training_dataset_changed": false,
+    "training_policy_changed": false
+  },
+  "experiment_contract_rule_version": "qlora_experiment_contract_v0.1",
+  "experiment_id": "datalens-semantic-qlora-v0.2",
+  "final_acceptance_freeze_sha256": "11615352547f152b91e592066142c3431b557c5f620018380b71b931cb77a736",
+  "frozen_at": "2026-08-29T17:05:13Z",
+  "frozen_before_training": true,
+  "pre_adaptation_holdout_sha256": [
+    "9231548867ceac9832d455a03e01b3db6617b9ea61b4e83b5e07a4d87f63ef8d",
+    "0520ab2b34f772352bf7de3d1941bb3ba0ab9f1c432df41c9fef9599fd839e0f",
+    "d27e58c93208f6b28abd5e699ccb65ad520cc36c49512909aa60a44f9887ce4d",
+    "1093f35d6f30870bf128226ecfa32ea7851aaa1ab5cc2d2a603fccca61735cd2",
+    "6ab32e5e6551555e05d02ed8d7a4e0b9bbfa980d6ca9984b8d71dd6e12b87402"
+  ],
+  "regression_baseline_sha256": [
+    "fdb5510e9426b857aa9e52feb4d3282f367e10af1d8ae4335c727673506960ac"
+  ],
+  "rule_version": "qlora_experiment_contract_freeze_v0.1",
+  "status": "frozen",
+  "supersedes_contract_freeze_sha256": "b4bb9052b7020f1f0f31a7527ef048511f6049e227a02642d8ba23bcc4ebc4d9",
+  "supersedes_contract_sha256": "7064fb41a70ae3560d1d43f26972e1fda7f017bc4bc01239397dcf7adfff4c32",
+  "supersedes_experiment_id": "datalens-semantic-qlora-v0.1",
+  "training_dataset_freeze_sha256": "c62131b9c9c1e9176d98f6adb2991cd6b53118177f332274e52ec982f2a14bb2",
+  "training_dataset_sha256": "4d7f1d8defeeb956448e31d776e5310795326b08ec5ddaf24091bd493c42f892",
+  "training_started_at_contract_freeze": false
+}

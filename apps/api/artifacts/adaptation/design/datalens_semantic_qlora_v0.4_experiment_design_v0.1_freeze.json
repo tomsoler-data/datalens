@@ -1,0 +1,19 @@
+{
+  "design_relative_path": "artifacts/adaptation/design/datalens_semantic_qlora_v0.4_experiment_design_v0.1.json",
+  "design_sha256": "dd36103a01cadc49101dfeffa006bba9e9cf6cdfc3599a3f0967beff14765cf9",
+  "experiment_id": "datalens-semantic-qlora-v0.4",
+  "final_acceptance_opened": false,
+  "freeze_rule_version": "qlora_v0.4_experiment_design_freeze_v0.1",
+  "frozen_before_holdout_authoring": true,
+  "frozen_before_training_dataset_authoring": true,
+  "frozen_before_v0_4_training": true,
+  "module_sha256": "e58d2b393ed351ff43bd9004b492830acfcda8330bd85ca283ae29438884184d",
+  "parent_git_commit": "448b2315844289db18753870967c2eac8fe334f5",
+  "source_v0_3_evaluation_report_sha256": "1194baabef17891f84f2879a135586c7da95363cbac49c4258a8133d81c6206b",
+  "source_v0_3_failure_analysis_sha256": "0b5465125de253dca043a37525516b5cca94c7bc5786d8d38e06db14040f4a05",
+  "status": "frozen",
+  "test_sha256": "c5a6ca6fd1381067bc9d882b49aab50d4f9623eb538ae9e4f33f4e5229f3336c",
+  "v0_4_holdout_authored": false,
+  "v0_4_training_dataset_authored": false,
+  "v0_4_training_executed": false
+}

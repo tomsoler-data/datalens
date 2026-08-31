@@ -88,6 +88,7 @@ with tempfile.TemporaryDirectory(
 
 
     from app.persistence.sqlite_database import (
+        SQLITE_SCHEMA_VERSION,
         sqlite_connection,
         sqlite_schema_version,
     )
@@ -109,7 +110,7 @@ with tempfile.TemporaryDirectory(
     assert (
         sqlite_schema_version()
         ==
-        9
+        SQLITE_SCHEMA_VERSION
     )
 
 

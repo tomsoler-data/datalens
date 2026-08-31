@@ -1,0 +1,22 @@
+{
+  "airport_cases_consumed": false,
+  "airport_cases_sha256": "7d9454d0d59dd047050bd72d195feb1390ca0edc2c83584af0cbfec951cf3939",
+  "airport_evaluation_executed": false,
+  "airport_holdout_id": "adaptation:datalens-semantic-qlora-v0.4:airport-ground-operations:holdout:v0.1",
+  "airport_results_observed": false,
+  "experiment_id": "datalens-semantic-qlora-v0.4",
+  "freeze_rule_version": "qlora_v0.4_airport_evaluation_manifest_freeze_v0.1",
+  "frozen_before_airport_case_consumption": true,
+  "frozen_before_airport_evaluation": true,
+  "greenhouse_closed": true,
+  "greenhouse_evaluated": false,
+  "manifest_relative_path": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_airport_evaluation_v0.1_manifest.json",
+  "manifest_sha256": "663a2e685a17f3759e7d1b258763eeb306a91b84ea3b5698fa6c641758cd6582",
+  "protocol_sha256": "a88cb86565c0a3d4daa4d5b2bea3beeed79a7df81155ed4d4ed0c7bfef2e00d1",
+  "reexecution_permitted": false,
+  "runner_sha256": "0acda8d3d009a8aefa89ec7229d47301a92dec335d5e68a0d87f5978164c9b3a",
+  "single_use_holdout": true,
+  "source_git_commit": "beb83a63a1cab87f45d4f5bbe98d5f75a652acd1",
+  "status": "frozen",
+  "test_sha256": "7828c0d41dab18c9db5723014b0af2004da89bf6b5d3b5ee74e885af86bece60"
+}

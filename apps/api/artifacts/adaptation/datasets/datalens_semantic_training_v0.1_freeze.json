@@ -1,0 +1,32 @@
+{
+  "builder_rule_version": "adaptation_dataset_builder_v0.1",
+  "contains_final_acceptance_material": false,
+  "contamination_match_count": 0,
+  "contamination_report_relative_path": "artifacts/adaptation/governance/datalens_semantic_training_v0.1_contamination.json",
+  "contamination_report_sha256": "0e94883e85fac7545c1bd672d844dde0a29cfcbb31d00941562cbec4d41237d6",
+  "dataset": {
+    "contains_pre_adaptation_holdout_material": false,
+    "contains_rag_holdout_material": false,
+    "contains_regression_expected_answers": false,
+    "contamination_report_sha256": "0e94883e85fac7545c1bd672d844dde0a29cfcbb31d00941562cbec4d41237d6",
+    "dataset_id": "adaptation:datalens-semantic:training:v0.1",
+    "dataset_sha256": "4d7f1d8defeeb956448e31d776e5310795326b08ec5ddaf24091bd493c42f892",
+    "dataset_version": "datalens_semantic_adaptation_training_v0.1",
+    "example_count": 40,
+    "frozen": true,
+    "governance_rule_version": "adaptation_data_governance_v0.1",
+    "scope": "adaptation_training"
+  },
+  "dataset_relative_path": "artifacts/adaptation/datasets/datalens_semantic_training_v0.1.jsonl",
+  "final_acceptance_tuning_input": false,
+  "forbidden_provenance_index_sha256": "341e58969c9b20fb337d53b14ed24c3577efd65a344d5b3fd4b9e5792e47661c",
+  "freeze_rule_version": "adaptation_dataset_freeze_v0.1",
+  "frozen_at": "2026-08-29T16:51:45Z",
+  "frozen_before_training": true,
+  "protected_corpus_sha256": "537289dadb18e4ed62476e383405b4f0b8d880d84c6275ddb675742e28094425",
+  "provenance_report_relative_path": "artifacts/adaptation/governance/datalens_semantic_training_v0.1_provenance.json",
+  "provenance_report_sha256": "8f796c41870e6de44caf10d83f3880c2470ba2a6c5735d3090c1e524830a482d",
+  "provenance_violation_count": 0,
+  "status": "frozen",
+  "training_started_at_freeze": false
+}

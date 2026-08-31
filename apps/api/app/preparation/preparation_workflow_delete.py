@@ -183,6 +183,22 @@ _WORKFLOW_TABLE_ALLOWLIST = {
     "report_selection_workflows",
     "analysis_artifacts",
     "ml_model_artifacts",
+
+    # Subordinate ML observability metadata.
+    #
+    # These rows are not deleted directly here:
+    #
+    # ml_model_artifacts
+    #     -> ml_monitoring_profiles
+    #         -> ml_drift_evaluations
+    #
+    # Their SQLite foreign keys own the cascade.
+    "ml_monitoring_profiles",
+    "ml_drift_evaluations",
+
+    # Performance evidence is directly subordinate to the
+    # trusted Model Artifact and cascades on model deletion.
+    "ml_performance_evaluations",
 }
 
 

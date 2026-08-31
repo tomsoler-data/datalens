@@ -1,0 +1,56 @@
+{
+  "configuration_change": {
+    "base_model_changed": false,
+    "evaluation_evidence_changed": false,
+    "field": "training.max_sequence_length",
+    "final_acceptance_changed": false,
+    "kind": "evidence_based_resource_configuration",
+    "lora_policy_changed": false,
+    "new_value": 256,
+    "optimization_policy_changed": false,
+    "previous_value": 1024,
+    "quantization_changed": false,
+    "training_dataset_changed": false
+  },
+  "contract_relative_path": "artifacts/adaptation/experiments/datalens_semantic_qlora_v0.3_contract.json",
+  "contract_sha256": "609954fe4f06ace47000475053dcb011a4337e36122678860fb744eff645f92e",
+  "decision_evidence": {
+    "observed_training_example_max_tokens": 85,
+    "observed_training_example_p95_tokens": 81,
+    "previous_probe_peak_allocated_bytes": 9139566080,
+    "previous_probe_peak_reserved_bytes": 10297016320,
+    "previous_probe_total_vram_bytes": 8585216000,
+    "reason": "The frozen 40-example adaptation dataset has a maximum rendered length of 85 tokens. Sequence length 256 preserves 100 percent of examples with zero truncation, while the v0.2 seq=1024 forward/backward stress probe demonstrated unnecessary memory pressure above dedicated GPU VRAM.",
+    "seq_256_coverage_examples": 40,
+    "seq_256_tokens_removed": 0,
+    "seq_256_total_examples": 40,
+    "seq_256_truncated_examples": 0,
+    "source_memory_probe_relative_path": "artifacts/adaptation/probes/datalens_semantic_qlora_v0.2_memory_probe.json",
+    "source_memory_probe_sha256": "900c321e2c4eb3cf3224ce46dcb3e22fff75e74bdaa8fb1dfdd528b4d965e6f4",
+    "token_length_audit_relative_path": "artifacts/adaptation/probes/datalens_semantic_training_v0.1_token_length_audit.json",
+    "token_length_audit_sha256": "b4e0011edc709f572789a40c659d792b0ea1809eba9b0cfd7fa3507389e40e94"
+  },
+  "experiment_contract_rule_version": "qlora_experiment_contract_v0.1",
+  "experiment_id": "datalens-semantic-qlora-v0.3",
+  "final_acceptance_freeze_sha256": "11615352547f152b91e592066142c3431b557c5f620018380b71b931cb77a736",
+  "frozen_at": "2026-08-29T21:46:39Z",
+  "frozen_before_training": true,
+  "pre_adaptation_holdout_sha256": [
+    "9231548867ceac9832d455a03e01b3db6617b9ea61b4e83b5e07a4d87f63ef8d",
+    "0520ab2b34f772352bf7de3d1941bb3ba0ab9f1c432df41c9fef9599fd839e0f",
+    "d27e58c93208f6b28abd5e699ccb65ad520cc36c49512909aa60a44f9887ce4d",
+    "1093f35d6f30870bf128226ecfa32ea7851aaa1ab5cc2d2a603fccca61735cd2",
+    "6ab32e5e6551555e05d02ed8d7a4e0b9bbfa980d6ca9984b8d71dd6e12b87402"
+  ],
+  "regression_baseline_sha256": [
+    "fdb5510e9426b857aa9e52feb4d3282f367e10af1d8ae4335c727673506960ac"
+  ],
+  "rule_version": "qlora_experiment_contract_freeze_v0.1",
+  "status": "frozen",
+  "supersedes_contract_freeze_sha256": "4a8d532bb0e439a9e833da1e919990596d2c4cfe11a8a9320796e2f0ebc94bf1",
+  "supersedes_contract_sha256": "7478581526c168ccc5f7f797803eb3f125f1e5753247dcf0568e7f25e98f90bd",
+  "supersedes_experiment_id": "datalens-semantic-qlora-v0.2",
+  "training_dataset_freeze_sha256": "c62131b9c9c1e9176d98f6adb2991cd6b53118177f332274e52ec982f2a14bb2",
+  "training_dataset_sha256": "4d7f1d8defeeb956448e31d776e5310795326b08ec5ddaf24091bd493c42f892",
+  "training_started_at_contract_freeze": false
+}

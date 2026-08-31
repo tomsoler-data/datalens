@@ -16,12 +16,16 @@ from app.ml.baseline import (
 
 from app.ml.classical_executor import (
     ClassicalMLInputError,
-    _baseline_metrics_v0_1,
-    _classification_metrics,
     _load_authorized_dataframe,
-    _regression_metrics,
     _split_dataset,
     _validate_and_extract_xy,
+)
+
+
+from app.ml.model_metrics import (
+    compute_ml_classification_metrics,
+    compute_ml_regression_metrics,
+    project_ml_baseline_metrics_v0_1,
 )
 
 
@@ -733,7 +737,7 @@ def _reconstruct_baseline(
         ):
 
             richer_baseline_metrics = (
-                _regression_metrics(
+                compute_ml_regression_metrics(
                     y_true=
                         y_test,
 
@@ -747,7 +751,7 @@ def _reconstruct_baseline(
         else:
 
             richer_baseline_metrics = (
-                _classification_metrics(
+                compute_ml_classification_metrics(
                     y_true=
                         y_test,
 
@@ -760,7 +764,7 @@ def _reconstruct_baseline(
 
 
         baseline_metrics = (
-            _baseline_metrics_v0_1(
+            project_ml_baseline_metrics_v0_1(
                 problem_type=
                     problem_type,
 

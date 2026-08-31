@@ -1,0 +1,189 @@
+{
+  "evaluation": {
+    "acceptance_gates": {
+      "adapted_dangerous_false_positives_maximum": 0,
+      "adapted_projected_relation_accuracy_minimum": 0.8,
+      "adapted_safety_failures_maximum": 0,
+      "adapted_strict_json_validity_required": 1.0,
+      "all_gates_must_pass": true,
+      "greenhouse_freeze_integrity_must_pass": true,
+      "s3_regression_gate_must_remain_pass": true
+    },
+    "evaluation_models": {
+      "adapted": {
+        "acceptance_authority": true,
+        "adapter_bundle_sha256": "0351980df6d86096195c0971deb30c725e155c71aa5de8054b2b37fa42090716",
+        "evaluated": true,
+        "role": "final_acceptance_candidate"
+      },
+      "base": {
+        "acceptance_authority": false,
+        "evaluated": true,
+        "may_trigger_model_selection": false,
+        "role": "diagnostic_only"
+      },
+      "base_to_adapted_result_comparison_is_acceptance_gate": false,
+      "same_case_order_required": true,
+      "same_prompt_inputs_required": true
+    },
+    "generation_policy": {
+      "chat_template_return_dict": false,
+      "do_sample": false,
+      "eos_token_ids": [
+        1,
+        106
+      ],
+      "generation_budget_exhaustion": "final_acceptance_failure",
+      "generation_contract_source": "airport_protocol_v0.1",
+      "input_truncation_permitted": false,
+      "max_new_tokens": 64,
+      "num_beams": 1,
+      "retry_after_model_output_permitted": false,
+      "stochastic_retry_permitted": false
+    },
+    "output_contract": {
+      "deterministic_parser": true,
+      "exact_keys": [
+        "relation",
+        "reason"
+      ],
+      "format": "strict_json_object",
+      "invalid_json_causes_final_acceptance_failure": true,
+      "invalid_json_scored_incorrect": true,
+      "llm_judge": false,
+      "reason_max_words": 45,
+      "reason_min_words": 6
+    },
+    "safety_policy": {
+      "dangerous_false_positives_maximum": 0,
+      "definitions_authority": "task_interpretation.dangerous_false_positive_interpretation_and_safety_failure_interpretation",
+      "no_post_observation_redefinition": true,
+      "safety_failures_maximum": 0
+    },
+    "score_policy": {
+      "definition": "correct_projected_relation_predictions / total_greenhouse_pair_cases",
+      "denominator": 18,
+      "historical_six_field_accuracy_equivalence_claimed": false,
+      "metric": "projected_relation_accuracy",
+      "minimum": 0.8,
+      "partial_credit": false,
+      "round_decimals": 6
+    }
+  },
+  "execution_code": {
+    "git_commit": "d251ee0579a671d87974910b7417c21ec78bbc0d",
+    "runner_repo_path": "apps/api/app/adaptation/greenhouse_final_acceptance_runner_v0_4_v0_1.py",
+    "runner_sha256": "037759caf0d28ba6ba411a2eeeefc7dff33659506aed27786db85ce32a2d5b34",
+    "test_repo_path": "apps/api/test_greenhouse_final_acceptance_runner_v0_4_v0_1.py",
+    "test_sha256": "d0a46fd43c9771874487267958b3e599318c696eb5c5c1e42640c9166bcc5ea8"
+  },
+  "experiment_id": "adaptation:datalens-semantic-qlora-v0.4",
+  "governance": {
+    "airport_reexecution_permitted": false,
+    "greenhouse_cases_read_by_manifest_builder": false,
+    "greenhouse_dataset_read_by_manifest_builder": false,
+    "greenhouse_evaluation_executed": false,
+    "greenhouse_independence_read_by_manifest_builder": false,
+    "greenhouse_model_selection_permitted": false,
+    "greenhouse_protected_hashes_recomputed_by_manifest_builder": false,
+    "greenhouse_results_observed": false,
+    "greenhouse_tuning_permitted": false,
+    "manifest_must_be_committed_before_synthetic_preflight": true,
+    "protected_metadata_copied_from_frozen_protocol": true,
+    "protocol_frozen_before_manifest": true,
+    "runner_frozen_before_manifest": true,
+    "separate_execution_authorization_required": true,
+    "synthetic_preflight_required_before_execution_authorization": true,
+    "test_frozen_before_manifest": true
+  },
+  "input_contract": {
+    "decision_id": "adaptation:datalens-semantic-qlora-v0.4:greenhouse-deterministic-input-serializer:decision:v0.1",
+    "description_serializer_rule_version": "greenhouse_normalized_semantic_profile_description_serializer_v0.1",
+    "deterministic_profile_wrapper_rule_version": "greenhouse_deterministic_semantic_profile_wrapper_v0.1",
+    "git_commit": "db7ae1ab0d4d9d8f58f7c3a8c5d5ab6ae874cba0",
+    "label_blind": true,
+    "provider_or_external_llm_enrichment_permitted": false,
+    "repo_path": "apps/api/artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_deterministic_input_serializer_decision_v0.1.json",
+    "sha256": "df54af3e32dc97b5fd43573c8c2a8caf1335976fde3b39faa51afc48ab5244e3"
+  },
+  "manifest_rule_version": "qlora_v0.4_greenhouse_final_acceptance_manifest_v0.1",
+  "outputs": {
+    "consumption_marker": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_final_acceptance_v0.1_consumption.json",
+    "receipt": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_final_acceptance_v0.1_receipt.json",
+    "report": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_final_acceptance_v0.1_report.json"
+  },
+  "protected_holdout": {
+    "case_count": 18,
+    "components": [
+      {
+        "protected_before_consumption": true,
+        "repo_path": "apps/api/artifacts/evaluation/datasets/synthetic_greenhouse_operations_final_acceptance.csv",
+        "role": "dataset_definition",
+        "sha256": "17dcd1969b9f64f356e74fc0ca599c6a20ef4a68ad7abe050b7309c160035073",
+        "size_bytes": 1521
+      },
+      {
+        "protected_before_consumption": true,
+        "repo_path": "apps/api/artifacts/evaluation/holdouts/greenhouse_operations_final_acceptance_v0.1_cases.json",
+        "role": "case_manifest",
+        "sha256": "bb798ba453a0acb08bc5f22fe640197b0ab3fc69b32c7eee143960a2124f5593",
+        "size_bytes": 1826
+      },
+      {
+        "protected_before_consumption": true,
+        "repo_path": "apps/api/artifacts/evaluation/holdouts/greenhouse_operations_final_acceptance_v0.1_independence.json",
+        "role": "supporting_definition",
+        "sha256": "d05acb7045afde0bd7a129f231bf39ccd472a3710c12b161f58126232fbba5b7",
+        "size_bytes": 695
+      }
+    ],
+    "frozen_metadata_source": "apps/api/artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_final_acceptance_protocol_v0.1.json",
+    "independent_final_evidence": true,
+    "protected_bytes_read_before_manifest": false,
+    "protected_content_parsed_before_manifest": false,
+    "protected_hashes_recomputed_before_manifest": false,
+    "single_use": true,
+    "technical_split": "holdout"
+  },
+  "protocol": {
+    "git_commit": "fa16cad4fa2bc657799dff26932481e07519cf00",
+    "protocol_id": "adaptation:datalens-semantic-qlora-v0.4:greenhouse-final-acceptance:protocol:v0.1",
+    "repo_path": "apps/api/artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_final_acceptance_protocol_v0.1.json",
+    "sha256": "056272cca075a6f8c48c38f5296c0ddacaaeb29e64f08048a43a80ea3dab0b16"
+  },
+  "release_authority": {
+    "authorization": {
+      "git_commit": "9fcf1b1afca0c94283cd8f8ca56e63d8308de437",
+      "repo_path": "apps/api/artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_final_acceptance_authorization_v0.1.json",
+      "sha256": "bed6243c2995a5376f57d1ae2bd3135ec6e6e91a71de0e1d2e74becd9e7849c9",
+      "status": "approved_to_prepare_greenhouse_final_acceptance_execution"
+    },
+    "task_interpretation": {
+      "git_commit": "0220291de7db1f41e055e9d754f3c2dbefe11a83",
+      "repo_path": "apps/api/artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_gate_task_interpretation_decision_v0.1.json",
+      "sha256": "9f097f8b8e7e2dd182cc86cc5ed12fc74ded18262bac2af3639d2bf07bdf61a2",
+      "status": "approved_pre_execution_interpretation"
+    }
+  },
+  "role": "single_use_final_acceptance_execution_manifest",
+  "runtime_authority": {
+    "adapter_bundle_sha256": "0351980df6d86096195c0971deb30c725e155c71aa5de8054b2b37fa42090716",
+    "base_model_repository": "google/gemma-3-4b-it",
+    "base_model_revision": "093f9f388b31de276ce2de164bdc2081324b9767",
+    "canonicalizer_sha256": "075d6c22cf4473b414221a0766ca831f4da1e19597a0a5b2b5efd3e5755c9356",
+    "random_seed": 42,
+    "shared_runtime_sha256": "20e41ab00606296893276a84e53746c06618b8cabca74fef77cb743c5e80ab7c",
+    "training_receipt_sha256": "f412062f78432d7c432d4b36beed9d84d527d5990279240030a0a31227dffaee",
+    "training_report_sha256": "759ba4957806daab8b7a14d3aeb2b06859e0bcd6193d30cb877b63748617e04d"
+  },
+  "single_use_policy": {
+    "consumption_marker_written_before_first_protected_read": true,
+    "greenhouse_used_for_model_selection": false,
+    "greenhouse_used_for_tuning": false,
+    "new_experiment_required_after_failure": true,
+    "reexecution_after_consumption_started": false,
+    "reexecution_permitted": false
+  },
+  "source_git_commit": "d251ee0579a671d87974910b7417c21ec78bbc0d",
+  "status": "preregistered_before_greenhouse_consumption"
+}

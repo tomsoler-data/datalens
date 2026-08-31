@@ -199,6 +199,7 @@ from app.reporting.unified_schemas import (
 from app.reporting.unified_report_artifacts import (
     register_unresolved_requested_analysis_artifacts,
     register_unified_report_artifacts,
+    register_contextualized_report_artifacts_atomic,
 )
 
 from app.preparation.cleaning_engine import (
@@ -4776,31 +4777,6 @@ def run_contextualized_dataset_analysis(
 
 
     # ========================================================
-    # 8B. SERVER-OWNED REPORT ARTIFACTS
-    # ========================================================
-
-    register_unresolved_requested_analysis_artifacts(
-        workflow_id=
-            workflow_id,
-
-        execution_report=
-            requested_analysis_execution,
-
-        plan_report=
-            requested_analysis_plan,
-    )
-
-
-    register_unified_report_artifacts(
-        workflow_id=
-            workflow_id,
-
-        report=
-            analysis,
-    )
-
-
-    # ========================================================
     # 9. REQUESTED-FIRST RAG INPUT
     # ========================================================
 
@@ -4856,10 +4832,16 @@ def run_contextualized_dataset_analysis(
 
 
     # ========================================================
-    # 11. CONTEXTUALIZED RESPONSE
+    # 11. CONTEXTUALIZED RESPONSE ? BUILD BEFORE PERSISTENCE
+    # ========================================================
+    #
+    # The complete response contract is validated only after
+    # Requested Analysis and grounded RAG both succeeded.
+    #
+    # No report artifact is persisted before this point.
     # ========================================================
 
-    return (
+    contextualized_response = (
         ContextualizedAnalysisResponse(
             analysis=
                 analysis,
@@ -4879,4 +4861,82 @@ def run_contextualized_dataset_analysis(
             rag=
                 rag,
         )
+    )
+
+
+    # ========================================================
+    # 12. SERVER-OWNED REPORT ARTIFACTS ? SUCCESS ONLY
+    # ========================================================
+    #
+    # Persistence deliberately occurs after successful RAG and
+    # successful contextualized-response construction.
+    #
+    # A RAG / response-contract failure therefore cannot leave
+    # a report artifact for an HTTP response that never existed.
+    # ========================================================
+
+    try:
+        register_contextualized_report_artifacts_atomic(
+            workflow_id=
+                workflow_id,
+
+            execution_report=
+                requested_analysis_execution,
+
+            plan_report=
+                requested_analysis_plan,
+
+            report=
+                analysis,
+        )
+
+
+    except ValueError as error:
+        raise HTTPException(
+            status_code=
+                422,
+
+            detail={
+                "error":
+                    "invalid_contextualized_artifact_persistence",
+
+                "message":
+                    (
+                        "Contextualized analysis artifact "
+                        "persistence request is invalid."
+                    ),
+
+                "workflow_id":
+                    workflow_id,
+            },
+        ) from error
+
+
+    except RuntimeError as error:
+        raise HTTPException(
+            status_code=
+                503,
+
+            detail={
+                "error":
+                    "contextualized_artifact_persistence_failed",
+
+                "message":
+                    (
+                        "Contextualized analysis artifacts "
+                        "could not be persisted."
+                    ),
+
+                "workflow_id":
+                    workflow_id,
+            },
+        ) from error
+
+
+    # ========================================================
+    # 13. RETURN VALIDATED CONTEXTUALIZED RESPONSE
+    # ========================================================
+
+    return (
+        contextualized_response
     )

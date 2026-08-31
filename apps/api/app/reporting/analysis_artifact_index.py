@@ -1234,6 +1234,249 @@ def upsert_analysis_artifact_index_entry(
     )
 
 
+
+
+def upsert_analysis_artifact_index_entries_atomic(
+    *,
+    store_path: Path,
+    entries: list[
+        dict[
+            str,
+            Any,
+        ]
+    ],
+) -> list[
+    dict[
+        str,
+        Any,
+    ]
+]:
+    """
+    Atomically insert or refresh multiple AnalysisArtifact
+    metadata rows.
+
+    All ownership checks and all upserts occur inside one
+    SQLite write transaction.
+
+    If any entry fails validation or workflow ownership,
+    no metadata row from this batch is committed.
+    """
+
+    validated = [
+        validate_analysis_artifact_index_entry(
+            entry
+        )
+
+        for entry
+        in entries
+    ]
+
+
+    analysis_ids = [
+        entry[
+            "analysis_id"
+        ]
+
+        for entry
+        in validated
+    ]
+
+
+    if (
+        len(
+            analysis_ids
+        )
+        !=
+        len(
+            set(
+                analysis_ids
+            )
+        )
+    ):
+        raise AnalysisArtifactIndexError(
+            (
+                "Atomic AnalysisArtifact batch contains "
+                "duplicate analysis_id values."
+            )
+        )
+
+
+    if not validated:
+        return []
+
+
+    scope = (
+        analysis_artifact_store_scope(
+            store_path
+        )
+    )
+
+
+    with sqlite_connection(
+        write=True
+    ) as connection:
+
+        # ----------------------------------------------------
+        # Ownership preflight
+        # ----------------------------------------------------
+
+        for entry in validated:
+            existing = connection.execute(
+                """
+                SELECT workflow_id
+                FROM analysis_artifacts
+                WHERE
+                    store_root = ?
+                    AND
+                    analysis_id = ?
+                """,
+                (
+                    scope,
+                    entry[
+                        "analysis_id"
+                    ],
+                ),
+            ).fetchone()
+
+
+            if (
+                existing is not None
+                and
+                str(
+                    existing[
+                        "workflow_id"
+                    ]
+                )
+                !=
+                entry[
+                    "workflow_id"
+                ]
+            ):
+                raise AnalysisArtifactIndexError(
+                    (
+                        "AnalysisArtifact workflow ownership "
+                        "cannot change for an existing "
+                        "analysis_id."
+                    )
+                )
+
+
+        # ----------------------------------------------------
+        # Atomic multi-row upsert
+        # ----------------------------------------------------
+
+        for entry in validated:
+            connection.execute(
+                """
+                INSERT INTO analysis_artifacts (
+                    store_root,
+                    analysis_id,
+                    workflow_id,
+                    trace_id,
+                    source_type,
+                    objective,
+                    executed,
+                    executed_count,
+                    created_at_utc,
+                    rule_version,
+                    payload_path,
+                    payload_json_bytes,
+                    payload_file_bytes,
+                    payload_sha256
+                )
+                VALUES (
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                )
+                ON CONFLICT(
+                    store_root,
+                    analysis_id
+                )
+                DO UPDATE SET
+                    workflow_id =
+                        excluded.workflow_id,
+                    trace_id =
+                        excluded.trace_id,
+                    source_type =
+                        excluded.source_type,
+                    objective =
+                        excluded.objective,
+                    executed =
+                        excluded.executed,
+                    executed_count =
+                        excluded.executed_count,
+                    created_at_utc =
+                        excluded.created_at_utc,
+                    rule_version =
+                        excluded.rule_version,
+                    payload_path =
+                        excluded.payload_path,
+                    payload_json_bytes =
+                        excluded.payload_json_bytes,
+                    payload_file_bytes =
+                        excluded.payload_file_bytes,
+                    payload_sha256 =
+                        excluded.payload_sha256
+                """,
+                (
+                    scope,
+                    entry[
+                        "analysis_id"
+                    ],
+                    entry[
+                        "workflow_id"
+                    ],
+                    entry[
+                        "trace_id"
+                    ],
+                    entry[
+                        "source_type"
+                    ],
+                    entry[
+                        "objective"
+                    ],
+                    (
+                        1
+                        if entry[
+                            "executed"
+                        ]
+                        else
+                        0
+                    ),
+                    entry[
+                        "executed_count"
+                    ],
+                    entry[
+                        "created_at_utc"
+                    ],
+                    entry[
+                        "rule_version"
+                    ],
+                    entry[
+                        "payload_path"
+                    ],
+                    entry[
+                        "payload_json_bytes"
+                    ],
+                    entry[
+                        "payload_file_bytes"
+                    ],
+                    entry[
+                        "payload_sha256"
+                    ],
+                ),
+            )
+
+
+    return [
+        dict(
+            entry
+        )
+
+        for entry
+        in validated
+    ]
+
+
 def load_analysis_artifact_index_workflow(
     *,
     store_path: Path,

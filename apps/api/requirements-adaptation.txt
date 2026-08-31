@@ -1,0 +1,28 @@
+# DataLens LLM Adaptation Lab
+#
+# Dedicated experimental environment for QLoRA / PEFT.
+# Do not merge these dependencies into the FastAPI runtime
+# requirements.txt.
+#
+# Validated environment:
+# - Windows 11
+# - Python 3.13.12
+# - NVIDIA GeForce RTX 4060
+# - CUDA 12.8
+# - compute capability 8.9
+# - NF4 execution verified
+# - BF16 execution verified
+
+--extra-index-url https://download.pytorch.org/whl/cu128
+
+torch==2.11.0+cu128
+transformers==5.16.1
+datasets==5.0.1
+accelerate==1.14.0
+peft==0.20.0
+trl==1.12.0
+bitsandbytes==0.50.2
+safetensors==0.8.0
+sentencepiece==0.2.2
+huggingface-hub==1.29.0
+pydantic==2.13.4

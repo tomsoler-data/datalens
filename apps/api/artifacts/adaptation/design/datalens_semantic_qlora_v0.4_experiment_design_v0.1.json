@@ -1,0 +1,140 @@
+{
+  "base_model": {
+    "model_family": "gemma3",
+    "repository": "google/gemma-3-4b-it",
+    "reuse_v0_3_base_checkpoint": true,
+    "revision": "093f9f388b31de276ce2de164bdc2081324b9767"
+  },
+  "dataset_design": {
+    "contrastive_grouping_required": true,
+    "example_count_target": 230,
+    "hard_negative_required": true,
+    "minimum_distinct_domains": 12,
+    "minimum_examples_per_contrastive_group": 3,
+    "raw_evaluation_evidence_allowed_as_training_source": false,
+    "relation_target_counts": {
+      "related_distinct_metric": 50,
+      "same_metric_different_state": 50,
+      "same_process_different_stage": 50,
+      "uncertain": 40,
+      "unrelated": 40
+    },
+    "synthetic_examples_allowed": true,
+    "training_source_must_be_independently_authored": true
+  },
+  "evaluation_design": {
+    "final_acceptance": {
+      "domain": "commercial_greenhouse_operations",
+      "may_be_loaded_before_all_prior_gates_pass": false,
+      "remains_closed": true
+    },
+    "hotel": {
+      "may_be_used_for_training": false,
+      "may_be_used_for_v0_4_hyperparameter_tuning": false,
+      "may_count_as_new_independent_holdout": false,
+      "role": "diagnostic_regression_only"
+    },
+    "new_independent_holdout": {
+      "case_count": 30,
+      "cases_per_relation": 6,
+      "domain": "airport_ground_operations",
+      "must_be_frozen_before_training": true,
+      "must_be_frozen_before_training_dataset_freeze": true,
+      "must_not_be_used_for_hyperparameter_tuning": true,
+      "must_not_be_used_for_training": true,
+      "relations": [
+        "same_metric_different_state",
+        "same_process_different_stage",
+        "related_distinct_metric",
+        "unrelated",
+        "uncertain"
+      ],
+      "status": "required_not_yet_authored"
+    }
+  },
+  "experiment_id": "datalens-semantic-qlora-v0.4",
+  "learning_objective": {
+    "primary": "Improve canonical semantic-relation decision quality while preserving short auditable reasoning.",
+    "secondary": "Reduce decision-boundary ambiguity through contrastive supervision.",
+    "training_loss_is_acceptance_evidence": false
+  },
+  "model_adaptation": {
+    "adaptation_method": "qlora",
+    "lora_alpha": 32,
+    "lora_dropout": 0.05,
+    "lora_rank": 16,
+    "quantization": "nf4_double_quant_bf16",
+    "target_strategy": "language_model_all_linear"
+  },
+  "prohibited_actions_before_design_gates": {
+    "final_acceptance_evaluation": true,
+    "final_acceptance_load": true,
+    "gpu_training": true,
+    "training_dataset_freeze_before_holdout_freeze": true,
+    "v0_4_training_before_holdout_freeze": true
+  },
+  "reason_for_revision": {
+    "source_candidate": "datalens-semantic-qlora-v0.3",
+    "source_diagnostic_signal": "negative_signal",
+    "source_findings": [
+      "The adapted candidate scored 3/19 versus 6/19 for the pinned base.",
+      "All three changed argmax decisions were regressions.",
+      "Expected-class margins improved on 11/19 cases but no incorrect case crossed to a correct positive margin.",
+      "same_metric_different_state margins improved on 4/5 cases while accuracy remained 0/5.",
+      "v0.3 training used natural-language reasoning targets rather than direct canonical relation supervision."
+    ]
+  },
+  "relations": [
+    "same_metric_different_state",
+    "same_process_different_stage",
+    "related_distinct_metric",
+    "unrelated",
+    "uncertain"
+  ],
+  "rule_version": "qlora_v0.4_experiment_design_v0.1",
+  "status": "design_frozen_before_v0_4_data_authoring",
+  "task": {
+    "assistant_target_format": "strict_json_object",
+    "assistant_target_schema": {
+      "additional_properties": false,
+      "fields": {
+        "reason": {
+          "max_words": 45,
+          "min_words": 6,
+          "type": "string"
+        },
+        "relation": {
+          "allowed_values": [
+            "same_metric_different_state",
+            "same_process_different_stage",
+            "related_distinct_metric",
+            "unrelated",
+            "uncertain"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "relation",
+        "reason"
+      ]
+    },
+    "canonical_example": {
+      "reason": "Both metrics represent the same underlying quantity in different states.",
+      "relation": "same_metric_different_state"
+    },
+    "reason_must_not_introduce_unknown_facts": true,
+    "rule_version": "semantic_relation_reasoning_target_v0.1",
+    "supervision_type": "canonical_relation_plus_short_reason"
+  },
+  "training_strategy": {
+    "assistant_only_loss": true,
+    "early_stopping_from_independent_holdout": false,
+    "gradient_checkpointing": true,
+    "initial_epoch_budget": 2,
+    "max_sequence_length": 256,
+    "packing": false,
+    "sequence_truncation": "fail_closed",
+    "training_seed": 42
+  }
+}

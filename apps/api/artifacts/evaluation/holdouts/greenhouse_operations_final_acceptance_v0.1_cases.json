@@ -1,0 +1,46 @@
+{
+  "adaptation_tuning_input": false,
+  "benchmark_id": "semantic:greenhouse_operations:final_acceptance:v0.1",
+  "benchmark_version": "greenhouse_operations_semantic_final_acceptance_v0.1",
+  "column_case_count": 0,
+  "dataset_column_count": 18,
+  "dataset_filename": "synthetic_greenhouse_operations_final_acceptance.csv",
+  "dataset_id": "greenhouse_operations:final_acceptance:0001",
+  "dataset_row_count": 12,
+  "domain": "commercial_greenhouse_operations",
+  "evaluation_role": "final_acceptance_holdout",
+  "frozen_before_training": false,
+  "independence_scan": {
+    "candidate_material_count": 37,
+    "candidate_material_sha256": "dc795557cd351344d5b19e49180a46e8b298ad71fc66a5db8a7a8a1bc47d221c",
+    "match_count": 0,
+    "near_duplicate_threshold": 0.92,
+    "passed": true,
+    "protected_corpus_sha256": "172864c9cbd42639c2b26808934bfe473814648f04d8153d59758e0fa14beefb",
+    "protected_source_count": 41,
+    "protected_structured_fingerprint_count": 154,
+    "protected_text_fingerprint_count": 725,
+    "report_rule_version": "adaptation_contamination_report_v0.1",
+    "rule_version": "adaptation_data_governance_v0.1"
+  },
+  "independent_final_evidence": true,
+  "methodology": {
+    "intended_execution": "post_adaptation_final_acceptance",
+    "may_be_used_for_early_stopping": false,
+    "may_be_used_for_hyperparameter_selection": false,
+    "may_be_used_for_prompt_tuning": false,
+    "may_be_used_for_training": false,
+    "may_be_used_for_tuning": false
+  },
+  "pair_case_count": 18,
+  "preregistered_gates": {
+    "maximum_dangerous_false_positives": 0,
+    "maximum_safety_failures": 0,
+    "minimum_normalized_score": 0.8,
+    "require_freeze_integrity": true,
+    "require_regression_gate_pass": true
+  },
+  "technical_split": "holdout",
+  "total_case_count": 18,
+  "training_started": false
+}

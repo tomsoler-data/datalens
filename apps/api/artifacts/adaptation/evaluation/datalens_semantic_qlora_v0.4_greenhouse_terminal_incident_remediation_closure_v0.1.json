@@ -1,0 +1,70 @@
+{
+  "artifact_kind": "terminal_incident_remediation_closure",
+  "artifact_rule_version": "datalens_semantic_qlora_v0.4_greenhouse_terminal_incident_remediation_closure_v0.1",
+  "governance_closure": {
+    "candidate_replacement_based_on_greenhouse_permitted": false,
+    "final_acceptance_status": "TERMINAL_ERROR_NOT_EVALUATED",
+    "further_candidate_tuning_based_on_greenhouse_permitted": false,
+    "greenhouse_v0_1_reexecution_permitted": false,
+    "greenhouse_v0_1_retry_permitted": false,
+    "historical_execution_result_modified": false,
+    "incident_status": "CLOSED_WITH_SOFTWARE_REMEDIATION",
+    "official_receipt_created": false,
+    "official_report_created": false,
+    "retroactive_official_result_permitted": false,
+    "software_root_cause_remediated": true,
+    "terminal_incident_preserved": true
+  },
+  "greenhouse_final_acceptance_revision": "v0.1",
+  "interpretation": "The Greenhouse v0.1 Final Acceptance remains a consumed terminal orchestration ERROR with no model evaluation. The launch-path schema defect was independently reproduced, corrected in Launcher v0.3, regression-tested, and committed. The remediation does not constitute or authorize a retry of the consumed Greenhouse v0.1 holdout.",
+  "software_remediation": {
+    "canonical_case_source": "FROZEN_BENCHMARK_PAIR_CASES",
+    "commit": "c62b40d12c9cba50da5dd575a6f8f2b8aadd5e7c",
+    "greenhouse_v0_1_reexecution_authorized": false,
+    "historical_launcher_v0_2": {
+      "historical_test_count": 27,
+      "preserved": true,
+      "relative_path": "apps/api/app/adaptation/greenhouse_final_acceptance_launcher_v0_4_v0_2.py",
+      "sha256": "a47f823f3c625b1780435ddcf4f2fa2df03cb6c5d95aad78501db80cf11f6d0a"
+    },
+    "incident_regression_reproducer": {
+      "relative_path": "apps/api/tests/adaptation/test_greenhouse_terminal_incident_metadata_schema_regression_v0_1.py",
+      "sha256": "dfc42d0ac7aa6aa823404422a599b82b8b583b4cfbaf21d84c065ed42bcc9369",
+      "test_count": 8
+    },
+    "launcher_v0_3": {
+      "relative_path": "apps/api/app/adaptation/greenhouse_final_acceptance_launcher_v0_4_v0_3.py",
+      "sha256": "132c78a33044a632ada4af26795bffe8161326ae8c742d1e51d3de36a381ca20"
+    },
+    "launcher_v0_3_tests": {
+      "relative_path": "apps/api/tests/adaptation/test_greenhouse_final_acceptance_launcher_v0_4_v0_3.py",
+      "sha256": "d0ab2bb672ab48607bd33b5ce8798956553925ffc230b7d43e2abebfab450cef",
+      "test_count": 17
+    },
+    "remediation_state": "FIXED",
+    "schema_drift_policy": "FAIL_CLOSED"
+  },
+  "terminal_incident": {
+    "commit": "36a6a96c1cdc9253c87d9056b9c245891774057d",
+    "consumption_marker": {
+      "relative_path": "apps/api/artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_final_acceptance_v0.1_consumption.json",
+      "sha256": "654196ad4c4e9d9e492ff498003ee568e0f536b40e94ede0c8df0d880bb60baa"
+    },
+    "incident_evidence": {
+      "relative_path": "apps/api/artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_greenhouse_terminal_execution_incident_evidence_v0.1.json",
+      "sha256": "83d82ac6f9febf144566b337ea1243640c50b0f6b8b685e3673b19f85042ab95"
+    },
+    "model_evaluation_started": false,
+    "official_final_acceptance_state": "ERROR",
+    "parent_commit": "e88c62a638f345635595dd3406d91d1593f904c0",
+    "reexecution_permitted": false,
+    "retry_permitted": false,
+    "root_cause": "FROZEN_LAUNCH_PATH_PROTECTED_ARTIFACT_SCHEMA_MISMATCH",
+    "secondary_control_gap": "SYNTHETIC_PREFLIGHT_DID_NOT_MIRROR_OFFICIAL_CASE_ARTIFACT_SCHEMA"
+  },
+  "verified_safe_test_results": {
+    "historical_launcher_v0_2": "27/27 PASS",
+    "launcher_v0_3_remediation": "17/17 PASS",
+    "terminal_incident_reproducer": "8/8 PASS"
+  }
+}

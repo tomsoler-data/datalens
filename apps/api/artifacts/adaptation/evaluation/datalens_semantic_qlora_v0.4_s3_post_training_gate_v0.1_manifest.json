@@ -1,0 +1,117 @@
+{
+  "baseline": {
+    "artifact_id": "semantic-s3-regression-249",
+    "benchmark_ids": [
+      "semantic:cloud:regression:v0.1",
+      "semantic:dwfa:regression:v0.1",
+      "semantic:ecommerce:regression:v0.1",
+      "semantic:electric_mobility:regression:v0.1",
+      "semantic:logistics:regression:v0.1",
+      "semantic:manufacturing:regression:v0.1"
+    ],
+    "benchmark_versions": {
+      "semantic:cloud:regression:v0.1": "cloud_semantic_regression_v0.1",
+      "semantic:dwfa:regression:v0.1": "dwfa_semantic_regression_v0.1",
+      "semantic:ecommerce:regression:v0.1": "ecommerce_semantic_regression_v0.1",
+      "semantic:electric_mobility:regression:v0.1": "electric_mobility_semantic_regression_v0.1",
+      "semantic:logistics:regression:v0.1": "logistics_semantic_regression_v0.1",
+      "semantic:manufacturing:regression:v0.1": "manufacturing_semantic_regression_v0.1"
+    },
+    "normalized_assertion_count": 249,
+    "normalized_failure_count": 0,
+    "relative_path": "artifacts/evaluation/experiments/semantic_s3_regression_249.json",
+    "sha256": "fdb5510e9426b857aa9e52feb4d3282f367e10af1d8ae4335c727673506960ac"
+  },
+  "dwfa_dataset_files": [
+    {
+      "filename": "BasicAndSafelyManagedDrinkingWaterServices.csv",
+      "sha256": "f93029dbe9f28e7feb462851a005c88cf9d035b859eaa4969e27e4c0b13aa3b6",
+      "size_bytes": 353875
+    },
+    {
+      "filename": "MortalityRateAttributedToWater.csv",
+      "sha256": "5b658a3d4c9467ded4699eb0a2a43e30239c20317457f2f19e5c2763b7a154d6",
+      "size_bytes": 19159
+    },
+    {
+      "filename": "PoliticalStability.csv",
+      "sha256": "f5ee5b94e9ee1b82bed1013b8812d52516725c8f21060d507b81b263e1c4a0b7",
+      "size_bytes": 100597
+    },
+    {
+      "filename": "Population.csv",
+      "sha256": "89d3ff9e620a45887d69d5cddb3bd136adabae5a1986fd8b740fe3357ede40ff",
+      "size_bytes": 676118
+    },
+    {
+      "filename": "RegionCountry.csv",
+      "sha256": "5febdd298d7da62cf0fe11554adb860b37e043330fc945eaeac31eca7c4dcc7d",
+      "size_bytes": 4434
+    }
+  ],
+  "execution_state": {
+    "evaluation_executed": false,
+    "receipt_published": false,
+    "report_published": false
+  },
+  "experiment_id": "datalens-semantic-qlora-v0.4",
+  "gate_id": "semantic_s3_post_training_regression_safety_v0.1",
+  "gate_requirements": {
+    "domain_count": 6,
+    "maximum_dangerous_false_positive_increase": 0,
+    "maximum_normalized_dangerous_false_positives": 0,
+    "maximum_normalized_unclassified": 0,
+    "minimum_normalized_macro_accuracy": 1.0,
+    "minimum_normalized_micro_accuracy": 1.0,
+    "normalized_assertion_count": 249,
+    "normalized_failure_count": 0,
+    "require_regression_gate_pass": true,
+    "require_safety_gate_pass": true,
+    "suite_count": 6
+  },
+  "manifest_rule_version": "qlora_v0.4_s3_post_training_gate_manifest_v0.1",
+  "outputs": {
+    "receipt_relative_path": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_s3_post_training_gate_v0.1_receipt.json",
+    "report_relative_path": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_s3_post_training_gate_v0.1_report.json"
+  },
+  "phase": "post_training_system_regression_gate",
+  "prepared_from_git_commit": "589f2348ce6219a3f8c6f7532bfd6547c7c8ed2e",
+  "runtime": {
+    "adapter_loaded": false,
+    "model": "gemma3:4b",
+    "provider": "ollama",
+    "split": "regression"
+  },
+  "source_bindings": {
+    "git_ref": "589f2348ce6219a3f8c6f7532bfd6547c7c8ed2e",
+    "sha256": {
+      "apps/api/app/adaptation/post_training_regression_gate_v0_4.py": "b4062d777a08e437dc3a1e3a7650c19b2d04f62deb6cd48538ffe83c70768f29",
+      "apps/api/app/ai/provider.py": "57ea58c1fae57749466b9f4877c41b13d85d3ba38ea8b1d4be9e4c61635765a2",
+      "apps/api/app/evaluation/benchmarks/__init__.py": "4d901cc476026b5346c05befb855fc4b9db67216d0f73714df1af8b6aa6fcf2a",
+      "apps/api/app/evaluation/benchmarks/cloud.py": "1a6f9ab7181711ef227e8470ebd2937e4b1697336535e89e92c1a9b6a3daf054",
+      "apps/api/app/evaluation/benchmarks/dwfa.py": "5de9a1361759027aeb32c3ebac4a3ad27ba7731f5db7e4616c7f1831f5d4cfdf",
+      "apps/api/app/evaluation/benchmarks/ecommerce.py": "ec5dcf5ee86b1bf98936ff3a0c21ebfd48b0f7cb8cf71a4d84b0f5c6505f95a0",
+      "apps/api/app/evaluation/benchmarks/electric_mobility.py": "096217e1eee95e06961662bbd3067dbdc5d6abf224a6ca6679348dda3632dde4",
+      "apps/api/app/evaluation/benchmarks/logistics.py": "70983b5c08b319723d63a0a4f8adbd31a73b6e3d77c658ef2dd939dd6619692a",
+      "apps/api/app/evaluation/benchmarks/manufacturing.py": "e9d11f17cdab6c7c2d35afc77aba87163fe3f82d694050641754f62144c0b37e",
+      "apps/api/app/evaluation/metrics.py": "f4f7ae9f93f5b535dd4fc233abf1328879425daae5f7ee3eab83b074db581c41",
+      "apps/api/app/evaluation/registry.py": "baaabba288ac9d0f9a0c061f6196ac6ea4676bd2dbd9e5b2f31923d84a5c6de1",
+      "apps/api/app/evaluation/registry_schemas.py": "cc01bc53e8f22b69b11b8f11732ca74dbb518966cb1d048ffd1bea2007c3e46a",
+      "apps/api/app/evaluation/runner.py": "6111e18854dbf70529b9a5695e763edfed7b8eb19e9143914c0ad4ba308de02b",
+      "apps/api/app/evaluation/runner_schemas.py": "fa831fb388363f9770704b1c5194b0e25a7893b9227617d1acaa911a0d9aaf65",
+      "apps/api/app/evaluation/semantic_benchmark.py": "33607c50e387d1741ad4e34d35ce0ef8679eb0b75bc110d4e09b95ca0ab399cc",
+      "apps/api/app/security/llm_payload.py": "6560548fc2c690637dae1197e57f40be9583f18989cf3b5f921fa4387132dc6e",
+      "apps/api/app/semantics/__init__.py": "a2a70befa7d754e2c29b42c648d59daa063f562afc7ab1359741e44735cc2f3b",
+      "apps/api/app/semantics/profiler.py": "54542f6e0d8709ea5990596427e9c1d99996db1a27e68ccbd9b2c40c9e0d39e7",
+      "apps/api/app/semantics/provider.py": "9fcc8fd0188ea04947ccced2698153d8dac184cf94fb00dd9f640fd27bceaa9e",
+      "apps/api/test_post_training_regression_gate_v0_4_v0_1.py": "0a095e4a6314b9607e5e357d664067d0fb54701e8f349482c4fb3eb5995c0329"
+    }
+  },
+  "training_evidence": {
+    "commit": "f5ec307f134eadbfc70f282a840fef3e7d5987a4",
+    "receipt_relative_path": "artifacts/adaptation/training/datalens_semantic_qlora_v0.4_training_v0.1_receipt.json",
+    "receipt_sha256": "f412062f78432d7c432d4b36beed9d84d527d5990279240030a0a31227dffaee",
+    "report_relative_path": "artifacts/adaptation/training/datalens_semantic_qlora_v0.4_training_v0.1_report.json",
+    "report_sha256": "759ba4957806daab8b7a14d3aeb2b06859e0bcd6193d30cb877b63748617e04d"
+  }
+}

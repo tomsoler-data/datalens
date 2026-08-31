@@ -1,0 +1,12 @@
+{
+  "adapter_bundle_sha256": "0351980df6d86096195c0971deb30c725e155c71aa5de8054b2b37fa42090716",
+  "benchmark_id": "adaptation:semantic_reasoning:hotel:v0.1",
+  "created_at": "2026-08-30T11:27:18.767008+00:00",
+  "evaluation_report_sha256": "de429f41a12af34b37735d6a909041fe27019649065bb1e5292f7cf1e0cad4d8",
+  "final_acceptance_evaluated": false,
+  "final_acceptance_loaded": false,
+  "manifest_sha256": "860bc2089151c49ec7c90d0cbf940965463d38f8f531516484421d895519b4ff",
+  "receipt_rule_version": "adapted_reasoning_evaluation_receipt_v0.4",
+  "runner_rule_version": "adapted_reasoning_evaluation_runner_v0.4",
+  "status": "completed"
+}

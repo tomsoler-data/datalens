@@ -1,0 +1,98 @@
+{
+  "approved_v0_2_change": {
+    "acceptance_gate_changes": false,
+    "adapter_changes": false,
+    "eos_changes": false,
+    "execution_revision": "v0.2",
+    "generation_budget_changes": false,
+    "holdout_changes": false,
+    "input_serializer_changes": false,
+    "model_changes": false,
+    "prompt_changes": false,
+    "relation_changes": false,
+    "runtime_compatibility_change": {
+      "change": "remove_unsupported_authority_keyword_from_local_text_checkpoint_path_call",
+      "function": "load_base_model",
+      "new_call": "local_text_checkpoint_path()",
+      "old_call": "local_text_checkpoint_path(authority=authority)",
+      "reason": "align_greenhouse_runner_with_frozen_qlora_runtime_v0_4_zero_argument_checkpoint_path_contract_without_changing_checkpoint_selection"
+    },
+    "score_changes": false,
+    "semantic_protocol_changes": false,
+    "training_changes": false,
+    "versioning_changes": {
+      "new_execution_manifest_revision": "v0.2",
+      "new_runner": "app/adaptation/greenhouse_final_acceptance_runner_v0_4_v0_2.py",
+      "new_test": "test_greenhouse_final_acceptance_runner_v0_4_v0_2.py",
+      "preserve_v0_1_files": true
+    }
+  },
+  "decision_rule_version": "qlora_v0.4_greenhouse_execution_compatibility_decision_v0.1",
+  "diagnosis": {
+    "adapter_loaded_before_failure": false,
+    "base_model_loaded_before_failure": false,
+    "generation_executed_before_failure": false,
+    "greenhouse_data_used": false,
+    "greenhouse_results_observed": false,
+    "local_text_checkpoint_path_signature": "local_text_checkpoint_path()",
+    "root_cause": "greenhouse_v0_1_runner_passed_unsupported_authority_keyword_to_zero_argument_local_text_checkpoint_path",
+    "source": "non_protected_synthetic_preflight",
+    "synthetic_preflight_error": "TypeError: local_text_checkpoint_path() got an unexpected keyword argument 'authority'",
+    "synthetic_preflight_failure_stage": "synthetic_base_model_checkpoint_path_resolution"
+  },
+  "experiment_id": "adaptation:datalens-semantic-qlora-v0.4",
+  "frozen_protocol": {
+    "deterministic_greedy": true,
+    "do_sample": false,
+    "eos_token_ids": [
+      1,
+      106
+    ],
+    "max_new_tokens": 64,
+    "num_beams": 1,
+    "sha256": "056272cca075a6f8c48c38f5296c0ddacaaeb29e64f08048a43a80ea3dab0b16",
+    "unchanged": true
+  },
+  "governance": {
+    "airport_reexecution_permitted": false,
+    "greenhouse_holdout_consumption_budget_available": true,
+    "greenhouse_holdout_still_single_use": true,
+    "greenhouse_results_may_not_drive_v0_2_change": true,
+    "greenhouse_tuning_permitted": false,
+    "v0_1_must_not_be_executed": true,
+    "v0_2_must_be_frozen_before_new_preflight": true,
+    "v0_2_preflight_must_remain_synthetic": true
+  },
+  "precedent": {
+    "airport_compatibility_decision_repo_path": "apps/api/artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.4_airport_execution_compatibility_decision_v0.1.json",
+    "airport_compatibility_decision_sha256": "0810a44dd55f41d10e739876b6aa15613fc921446c2e1d1ff63971c4d1f980d1",
+    "pattern": "execution_only_revision_before_single_use_holdout_consumption"
+  },
+  "runtime_authority": {
+    "checkpoint_path_function": "local_text_checkpoint_path",
+    "checkpoint_path_function_argument_count": 0,
+    "repo_path": "apps/api/app/adaptation/qlora_runtime_v0_4.py",
+    "sha256": "20e41ab00606296893276a84e53746c06618b8cabca74fef77cb743c5e80ab7c"
+  },
+  "scope": "execution_compatibility_only",
+  "source_git_commit": "09be39b8e8ae8e84908c8d98a23c8b887121993d",
+  "status": "approved_before_greenhouse_holdout_consumption",
+  "v0_1_execution": {
+    "adapter_loaded_before_failure": false,
+    "base_model_loaded_before_failure": false,
+    "consumption_marker_created": false,
+    "execution_status": "superseded_before_holdout_consumption",
+    "greenhouse_cases_consumed": false,
+    "greenhouse_dataset_consumed": false,
+    "greenhouse_independence_consumed": false,
+    "greenhouse_results_observed": false,
+    "manifest_freeze_sha256": "50da48ab576479a713a1680be116b9b5a27118c18dc924ed4bbd8c07bb34d8ae",
+    "manifest_sha256": "bcd62b254e7ca508255ba70bd4f021a39b530b97acc685c4f20945f21086e97e",
+    "official_evaluation_executed": false,
+    "preflight_failure": "unexpected_checkpoint_path_keyword_argument",
+    "preflight_failure_stage": "synthetic_base_model_checkpoint_path_resolution",
+    "preflight_passed": false,
+    "runner_sha256": "037759caf0d28ba6ba411a2eeeefc7dff33659506aed27786db85ce32a2d5b34",
+    "test_sha256": "d0a46fd43c9771874487267958b3e599318c696eb5c5c1e42640c9166bcc5ea8"
+  }
+}

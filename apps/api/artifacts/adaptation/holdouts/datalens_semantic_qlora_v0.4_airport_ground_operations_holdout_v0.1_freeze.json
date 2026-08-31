@@ -1,0 +1,22 @@
+{
+  "cases_relative_path": "artifacts/adaptation/holdouts/datalens_semantic_qlora_v0.4_airport_ground_operations_holdout_v0.1_cases.json",
+  "cases_sha256": "7d9454d0d59dd047050bd72d195feb1390ca0edc2c83584af0cbfec951cf3939",
+  "design_freeze_sha256": "84d64a1406ce0e6648de54e4830eb96dd99b87a980108085906eb57875ef978a",
+  "design_git_commit": "05b6e76a53192cd0909688a4af4aa55e59a65028",
+  "design_sha256": "dd36103a01cadc49101dfeffa006bba9e9cf6cdfc3599a3f0967beff14765cf9",
+  "evaluation_executed": false,
+  "final_acceptance_opened": false,
+  "freeze_rule_version": "qlora_v0.4_airport_holdout_freeze_v0.1",
+  "frozen_before_v0_4_training": true,
+  "frozen_before_v0_4_training_data_authoring": true,
+  "holdout_id": "adaptation:datalens-semantic-qlora-v0.4:airport-ground-operations:holdout:v0.1",
+  "independent_holdout": true,
+  "module_sha256": "4326564a101321f49ec375aca1d67e05735841c298132843ff774f8f013ec961",
+  "results_observed": false,
+  "status": "frozen",
+  "test_sha256": "54e426a2d2b432395f4660e5e591070cb48b8b1e3deed0faf75ac4bb9cb1b9bc",
+  "used_for_hyperparameter_tuning": false,
+  "used_for_training": false,
+  "v0_4_training_dataset_authored": false,
+  "v0_4_training_executed": false
+}

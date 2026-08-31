@@ -1,0 +1,45 @@
+{
+  "additional_forbidden_artifact_paths": [
+    "artifacts/adaptation/holdouts/datalens_semantic_qlora_v0.4_airport_ground_operations_holdout_v0.1_cases.json"
+  ],
+  "additional_forbidden_dataset_ids": [
+    "adaptation:datalens-semantic-qlora-v0.4:airport-ground-operations:holdout:v0.1",
+    "greenhouse_operations:final_acceptance:0001"
+  ],
+  "additional_protected_paths": [
+    "artifacts/adaptation/holdouts/datalens_semantic_qlora_v0.4_airport_ground_operations_holdout_v0.1_cases.json"
+  ],
+  "approved_development_artifact_paths": [],
+  "builder_rule_version": "adaptation_dataset_builder_v0.1",
+  "contains_final_acceptance_material": false,
+  "contamination_match_count": 0,
+  "contamination_protected_corpus_sha256": "c7caa8dfacb746080340749febe25352045d584931e5b938ef8e0c5084067a02",
+  "contamination_report_relative_path": "artifacts/adaptation/governance/datalens_semantic_training_v0.4_contamination.json",
+  "contamination_report_sha256": "2436e108ded2f0b9b3a8dc74b4aecc15680956418b37cd853066d1bfb18a57ec",
+  "dataset": {
+    "contains_pre_adaptation_holdout_material": false,
+    "contains_rag_holdout_material": false,
+    "contains_regression_expected_answers": false,
+    "contamination_report_sha256": "2436e108ded2f0b9b3a8dc74b4aecc15680956418b37cd853066d1bfb18a57ec",
+    "dataset_id": "adaptation:datalens-semantic:training:v0.4",
+    "dataset_sha256": "4fd00586f2d53d6de57f5cbc5f1d7bfb2e512960e60b30c28596aaefbac322b7",
+    "dataset_version": "datalens_semantic_adaptation_training_v0.4",
+    "example_count": 230,
+    "frozen": true,
+    "governance_rule_version": "adaptation_data_governance_v0.1",
+    "scope": "adaptation_training"
+  },
+  "dataset_relative_path": "artifacts/adaptation/datasets/datalens_semantic_training_v0.4.jsonl",
+  "final_acceptance_tuning_input": false,
+  "forbidden_provenance_index_sha256": "933a3e9099da44a97fdb0f2b06b4fb4d7dd990d9cc3977dab264df2afc48c688",
+  "freeze_rule_version": "adaptation_dataset_freeze_v0.2",
+  "frozen_at": "2026-08-29T23:42:16Z",
+  "frozen_before_training": true,
+  "near_duplicate_threshold": 0.92,
+  "provenance_protected_corpus_sha256": "537289dadb18e4ed62476e383405b4f0b8d880d84c6275ddb675742e28094425",
+  "provenance_report_relative_path": "artifacts/adaptation/governance/datalens_semantic_training_v0.4_provenance.json",
+  "provenance_report_sha256": "1ee13d5e95a6b072f719afcb104741acec8d1255d97500c7e1f425ea4c3d015a",
+  "provenance_violation_count": 0,
+  "status": "frozen",
+  "training_started_at_freeze": false
+}

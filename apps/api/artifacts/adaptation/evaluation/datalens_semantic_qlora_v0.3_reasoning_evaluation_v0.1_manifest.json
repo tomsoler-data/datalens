@@ -1,0 +1,85 @@
+{
+  "adapter": {
+    "files": {
+      "README.md": "6ecdbb662eaed8010ab0e012a2b95b79543884cf294406dc6da2cde64f98389d",
+      "adapter_config.json": "7c171386861d76e821b838dbc6c1a73a63c99698ac3aba2d60f94a28d623a5c2",
+      "adapter_model.safetensors": "44b4d669a975c0a144f834dae0cbb4e0d56fa8525d6aa717007eebf4d44e6f6a"
+    },
+    "logical_cache_path": ".cache/datalens/adaptation/runs/datalens-semantic-qlora-v0.3-training-v0.1/adapter",
+    "official_bundle_sha256": "ed10297a1d0e6ce504189985d91f46b2f1f37a5a67fe84f0d62a9f09c3940ffe"
+  },
+  "benchmark": {
+    "benchmark_id": "adaptation:semantic_reasoning:hotel:v0.1",
+    "benchmark_version": "datalens_adapted_semantic_reasoning_hotel_v0.1",
+    "case_count": 19,
+    "covered_training_families": 3,
+    "total_training_families": 5
+  },
+  "converted_base_model": {
+    "files": {
+      "config.json": "92d1975005be74a96582b41f59e846fe5f9ab7bd829d9b14a9afbe26708cba8f",
+      "datalens_checkpoint_manifest.json": "3958e7c849597bd3f0bb4db930fb4d329d5e2bc207afd3157dfcd22c83bab994",
+      "model-00001-of-00002.safetensors": "bacf289ba8e7cb2d5a1d154a51d706b97ed1277b713e38d72797c6c654335b96",
+      "model-00002-of-00002.safetensors": "0e412c790323463c40ccd6f3fd5ec028a02ecff7c6fe2269ab0e436afca42606",
+      "model.safetensors.index.json": "2cc9b808d15ac36a4ef5d12dc1df774c5bfa5c186a108671612a85265d3d2b64"
+    },
+    "logical_cache_path": ".cache/datalens/adaptation/base-models/gemma-3-4b-it-text-093f9f388b31de276ce2de164bdc2081324b9767",
+    "repository": "google/gemma-3-4b-it",
+    "revision": "093f9f388b31de276ce2de164bdc2081324b9767"
+  },
+  "evaluation_order": [
+    "pinned_base",
+    "same_base_plus_frozen_adapter"
+  ],
+  "execution_code": {
+    "runner_relative_path": "app/adaptation/reasoning_evaluation_runner.py",
+    "runner_sha256": "b96d70de459d46d996dac84617ba2e3b9c2ca34f17f05d19ff80a1cd0591b7b2",
+    "test_relative_path": "test_reasoning_evaluation_runner_v0_1.py",
+    "test_sha256": "7a4fa01b08164237a9f8f149bfd31870059c7309d013261de74722240f9eaf1a"
+  },
+  "final_acceptance": {
+    "evaluation_allowed": false,
+    "load_allowed": false
+  },
+  "manifest_rule_version": "adapted_reasoning_evaluation_manifest_v0.1",
+  "outputs": {
+    "receipt_relative_path": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.3_reasoning_evaluation_v0.1_receipt.json",
+    "report_relative_path": "artifacts/adaptation/evaluation/datalens_semantic_qlora_v0.3_reasoning_evaluation_v0.1_report.json"
+  },
+  "protocol": {
+    "git_commit": "60e50bb435f8e3f8bc8b2d093d711676ed645b6c",
+    "sha256": {
+      "cases": "fcf708cd12cad123030527ccebfd85238ee9614ac1b235af74fcab794b5fc3a4",
+      "freeze": "b62d681b2ed94cc544ed2ac7d8270f38482266e130448254b6a4c8633dd5abab",
+      "module": "7d15b482cd249eae3e2e6a05a55f76b6d3ba2afe94d3f8998fd04b22b59f92af",
+      "test": "32e95dad62c1028de89e59a86c79fd4fd88d24d02a6bf0b8b067493dafbb7e57"
+    }
+  },
+  "runtime": {
+    "cuda_required": true,
+    "minimum_free_cuda_gib": 5.0,
+    "seed": 42
+  },
+  "scoring": {
+    "assistant_span_definition": "all full-chat token IDs after the exact user-only add_generation_prompt=True prefix",
+    "candidate_selection": "argmax_mean_log_probability",
+    "generation_used": false,
+    "llm_judge_used": false,
+    "max_sequence_length": 256,
+    "rule_version": "adapted_semantic_reasoning_scoring_v0.1",
+    "score_reduction": "mean log probability over the frozen assistant continuation token span",
+    "silent_truncation_allowed": false,
+    "ties": "fail_closed"
+  },
+  "tokenizer": {
+    "chat_template_sha256": "7de1c58e208eda46e9c7f86397df37ec49883aeece39fb961e0a6b24088dd3c4",
+    "repository": "google/gemma-3-4b-it",
+    "revision": "093f9f388b31de276ce2de164bdc2081324b9767"
+  },
+  "training_evidence": {
+    "adapter_bundle_sha256": "ed10297a1d0e6ce504189985d91f46b2f1f37a5a67fe84f0d62a9f09c3940ffe",
+    "receipt_sha256": "3ccc1fcf29347a7f95bd4aad1219b1c2ae29f6088a4d915cfb2bd61cc68369b7",
+    "report_sha256": "6b551208846de1e36317d504679dee2e5e09b21855d50481d698972e8a8275ee",
+    "training_evidence_commit": "09282a64f859563c426073373f9af57c19fbfaac"
+  }
+}

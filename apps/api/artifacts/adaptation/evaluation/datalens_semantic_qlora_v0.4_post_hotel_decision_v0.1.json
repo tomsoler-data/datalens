@@ -1,0 +1,70 @@
+{
+  "adapter_authority": {
+    "official_bundle_sha256": "0351980df6d86096195c0971deb30c725e155c71aa5de8054b2b37fa42090716"
+  },
+  "airport_gate_policy": {
+    "accuracy_delta_minimum": 0.0,
+    "both_metrics_required_for_greenhouse": true,
+    "failure_action": "stop_v0.4_before_greenhouse",
+    "macro_accuracy_delta_minimum": 0.0,
+    "pass_action": "freeze_and_commit_airport_evidence_before_greenhouse_final_acceptance",
+    "single_use_holdout_for_v0.4": true
+  },
+  "decision": {
+    "action": "proceed_to_airport_independent_holdout",
+    "reason": "Hotel is diagnostic-only and therefore cannot be promoted post hoc to an acceptance gate. S3 regression and safety gates passed. Hotel improved materially versus v0.3 but retains a small negative overall-accuracy signal versus the pinned base model. The independent Airport holdout is therefore required to measure generalization without tuning on Hotel."
+  },
+  "evidence": {
+    "hotel": {
+      "evidence_commit": "a3dc68e3993baae00b25727a00827807079a4837",
+      "manifest_freeze_sha256": "ad2e70018d7b1503fcc5476ab9a51831635214bb0b1c7bc989aa67a3b5352fb6",
+      "manifest_sha256": "860bc2089151c49ec7c90d0cbf940965463d38f8f531516484421d895519b4ff",
+      "protocol_commit": "e7d31a5b91e9c10586c448a248094808d7ad2c6e",
+      "receipt_sha256": "4a94c21ad637bb8173acb75e12452a41c5158e41b37e7808862138c816c0a261",
+      "report_sha256": "de429f41a12af34b37735d6a909041fe27019649065bb1e5292f7cf1e0cad4d8",
+      "runner_commit": "76a8c94b4ce1bfee928bb5798e03f2677b561d87"
+    },
+    "s3": {
+      "evidence_commit": "b82e89eadc423aadba247be226fdd7e3a96cc7e4",
+      "overall_gate_passed": true,
+      "receipt_sha256": "fb4d81feb1c20c77e8fe3eaaf491ca7f831c32c96a6dcf29389e7b06dae28b96",
+      "report_sha256": "b0b662c31f7bbc013968cd7a69968aba21621c13cfe8de72bef2f4ddde0c1e6c"
+    },
+    "training": {
+      "adapter_bundle_sha256": "0351980df6d86096195c0971deb30c725e155c71aa5de8054b2b37fa42090716",
+      "evidence_commit": "f5ec307f134eadbfc70f282a840fef3e7d5987a4"
+    }
+  },
+  "experiment_id": "datalens-semantic-qlora-v0.4",
+  "governance": {
+    "airport_cases_used_for_this_decision": false,
+    "airport_failure_requires_new_experiment_version": true,
+    "airport_may_be_used_for_tuning": false,
+    "airport_result_may_be_used_for_model_selection": false,
+    "greenhouse_cases_used_for_this_decision": false,
+    "greenhouse_remains_closed_until_airport_pass": true,
+    "hotel_acceptance_evidence": false,
+    "hotel_may_be_reexecuted": false,
+    "hotel_tuning_evidence": false,
+    "hyperparameter_changes_before_airport": false,
+    "new_training_before_airport": false,
+    "training_dataset_changes_before_airport": false
+  },
+  "hotel_observation": {
+    "accuracy_delta": -0.052631,
+    "adapted_accuracy": 0.263158,
+    "adapted_correct_count": 5,
+    "adapted_macro_accuracy": 0.558974,
+    "base_accuracy": 0.315789,
+    "base_correct_count": 6,
+    "base_macro_accuracy": 0.461538,
+    "case_count": 19,
+    "historical_v0.3_adapted_correct_count": 3,
+    "interpretation": "improved_vs_v0.3_but_still_negative_vs_base",
+    "macro_accuracy_delta": 0.097436,
+    "preregistered_signal": "negative_signal"
+  },
+  "next_phase": "airport_independent_holdout_protocol",
+  "record_rule_version": "qlora_v0.4_post_hotel_decision_v0.1",
+  "source_git_commit": "a3dc68e3993baae00b25727a00827807079a4837"
+}
