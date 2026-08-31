@@ -1585,9 +1585,9 @@ def build_negative_decision(
 # ============================================================
 
 EXPLICIT_REQUEST_RELATION_PHRASES = {
-    "analyse ? r?aliser",
+    "analyse à réaliser",
     "analyse a realiser",
-    "analyse ? effectuer",
+    "analyse à effectuer",
     "analyse a effectuer",
     "j'aimerais que",
     "je souhaite",
@@ -1606,9 +1606,9 @@ EXPLICIT_REQUEST_RELATION_ACTIONS = {
     "combien",
     "analyser",
     "analysez",
-    "?tudier",
+    "étudier",
     "etudier",
-    "?tudiez",
+    "étudiez",
     "etudiez",
     "comparer",
     "comparez",
@@ -1807,7 +1807,7 @@ def verify_decision(
         reason
         or
         (
-            "Une unit? documentaire valid?e par "
+            "Une unité documentaire validée par "
             "Python couvre le contrat analytique."
         )
     )
@@ -1829,7 +1829,7 @@ def verify_decision(
         )
 
         verified_reason = (
-            "La preuve s?lectionn?e correspond "
+            "La preuve sélectionnée correspond "
             "exactement au titre d'une demande "
             "analytique explicite."
         )
