@@ -47,7 +47,7 @@ if TYPE_CHECKING:
 # ============================================================
 
 REQUEST_PLANNER_RULE_VERSION = (
-    "analytical_request_planner_v0.3"
+    "analytical_request_planner_v0.4"
 )
 
 
@@ -435,9 +435,29 @@ def classify_request(
         )
 
 
-    if (
-        "nombre de transactions"
-        in text
+    transaction_count_patterns = (
+        r"\bnombre(?:\s+total)?\s+de\s+transactions?\b",
+        r"\bcombien\s+de\s+transactions?\b",
+        (
+            r"\b(?:compte|compter|comptez)\s+"
+            r"(?:(?:le|la|les)\s+)?"
+            r"(?:nombre\s+)?"
+            r"(?:total\s+)?"
+            r"(?:de\s+)?"
+            r"transactions?\b"
+        ),
+    )
+
+
+    if any(
+        re.search(
+            pattern,
+            text,
+        )
+        is not None
+
+        for pattern
+        in transaction_count_patterns
     ):
         return (
             "transaction_count"
