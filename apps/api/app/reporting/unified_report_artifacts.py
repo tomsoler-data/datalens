@@ -12,6 +12,8 @@ from app.reporting.analysis_artifact_store import (
     AnalysisArtifactRecord,
     AnalysisSourceType,
     register_server_owned_analysis,
+    build_server_owned_analysis_record,
+    persist_server_owned_analysis_records_atomic,
 )
 
 
@@ -1020,6 +1022,163 @@ def _synthetic_native_payload(
     }
 
 
+def _build_finding_record(
+    *,
+    workflow_id: str,
+    source_type: AnalysisSourceType,
+    finding: Any,
+    select_by_default: bool,
+    requested_plan: Any | None = None,
+) -> AnalysisArtifactRecord:
+    # Compatibility parameter only. Artifact registration and
+    # report composition are intentionally separate concerns.
+    _ = select_by_default
+
+
+    payload = (
+        _dump(
+            finding
+        )
+    )
+
+
+    source_analysis_id = str(
+        payload.get(
+            "analysis_id",
+            "",
+        )
+        or
+        payload.get(
+            "request_id",
+            "",
+        )
+        or
+        payload.get(
+            "title",
+            "",
+        )
+    ).strip()
+
+
+    if not (
+        source_analysis_id
+    ):
+        raise ValueError(
+            (
+                "A report finding must expose analysis_id, "
+                "request_id or title."
+            )
+        )
+
+
+    objective = str(
+        payload.get(
+            "request_text",
+            "",
+        )
+        or
+        payload.get(
+            "title",
+            "",
+        )
+        or
+        source_analysis_id
+    ).strip()
+
+
+    artifact_id = (
+        _stable_id(
+            workflow_id=
+                workflow_id,
+
+            source_type=
+                source_type,
+
+            source_analysis_id=
+                source_analysis_id,
+        )
+    )
+
+
+    trace_id = (
+        f"report:{source_analysis_id}"
+    )
+
+
+    pipeline_payload = (
+        _synthetic_native_payload(
+            artifact_id=
+                artifact_id,
+
+            source_type=
+                source_type,
+
+            objective=
+                objective,
+
+            finding=
+                payload,
+        )
+    )
+
+
+    if (
+        source_type
+        in
+        REQUESTED_ANALYSIS_SOURCE_TYPES
+        and
+        requested_plan
+        is not None
+    ):
+        pipeline_payload[
+            "requested_plan"
+        ] = (
+            _dump(
+                requested_plan
+            )
+        )
+
+
+    return (
+        build_server_owned_analysis_record(
+            workflow_id=
+                workflow_id,
+
+            analysis_id=
+                artifact_id,
+
+            trace_id=
+                trace_id,
+
+            source_type=
+                source_type,
+
+            objective=
+                objective,
+
+            executed=
+                True,
+
+            executed_count=
+                1,
+
+            pipeline_payload=
+                pipeline_payload,
+
+            # Report composition is manual-only.
+            #
+            # Keep the compatibility argument in this helper so
+            # older server call sites do not break, but never
+            # translate artifact registration into a report
+            # selection side effect.
+            select_by_default=
+                False,
+        )
+    )
+
+
+
+
 def _register_finding(
     *,
     workflow_id: str,
@@ -1175,9 +1334,297 @@ def _register_finding(
     )
 
 
+
+
+
+
 # ============================================================
 # REQUEST LIFECYCLE ARTIFACTS
 # ============================================================
+
+def build_unresolved_requested_analysis_artifacts(
+    *,
+    workflow_id: str,
+    execution_report: Any,
+    plan_report: Any,
+    source_type: AnalysisSourceType = "document_request",
+) -> list[
+    AnalysisArtifactRecord
+]:
+    """
+    Persist documentary analytical requests that did not
+    produce a reportable analytical result.
+
+    These records are lifecycle artifacts, not findings.
+
+    Important invariants:
+
+    - they retain the same server-owned identity that a future
+      successful requested finding will use;
+    - executed=False keeps them outside report selection;
+    - planner status and blockers remain server-owned;
+    - no blocked or ambiguous request is converted into an
+      observed analytical result.
+    """
+
+    source_type = (
+        _require_requested_analysis_source_type(
+            source_type
+        )
+    )
+
+
+    from app.reporting.requested_adapter import (
+        REPORTABLE_REQUESTED_STATUSES,
+        build_request_plan_map,
+        requested_analysis_id,
+    )
+
+
+    plan_map = (
+        build_request_plan_map(
+            plan_report
+        )
+    )
+
+
+    registered: list[
+        AnalysisArtifactRecord
+    ] = []
+
+
+    seen_source_ids: set[
+        str
+    ] = set()
+
+
+    results = (
+        getattr(
+            execution_report,
+            "results",
+            [],
+        )
+        or
+        []
+    )
+
+
+    for (
+        request_order,
+        execution,
+    ) in enumerate(
+        results,
+        start=1,
+    ):
+        if (
+            execution.execution_status
+            in
+            REPORTABLE_REQUESTED_STATUSES
+        ):
+            continue
+
+
+        plan = (
+            plan_map.get(
+                execution.request_id
+            )
+        )
+
+
+        if plan is None:
+            raise ValueError(
+                (
+                    "No Request Planner record was found "
+                    "for unresolved requested execution "
+                    f"{execution.request_id}."
+                )
+            )
+
+
+        if (
+            execution.request_id
+            !=
+            plan.request_id
+        ):
+            raise ValueError(
+                (
+                    "Requested lifecycle execution / plan "
+                    "request_id mismatch: "
+                    f"{execution.request_id} != "
+                    f"{plan.request_id}"
+                )
+            )
+
+
+        source_analysis_id = (
+            requested_analysis_id(
+                execution
+            )
+        )
+
+
+        if (
+            source_analysis_id
+            in
+            seen_source_ids
+        ):
+            raise ValueError(
+                (
+                    "Duplicate unresolved requested "
+                    "analysis identity detected: "
+                    f"{source_analysis_id}"
+                )
+            )
+
+
+        seen_source_ids.add(
+            source_analysis_id
+        )
+
+
+        artifact_id = (
+            _stable_id(
+                workflow_id=
+                    workflow_id,
+
+                source_type=
+                    source_type,
+
+                source_analysis_id=
+                    source_analysis_id,
+            )
+        )
+
+
+        objective = str(
+            execution.request_text
+            or
+            source_analysis_id
+        ).strip()
+
+
+        execution_payload = (
+            _dump(
+                execution
+            )
+        )
+
+
+        plan_payload = (
+            _dump(
+                plan
+            )
+        )
+
+
+        lifecycle_payload = {
+            "artifact_kind":
+                "requested_analysis_lifecycle",
+
+            "status":
+                execution.execution_status,
+
+            "request_lifecycle":
+                {
+                    "request_id":
+                        execution.request_id,
+
+                    "request_text":
+                        execution.request_text,
+
+                    "request_order":
+                        request_order,
+
+                    "plan_status":
+                        execution.plan_status,
+
+                    "execution_status":
+                        execution.execution_status,
+
+                    "inferential_status":
+                        execution.inferential_status,
+
+                    "warnings":
+                        list(
+                            execution.warnings
+                            or
+                            []
+                        ),
+
+                    "limitations":
+                        list(
+                            execution.limitations
+                            or
+                            []
+                        ),
+
+                    "source_filename":
+                        plan.source_filename,
+
+                    "source_locator":
+                        plan.source_locator,
+
+                    "page_number":
+                        plan.page_number,
+
+                    "source_chunk_id":
+                        plan.source_chunk_id,
+
+                    "evidence_unit_id":
+                        plan.evidence_unit_id,
+
+                    "evidence_quote":
+                        plan.evidence_quote,
+                },
+
+            "requested_execution":
+                execution_payload,
+
+            "requested_plan":
+                plan_payload,
+        }
+
+
+        registered.append(
+            build_server_owned_analysis_record(
+                workflow_id=
+                    workflow_id,
+
+                analysis_id=
+                    artifact_id,
+
+                trace_id=
+                    (
+                        "report:"
+                        +
+                        source_analysis_id
+                    ),
+
+                source_type=
+                    source_type,
+
+                objective=
+                    objective,
+
+                executed=
+                    False,
+
+                executed_count=
+                    0,
+
+                pipeline_payload=
+                    lifecycle_payload,
+
+                select_by_default=
+                    False,
+            )
+        )
+
+
+    return registered
+
+
+
 
 def register_unresolved_requested_analysis_artifacts(
     *,
@@ -1461,6 +1908,10 @@ def register_unresolved_requested_analysis_artifacts(
     return registered
 
 
+
+
+
+
 # ============================================================
 # PUBLIC SYNC
 # ============================================================
@@ -1587,6 +2038,213 @@ def register_requested_report_finding(
                 requested_plan,
         )
     )
+
+
+def build_unified_report_artifacts(
+    *,
+    workflow_id: str,
+    report: Any,
+) -> list[
+    AnalysisArtifactRecord
+]:
+    """
+    Persist reportable deterministic analyses produced by the
+    standard DataLens analysis pipeline.
+
+    Report-selection policy:
+
+    - document_request -> available, not selected;
+    - automatic        -> available, not selected.
+
+    Prompt-native analyses are registered separately by the
+    AI-native pipeline and are also available without being
+    selected automatically.
+
+    Executing or persisting an analysis must never mutate report
+    composition. Selection is an explicit user action.
+    """
+
+    report_payload = (
+        _dump(
+            report
+        )
+    )
+
+
+    registered: list[
+        AnalysisArtifactRecord
+    ] = []
+
+
+    seen_source_keys: set[
+        tuple[
+            AnalysisSourceType,
+            str,
+        ]
+    ] = set()
+
+
+    requested = (
+        report_payload.get(
+            "requested_findings",
+            [],
+        )
+    )
+
+
+    if isinstance(
+        requested,
+        list,
+    ):
+        for finding in (
+            requested
+        ):
+            if not isinstance(
+                finding,
+                dict,
+            ):
+                continue
+
+
+            source_key = str(
+                finding.get(
+                    "analysis_id",
+                    "",
+                )
+                or
+                finding.get(
+                    "request_id",
+                    "",
+                )
+            ).strip()
+
+
+            dedupe_key = (
+                "document_request",
+                source_key,
+            )
+
+
+            if (
+                source_key
+                and
+                dedupe_key
+                in seen_source_keys
+            ):
+                continue
+
+
+            if (
+                source_key
+            ):
+                seen_source_keys.add(
+                    dedupe_key
+                )
+
+
+            registered.append(
+                _build_finding_record(
+                    workflow_id=
+                        workflow_id,
+
+                    source_type=
+                        "document_request",
+
+                    finding=
+                        finding,
+
+                    select_by_default=
+                        False,
+                )
+            )
+
+
+    for field_name in (
+        "main_findings",
+        "additional_findings",
+        "context_analyses",
+    ):
+        findings = (
+            report_payload.get(
+                field_name,
+                [],
+            )
+        )
+
+
+        if not isinstance(
+            findings,
+            list,
+        ):
+            continue
+
+
+        for finding in (
+            findings
+        ):
+            if not isinstance(
+                finding,
+                dict,
+            ):
+                continue
+
+
+            source_key = str(
+                finding.get(
+                    "analysis_id",
+                    "",
+                )
+                or
+                finding.get(
+                    "title",
+                    "",
+                )
+            ).strip()
+
+
+            dedupe_key = (
+                "automatic",
+                source_key,
+            )
+
+
+            if (
+                source_key
+                and
+                dedupe_key
+                in seen_source_keys
+            ):
+                continue
+
+
+            if (
+                source_key
+            ):
+                seen_source_keys.add(
+                    dedupe_key
+                )
+
+
+            registered.append(
+                _build_finding_record(
+                    workflow_id=
+                        workflow_id,
+
+                    source_type=
+                        "automatic",
+
+                    finding=
+                        finding,
+
+                    select_by_default=
+                        False,
+                )
+            )
+
+
+    return registered
+
+
 
 
 def register_unified_report_artifacts(
@@ -1792,3 +2450,63 @@ def register_unified_report_artifacts(
 
 
     return registered
+
+
+
+
+
+
+def register_contextualized_report_artifacts_atomic(
+    *,
+    workflow_id: str,
+    execution_report: Any,
+    plan_report: Any,
+    report: Any,
+) -> list[
+    AnalysisArtifactRecord
+]:
+    """
+    Commit the complete contextualized-report artifact set as
+    one logical AnalysisArtifact transaction.
+
+    No unresolved lifecycle artifact or reportable finding is
+    made visible unless the complete metadata batch commits.
+    """
+
+    unresolved_records = (
+        build_unresolved_requested_analysis_artifacts(
+            workflow_id=
+                workflow_id,
+
+            execution_report=
+                execution_report,
+
+            plan_report=
+                plan_report,
+        )
+    )
+
+
+    report_records = (
+        build_unified_report_artifacts(
+            workflow_id=
+                workflow_id,
+
+            report=
+                report,
+        )
+    )
+
+
+    records = [
+        *unresolved_records,
+        *report_records,
+    ]
+
+
+    return (
+        persist_server_owned_analysis_records_atomic(
+            records=
+                records
+        )
+    )

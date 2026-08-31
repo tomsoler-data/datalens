@@ -45,6 +45,7 @@ from app.reporting.analysis_artifact_index import (
     load_analysis_artifact_index_workflow,
     replace_analysis_artifact_index_scope,
     upsert_analysis_artifact_index_entry,
+    upsert_analysis_artifact_index_entries_atomic,
     delete_analysis_artifact_index_workflow,
 )
 
@@ -1391,6 +1392,477 @@ def register_native_pipeline_result(
 # SERVER-OWNED GENERIC ANALYSIS WRITE
 # ============================================================
 
+
+
+def build_server_owned_analysis_record(
+    *,
+    workflow_id: str,
+    analysis_id: str,
+    trace_id: str,
+    source_type: AnalysisSourceType,
+    objective: str,
+    executed: bool,
+    executed_count: int,
+    pipeline_payload: dict[
+        str,
+        Any,
+    ],
+    select_by_default: bool = False,
+) -> AnalysisArtifactRecord:
+    """
+    Build and validate one server-owned AnalysisArtifactRecord
+    without persisting it.
+
+    Existing created_at preservation is applied by the atomic
+    persistence layer at commit time.
+    """
+
+    _ = select_by_default
+
+
+    normalized_workflow_id = str(
+        workflow_id
+    ).strip()
+
+    normalized_analysis_id = str(
+        analysis_id
+    ).strip()
+
+    normalized_trace_id = str(
+        trace_id
+    ).strip()
+
+    normalized_objective = str(
+        objective
+    ).strip()
+
+
+    if not normalized_workflow_id:
+        raise ValueError(
+            "workflow_id cannot be empty."
+        )
+
+    if not normalized_analysis_id:
+        raise ValueError(
+            "analysis_id cannot be empty."
+        )
+
+    if not normalized_trace_id:
+        raise ValueError(
+            "trace_id cannot be empty."
+        )
+
+    if not normalized_objective:
+        raise ValueError(
+            "objective cannot be empty."
+        )
+
+    if (
+        executed_count
+        <
+        0
+    ):
+        raise ValueError(
+            "executed_count cannot be negative."
+        )
+
+
+    payload_copy = dict(
+        pipeline_payload
+    )
+
+    payload_copy[
+        "analysis_id"
+    ] = normalized_analysis_id
+
+    payload_copy[
+        "analysis_source_type"
+    ] = source_type
+
+
+    return (
+        AnalysisArtifactRecord(
+            analysis_id=
+                normalized_analysis_id,
+
+            workflow_id=
+                normalized_workflow_id,
+
+            trace_id=
+                normalized_trace_id,
+
+            source_type=
+                source_type,
+
+            objective=
+                normalized_objective,
+
+            executed=
+                bool(
+                    executed
+                ),
+
+            executed_count=
+                int(
+                    executed_count
+                ),
+
+            pipeline_payload=
+                payload_copy,
+
+            created_at_utc=(
+                datetime.now(
+                    timezone.utc
+                )
+                .isoformat()
+            ),
+        )
+    )
+
+
+
+
+def persist_server_owned_analysis_records_atomic(
+    *,
+    records: list[
+        AnalysisArtifactRecord
+    ],
+) -> list[
+    AnalysisArtifactRecord
+]:
+    """
+    Persist multiple server-owned AnalysisArtifact records as
+    one logical artifact-store commit.
+
+    Atomic visibility invariant:
+
+    - every new payload file is prepared first;
+    - all metadata rows are committed in one SQLite transaction;
+    - if payload preparation or metadata commit fails, every
+      newly prepared payload is deleted;
+    - previous metadata and previous payloads remain visible;
+    - old replaced payloads are deleted only after metadata
+      commit succeeds.
+
+    Payload files use unique names, so preparing a replacement
+    never mutates the previously visible payload.
+    """
+
+    if not records:
+        return []
+
+
+    validated_records = [
+        (
+            record
+            if isinstance(
+                record,
+                AnalysisArtifactRecord,
+            )
+            else
+            AnalysisArtifactRecord.model_validate(
+                record
+            )
+        )
+
+        for record
+        in records
+    ]
+
+
+    analysis_ids = [
+        record.analysis_id
+
+        for record
+        in validated_records
+    ]
+
+
+    if (
+        len(
+            analysis_ids
+        )
+        !=
+        len(
+            set(
+                analysis_ids
+            )
+        )
+    ):
+        raise AnalysisArtifactStoreError(
+            (
+                "Atomic AnalysisArtifact batch contains "
+                "duplicate analysis_id values."
+            )
+        )
+
+
+    committed_records: list[
+        AnalysisArtifactRecord
+    ] = []
+
+
+    with _STORE_LOCK:
+        _ensure_store_initialized()
+
+
+        path = (
+            resolve_analysis_artifact_store_path()
+        )
+
+
+        previous_entries = {}
+
+
+        for record in validated_records:
+            previous = (
+                get_analysis_artifact_index_entry(
+                    store_path=
+                        path,
+
+                    analysis_id=
+                        record.analysis_id,
+                )
+            )
+
+
+            if (
+                previous is not None
+                and
+                str(
+                    previous[
+                        "workflow_id"
+                    ]
+                )
+                !=
+                record.workflow_id
+            ):
+                raise (
+                    AnalysisArtifactWorkflowMismatchError(
+                        (
+                            "A server-owned analysis_id already "
+                            "exists under another workflow."
+                        )
+                    )
+                )
+
+
+            previous_entries[
+                record.analysis_id
+            ] = previous
+
+
+            if previous is not None:
+                record = record.model_copy(
+                    update={
+                        "created_at_utc":
+                            str(
+                                previous[
+                                    "created_at_utc"
+                                ]
+                            ),
+                    }
+                )
+
+
+            committed_records.append(
+                record
+            )
+
+
+        new_payload_paths: list[
+            str
+        ] = []
+
+        new_entries: list[
+            dict[
+                str,
+                Any,
+            ]
+        ] = []
+
+
+        try:
+            # ------------------------------------------------
+            # Stage all replacement/new payloads.
+            # ------------------------------------------------
+
+            for record in committed_records:
+                payload_info = (
+                    write_analysis_artifact_payload(
+                        store_path=
+                            path,
+
+                        analysis_id=
+                            record.analysis_id,
+
+                        pipeline_payload=
+                            record.pipeline_payload,
+                    )
+                )
+
+
+                new_payload_paths.append(
+                    payload_info[
+                        "payload_path"
+                    ]
+                )
+
+
+                new_entries.append(
+                    _index_entry_for_record(
+                        record=
+                            record,
+
+                        payload_info=
+                            payload_info,
+                    )
+                )
+
+
+            # ------------------------------------------------
+            # Single metadata transaction.
+            # ------------------------------------------------
+
+            upsert_analysis_artifact_index_entries_atomic(
+                store_path=
+                    path,
+
+                entries=
+                    new_entries,
+            )
+
+
+        except Exception:
+            # Metadata did not commit successfully.
+            #
+            # Newly staged payloads are unreachable and must
+            # therefore be removed. Previous payloads remain
+            # untouched and previous metadata remains visible.
+            for payload_path in (
+                new_payload_paths
+            ):
+                try:
+                    delete_analysis_artifact_payload(
+                        store_path=
+                            path,
+
+                        payload_path=
+                            payload_path,
+                    )
+
+                except Exception:
+                    pass
+
+
+            raise
+
+
+        # ----------------------------------------------------
+        # Metadata now points only at the new payloads.
+        #
+        # Old replaced files are stale and may be deleted.
+        # Failure here cannot invalidate the committed metadata;
+        # at worst it leaves an unreachable stale file.
+        # ----------------------------------------------------
+
+        new_entry_by_id = {
+            entry[
+                "analysis_id"
+            ]:
+                entry
+
+            for entry
+            in new_entries
+        }
+
+
+        for record in committed_records:
+            previous = (
+                previous_entries[
+                    record.analysis_id
+                ]
+            )
+
+
+            if previous is None:
+                continue
+
+
+            previous_path = str(
+                previous[
+                    "payload_path"
+                ]
+            )
+
+            new_path = str(
+                new_entry_by_id[
+                    record.analysis_id
+                ][
+                    "payload_path"
+                ]
+            )
+
+
+            if (
+                previous_path
+                ==
+                new_path
+            ):
+                continue
+
+
+            try:
+                delete_analysis_artifact_payload(
+                    store_path=
+                        path,
+
+                    payload_path=
+                        previous_path,
+                )
+
+            except AnalysisArtifactDataPlaneError:
+                pass
+
+
+    # --------------------------------------------------------
+    # Preserve the existing report-selection invariant.
+    #
+    # Non-executable lifecycle artifacts must not remain
+    # selected in a composed report.
+    # --------------------------------------------------------
+
+    non_executed = [
+        record
+
+        for record
+        in committed_records
+
+        if not record.executed
+    ]
+
+
+    if non_executed:
+        from app.reporting.report_selection_store import (
+            remove_analysis_from_report,
+        )
+
+
+        for record in non_executed:
+            remove_analysis_from_report(
+                workflow_id=
+                    record.workflow_id,
+
+                analysis_id=
+                    record.analysis_id,
+            )
+
+
+    return (
+        committed_records
+    )
+
+
 def register_server_owned_analysis(
     *,
     workflow_id: str,
@@ -1606,6 +2078,10 @@ def register_server_owned_analysis(
 
 
     return record
+
+
+
+
 
 
 class AnalysisArtifactDetail(
