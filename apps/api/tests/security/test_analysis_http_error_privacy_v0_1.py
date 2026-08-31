@@ -14,6 +14,16 @@ SAFE_AI_DETAIL = (
     "or returned an invalid response."
 )
 
+SAFE_CONTEXTUALIZED_PERSISTENCE_422_MESSAGE = (
+    "Contextualized analysis artifact "
+    "persistence request is invalid."
+)
+
+SAFE_CONTEXTUALIZED_PERSISTENCE_503_MESSAGE = (
+    "Contextualized analysis artifacts "
+    "could not be persisted."
+)
+
 SAFE_PDF_DETAIL = (
     "La génération locale du PDF a échoué."
 )
@@ -160,6 +170,37 @@ def literal_string(
     return None
 
 
+def literal_dict_string(
+    node: ast.AST | None,
+    key: str,
+):
+    if not isinstance(
+        node,
+        ast.Dict,
+    ):
+        return None
+
+    for (
+        key_node,
+        value_node,
+    ) in zip(
+        node.keys,
+        node.values,
+    ):
+        if (
+            literal_string(
+                key_node
+            )
+            ==
+            key
+        ):
+            return literal_string(
+                value_node
+            )
+
+    return None
+
+
 def test_rule_version() -> None:
     if (
         TEST_RULE_VERSION
@@ -220,14 +261,17 @@ def test_runtime_503_details_are_static() -> None:
 
     if len(
         handlers
-    ) != 5:
+    ) != 6:
         raise AssertionError(
             (
-                "Expected exactly 5 RuntimeError "
+                "Expected exactly 6 RuntimeError "
                 "HTTP 503 handlers; found "
                 f"{len(handlers)}."
             )
         )
+
+    generic_count = 0
+    contextualized_persistence_count = 0
 
     for _, calls in handlers:
         if len(
@@ -246,15 +290,157 @@ def test_runtime_503_details_are_static() -> None:
             literal_string(
                 detail
             )
-            !=
+            ==
             SAFE_AI_DETAIL
         ):
-            raise AssertionError(
-                (
-                    "RuntimeError HTTP 503 exposes "
-                    "a non-static technical detail."
-                )
+            generic_count += 1
+            continue
+
+        error_code = (
+            literal_dict_string(
+                detail,
+                "error",
             )
+        )
+
+        message = (
+            literal_dict_string(
+                detail,
+                "message",
+            )
+        )
+
+        if (
+            error_code
+            ==
+            "contextualized_artifact_persistence_failed"
+            and
+            message
+            ==
+            SAFE_CONTEXTUALIZED_PERSISTENCE_503_MESSAGE
+        ):
+            contextualized_persistence_count += 1
+            continue
+
+        raise AssertionError(
+            (
+                "RuntimeError HTTP 503 exposes "
+                "a non-static technical detail."
+            )
+        )
+
+    if generic_count != 5:
+        raise AssertionError(
+            (
+                "Expected exactly 5 generic "
+                "static RuntimeError HTTP 503 "
+                f"handlers; found {generic_count}."
+            )
+        )
+
+    if (
+        contextualized_persistence_count
+        !=
+        1
+    ):
+        raise AssertionError(
+            (
+                "Expected exactly one static "
+                "contextualized persistence "
+                "RuntimeError HTTP 503 handler."
+            )
+        )
+
+
+def test_contextualized_persistence_422_detail_is_static(
+) -> None:
+
+    matches = []
+
+    for node in ast.walk(
+        tree()
+    ):
+        if not isinstance(
+            node,
+            ast.ExceptHandler,
+        ):
+            continue
+
+        if (
+            "ValueError"
+            not in
+            exception_names(
+                node
+            )
+        ):
+            continue
+
+        calls = [
+            call
+            for call
+            in http_exception_calls(
+                node
+            )
+            if (
+                literal_int(
+                    keyword_value(
+                        call,
+                        "status_code",
+                    )
+                )
+                ==
+                422
+            )
+        ]
+
+        for call in calls:
+            detail = keyword_value(
+                call,
+                "detail",
+            )
+
+            if (
+                literal_dict_string(
+                    detail,
+                    "error",
+                )
+                ==
+                "invalid_contextualized_artifact_persistence"
+            ):
+                matches.append(
+                    detail
+                )
+
+    if len(
+        matches
+    ) != 1:
+        raise AssertionError(
+            (
+                "Expected exactly one "
+                "contextualized persistence "
+                "ValueError HTTP 422 handler; "
+                f"found {len(matches)}."
+            )
+        )
+
+    message = (
+        literal_dict_string(
+            matches[0],
+            "message",
+        )
+    )
+
+    if (
+        message
+        !=
+        SAFE_CONTEXTUALIZED_PERSISTENCE_422_MESSAGE
+    ):
+        raise AssertionError(
+            (
+                "Contextualized persistence HTTP 422 "
+                "exposes a non-static technical detail."
+            )
+        )
 
 
 def test_pdf_error_is_static() -> None:
@@ -428,6 +614,10 @@ def main() -> None:
             test_runtime_503_details_are_static,
         ),
         (
+            "Contextualized persistence 422 is static",
+            test_contextualized_persistence_422_detail_is_static,
+        ),
+        (
             "PDF error detail is static",
             test_pdf_error_is_static,
         ),
@@ -449,7 +639,7 @@ def main() -> None:
 
     print()
     print(
-        "PASS - 5/5 Analysis HTTP "
+        "PASS - 6/6 Analysis HTTP "
         "error privacy checks"
     )
     print(

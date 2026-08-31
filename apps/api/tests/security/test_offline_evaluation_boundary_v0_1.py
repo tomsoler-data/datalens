@@ -28,6 +28,25 @@ OFFLINE_PREFIXES = (
 )
 
 
+MODEL_ADAPTATION_PREFIX = (
+    "app/adaptation/"
+)
+
+
+NON_RUNTIME_PREFIXES = (
+    "app/evals/",
+    "app/evaluation/",
+    "app/adaptation/",
+)
+
+
+NON_RUNTIME_IMPORT_PREFIXES = (
+    "app.evals",
+    "app.evaluation",
+    "app.adaptation",
+)
+
+
 EXPECTED_DIRECT_MODEL_CALLERS = {
     (
         "app/evals/"
@@ -151,6 +170,20 @@ def is_offline_path(
     )
 
 
+def is_non_runtime_path(
+    relative: str,
+) -> bool:
+
+    return any(
+        relative.startswith(
+            prefix
+        )
+
+        for prefix
+        in NON_RUNTIME_PREFIXES
+    )
+
+
 def python_files(
 ):
 
@@ -179,12 +212,25 @@ def offline_python_files(
             yield path
 
 
+def non_runtime_python_files(
+):
+
+    for path in python_files():
+
+        if is_non_runtime_path(
+            relative_path(
+                path
+            )
+        ):
+            yield path
+
+
 def production_python_files(
 ):
 
     for path in python_files():
 
-        if not is_offline_path(
+        if not is_non_runtime_path(
             relative_path(
                 path
             )
@@ -291,7 +337,7 @@ def test_rule_version(
     )
 
 
-def test_production_cannot_import_evaluation(
+def test_production_cannot_import_non_runtime_model_development(
 ) -> None:
 
     violations = []
@@ -328,14 +374,13 @@ def test_production_cannot_import_evaluation(
                 )
 
 
-                if (
+                if any(
                     module.startswith(
-                        "app.evals"
+                        prefix
                     )
-                    or
-                    module.startswith(
-                        "app.evaluation"
-                    )
+
+                    for prefix
+                    in NON_RUNTIME_IMPORT_PREFIXES
                 ):
 
                     violations.append(
@@ -354,14 +399,13 @@ def test_production_cannot_import_evaluation(
 
                 for alias in node.names:
 
-                    if (
+                    if any(
                         alias.name.startswith(
-                            "app.evals"
+                            prefix
                         )
-                        or
-                        alias.name.startswith(
-                            "app.evaluation"
-                        )
+
+                        for prefix
+                        in NON_RUNTIME_IMPORT_PREFIXES
                     ):
 
                         violations.append(
@@ -378,18 +422,18 @@ def test_production_cannot_import_evaluation(
         ==
         []
     ), (
-        "Production code imports offline "
-        f"evaluation code: {violations}"
+        "Production runtime imports non-runtime "
+        f"model-development code: {violations}"
     )
 
 
-def test_evaluation_exposes_no_http_routes(
+def test_non_runtime_model_development_exposes_no_http_routes(
 ) -> None:
 
     violations = []
 
 
-    for path in offline_python_files():
+    for path in non_runtime_python_files():
 
         tree = (
             parse_file(
@@ -483,8 +527,8 @@ def test_evaluation_exposes_no_http_routes(
         ==
         []
     ), (
-        "Offline evaluation code exposes "
-        f"HTTP routes: {violations}"
+        "Non-runtime model-development code "
+        f"exposes HTTP routes: {violations}"
     )
 
 
@@ -802,6 +846,35 @@ def test_offline_packages_are_exact(
     )
 
 
+    assert (
+        MODEL_ADAPTATION_PREFIX
+        ==
+        "app/adaptation/"
+    )
+
+
+    assert (
+        NON_RUNTIME_PREFIXES
+        ==
+        (
+            "app/evals/",
+            "app/evaluation/",
+            "app/adaptation/",
+        )
+    )
+
+
+    assert (
+        NON_RUNTIME_IMPORT_PREFIXES
+        ==
+        (
+            "app.evals",
+            "app.evaluation",
+            "app.adaptation",
+        )
+    )
+
+
 def main(
 ) -> None:
 
@@ -819,12 +892,12 @@ def main(
             test_rule_version,
         ),
         (
-            "Production cannot import evaluation",
-            test_production_cannot_import_evaluation,
+            "Runtime cannot import non-runtime model development",
+            test_production_cannot_import_non_runtime_model_development,
         ),
         (
-            "Evaluation exposes no HTTP routes",
-            test_evaluation_exposes_no_http_routes,
+            "Non-runtime model development exposes no HTTP routes",
+            test_non_runtime_model_development_exposes_no_http_routes,
         ),
         (
             "Direct model callers exactly allowlisted",

@@ -4901,8 +4901,9 @@ def run_contextualized_dataset_analysis(
                     "invalid_contextualized_artifact_persistence",
 
                 "message":
-                    str(
-                        error
+                    (
+                        "Contextualized analysis artifact "
+                        "persistence request is invalid."
                     ),
 
                 "workflow_id":
@@ -4921,8 +4922,9 @@ def run_contextualized_dataset_analysis(
                     "contextualized_artifact_persistence_failed",
 
                 "message":
-                    str(
-                        error
+                    (
+                        "Contextualized analysis artifacts "
+                        "could not be persisted."
                     ),
 
                 "workflow_id":
