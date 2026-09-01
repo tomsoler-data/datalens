@@ -61,7 +61,7 @@ from app.ai.native_tool_calling import (
 # ============================================================
 
 
-WORKFLOW_ID = "prep:ci-analysis-prompt-e2e"
+WORKFLOW_ID = "prep:c1a1a1e2e00000000000000000000001"
 PLANNER_MODEL = "gemma3:4b"
 TOOL_MODEL = "qwen2.5:1.5b-instruct"
 
@@ -656,6 +656,9 @@ def fake_generate_raw_ai_plan_with_timing(
         ),
         window_operation="none",
         window_size=None,
+        benchmark_reference=None,
+        benchmark_operator=None,
+        benchmark_selection=None,
         blockers=[],
         reasons=[
             (

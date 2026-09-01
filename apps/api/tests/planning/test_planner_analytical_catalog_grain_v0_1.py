@@ -165,6 +165,9 @@ def canonical_ca_proposal() -> AIPlannerProposal:
         ranking_limit=None,
         window_operation="none",
         window_size=None,
+        benchmark_reference=None,
+        benchmark_operator=None,
+        benchmark_selection=None,
         blockers=[],
         reasons=[],
         confidence=1.0,
@@ -190,6 +193,9 @@ def malformed_gemma_proposal() -> AIPlannerProposal:
         ranking_limit=None,
         window_operation="none",
         window_size=None,
+        benchmark_reference=None,
+        benchmark_operator=None,
+        benchmark_selection=None,
         blockers=[],
         reasons=[
             "Observed small-model wire error reproduced by regression test."

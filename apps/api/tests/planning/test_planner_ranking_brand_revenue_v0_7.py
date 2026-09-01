@@ -121,6 +121,9 @@ def observed_malformed_gemma_proposal() -> AIPlannerProposal:
         ranking_limit=1,
         window_operation="none",
         window_size=None,
+        benchmark_reference=None,
+        benchmark_operator=None,
+        benchmark_selection=None,
         blockers=[],
         reasons=[
             "Observed small-model wire error reproduced from the live trace."
@@ -135,7 +138,7 @@ def main() -> None:
     )
 
     assert PLANNER_CATALOG_RULE_VERSION == "planner_catalog_v0.3"
-    assert AI_ANALYTICAL_PLANNER_RULE_VERSION == "ai_analytical_planner_v0.27"
+    assert AI_ANALYTICAL_PLANNER_RULE_VERSION == "ai_analytical_planner_v0.34"
 
     brand_profile = next(
         dataset

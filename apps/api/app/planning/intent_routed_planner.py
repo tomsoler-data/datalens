@@ -123,6 +123,9 @@ def _build_outlier_proposal(
             window_size=
                 None,
 
+            benchmark_reference=None,
+            benchmark_operator=None,
+            benchmark_selection=None,
             blockers=
                 [],
 
@@ -255,6 +258,9 @@ def _build_blocked_proposal(
             window_size=
                 None,
 
+            benchmark_reference=None,
+            benchmark_operator=None,
+            benchmark_selection=None,
             blockers=
                 blockers,
 

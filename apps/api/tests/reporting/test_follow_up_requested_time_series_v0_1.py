@@ -518,7 +518,7 @@ def main() -> None:
 
             objective=
                 (
-                    "?volution du chiffre d?affaires "
+                    "Évolution du chiffre d'affaires "
                     "/ moyenne mobile."
                 ),
 
@@ -681,7 +681,7 @@ def main() -> None:
 
                         objective=
                             (
-                                "?volution du chiffre d?affaires "
+                                "Évolution du chiffre d'affaires "
                                 "/ moyenne mobile."
                             ),
                     )

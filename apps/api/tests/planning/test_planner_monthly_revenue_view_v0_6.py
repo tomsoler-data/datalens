@@ -148,6 +148,9 @@ def observed_malformed_gemma_proposal() -> AIPlannerProposal:
         ranking_limit=None,
         window_operation="none",
         window_size=None,
+        benchmark_reference=None,
+        benchmark_operator=None,
+        benchmark_selection=None,
         blockers=[],
         reasons=[
             (
@@ -295,6 +298,9 @@ def main() -> None:
                     ranking_limit=None,
                     window_operation="none",
                     window_size=None,
+                    benchmark_reference=None,
+                    benchmark_operator=None,
+                    benchmark_selection=None,
                     blockers=[],
                     reasons=[],
                     confidence=0.95,

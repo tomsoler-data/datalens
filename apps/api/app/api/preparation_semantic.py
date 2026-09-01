@@ -1365,6 +1365,7 @@ def _parse_manual_resolutions(
     ]
 
 
+# DATALENS_SEMANTIC_SERVER_OWNED_RESUME_V0_1
 # ============================================================
 # SERVER-OWNED SEMANTIC INPUT
 # ============================================================
@@ -1374,9 +1375,12 @@ def _load_server_owned_semantic_input(
     *,
     workflow_id: str,
 
-    dataset_files: list[
-        UploadFile
-    ],
+    dataset_files: (
+        list[
+            UploadFile
+        ]
+        | None
+    ),
 
     approved_action_ids_json: (
         str
@@ -1636,9 +1640,12 @@ def _load_server_owned_semantic_input(
 
 def _rebuild_semantic_cleaning_context(
     *,
-    dataset_files: list[
-        UploadFile
-    ],
+    dataset_files: (
+        list[
+            UploadFile
+        ]
+        | None
+    ),
 
     workflow_id: str,
 
@@ -1764,10 +1771,13 @@ def _rebuild_semantic_cleaning_context(
         SemanticReviewReport,
 )
 def review_uploaded_dataset_semantics(
-    dataset_files: list[
-        UploadFile
-    ] = File(
-        ...,
+    dataset_files: (
+        list[
+            UploadFile
+        ]
+        | None
+    ) = File(
+        default=None,
     ),
 
     workflow_id: str = Form(
@@ -1956,10 +1966,13 @@ def review_uploaded_dataset_semantics(
         SemanticCleaningPlan,
 )
 def build_uploaded_semantic_cleaning_plan(
-    dataset_files: list[
-        UploadFile
-    ] = File(
-        ...,
+    dataset_files: (
+        list[
+            UploadFile
+        ]
+        | None
+    ) = File(
+        default=None,
     ),
 
     workflow_id: str = Form(
@@ -2109,10 +2122,13 @@ def build_uploaded_semantic_cleaning_plan(
         SemanticCleaningApplyResponse,
 )
 def apply_uploaded_semantic_cleaning(
-    dataset_files: list[
-        UploadFile
-    ] = File(
-        ...,
+    dataset_files: (
+        list[
+            UploadFile
+        ]
+        | None
+    ) = File(
+        default=None,
     ),
 
     workflow_id: str = Form(
@@ -2307,10 +2323,13 @@ def apply_uploaded_semantic_cleaning(
         SemanticReviewConfirmationResponse,
 )
 def confirm_uploaded_semantic_review(
-    dataset_files: list[
-        UploadFile
-    ] = File(
-        ...,
+    dataset_files: (
+        list[
+            UploadFile
+        ]
+        | None
+    ) = File(
+        default=None,
     ),
 
     workflow_id: str = Form(

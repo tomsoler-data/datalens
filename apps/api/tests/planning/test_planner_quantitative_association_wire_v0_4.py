@@ -93,6 +93,9 @@ def observed_quantity_unit_price_failure() -> AIPlannerProposal:
         ranking_limit=None,
         window_operation="none",
         window_size=None,
+        benchmark_reference=None,
+        benchmark_operator=None,
+        benchmark_selection=None,
         blockers=[],
         reasons=[
             "Observed small-model wire failure reproduced from the live "
@@ -126,6 +129,9 @@ def invalid_mixed_type_proposal() -> AIPlannerProposal:
         ranking_limit=None,
         window_operation="none",
         window_size=None,
+        benchmark_reference=None,
+        benchmark_operator=None,
+        benchmark_selection=None,
         blockers=[],
         reasons=[
             "Guardrail regression: categorical + quantitative must remain "
@@ -144,7 +150,7 @@ def main() -> None:
     assert (
         AI_ANALYTICAL_PLANNER_RULE_VERSION
         ==
-        "ai_analytical_planner_v0.27"
+        "ai_analytical_planner_v0.34"
     )
 
     profile = catalog.datasets[0]

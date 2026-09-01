@@ -198,6 +198,9 @@ def group_comparison_proposal(
             window_size=
                 None,
 
+            benchmark_reference=None,
+            benchmark_operator=None,
+            benchmark_selection=None,
             blockers=[],
 
             reasons=[

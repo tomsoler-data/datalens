@@ -478,6 +478,9 @@ def fake_generate_raw_ai_plan_with_timing(
             window_size=
                 None,
 
+            benchmark_reference=None,
+            benchmark_operator=None,
+            benchmark_selection=None,
             blockers=
                 [],
 

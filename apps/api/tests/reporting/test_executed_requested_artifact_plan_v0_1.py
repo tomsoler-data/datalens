@@ -31,7 +31,7 @@ def main() -> None:
 
         "summary":
             [
-                "Analyse ex?cut?e."
+                "Analyse exécutée."
             ],
 
         "metrics":

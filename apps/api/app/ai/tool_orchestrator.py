@@ -57,7 +57,7 @@ AI_TIME_SERIES_EXECUTION_RULE_VERSION = (
 
 
 AI_AGGREGATION_EXECUTION_RULE_VERSION = (
-    "ai_tool_aggregation_v0.1"
+    "ai_tool_aggregation_v0.3"
 )
 
 
@@ -2027,6 +2027,443 @@ def aggregate_contract_rows(
     )
 
 
+# ============================================================
+# BENCHMARK EXECUTION
+# DATALENS_BENCHMARK_EXECUTION_V0_1
+# ============================================================
+
+def overall_aggregate_contract_value(
+    *,
+    contract: AnalyticalContract,
+    dataframe: pd.DataFrame,
+) -> float | int:
+    """
+    Compute the benchmark reference with exactly the same:
+
+    - source column,
+    - aggregation function,
+    - analytically eligible population,
+
+    while suppressing only the grouping operation.
+
+    Rows missing a grouping value are excluded first because they
+    cannot belong to any grouped result. This prevents the global
+    reference from silently using a broader population than the
+    grouped metric.
+    """
+
+    aggregation = (
+        contract.aggregation
+    )
+
+
+    if aggregation is None:
+        raise ValueError(
+            "Benchmark execution requires AggregationSpec."
+        )
+
+
+    (
+        _,
+        group_columns,
+    ) = aggregation_contract_columns(
+        contract
+    )
+
+
+    validate_runtime_columns(
+        dataframe=
+            dataframe,
+
+        columns=
+            group_columns,
+    )
+
+
+    if group_columns:
+        reference_population = (
+            dataframe
+            .dropna(
+                subset=
+                    group_columns
+            )
+            .copy()
+        )
+
+    else:
+        reference_population = (
+            dataframe.copy()
+        )
+
+
+    reference_aggregation = (
+        aggregation.model_copy(
+            update={
+                "group_by_roles":
+                    [],
+            }
+        )
+    )
+
+
+    reference_contract = (
+        contract.model_copy(
+            update={
+                "aggregation":
+                    reference_aggregation,
+
+                "benchmark":
+                    None,
+            }
+        )
+    )
+
+
+    (
+        reference_rows,
+        _,
+    ) = aggregate_contract_rows(
+        contract=
+            reference_contract,
+
+        dataframe=
+            reference_population,
+    )
+
+
+    if (
+        len(
+            reference_rows
+        )
+        !=
+        1
+    ):
+        raise ValueError(
+            "overall_aggregate benchmark must produce exactly "
+            "one deterministic reference value."
+        )
+
+
+    reference_value = (
+        reference_rows[
+            0
+        ][
+            "value"
+        ]
+    )
+
+
+    if (
+        reference_value
+        is None
+    ):
+        raise ValueError(
+            "overall_aggregate benchmark reference is missing."
+        )
+
+
+    try:
+        numeric_reference = float(
+            reference_value
+        )
+
+    except (
+        TypeError,
+        ValueError,
+    ) as error:
+        raise ValueError(
+            "overall_aggregate benchmark reference is not numeric."
+        ) from error
+
+
+    if pd.isna(
+        numeric_reference
+    ):
+        raise ValueError(
+            "overall_aggregate benchmark reference is NaN."
+        )
+
+
+    if (
+        isinstance(
+            reference_value,
+            int,
+        )
+        and
+        not isinstance(
+            reference_value,
+            bool,
+        )
+    ):
+        return int(
+            reference_value
+        )
+
+
+    return float(
+        numeric_reference
+    )
+
+
+def benchmark_comparison_matches(
+    *,
+    value: Any,
+    reference: float | int,
+    operator: str,
+) -> bool:
+    try:
+        numeric_value = float(
+            value
+        )
+
+        numeric_reference = float(
+            reference
+        )
+
+    except (
+        TypeError,
+        ValueError,
+    ) as error:
+        raise ValueError(
+            "Benchmark comparison requires numeric values."
+        ) from error
+
+
+    if (
+        pd.isna(
+            numeric_value
+        )
+        or
+        pd.isna(
+            numeric_reference
+        )
+    ):
+        return False
+
+
+    if operator == "gt":
+        return (
+            numeric_value
+            >
+            numeric_reference
+        )
+
+
+    if operator == "gte":
+        return (
+            numeric_value
+            >=
+            numeric_reference
+        )
+
+
+    if operator == "lt":
+        return (
+            numeric_value
+            <
+            numeric_reference
+        )
+
+
+    if operator == "lte":
+        return (
+            numeric_value
+            <=
+            numeric_reference
+        )
+
+
+    raise ValueError(
+        f"Unsupported benchmark operator: {operator}."
+    )
+
+
+def apply_contract_benchmark(
+    *,
+    contract: AnalyticalContract,
+    dataframe: pd.DataFrame,
+    rows: list[
+        dict[
+            str,
+            Any,
+        ]
+    ],
+    metrics: dict[
+        str,
+        Any,
+    ],
+) -> tuple[
+    list[
+        dict[
+            str,
+            Any,
+        ]
+    ],
+    dict[
+        str,
+        Any,
+    ],
+]:
+    benchmark = (
+        contract.benchmark
+    )
+
+
+    if benchmark is None:
+        return (
+            rows,
+            metrics,
+        )
+
+
+    if (
+        benchmark.reference
+        !=
+        "overall_aggregate"
+    ):
+        raise ValueError(
+            "Unsupported benchmark reference: "
+            f"{benchmark.reference}."
+        )
+
+
+    reference_value = (
+        overall_aggregate_contract_value(
+            contract=
+                contract,
+
+            dataframe=
+                dataframe,
+        )
+    )
+
+
+    annotated_rows: list[
+        dict[
+            str,
+            Any,
+        ]
+    ] = []
+
+
+    for row in rows:
+        matched = (
+            benchmark_comparison_matches(
+                value=
+                    row.get(
+                        "value"
+                    ),
+
+                reference=
+                    reference_value,
+
+                operator=
+                    benchmark.operator,
+            )
+        )
+
+
+        annotated_rows.append(
+            {
+                **row,
+
+                "benchmark_reference":
+                    benchmark.reference,
+
+                "benchmark_value":
+                    reference_value,
+
+                "benchmark_operator":
+                    benchmark.operator,
+
+                "benchmark_match":
+                    matched,
+            }
+        )
+
+
+    matched_count = sum(
+        1
+
+        for row
+        in annotated_rows
+
+        if row[
+            "benchmark_match"
+        ]
+    )
+
+
+    if (
+        benchmark.selection
+        ==
+        "matching_only"
+    ):
+        output_rows = [
+            row
+
+            for row
+            in annotated_rows
+
+            if row[
+                "benchmark_match"
+            ]
+        ]
+
+
+    elif (
+        benchmark.selection
+        ==
+        "annotate_all"
+    ):
+        output_rows = (
+            annotated_rows
+        )
+
+
+    else:
+        raise ValueError(
+            "Unsupported benchmark selection: "
+            f"{benchmark.selection}."
+        )
+
+
+    benchmark_metrics = {
+        **metrics,
+
+        "benchmark_reference":
+            benchmark.reference,
+
+        "benchmark_operator":
+            benchmark.operator,
+
+        "benchmark_selection":
+            benchmark.selection,
+
+        "benchmark_value":
+            reference_value,
+
+        "pre_benchmark_result_count":
+            len(
+                rows
+            ),
+
+        "benchmark_matching_count":
+            matched_count,
+
+        "result_count":
+            len(
+                output_rows
+            ),
+    }
+
+
+    return (
+        output_rows,
+        benchmark_metrics,
+    )
+
+
 def execute_aggregation_contract(
     *,
     contract: AnalyticalContract,
@@ -2042,29 +2479,90 @@ def execute_aggregation_contract(
 
 
     (
-        rows,
+        base_rows,
         metrics,
     ) = aggregate_contract_rows(
-        contract=contract,
-        dataframe=dataframe,
+        contract=
+            contract,
+
+        dataframe=
+            dataframe,
     )
 
 
-    aggregation = contract.aggregation
-    assert aggregation is not None
+    aggregation = (
+        contract.aggregation
+    )
+
+    assert (
+        aggregation
+        is not None
+    )
 
 
-    if not rows:
-        status = "skipped"
-        summary = [
-            "Aucun résultat agrégé n'a pu être calculé."
-        ]
-    else:
-        status = "complete"
+    (
+        rows,
+        metrics,
+    ) = apply_contract_benchmark(
+        contract=
+            contract,
+
+        dataframe=
+            dataframe,
+
+        rows=
+            base_rows,
+
+        metrics=
+            metrics,
+    )
+
+
+    benchmark = (
+        contract.benchmark
+    )
+
+
+    if not base_rows:
+        status = (
+            "skipped"
+        )
+
         summary = [
             (
-                f"{len(rows)} résultat(s) ont été calculés "
-                f"avec l'agrégation `{aggregation.function}`."
+                "Aucun r\u00e9sultat agr\u00e9g\u00e9 n'a pu \u00eatre calcul\u00e9."
+            )
+        ]
+
+
+    elif benchmark is not None:
+        status = (
+            "complete"
+        )
+
+        summary = [
+            (
+                f"{len(base_rows)} r\u00e9sultat(s) ont \u00e9t\u00e9 calcul\u00e9s "
+                f"avec l'agr\u00e9gation `{aggregation.function}`."
+            ),
+            (
+                f"{metrics['benchmark_matching_count']} groupe(s) "
+                "respectent le benchmark "
+                f"`{benchmark.operator}` "
+                f"{metrics['benchmark_value']}."
+            ),
+        ]
+
+
+    else:
+        status = (
+            "complete"
+        )
+
+        summary = [
+            (
+                f"{len(rows)} r\u00e9sultat(s) ont \u00e9t\u00e9 calcul\u00e9s "
+                f"avec l'agr\u00e9gation `{aggregation.function}`."
             )
         ]
 
@@ -2074,27 +2572,66 @@ def execute_aggregation_contract(
             "ai_tool:"
             f"{contract.contract_id}"
         ),
-        dataset_id=dataset_id,
-        dataset_filename=dataset_filename,
-        title=contract.title,
-        family="aggregation",
-        planned_readiness="executable_now",
-        execution_status=status,
-        chart_type="bar",
-        summary=summary,
-        metrics=metrics,
-        chart_data=rows,
-        statistical_decision=None,
-        statistical_result=None,
-        visualization=None,
-        warnings=[],
+
+        dataset_id=
+            dataset_id,
+
+        dataset_filename=
+            dataset_filename,
+
+        title=
+            contract.title,
+
+        family=
+            "aggregation",
+
+        planned_readiness=
+            "executable_now",
+
+        execution_status=
+            status,
+
+        chart_type=
+            "bar",
+
+        summary=
+            summary,
+
+        metrics=
+            metrics,
+
+        chart_data=
+            rows,
+
+        statistical_decision=
+            None,
+
+        statistical_result=
+            None,
+
+        visualization=
+            None,
+
+        warnings=
+            [],
+
         limitations=[
             (
                 "This result is a deterministic descriptive "
-                "aggregation. It does not imply statistical "
-                "significance or causality."
+                +
+                (
+                    "aggregation and benchmark comparison. "
+                    if benchmark is not None
+                    else "aggregation. "
+                )
+                +
+                (
+                    "It does not imply statistical significance "
+                    "or causality."
+                )
             )
         ],
+
         execution_rule_version=(
             AI_AGGREGATION_EXECUTION_RULE_VERSION
         ),

@@ -182,6 +182,9 @@ def observed_ca_country_failure() -> AIPlannerProposal:
         ranking_limit=1,
         window_operation="none",
         window_size=None,
+        benchmark_reference=None,
+        benchmark_operator=None,
+        benchmark_selection=None,
         blockers=[],
         reasons=[
             "Observed small-model session-view binding failure reproduced "
@@ -200,7 +203,7 @@ def main() -> None:
     assert (
         AI_ANALYTICAL_PLANNER_RULE_VERSION
         ==
-        "ai_analytical_planner_v0.27"
+        "ai_analytical_planner_v0.34"
     )
 
     country_profile = next(

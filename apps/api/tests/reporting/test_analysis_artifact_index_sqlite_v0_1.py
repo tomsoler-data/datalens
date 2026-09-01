@@ -89,7 +89,7 @@ def entry(
             "document_request",
 
         "objective":
-            "Analyse demand?e",
+            "Analyse demandée",
 
         "executed":
             True,
@@ -121,13 +121,11 @@ def entry(
     }
 
 
-def test_schema_v5() -> None:
+def test_schema_current() -> None:
     assert (
         sqlite_schema_version()
         ==
         SQLITE_SCHEMA_VERSION
-        ==
-        5
     )
 
 
@@ -553,7 +551,7 @@ def main() -> None:
     print()
 
 
-    test_schema_v5()
+    test_schema_current()
 
     test_duplicate_trace_is_allowed()
 
