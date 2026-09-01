@@ -1,10 +1,16 @@
 "use client";
 
+// DATALENS_MODEL_LAB_UNIFIED_SHELL_V0_1
+
+// DATALENS_MODEL_LAB_PRODUCT_SHELL_V0_1
+// DATALENS_MODEL_LAB_TRAINING_WORKFLOW_V0_1
+
 import Link
   from "next/link";
 
 import {
   useSearchParams,
+  useRouter
 } from "next/navigation";
 
 import {
@@ -58,6 +64,20 @@ import type {
 import {
   readActivePreparationWorkflowId,
 } from "../../components/preparation/preparationWorkflowStorage";
+
+import WorkspaceNavigation
+  from "../../components/workspace/WorkspaceNavigation";
+
+import type {
+  WorkspaceStep,
+} from "../../components/workspace/workspaceNavigationTypes";
+
+import {
+  persistActiveWorkspaceStep,
+} from "../../components/workspace/workspaceNavigationStorage";
+
+import workspaceStyles
+  from "../page.module.css";
 
 import styles
   from "./modelLab.module.css";
@@ -829,6 +849,8 @@ function isDirectMLFeatureKind(
 
 
 export default function ModelLabClient() {
+  const router = useRouter();
+
   const searchParams =
     useSearchParams();
 
@@ -2711,6 +2733,26 @@ export default function ModelLabClient() {
     );
 
 
+  function handleWorkspaceStepChange(
+    step:
+      WorkspaceStep
+  ): void {
+    if (
+      workflowId
+    ) {
+      persistActiveWorkspaceStep(
+        workflowId,
+        step
+      );
+    }
+
+
+    router.push(
+      "/"
+    );
+  }
+
+
   /* ========================================================
      RENDER
   ======================================================== */
@@ -2719,12 +2761,112 @@ export default function ModelLabClient() {
   return (
     <main
       className={
-        styles.page
+        workspaceStyles.page
       }
     >
+      <header
+        className={
+          workspaceStyles.header
+        }
+      >
+        <Link
+          href="/"
+          aria-label="DataLens - workspace"
+          className={
+            workspaceStyles.brand
+          }
+        >
+          <span
+            className={
+              workspaceStyles.brandMark
+            }
+            aria-hidden="true"
+          >
+            <svg
+              className={
+                workspaceStyles.brandMarkSvg
+              }
+              viewBox="0 0 28 28"
+              focusable="false"
+              aria-hidden="true"
+            >
+              <path
+                className={
+                  workspaceStyles.brandMarkOutline
+                }
+                d="M7 5 H13 C18.2 5 21.5 8.2 21.5 11.1"
+              />
+
+              <path
+                className={
+                  workspaceStyles.brandMarkOutline
+                }
+                d="M21.5 16.9 C21.5 19.8 18.2 23 13 23 H7 V5"
+              />
+
+              <circle
+                className={
+                  workspaceStyles.brandMarkSignal
+                }
+                cx="21.5"
+                cy="14"
+                r="1.75"
+              />
+            </svg>
+          </span>
+
+          <strong>
+            DataLens
+          </strong>
+        </Link>
+
+
+        <div
+          className={
+            workspaceStyles.privacyStatus
+          }
+        >
+          <span
+            aria-hidden="true"
+            className={
+              workspaceStyles.statusDot
+            }
+          />
+
+          <span>
+            Traitement local ? donn?es priv?es
+          </span>
+        </div>
+      </header>
+
+
+      <WorkspaceNavigation
+        activeStep={
+          null
+        }
+        onStepChange={
+          handleWorkspaceStepChange
+        }
+        dataReady={
+          Boolean(
+            workflowId
+          )
+        }
+        reportReady={
+          Boolean(
+            workflowId
+          )
+        }
+        interventionCount={
+          0
+        }
+        activeAiTool="model-lab"
+      />
+
+
       <div
         className={
-          styles.shell
+          `${workspaceStyles.shell} ${styles.unifiedShell}`
         }
       >
         <header
@@ -2732,31 +2874,6 @@ export default function ModelLabClient() {
             styles.header
           }
         >
-          <div
-            className={
-              styles.headerTop
-            }
-          >
-            <Link
-              href="/"
-              className={
-                styles.backLink
-              }
-            >
-              Retour au workspace
-            </Link>
-
-
-            <span
-              className={
-                styles.versionBadge
-              }
-            >
-              Model Lab · v0.1
-            </span>
-          </div>
-
-
           <div
             className={
               styles.hero
@@ -2772,7 +2889,7 @@ export default function ModelLabClient() {
                   styles.eyebrow
                 }
               >
-                Machine Learning
+                Machine Learning · Laboratoire
               </p>
 
 
@@ -2790,11 +2907,9 @@ export default function ModelLabClient() {
                   styles.subtitle
                 }
               >
-                Inspecter les modèles entraînés,
-                comprendre leurs performances
-                et retrouver leur configuration
-                à partir des artefacts validés
-                par DataLens.
+                Entraîner, évaluer et surveiller
+                des modèles à partir des données
+                validées par DataLens.
               </p>
             </div>
 
@@ -2813,14 +2928,14 @@ export default function ModelLabClient() {
               </span>
 
               <strong>
-                Server-owned
+                Contrôle serveur
               </strong>
 
               <p>
-                Le navigateur n’interprète pas
-                de modèle sérialisé. Les données
-                affichées sont des projections
-                sûres produites par le backend.
+                Les entraînements utilisent uniquement
+                les artefacts validés par DataLens.
+                Aucun modèle sérialisé n’est chargé
+                dans le navigateur.
               </p>
             </div>
           </div>
@@ -2944,7 +3059,7 @@ export default function ModelLabClient() {
                 styles.contextMeta
               }
             >
-              Artefacts disponibles
+              Modèles disponibles
             </span>
           </article>
 
@@ -2959,7 +3074,7 @@ export default function ModelLabClient() {
                 styles.contextLabel
               }
             >
-              Datasets
+              Sources utilisées
             </span>
 
             <strong
@@ -2983,7 +3098,7 @@ export default function ModelLabClient() {
               {
                 connectionState ===
                   "ready"
-                  ? `${experimentCount} expérience(s)`
+                  ? `${experimentCount} ${experimentCount === 1 ? "expérience" : "expériences"}`
                   : "En attente"
               }
             </span>
@@ -3132,11 +3247,11 @@ export default function ModelLabClient() {
                       </p>
 
                       <strong>
-                        Créer un nouveau Model Artifact
+                        Créer un modèle
                       </strong>
 
                       <span>
-                        Le dataset reste résolu depuis le workflow Preparation validé.
+                        Source validée par la préparation DataLens.
                       </span>
                     </div>
 
@@ -3183,14 +3298,13 @@ export default function ModelLabClient() {
                         </p>
 
                         <h2>
-                          Contrat d’entraînement
+                          Configurer l’entraînement
                         </h2>
 
                         <p>
-                          Choisissez les variables autorisées.
-                          Le backend recharge lui-même
-                          l’artefact Preparation validé avant
-                          tout apprentissage.
+                          Définissez les données, les variables,
+                          le modèle et les paramètres de validation.
+                          La source reste contrôlée par le serveur.
                         </p>
                       </div>
 
@@ -3271,6 +3385,97 @@ export default function ModelLabClient() {
                                 }
                               }
                             >
+                              <div
+                                className={
+                                  styles.trainingWorkflowSteps
+                                }
+                                aria-label="Étapes de configuration du modèle"
+                              >
+                                <div
+                                  className={
+                                    styles.trainingWorkflowStep
+                                  }
+                                >
+                                  <span>
+                                    1
+                                  </span>
+
+                                  <div>
+                                    <strong>
+                                      Données
+                                    </strong>
+
+                                    <small>
+                                      Dataset · cible
+                                    </small>
+                                  </div>
+                                </div>
+
+
+                                <div
+                                  className={
+                                    styles.trainingWorkflowStep
+                                  }
+                                >
+                                  <span>
+                                    2
+                                  </span>
+
+                                  <div>
+                                    <strong>
+                                      Variables
+                                    </strong>
+
+                                    <small>
+                                      Signaux explicatifs
+                                    </small>
+                                  </div>
+                                </div>
+
+
+                                <div
+                                  className={
+                                    styles.trainingWorkflowStep
+                                  }
+                                >
+                                  <span>
+                                    3
+                                  </span>
+
+                                  <div>
+                                    <strong>
+                                      Modèle
+                                    </strong>
+
+                                    <small>
+                                      Problème · estimateur
+                                    </small>
+                                  </div>
+                                </div>
+
+
+                                <div
+                                  className={
+                                    styles.trainingWorkflowStep
+                                  }
+                                >
+                                  <span>
+                                    4
+                                  </span>
+
+                                  <div>
+                                    <strong>
+                                      Validation
+                                    </strong>
+
+                                    <small>
+                                      Split · reproductibilité
+                                    </small>
+                                  </div>
+                                </div>
+                              </div>
+
+
                               <div
                                 className={
                                   styles.trainingFormGrid
@@ -3442,7 +3647,7 @@ export default function ModelLabClient() {
                                   </select>
 
                                   <small>
-                                    La cible est automatiquement exclue des features.
+                                    La cible est automatiquement exclue des variables explicatives.
                                   </small>
                                 </label>
 
@@ -3531,7 +3736,13 @@ export default function ModelLabClient() {
                                   <strong>
                                     {
                                       trainingFeatureColumns.length
-                                    } sélectionnée(s)
+                                    } {" "}
+                                    {
+                                      trainingFeatureColumns.length ===
+                                        1
+                                        ? "sélectionnée"
+                                        : "sélectionnées"
+                                    }
                                   </strong>
                                 </div>
 
@@ -3629,11 +3840,32 @@ export default function ModelLabClient() {
                                         >
                                           Les colonnes date/heure ou non supportées
                                           doivent d’abord être transformées pendant
-                                          la Preparation.
+                                          la préparation.
                                         </p>
                                       )
                                     : null
                                 }
+                              </div>
+
+
+                              <div
+                                className={
+                                  styles.trainingValidationHeader
+                                }
+                              >
+                                <div>
+                                  <span>
+                                    Validation
+                                  </span>
+
+                                  <strong>
+                                    Paramètres reproductibles
+                                  </strong>
+                                </div>
+
+                                <small>
+                                  Configuration déterministe appliquée à cet entraînement.
+                                </small>
                               </div>
 
 
@@ -3644,7 +3876,7 @@ export default function ModelLabClient() {
                               >
                                 <div>
                                   <span>
-                                    Preparation revision
+                                    Révision préparation
                                   </span>
 
                                   <strong>
@@ -3782,7 +4014,7 @@ export default function ModelLabClient() {
 
                     <p>
                       Ce workflow ne possède
-                      encore aucun Model Artifact
+                      encore aucun modèle entraîné
                       exploitable.
                     </p>
                   </div>

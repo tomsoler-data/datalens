@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  useState,
+} from "react";
+
 import type {
   SemanticCleaningExecutionView,
   SemanticCleaningPlanView,
@@ -7,6 +11,25 @@ import type {
 } from "./preparationTypes";
 
 import styles from "../../app/page.module.css";
+
+
+/*
+ * DATALENS_LOCAL_MODEL_PRODUCT_LANGUAGE_V0_1
+ *
+ * Business-facing copy refers to the local model generically.
+ * Exact model identity remains available through technical
+ * metadata such as review.model and review.rule_version.
+ */
+
+
+/*
+ * DATALENS_DETERMINISTIC_PRODUCT_LANGUAGE_V0_1
+ *
+ * User-facing terminology describes product guarantees rather
+ * than the implementation language.
+ *
+ * Internal API fields such as python_validated are preserved.
+ */
 
 
 export default function SemanticReviewPanel({
@@ -94,6 +117,23 @@ export default function SemanticReviewPanel({
   onApply:
     () => void;
 }) {
+  // DATALENS_SEMANTIC_PARTIAL_REAPPLY_V0_1
+  /*
+   * DATALENS_COMPACT_SEMANTIC_REVIEW_V0_1
+   *
+   * Presentation-only expansion state.
+   *
+   * Semantic decisions, canonical values, deterministic
+   * controls and execution state remain unchanged.
+   */
+  const [
+    semanticExpanded,
+    setSemanticExpanded,
+  ] =
+    useState(
+      false
+    );
+
   if (
     !deterministicCleaningReady
   ) {
@@ -143,9 +183,52 @@ export default function SemanticReviewPanel({
   const selectedCount =
     selectedActionIds.length;
 
+  const semanticActions =
+    plan?.actions ??
+    [];
+
+
+  const visibleSemanticActions =
+    semanticExpanded
+      ? semanticActions
+      : semanticActions.slice(
+          0,
+          2
+        );
+
+
+  const hiddenSemanticActionCount =
+    Math.max(
+      0,
+      semanticActions.length -
+        2
+    );
+
+
+  const appliedSemanticActionCount =
+    execution
+      ?.action_results
+      .filter(
+        (
+          result
+        ) =>
+          result.status ===
+          "applied"
+      )
+      .length ??
+    0;
+
 
   return (
     <section
+      className={
+        `${styles.semanticReviewPhase} ${
+          execution
+            ? styles.semanticReviewExecuted
+            : ""
+        }`
+      }
+
       style={{
         marginTop:
           "12px",
@@ -228,7 +311,7 @@ export default function SemanticReviewPanel({
               execution
                 ? `${execution.applied_action_count} fusion(s) confirmée(s)`
                 : review
-                  ? `${review.merge_proposal_count} fusion(s) proposée(s) par Gemma`
+                  ? `${review.merge_proposal_count} fusion(s) proposée(s) par le modèle local`
                   : "Interpréter uniquement les ambiguïtés restantes"
             }
           </strong>
@@ -248,7 +331,7 @@ export default function SemanticReviewPanel({
                 0.56,
             }}
           >
-            Gemma propose. Python revalide les valeurs exactes.
+            Le modèle local propose. Le moteur déterministe revalide les valeurs exactes.
             Aucune fusion n’est exécutée sans votre confirmation.
           </p>
         </div>
@@ -278,7 +361,7 @@ export default function SemanticReviewPanel({
           {
             review
               ? `${review.model} · ${review.rule_version}`
-              : "GEMMA · LOCAL"
+              : "MODÈLE LOCAL"
           }
         </span>
       </div>
@@ -370,7 +453,7 @@ export default function SemanticReviewPanel({
                     "0.64rem",
                 }}
               >
-                Gemma examine les ambiguïtés une par une…
+                Le modèle local examine les ambiguïtés une par une…
               </div>
             )
           : null
@@ -586,7 +669,7 @@ export default function SemanticReviewPanel({
                     0.54,
                 }}
               >
-                Python reconstruit les actions sémantiques autorisées…
+                Le moteur déterministe reconstruit les actions sémantiques autorisées…
               </p>
             )
           : null
@@ -641,7 +724,7 @@ export default function SemanticReviewPanel({
                 }}
               >
                 {
-                  plan.actions.map(
+                  visibleSemanticActions.map(
                     (
                       action
                     ) => {
@@ -768,7 +851,7 @@ export default function SemanticReviewPanel({
                                 `IA ${Math.round(
                                   action.confidence *
                                   100
-                                )} % · Python validé`
+                                )} % · Contrôle déterministe`
                               }
                             </span>
                           </div>
@@ -880,7 +963,8 @@ export default function SemanticReviewPanel({
                                             "0.61rem",
 
                                           cursor:
-                                            execution
+                                            applied ||
+                                            applyLoading
                                               ? "default"
                                               : "pointer",
                                         }}
@@ -899,7 +983,8 @@ export default function SemanticReviewPanel({
                                           }
                                           disabled={
                                             Boolean(
-                                              execution
+                                              applied ||
+                                              applyLoading
                                             )
                                           }
                                           onChange={
@@ -946,10 +1031,11 @@ export default function SemanticReviewPanel({
                                 styles.secondaryButton
                               }
                               disabled={
-                                Boolean(
-                                  execution
-                                )
-                              }
+                                            Boolean(
+                                              applied ||
+                                              applyLoading
+                                            )
+                                          }
                               onClick={
                                 () =>
                                   onSetDecision(
@@ -975,10 +1061,11 @@ export default function SemanticReviewPanel({
                                 styles.submitButton
                               }
                               disabled={
-                                Boolean(
-                                  execution
-                                )
-                              }
+                                            Boolean(
+                                              applied ||
+                                              applyLoading
+                                            )
+                                          }
                               onClick={
                                 () =>
                                   onSetDecision(
@@ -1011,7 +1098,62 @@ export default function SemanticReviewPanel({
       }
 
 
-      {
+            {
+        semanticActions.length >
+        2
+          ? (
+              <button
+                className={
+                  styles.semanticReviewToggle
+                }
+                type="button"
+                aria-expanded={
+                  semanticExpanded
+                }
+                onClick={
+                  () =>
+                    setSemanticExpanded(
+                      (
+                        current
+                      ) =>
+                        !current
+                    )
+                }
+              >
+                <span>
+                  {
+                    semanticExpanded
+                      ? (
+                          `${semanticActions.length} décisions affichées`
+                        )
+                      : (
+                          `+ ${hiddenSemanticActionCount} autre${
+                            hiddenSemanticActionCount > 1
+                              ? "s"
+                              : ""
+                          } décision${
+                            hiddenSemanticActionCount > 1
+                              ? "s"
+                              : ""
+                          }`
+                        )
+                  }
+                </span>
+
+
+                <strong>
+                  {
+                    semanticExpanded
+                      ? "Réduire"
+                      : "Tout afficher"
+                  }
+                </strong>
+              </button>
+            )
+          : null
+      }
+
+{
         review &&
         plan &&
         plan.actions.length ===
@@ -1042,7 +1184,7 @@ export default function SemanticReviewPanel({
                 }}
               >
                 Aucune fusion sémantique suffisamment sûre
-                n’a été validée par Python. Les ambiguïtés restent
+                n’a été validée par le moteur déterministe. Les ambiguïtés restent
                 disponibles pour revue manuelle.
               </div>
             )
@@ -1141,10 +1283,14 @@ export default function SemanticReviewPanel({
                   }
                   disabled={
                     Boolean(
-                      execution ||
                       applyLoading ||
                       selectedCount ===
-                        0
+                        0 ||
+                      (
+                        execution &&
+                        selectedCount <=
+                          appliedSemanticActionCount
+                      )
                     )
                   }
                   onClick={
@@ -1156,11 +1302,15 @@ export default function SemanticReviewPanel({
                   }}
                 >
                   {
-                    execution
-                      ? "Nettoyage sémantique appliqué"
-                      : applyLoading
-                        ? "Application…"
-                        : "Appliquer les fusions confirmées"
+                    applyLoading
+                      ? "Application…"
+                      : execution &&
+                        selectedCount >
+                          appliedSemanticActionCount
+                        ? "Réappliquer les fusions confirmées"
+                        : execution
+                          ? "Nettoyage sémantique appliqué"
+                          : "Appliquer les fusions confirmées"
                   }
                 </button>
               </div>

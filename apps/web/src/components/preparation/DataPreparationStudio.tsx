@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  useState,
+} from "react";
+
 import type {
   MultiDatasetIngestion,
 } from "../../app/types";
@@ -20,6 +24,15 @@ import {
 } from "../analysis/analysisPresentation";
 
 import styles from "../../app/page.module.css";
+
+
+/*
+ * DATALENS_QUALITY_STUDIO_VISUAL_V0_1
+ *
+ * Presentation-only hook.
+ * Quality report contracts and deterministic execution
+ * semantics remain unchanged.
+ */
 
 
 export default function DataPreparationStudio({
@@ -43,6 +56,22 @@ export default function DataPreparationStudio({
     string |
     null;
 }) {
+  /*
+   * DATALENS_COMPACT_QUALITY_ISSUES_V0_1
+   *
+   * Presentation-only state.
+   *
+   * Quality diagnostics, evidence and server-owned preparation
+   * state remain untouched.
+   */
+  const [
+    issuesExpanded,
+    setIssuesExpanded,
+  ] =
+    useState(
+      false
+    );
+
   if (
     !ingestion
   ) {
@@ -134,8 +163,75 @@ export default function DataPreparationStudio({
     0;
 
 
+  const qualitySeverityRank = (
+    severity:
+      string
+  ): number => {
+    if (
+      severity ===
+      "important"
+    ) {
+      return 0;
+    }
+
+
+    if (
+      severity ===
+      "moderate"
+    ) {
+      return 1;
+    }
+
+
+    return 2;
+  };
+
+
+  const orderedQualityIssues =
+    [
+      ...(
+        qualityReport
+          ?.issues ??
+        []
+      ),
+    ].sort(
+      (
+        left,
+        right
+      ) =>
+        qualitySeverityRank(
+          left.severity
+        ) -
+        qualitySeverityRank(
+          right.severity
+        )
+    );
+
+
+  const visibleQualityIssues =
+    issuesExpanded
+      ? orderedQualityIssues.slice(
+          0,
+          12
+        )
+      : orderedQualityIssues.slice(
+          0,
+          2
+        );
+
+
+  const collapsedQualityIssueCount =
+    Math.max(
+      0,
+      orderedQualityIssues.length -
+        2
+    );
+
   return (
     <section
+      className={
+        styles.qualityStudio
+      }
       style={{
         marginTop:
           "18px",
@@ -210,7 +306,7 @@ export default function DataPreparationStudio({
                 1.58,
             }}
           >
-            Python inspecte réellement les fichiers
+            Le moteur déterministe inspecte réellement les fichiers
             chargés et retourne les anomalies avec
             leurs preuves. DataLens ne modifie aucune
             valeur à cette étape.
@@ -989,12 +1085,7 @@ export default function DataPreparationStudio({
                             }}
                           >
                             {
-                              qualityReport.issues
-                                .slice(
-                                  0,
-                                  12
-                                )
-                                .map(
+                              visibleQualityIssues.map(
                                   (
                                     issue
                                   ) => (
@@ -1252,7 +1343,7 @@ export default function DataPreparationStudio({
                                           }}
                                         >
                                           <strong>
-                                            Proposition Python :
+                                            Proposition déterministe :
                                           </strong>
                                           {" "}
                                           {
@@ -1291,7 +1382,88 @@ export default function DataPreparationStudio({
                           </div>
 
 
-                          {
+                                                    {
+                            orderedQualityIssues.length >
+                            2
+                              ? (
+                                  <div
+                                    className={
+                                      styles.qualityIssueToggleRow
+                                    }
+                                  >
+                                    <span
+                                      className={
+                                        styles.qualityIssueCount
+                                      }
+                                    >
+                                      {
+                                        issuesExpanded
+                                          ? (
+                                              `${Math.min(
+                                                orderedQualityIssues.length,
+                                                12
+                                              )} problème${
+                                                orderedQualityIssues.length > 1
+                                                  ? "s"
+                                                  : ""
+                                              } affiché${
+                                                orderedQualityIssues.length > 1
+                                                  ? "s"
+                                                  : ""
+                                              }`
+                                            )
+                                          : (
+                                              `2 prioritaires · ${collapsedQualityIssueCount} autre${
+                                                collapsedQualityIssueCount > 1
+                                                  ? "s"
+                                                  : ""
+                                              }`
+                                            )
+                                      }
+                                    </span>
+
+
+                                    <button
+                                      className={
+                                        styles.qualityIssueToggle
+                                      }
+                                      type="button"
+                                      aria-expanded={
+                                        issuesExpanded
+                                      }
+                                      onClick={
+                                        () =>
+                                          setIssuesExpanded(
+                                            (
+                                              current
+                                            ) =>
+                                              !current
+                                          )
+                                      }
+                                    >
+                                      {
+                                        issuesExpanded
+                                          ? "Réduire"
+                                          : (
+                                              `Voir les ${collapsedQualityIssueCount} autre${
+                                                collapsedQualityIssueCount > 1
+                                                  ? "s"
+                                                  : ""
+                                              } problème${
+                                                collapsedQualityIssueCount > 1
+                                                  ? "s"
+                                                  : ""
+                                              }`
+                                            )
+                                      }
+                                    </button>
+                                  </div>
+                                )
+                              : null
+                          }
+
+{
+                            issuesExpanded &&
                             qualityReport.issues.length >
                             12
                               ? (
@@ -1425,7 +1597,7 @@ export default function DataPreparationStudio({
                               "0.58rem",
                           }}
                         >
-                          Python
+                          Moteur déterministe
                         </span>
 
                         <strong
@@ -1588,7 +1760,7 @@ export default function DataPreparationStudio({
                         >
                           Aucun nettoyage n’est appliqué.
                           La prochaine étape ajoutera la
-                          validation puis l’exécution Python.
+                          validation puis l’exécution par le moteur déterministe.
                         </p>
                       </article>
                     </div>
@@ -1685,7 +1857,7 @@ export default function DataPreparationStudio({
                         "rgba(151,218,180,0.86)",
                     }}
                   >
-                    Diagnostic généré par Python · aucune donnée brute modifiée
+                    Diagnostic généré par le moteur déterministe · aucune donnée brute modifiée
                   </strong>
 
                   <span>

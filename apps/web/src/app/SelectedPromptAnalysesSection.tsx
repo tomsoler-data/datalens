@@ -4,6 +4,14 @@ import SelectedPromptAnalysesList from "../components/analysis/SelectedPromptAna
 import styles from "./page.module.css";
 
 
+/*
+ * DATALENS_REPORT_COMPOSITION_COMPACT_V0_1
+ *
+ * Keep report composition operational while removing
+ * explanatory prose that duplicates the surrounding workflow.
+ */
+
+
 type SelectedPromptAnalysesSectionProps = {
   selectedPromptAnalyses: ComponentProps<typeof SelectedPromptAnalysesList>["analyses"];
   removePromptAnalysisFromReport: ComponentProps<typeof SelectedPromptAnalysesList>["onRemoveAnalysis"];
@@ -19,233 +27,212 @@ export default function SelectedPromptAnalysesSection({
   reportSelectionLoading,
 }: SelectedPromptAnalysesSectionProps) {
   return (
-<section
-                              aria-labelledby="selected-prompt-analyses-title"
-                              style={{
-                                marginTop:
-                                  "14px",
+    <section
+      aria-labelledby="selected-prompt-analyses-title"
+      style={{
+        marginTop:
+          "14px",
 
-                                padding:
-                                  "16px",
+        padding:
+          "16px",
 
-                                border:
-                                  "1px solid rgba(122, 203, 160, 0.16)",
+        border:
+          "1px solid rgba(122, 203, 160, 0.16)",
 
-                                borderRadius:
-                                  "14px",
+        borderRadius:
+          "14px",
 
-                                background:
-                                  "rgba(4, 14, 19, 0.34)",
-                              }}
-                            >
-                              <div
-                                style={{
-                                  display:
-                                    "flex",
+        background:
+          "rgba(4, 14, 19, 0.34)",
+      }}
+    >
+      <div
+        style={{
+          display:
+            "flex",
 
-                                  alignItems:
-                                    "flex-start",
+          alignItems:
+            "flex-start",
 
-                                  justifyContent:
-                                    "space-between",
+          justifyContent:
+            "space-between",
 
-                                  gap:
-                                    "16px",
-                                }}
-                              >
-                                <div>
-                                  <span
-                                    className={
-                                      styles.eyebrow
-                                    }
-                                  >
-                                    Sélection pour le rapport
-                                  </span>
+          gap:
+            "16px",
 
-                                  <div
-                                    style={{
-                                      display:
-                                        "flex",
-
-                                      alignItems:
-                                        "center",
-
-                                      gap:
-                                        "7px",
-
-                                      marginBottom:
-                                        "4px",
-
-                                      color:
-                                        reportSelectionError
-                                          ? "#d7a6a6"
-                                          : "#7fa18f",
-
-                                      fontSize:
-                                        "0.62rem",
-
-                                      fontWeight:
-                                        650,
-                                    }}
-                                  >
-                                    <span
-                                      aria-hidden="true"
-                                      style={{
-                                        width:
-                                          "6px",
-
-                                        height:
-                                          "6px",
-
-                                        borderRadius:
-                                          "999px",
-
-                                        background:
-                                          reportSelectionError
-                                            ? "#d7a6a6"
-                                            : reportSelectionLoading
-                                              ? "#8bb9ff"
-                                              : "#8cd7b7",
-                                      }}
-                                    />
-
-                                    {
-                                      reportSelectionError
-                                        ? "Synchronisation du rapport indisponible"
-                                        : reportSelectionLoading
-                                          ? "Synchronisation…"
-                                          : "Sélection synchronisée avec le serveur"
-                                    }
-                                  </div>
-
-                                  <h2
-                                    id="selected-prompt-analyses-title"
-                                    style={{
-                                      margin:
-                                        "6px 0 0",
-
-                                      color:
-                                        "#eef4fc",
-
-                                      fontSize:
-                                        "1rem",
-
-                                      fontWeight:
-                                        600,
-                                    }}
-                                  >
-                                    Analyses ajoutées
-                                  </h2>
-
-                                  <p
-                                    style={{
-                                      margin:
-                                        "6px 0 0",
-
-                                      maxWidth:
-                                        "680px",
-
-                                      color:
-                                        "#9eacc0",
-
-                                      fontSize:
-                                        "0.72rem",
-
-                                      lineHeight:
-                                        1.6,
-                                    }}
-                                  >
-                                    Ces analyses seront reprises dans le rapport.
-                                    Les retirer ici ne supprime pas leurs résultats :
-                                    elles restent disponibles dans l’espace Analyses.
-                                  </p>
-                                </div>
-
-                                <span
-                                  style={{
-                                    flex:
-                                      "0 0 auto",
-
-                                    padding:
-                                      "6px 9px",
-
-                                    border:
-                                      "1px solid rgba(122, 203, 160, 0.22)",
-
-                                    borderRadius:
-                                      "999px",
-
-                                    color:
-                                      "#a4dec2",
-
-                                    background:
-                                      "rgba(122, 203, 160, 0.04)",
-
-                                    fontSize:
-                                      "0.67rem",
-
-                                    fontWeight:
-                                      700,
-                                  }}
-                                >
-                                  {
-                                    selectedPromptAnalyses.length
-                                  }
-                                  {" sélectionnée"}
-                                  {
-                                    selectedPromptAnalyses.length >
-                                    1
-                                      ? "s"
-                                      : ""
-                                  }
-                                </span>
-                              </div>
+          flexWrap:
+            "wrap",
+        }}
+      >
+        <div>
+          <span
+            className={
+              styles.eyebrow
+            }
+          >
+            Composition du rapport
+          </span>
 
 
-                              {
-                                selectedPromptAnalyses.length ===
-                                0
-                                  ? (
-                                      <div
-                                        style={{
-                                          marginTop:
-                                            "14px",
+          <h2
+            id="selected-prompt-analyses-title"
+            style={{
+              margin:
+                "6px 0 0",
 
-                                          padding:
-                                            "13px 14px",
+              color:
+                "#eef4fc",
 
-                                          border:
-                                            "1px dashed rgba(154, 174, 204, 0.14)",
+              fontSize:
+                "1rem",
 
-                                          borderRadius:
-                                            "10px",
+              fontWeight:
+                600,
+            }}
+          >
+            Analyses incluses
+          </h2>
 
-                                          color:
-                                            "#91a0b5",
 
-                                          fontSize:
-                                            "0.72rem",
+          <div
+            style={{
+              display:
+                "flex",
 
-                                          lineHeight:
-                                            1.6,
-                                        }}
-                                      >
-                                        Aucune analyse n’est encore ajoutée au rapport.
-                                        Utilisez « Ajouter au rapport » sur une réponse
-                                        exécutée pour la conserver.
-                                      </div>
-                                    )
-                                  : (
-                                      <SelectedPromptAnalysesList
-                                        analyses={
-                                          selectedPromptAnalyses
-                                        }
-                                        onRemoveAnalysis={
-                                          removePromptAnalysisFromReport
-                                        }
-                                      />
-                                    )
-                              }
-                            </section>
+              alignItems:
+                "center",
+
+              gap:
+                "7px",
+
+              marginTop:
+                "7px",
+
+              color:
+                reportSelectionError
+                  ? "#d7a6a6"
+                  : "#7fa18f",
+
+              fontSize:
+                "0.68rem",
+
+              fontWeight:
+                650,
+            }}
+          >
+            <span
+              aria-hidden="true"
+              style={{
+                width:
+                  "6px",
+
+                height:
+                  "6px",
+
+                borderRadius:
+                  "999px",
+
+                background:
+                  reportSelectionError
+                    ? "#d7a6a6"
+                    : reportSelectionLoading
+                      ? "#8bb9ff"
+                      : "#8cd7b7",
+              }}
+            />
+
+
+            {
+              reportSelectionError
+                ? "Synchronisation indisponible"
+                : reportSelectionLoading
+                  ? "Synchronisation…"
+                  : "Synchronisé"
+            }
+          </div>
+        </div>
+
+
+        <span
+          style={{
+            flex:
+              "0 0 auto",
+
+            padding:
+              "6px 9px",
+
+            border:
+              "1px solid rgba(122, 203, 160, 0.22)",
+
+            borderRadius:
+              "999px",
+
+            color:
+              "#a4dec2",
+
+            background:
+              "rgba(122, 203, 160, 0.04)",
+
+            fontSize:
+              "0.67rem",
+
+            fontWeight:
+              700,
+          }}
+        >
+          {
+            selectedPromptAnalyses.length
+          }
+          {" sélectionnée"}
+          {
+            selectedPromptAnalyses.length >
+            1
+              ? "s"
+              : ""
+          }
+        </span>
+      </div>
+
+
+      {
+        selectedPromptAnalyses.length ===
+        0
+          ? (
+              <div
+                style={{
+                  marginTop:
+                    "13px",
+
+                  padding:
+                    "11px 13px",
+
+                  border:
+                    "1px dashed rgba(154, 174, 204, 0.14)",
+
+                  borderRadius:
+                    "10px",
+
+                  color:
+                    "#91a0b5",
+
+                  fontSize:
+                    "0.72rem",
+                }}
+              >
+                Aucune analyse ajoutée.
+              </div>
+            )
+          : (
+              <SelectedPromptAnalysesList
+                analyses={
+                  selectedPromptAnalyses
+                }
+                onRemoveAnalysis={
+                  removePromptAnalysisFromReport
+                }
+              />
+            )
+      }
+    </section>
   );
 }

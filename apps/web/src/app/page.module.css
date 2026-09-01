@@ -3582,7 +3582,7 @@
 
 /* =========================================================
 
-   UI / UX — DIRECT ANSWER FIRST
+   UI / UX - DIRECT ANSWER FIRST
 
 ========================================================= */
 
@@ -3878,7 +3878,7 @@
 
 /* =========================================================
 
-   RESPONSIVE — DIRECT ANSWER FIRST
+   RESPONSIVE - DIRECT ANSWER FIRST
 
 ========================================================= */
 
@@ -3942,7 +3942,7 @@
 
 /* =========================================================
 
-   UI / UX — READABILITY BOOST v0.2
+   UI / UX - READABILITY BOOST v0.2
 
    Keep the dark visual language, but raise contrast and the
 
@@ -4176,7 +4176,7 @@
 
 /* ---------------------------------------------------------
 
-   Direct-answer area — make the user's answer visually clear
+   Direct-answer area - make the user's answer visually clear
 
 --------------------------------------------------------- */
 
@@ -4262,7 +4262,7 @@
 
 /* ---------------------------------------------------------
 
-   Technical evidence — still secondary, but readable
+   Technical evidence - still secondary, but readable
 
 --------------------------------------------------------- */
 
@@ -4478,7 +4478,7 @@
 
 /* ---------------------------------------------------------
 
-   Small screens — do not let secondary text collapse again
+   Small screens - do not let secondary text collapse again
 
 --------------------------------------------------------- */
 
@@ -4532,7 +4532,7 @@
 
    DATALENS UI SYSTEM v1
 
-   Phase 01 — navigation + Données + Documents
+   Phase 01 - navigation + Données + Documents
 
    Principles:
 
@@ -5688,7 +5688,7 @@
 
 /* =========================================================
 
-   RESPONSIVE — UI SYSTEM v1
+   RESPONSIVE - UI SYSTEM v1
 
 ========================================================= */
 
@@ -5894,7 +5894,7 @@
 
 /* =========================================================
 
-   ANALYSES — RESPONSE FIRST v0.2
+   ANALYSES - RESPONSE FIRST v0.2
 
    Goal:
 
@@ -6276,7 +6276,7 @@
 
 .entityProfileDetails[open] > summary::after {
 
-  content: "−";
+  content: "\2212";
 
 }
 
@@ -6642,7 +6642,7 @@
 
 .analysisDisclosure[open] > .analysisDisclosureSummary::after {
 
-  content: "−";
+  content: "\2212";
 
 }
 
@@ -6846,7 +6846,7 @@
 
 
 /* =========================================================
-   ANALYSES — FOLLOW-UP PROMPT v0.1
+   ANALYSES - FOLLOW-UP PROMPT v0.1
    Same validated preparation artifact, new independent prompt.
 ========================================================= */
 
@@ -7101,4 +7101,5653 @@
   .analysisFollowUpInput {
     min-height: 112px;
   }
+}
+
+/* ============================================================
+   DATALENS APP SHELL v0.1
+
+   Product identity:
+   Lens Â· Signal Â· Evidence
+
+   Desktop:
+   - persistent product bar
+   - persistent workflow rail
+   - wide analytical workspace
+   - compact product intro
+
+   Existing business logic and navigation semantics are preserved.
+   ============================================================ */
+
+
+/* ============================================================
+   APPLICATION CANVAS
+   ============================================================ */
+
+.page {
+  min-height:
+    100vh;
+
+  overflow-x:
+    clip;
+
+  overflow-y:
+    visible;
+
+  background:
+    radial-gradient(
+      circle at 56% -10%,
+      rgba(
+        124,
+        168,
+        255,
+        0.085
+      ),
+      transparent 29%
+    ),
+    linear-gradient(
+      180deg,
+      #070a10 0%,
+      #06090e 48%,
+      #05080d 100%
+    );
+
+  color:
+    var(
+      --dl-text-1
+    );
+}
+
+
+.ambient {
+  position:
+    fixed;
+
+  top:
+    64px;
+
+  left:
+    236px;
+
+  width:
+    calc(
+      100vw - 236px
+    );
+
+  height:
+    440px;
+
+  transform:
+    none;
+
+  opacity:
+    0.7;
+
+  background:
+    radial-gradient(
+      ellipse at 48% 0%,
+      rgba(
+        124,
+        168,
+        255,
+        0.055
+      ),
+      transparent 62%
+    );
+
+  filter:
+    blur(
+      34px
+    );
+}
+
+
+/* ============================================================
+   PRODUCT BAR
+   ============================================================ */
+
+.header {
+  position:
+    sticky;
+
+  top:
+    0;
+
+  z-index:
+    60;
+
+  width:
+    100%;
+
+  min-height:
+    66px;
+
+  margin:
+    0;
+
+  padding:
+    0 22px;
+
+  border-bottom:
+    1px solid
+    var(
+      --dl-border-subtle
+    );
+
+  background:
+    rgba(
+      7,
+      10,
+      16,
+      0.88
+    );
+
+  box-shadow:
+    0 1px 0
+    rgba(
+      255,
+      255,
+      255,
+      0.012
+    );
+
+  backdrop-filter:
+    blur(
+      22px
+    );
+}
+
+
+.brand {
+  gap:
+    11px;
+}
+
+
+.brand strong {
+  color:
+    var(
+      --dl-text-1
+    );
+
+  font-size:
+    15px;
+
+  font-weight:
+    680;
+
+  letter-spacing:
+    -0.025em;
+}
+
+
+/* ============================================================
+   DATALENS LENS MARK
+   ============================================================ */
+
+.brandMark {
+  position:
+    relative;
+
+  width:
+    30px;
+
+  height:
+    30px;
+
+  flex:
+    0 0 30px;
+
+  border:
+    1px solid
+    rgba(
+      124,
+      168,
+      255,
+      0.28
+    );
+
+  border-radius:
+    9px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(
+        124,
+        168,
+        255,
+        0.12
+      ),
+      rgba(
+        124,
+        168,
+        255,
+        0.025
+      )
+    );
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(
+      255,
+      255,
+      255,
+      0.035
+    ),
+    0 0 28px
+    rgba(
+      124,
+      168,
+      255,
+      0.08
+    );
+}
+
+
+.brandMark::before {
+  content:
+    "";
+
+  position:
+    absolute;
+
+  top:
+    7px;
+
+  left:
+    7px;
+
+  width:
+    9px;
+
+  height:
+    9px;
+
+  border:
+    2px solid
+    var(
+      --dl-accent
+    );
+
+  border-radius:
+    999px;
+
+  box-shadow:
+    0 0 12px
+    rgba(
+      124,
+      168,
+      255,
+      0.22
+    );
+}
+
+
+.brandMark::after {
+  content:
+    "";
+
+  position:
+    absolute;
+
+  top:
+    18px;
+
+  left:
+    17px;
+
+  width:
+    7px;
+
+  height:
+    2px;
+
+  border-radius:
+    999px;
+
+  background:
+    var(
+      --dl-accent
+    );
+
+  transform:
+    rotate(
+      45deg
+    );
+
+  transform-origin:
+    left center;
+}
+
+
+.privacyStatus {
+  min-height:
+    32px;
+
+  padding:
+    0 11px;
+
+  border:
+    1px solid
+    rgba(
+      105,
+      217,
+      182,
+      0.14
+    );
+
+  border-radius:
+    999px;
+
+  color:
+    #a8b7c8;
+
+  background:
+    rgba(
+      105,
+      217,
+      182,
+      0.025
+    );
+
+  font-size:
+    11.5px;
+
+  font-weight:
+    530;
+}
+
+
+.statusDot {
+  width:
+    7px;
+
+  height:
+    7px;
+
+  background:
+    var(
+      --dl-valid
+    );
+
+  box-shadow:
+    0 0 12px
+    rgba(
+      105,
+      217,
+      182,
+      0.42
+    );
+}
+
+
+/* ============================================================
+   MAIN PRODUCT WORKSPACE
+   ============================================================ */
+
+.shell {
+  width:
+    auto;
+
+  max-width:
+    none;
+
+  margin:
+    0 30px
+    0 270px;
+
+  padding:
+    0 0
+    72px;
+}
+
+
+/* ============================================================
+   COMPACT WORKSPACE INTRO
+   ============================================================ */
+
+.hero {
+  max-width:
+    1080px;
+
+  padding:
+    38px
+    0
+    28px;
+}
+
+
+.hero h1 {
+  max-width:
+    980px;
+
+  margin:
+    0;
+
+  color:
+    var(
+      --dl-text-1
+    );
+
+  font-size:
+    clamp(
+      31px,
+      3.1vw,
+      44px
+    );
+
+  font-weight:
+    620;
+
+  letter-spacing:
+    -0.05em;
+
+  line-height:
+    1.04;
+}
+
+
+.hero h1 span {
+  display:
+    inline;
+
+  margin-left:
+    0.18em;
+
+  color:
+    #8795a9;
+}
+
+
+.hero p {
+  max-width:
+    870px;
+
+  margin:
+    16px
+    0
+    0;
+
+  color:
+    #96a4b7;
+
+  font-size:
+    13.5px;
+
+  line-height:
+    1.68;
+}
+
+
+/* ============================================================
+   WORKFLOW RAIL
+   ============================================================ */
+
+.workspaceNav {
+  position:
+    fixed;
+
+  top:
+    82px;
+
+  left:
+    18px;
+
+  z-index:
+    40;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  align-items:
+    stretch;
+
+  width:
+    224px;
+
+  height:
+    calc(
+      100vh - 100px
+    );
+
+  margin:
+    0;
+
+  padding:
+    16px 12px
+    12px;
+
+  border:
+    1px solid
+    var(
+      --dl-border-subtle
+    );
+
+  border-radius:
+    16px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(
+        13,
+        18,
+        27,
+        0.94
+      ),
+      rgba(
+        9,
+        13,
+        20,
+        0.92
+      )
+    );
+
+  box-shadow:
+    0 24px 70px
+    rgba(
+      0,
+      0,
+      0,
+      0.22
+    );
+
+  backdrop-filter:
+    blur(
+      22px
+    );
+}
+
+
+.workspaceNav::before {
+  content:
+    "WORKFLOW";
+
+  display:
+    block;
+
+  padding:
+    4px 10px
+    11px;
+
+  color:
+    #657286;
+
+  font-family:
+    var(
+      --dl-font-mono
+    );
+
+  font-size:
+    9px;
+
+  font-weight:
+    600;
+
+  letter-spacing:
+    0.15em;
+}
+
+
+.workspaceSteps {
+  display:
+    flex;
+
+  flex:
+    0 0 auto;
+
+  flex-direction:
+    column;
+
+  width:
+    100%;
+
+  min-width:
+    0;
+
+  gap:
+    4px;
+}
+
+
+.workspaceStep {
+  justify-content:
+    flex-start;
+
+  width:
+    100%;
+
+  min-height:
+    44px;
+
+  padding:
+    8px 9px;
+
+  border-radius:
+    9px;
+
+  color:
+    #9eabbd;
+
+  font-size:
+    12.5px;
+
+  font-weight:
+    590;
+}
+
+
+.workspaceStep:hover:not(
+  .workspaceStepDisabled
+):not(
+  .workspaceStepActive
+) {
+  color:
+    #dce4ef;
+
+  background:
+    rgba(
+      124,
+      168,
+      255,
+      0.045
+    );
+}
+
+
+.workspaceStepActive {
+  color:
+    #f4f7fc;
+
+  border-color:
+    rgba(
+      124,
+      168,
+      255,
+      0.22
+    );
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(
+        124,
+        168,
+        255,
+        0.13
+      ),
+      rgba(
+        124,
+        168,
+        255,
+        0.04
+      )
+    );
+
+  box-shadow:
+    inset 2px 0 0
+    var(
+      --dl-accent
+    );
+}
+
+
+.workspaceStepNumber {
+  width:
+    24px;
+
+  height:
+    24px;
+
+  flex-basis:
+    24px;
+
+  border:
+    0;
+
+  border-radius:
+    7px;
+
+  color:
+    #69778a;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.018
+    );
+
+  font-family:
+    var(
+      --dl-font-mono
+    );
+
+  font-size:
+    9.5px;
+
+  font-weight:
+    600;
+}
+
+
+.workspaceStepActive
+.workspaceStepNumber {
+  color:
+    #cfe0ff;
+
+  background:
+    rgba(
+      124,
+      168,
+      255,
+      0.10
+    );
+}
+
+
+.workspaceStepDisabled {
+  color:
+    #566274;
+}
+
+
+.workspaceStepDisabled
+.workspaceStepNumber {
+  color:
+    #4f5b6b;
+}
+
+
+.workspaceInterventionDot {
+  margin-left:
+    auto;
+}
+
+
+.observabilityLink {
+  justify-content:
+    flex-start;
+
+  width:
+    100%;
+
+  min-width:
+    0;
+
+  min-height:
+    44px;
+
+  margin-top:
+    auto;
+
+  padding:
+    8px 9px;
+
+  border-color:
+    rgba(
+      170,
+      148,
+      255,
+      0.13
+    );
+
+  color:
+    #aeb9c8;
+
+  background:
+    rgba(
+      170,
+      148,
+      255,
+      0.025
+    );
+
+  font-size:
+    12px;
+}
+
+
+.observabilityLink:hover {
+  border-color:
+    rgba(
+      170,
+      148,
+      255,
+      0.27
+    );
+
+  color:
+    #e2dcff;
+
+  background:
+    rgba(
+      170,
+      148,
+      255,
+      0.065
+    );
+}
+
+
+.observabilityIcon {
+  border-color:
+    rgba(
+      170,
+      148,
+      255,
+      0.26
+    );
+
+  color:
+    #cfc4ff;
+
+  background:
+    rgba(
+      170,
+      148,
+      255,
+      0.075
+    );
+}
+
+
+/* ============================================================
+   WORKSPACE CONTENT
+   ============================================================ */
+
+.workspace {
+  gap:
+    16px;
+
+  padding-bottom:
+    58px;
+}
+
+
+.panel,
+.datasetWorkspace,
+.configPanel {
+  border-color:
+    var(
+      --dl-border
+    );
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(
+        14,
+        20,
+        29,
+        0.92
+      ),
+      rgba(
+        10,
+        15,
+        23,
+        0.90
+      )
+    );
+
+  box-shadow:
+    0 18px 48px
+    rgba(
+      0,
+      0,
+      0,
+      0.16
+    );
+
+  backdrop-filter:
+    blur(
+      18px
+    );
+}
+
+
+.panel {
+  border-radius:
+    16px;
+}
+
+
+.datasetWorkspace {
+  border-radius:
+    18px;
+}
+
+
+/* ============================================================
+   SECTION LANGUAGE
+   ============================================================ */
+
+.eyebrow {
+  color:
+    #73849a;
+
+  font-family:
+    var(
+      --dl-font-mono
+    );
+
+  font-size:
+    9.5px;
+
+  font-weight:
+    600;
+
+  letter-spacing:
+    0.12em;
+}
+
+
+.sectionHead h2,
+.datasetWorkspaceHeader h2 {
+  color:
+    var(
+      --dl-text-1
+    );
+
+  font-weight:
+    620;
+}
+
+
+.sectionDescription,
+.datasetWorkspaceHeader p {
+  color:
+    #98a7ba;
+}
+
+
+/* ============================================================
+   DATA CARDS
+   ============================================================ */
+
+.datasetTile {
+  border-color:
+    var(
+      --dl-border-subtle
+    );
+
+  border-radius:
+    12px;
+
+  background:
+    rgba(
+      5,
+      9,
+      15,
+      0.36
+    );
+}
+
+
+.datasetTile:hover {
+  border-color:
+    rgba(
+      124,
+      168,
+      255,
+      0.30
+    );
+
+  background:
+    rgba(
+      124,
+      168,
+      255,
+      0.028
+    );
+
+  transform:
+    translateY(
+      -2px
+    );
+}
+
+
+.datasetTileActive {
+  border-color:
+    rgba(
+      124,
+      168,
+      255,
+      0.42
+    );
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(
+        124,
+        168,
+        255,
+        0.09
+      ),
+      rgba(
+        124,
+        168,
+        255,
+        0.025
+      )
+    );
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(
+      255,
+      255,
+      255,
+      0.025
+    );
+}
+
+
+/* ============================================================
+   RESPONSIVE - RETURN TO COMPACT TOP NAV
+   ============================================================ */
+
+@media (
+  max-width: 1100px
+) {
+  .ambient {
+    left:
+      0;
+
+    width:
+      100%;
+  }
+
+
+  .header {
+    padding:
+      0 16px;
+  }
+
+
+  .shell {
+    width:
+      min(
+        calc(
+          100% - 32px
+        ),
+        1320px
+      );
+
+    margin:
+      0 auto;
+  }
+
+
+  .workspaceNav {
+    position:
+      sticky;
+
+    top:
+      76px;
+
+    display:
+      flex;
+
+    flex-direction:
+      row;
+
+    align-items:
+      stretch;
+
+    width:
+      auto;
+
+    height:
+      auto;
+
+    margin:
+      0 0
+      20px;
+
+    padding:
+      7px;
+  }
+
+
+  .workspaceNav::before {
+    display:
+      none;
+  }
+
+
+  .workspaceSteps {
+    display:
+      grid;
+
+    flex:
+      1 1 640px;
+
+    grid-template-columns:
+      repeat(
+        5,
+        minmax(
+          0,
+          1fr
+        )
+      );
+
+    min-width:
+      620px;
+  }
+
+
+  .workspaceStep {
+    justify-content:
+      center;
+
+    width:
+      auto;
+  }
+
+
+  .observabilityLink {
+    justify-content:
+      center;
+
+    width:
+      auto;
+
+    min-width:
+      150px;
+
+    margin-top:
+      0;
+  }
+}
+
+
+@media (
+  max-width: 820px
+) {
+  .hero {
+    padding:
+      30px
+      0
+      24px;
+  }
+
+
+  .hero h1 {
+    font-size:
+      clamp(
+        29px,
+        8vw,
+        40px
+      );
+  }
+
+
+  .hero p {
+    font-size:
+      13px;
+  }
+}
+
+
+@media (
+  max-width: 560px
+) {
+  .brandMark {
+    width:
+      28px;
+
+    height:
+      28px;
+
+    flex-basis:
+      28px;
+  }
+
+
+  .shell {
+    width:
+      min(
+        calc(
+          100% - 24px
+        ),
+        1320px
+      );
+  }
+
+
+  .hero h1 span {
+    display:
+      block;
+
+    margin-left:
+      0;
+  }
+}
+
+/* ============================================================
+   DATALENS DATA WORKSPACE HEADER v0.1
+   ============================================================ */
+
+.workspaceHeader {
+  display:
+    flex;
+
+  align-items:
+    flex-end;
+
+  justify-content:
+    space-between;
+
+  gap:
+    42px;
+
+  min-height:
+    148px;
+
+  padding:
+    34px
+    2px
+    27px;
+
+  border-bottom:
+    1px solid
+    var(
+      --dl-border-subtle
+    );
+}
+
+
+.workspaceHeaderMain {
+  min-width:
+    0;
+
+  max-width:
+    820px;
+}
+
+
+.workspaceEyebrowRow {
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  flex-wrap:
+    wrap;
+
+  gap:
+    12px;
+}
+
+
+.workspaceEyebrow {
+  color:
+    #718096;
+
+  font-family:
+    var(
+      --dl-font-mono
+    );
+
+  font-size:
+    9.5px;
+
+  font-weight:
+    650;
+
+  letter-spacing:
+    0.15em;
+}
+
+
+.workspaceStatus {
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  gap:
+    7px;
+
+  min-height:
+    25px;
+
+  padding:
+    0 9px;
+
+  border:
+    1px solid
+    var(
+      --dl-border-subtle
+    );
+
+  border-radius:
+    999px;
+
+  font-size:
+    10.5px;
+
+  font-weight:
+    620;
+}
+
+
+.workspaceStatusDot {
+  width:
+    6px;
+
+  height:
+    6px;
+
+  border-radius:
+    999px;
+}
+
+
+.workspaceStatusIdle {
+  color:
+    #8d9bad;
+
+  background:
+    rgba(
+      148,
+      163,
+      184,
+      0.025
+    );
+}
+
+
+.workspaceStatusIdle
+.workspaceStatusDot {
+  background:
+    #657286;
+}
+
+
+.workspaceStatusLoaded {
+  border-color:
+    rgba(
+      124,
+      168,
+      255,
+      0.18
+    );
+
+  color:
+    #a8c8ff;
+
+  background:
+    rgba(
+      124,
+      168,
+      255,
+      0.04
+    );
+}
+
+
+.workspaceStatusLoaded
+.workspaceStatusDot {
+  background:
+    var(
+      --dl-accent
+    );
+
+  box-shadow:
+    0 0 10px
+    rgba(
+      124,
+      168,
+      255,
+      0.28
+    );
+}
+
+
+.workspaceStatusReady {
+  border-color:
+    rgba(
+      105,
+      217,
+      182,
+      0.18
+    );
+
+  color:
+    #9fdfc6;
+
+  background:
+    rgba(
+      105,
+      217,
+      182,
+      0.035
+    );
+}
+
+
+.workspaceStatusReady
+.workspaceStatusDot {
+  background:
+    var(
+      --dl-valid
+    );
+
+  box-shadow:
+    0 0 10px
+    rgba(
+      105,
+      217,
+      182,
+      0.30
+    );
+}
+
+
+.workspaceHeader h1 {
+  margin:
+    12px
+    0
+    0;
+
+  color:
+    var(
+      --dl-text-1
+    );
+
+  font-size:
+    clamp(
+      31px,
+      3vw,
+      43px
+    );
+
+  font-weight:
+    660;
+
+  letter-spacing:
+    -0.05em;
+
+  line-height:
+    1;
+}
+
+
+.workspaceHeaderMain > p {
+  max-width:
+    720px;
+
+  margin:
+    13px
+    0
+    0;
+
+  color:
+    #97a5b7;
+
+  font-size:
+    13.5px;
+
+  line-height:
+    1.65;
+}
+
+
+/* ============================================================
+   WORKSPACE SNAPSHOT
+   ============================================================ */
+
+.workspaceSnapshot {
+  display:
+    flex;
+
+  align-items:
+    stretch;
+
+  flex:
+    0 0 auto;
+
+  min-height:
+    64px;
+
+  overflow:
+    hidden;
+
+  border:
+    1px solid
+    var(
+      --dl-border-subtle
+    );
+
+  border-radius:
+    12px;
+
+  background:
+    rgba(
+      10,
+      15,
+      23,
+      0.58
+    );
+}
+
+
+.workspaceSnapshotItem {
+  display:
+    grid;
+
+  align-content:
+    center;
+
+  min-width:
+    92px;
+
+  padding:
+    10px
+    16px;
+
+  border-right:
+    1px solid
+    var(
+      --dl-border-subtle
+    );
+}
+
+
+.workspaceSnapshotItem strong {
+  color:
+    #e7edf6;
+
+  font-family:
+    var(
+      --dl-font-mono
+    );
+
+  font-size:
+    15px;
+
+  font-weight:
+    600;
+
+  font-variant-numeric:
+    tabular-nums;
+}
+
+
+.workspaceSnapshotItem span {
+  margin-top:
+    2px;
+
+  color:
+    #69778a;
+
+  font-size:
+    9.5px;
+
+  font-weight:
+    600;
+
+  letter-spacing:
+    0.04em;
+}
+
+
+.workspaceSnapshotPrivacy {
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    7px;
+
+  padding:
+    0 15px;
+
+  color:
+    #829385;
+
+  font-family:
+    var(
+      --dl-font-mono
+    );
+
+  font-size:
+    9.5px;
+
+  font-weight:
+    600;
+
+  text-transform:
+    uppercase;
+}
+
+
+.workspaceSnapshotPrivacyDot {
+  width:
+    6px;
+
+  height:
+    6px;
+
+  border-radius:
+    999px;
+
+  background:
+    var(
+      --dl-valid
+    );
+
+  box-shadow:
+    0 0 9px
+    rgba(
+      105,
+      217,
+      182,
+      0.24
+    );
+}
+
+
+.workspaceHeader +
+.workspaceNav {
+  margin-top:
+    22px;
+}
+
+
+@media (
+  max-width: 1320px
+) {
+  .workspaceHeader {
+    align-items:
+      flex-start;
+
+    flex-direction:
+      column;
+
+    gap:
+      22px;
+  }
+
+
+  .workspaceSnapshot {
+    align-self:
+      stretch;
+
+    width:
+      fit-content;
+  }
+}
+
+
+@media (
+  max-width: 700px
+) {
+  .workspaceHeader {
+    min-height:
+      0;
+
+    padding:
+      28px
+      0
+      22px;
+  }
+
+
+  .workspaceSnapshot {
+    display:
+      grid;
+
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(
+          0,
+          1fr
+        )
+      );
+
+    width:
+      100%;
+  }
+
+
+  .workspaceSnapshotItem {
+    min-width:
+      0;
+
+    border-bottom:
+      1px solid
+      var(
+        --dl-border-subtle
+      );
+  }
+
+
+  .workspaceSnapshotPrivacy {
+    min-height:
+      54px;
+  }
+}
+
+/* ============================================================
+   DATALENS COMPACT QUALITY ISSUES v0.1
+   ============================================================ */
+
+.qualityIssueToggleRow {
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    space-between;
+
+  gap:
+    16px;
+
+  margin-top:
+    11px;
+
+  padding:
+    10px
+    12px;
+
+  border:
+    1px dashed
+    rgba(
+      124,
+      168,
+      255,
+      0.18
+    );
+
+  border-radius:
+    9px;
+
+  background:
+    rgba(
+      124,
+      168,
+      255,
+      0.02
+    );
+}
+
+
+.qualityIssueCount {
+  color:
+    #96a5b8;
+
+  font-family:
+    var(
+      --dl-font-mono
+    );
+
+  font-size:
+    10px;
+
+  font-weight:
+    600;
+}
+
+
+.qualityIssueToggle {
+  min-height:
+    32px;
+
+  padding:
+    0 11px;
+
+  border:
+    1px solid
+    rgba(
+      124,
+      168,
+      255,
+      0.24
+    );
+
+  border-radius:
+    8px;
+
+  color:
+    #bdd3f6;
+
+  background:
+    rgba(
+      124,
+      168,
+      255,
+      0.055
+    );
+
+  font:
+    inherit;
+
+  font-size:
+    10px;
+
+  font-weight:
+    680;
+
+  cursor:
+    pointer;
+
+  transition:
+    color 150ms ease,
+    border-color 150ms ease,
+    background 150ms ease;
+}
+
+
+.qualityIssueToggle:hover {
+  color:
+    #f0f5ff;
+
+  border-color:
+    rgba(
+      124,
+      168,
+      255,
+      0.40
+    );
+
+  background:
+    rgba(
+      124,
+      168,
+      255,
+      0.10
+    );
+}
+
+
+@media (
+  max-width: 620px
+) {
+  .qualityIssueToggleRow {
+    align-items:
+      flex-start;
+
+    flex-direction:
+      column;
+  }
+
+
+  .qualityIssueToggle {
+    width:
+      100%;
+  }
+}
+
+/* ============================================================
+   DATALENS CLEANING EXECUTION v0.1
+
+   Phase 01 of the Cleaning workspace:
+   deterministic execution and provenance.
+   ============================================================ */
+
+.cleaningExecution {
+  position:
+    relative;
+
+  overflow:
+    hidden;
+
+  padding:
+    20px !important;
+
+  border-color:
+    rgba(
+      105,
+      217,
+      182,
+      0.17
+    ) !important;
+
+  background:
+    radial-gradient(
+      circle at 0% 0%,
+      rgba(
+        105,
+        217,
+        182,
+        0.07
+      ),
+      transparent 32%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(
+        12,
+        21,
+        24,
+        0.92
+      ),
+      rgba(
+        8,
+        15,
+        20,
+        0.92
+      )
+    ) !important;
+
+  box-shadow:
+    0 18px 46px
+    rgba(
+      0,
+      0,
+      0,
+      0.12
+    );
+}
+
+
+.cleaningExecution::before {
+  content:
+    "01";
+
+  position:
+    absolute;
+
+  top:
+    17px;
+
+  right:
+    18px;
+
+  color:
+    rgba(
+      105,
+      217,
+      182,
+      0.10
+    );
+
+  font-family:
+    var(
+      --dl-font-mono
+    );
+
+  font-size:
+    42px;
+
+  font-weight:
+    700;
+
+  line-height:
+    1;
+
+  pointer-events:
+    none;
+}
+
+
+/* ============================================================
+   PRIMARY TITLE
+   ============================================================ */
+
+.cleaningExecution
+> div:first-child
+> div:first-child
+> span:first-child {
+  color:
+    #8ea298 !important;
+
+  font-size:
+    10px !important;
+
+  font-weight:
+    650;
+
+  letter-spacing:
+    0.12em !important;
+
+  opacity:
+    1 !important;
+}
+
+
+.cleaningExecution
+> div:first-child
+> div:first-child
+> strong {
+  color:
+    #edf4f0;
+
+  font-size:
+    18px !important;
+
+  font-weight:
+    680;
+
+  letter-spacing:
+    -0.025em;
+}
+
+
+.cleaningExecution
+> div:first-child
+> div:first-child
+> p {
+  max-width:
+    880px !important;
+
+  color:
+    #a2b2aa;
+
+  font-size:
+    12px !important;
+
+  line-height:
+    1.62 !important;
+
+  opacity:
+    1 !important;
+}
+
+
+/* ============================================================
+   APPLIED STATUS
+   ============================================================ */
+
+.cleaningExecution
+> div:first-child
+> span {
+  position:
+    relative;
+
+  z-index:
+    1;
+
+  min-height:
+    29px;
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  padding:
+    0 10px !important;
+
+  border-color:
+    rgba(
+      105,
+      217,
+      182,
+      0.22
+    ) !important;
+
+  color:
+    #9edbc4;
+
+  background:
+    rgba(
+      105,
+      217,
+      182,
+      0.04
+    );
+
+  font-family:
+    var(
+      --dl-font-mono
+    );
+
+  font-size:
+    9.5px !important;
+
+  letter-spacing:
+    0.04em;
+}
+
+
+/* ============================================================
+   CORRECTIONS DISCLOSURE
+   ============================================================ */
+
+.cleaningExecution details {
+  margin-top:
+    15px !important;
+
+  border-color:
+    rgba(
+      185,
+      200,
+      222,
+      0.09
+    ) !important;
+
+  background:
+    rgba(
+      4,
+      9,
+      14,
+      0.31
+    );
+}
+
+
+.cleaningExecution summary {
+  padding:
+    11px 12px !important;
+
+  color:
+    #b5c4bc;
+
+  font-size:
+    10.5px !important;
+
+  line-height:
+    1.45;
+}
+
+
+.cleaningExecution label {
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.012
+    );
+}
+
+
+.cleaningExecution label strong {
+  color:
+    #e0e8e4;
+
+  font-size:
+    11px !important;
+}
+
+
+.cleaningExecution label span {
+  color:
+    #94a39d;
+
+  font-size:
+    9.5px !important;
+
+  line-height:
+    1.5 !important;
+
+  opacity:
+    1 !important;
+}
+
+
+/* ============================================================
+   ACTIONS
+   ============================================================ */
+
+.cleaningExecution button {
+  min-height:
+    34px;
+
+  font-size:
+    10px !important;
+
+  font-weight:
+    670;
+}
+
+
+.cleaningExecution button:disabled {
+  opacity:
+    0.50;
+}
+
+
+/* ============================================================
+   PROVENANCE / RESULT TEXT
+   ============================================================ */
+
+.cleaningExecution p,
+.cleaningExecution small {
+  color:
+    #92a29a;
+
+  line-height:
+    1.55;
+}
+
+
+@media (
+  max-width: 760px
+) {
+  .cleaningExecution {
+    padding:
+      17px !important;
+  }
+
+
+  .cleaningExecution::before {
+    display:
+      none;
+  }
+
+
+  .cleaningExecution
+  > div:first-child
+  > div:first-child
+  > strong {
+    font-size:
+      16px !important;
+  }
+}
+
+/* ============================================================
+   DATALENS COMPACT SEMANTIC REVIEW v0.1
+
+   Phase 02:
+   local-model interpretation followed by deterministic control.
+   ============================================================ */
+
+.semanticReviewPhase {
+  position:
+    relative;
+
+  overflow:
+    hidden;
+
+  padding:
+    20px !important;
+
+  border-color:
+    rgba(
+      160,
+      133,
+      255,
+      0.18
+    ) !important;
+
+  background:
+    radial-gradient(
+      circle at 0% 0%,
+      rgba(
+        160,
+        133,
+        255,
+        0.075
+      ),
+      transparent 32%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(
+        18,
+        16,
+        30,
+        0.92
+      ),
+      rgba(
+        10,
+        13,
+        22,
+        0.93
+      )
+    ) !important;
+
+  box-shadow:
+    0 18px 46px
+    rgba(
+      0,
+      0,
+      0,
+      0.12
+    );
+}
+
+
+.semanticReviewPhase::before {
+  content:
+    "02";
+
+  position:
+    absolute;
+
+  top:
+    17px;
+
+  right:
+    18px;
+
+  color:
+    rgba(
+      160,
+      133,
+      255,
+      0.10
+    );
+
+  font-family:
+    var(
+      --dl-font-mono
+    );
+
+  font-size:
+    42px;
+
+  font-weight:
+    700;
+
+  line-height:
+    1;
+
+  pointer-events:
+    none;
+}
+
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+
+.semanticReviewPhase
+> div:first-child
+> div:first-child
+> span:first-child {
+  color:
+    #a098bb !important;
+
+  font-size:
+    10px !important;
+
+  font-weight:
+    650;
+
+  letter-spacing:
+    0.12em !important;
+
+  opacity:
+    1 !important;
+}
+
+
+.semanticReviewPhase
+> div:first-child
+> div:first-child
+> strong {
+  color:
+    #eeeaf9;
+
+  font-size:
+    18px !important;
+
+  font-weight:
+    680;
+
+  letter-spacing:
+    -0.025em;
+}
+
+
+.semanticReviewPhase
+> div:first-child
+> div:first-child
+> p {
+  max-width:
+    900px !important;
+
+  color:
+    #aaa4bd;
+
+  font-size:
+    12px !important;
+
+  line-height:
+    1.62 !important;
+
+  opacity:
+    1 !important;
+}
+
+
+.semanticReviewPhase
+> div:first-child
+> span {
+  position:
+    relative;
+
+  z-index:
+    1;
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  min-height:
+    29px;
+
+  padding:
+    0 10px !important;
+
+  border-color:
+    rgba(
+      160,
+      133,
+      255,
+      0.24
+    ) !important;
+
+  color:
+    #c9bef1;
+
+  background:
+    rgba(
+      160,
+      133,
+      255,
+      0.045
+    );
+
+  font-family:
+    var(
+      --dl-font-mono
+    );
+
+  font-size:
+    9px !important;
+}
+
+
+/* ============================================================
+   METRICS
+   ============================================================ */
+
+.semanticReviewPhase article {
+  background:
+    rgba(
+      5,
+      8,
+      15,
+      0.30
+    );
+}
+
+
+.semanticReviewPhase article > span {
+  color:
+    #9792a5;
+
+  opacity:
+    1 !important;
+}
+
+
+.semanticReviewPhase article > strong {
+  color:
+    #e8e4f2;
+
+  font-size:
+    11px !important;
+}
+
+
+/* ============================================================
+   DECISION CARDS
+   ============================================================ */
+
+.semanticReviewPhase article p,
+.semanticReviewPhase article span {
+  color:
+    #a19bad;
+
+  font-size:
+    10px !important;
+
+  line-height:
+    1.52 !important;
+
+  opacity:
+    1 !important;
+}
+
+
+.semanticReviewPhase label {
+  color:
+    #aaa4ba;
+
+  font-size:
+    10px !important;
+}
+
+
+.semanticReviewPhase button {
+  min-height:
+    33px;
+
+  font-size:
+    10px !important;
+
+  font-weight:
+    670;
+}
+
+
+/* ============================================================
+   EXECUTED STATE
+   ============================================================ */
+
+.semanticReviewExecuted {
+  border-color:
+    rgba(
+      105,
+      217,
+      182,
+      0.15
+    ) !important;
+}
+
+
+.semanticReviewExecuted
+> div:first-child
+> div:first-child
+> strong {
+  color:
+    #dff0e9;
+}
+
+
+/* ============================================================
+   COMPACT CONTROL
+   ============================================================ */
+
+.semanticReviewToggle {
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    space-between;
+
+  gap:
+    18px;
+
+  width:
+    100%;
+
+  min-height:
+    44px;
+
+  margin-top:
+    10px;
+
+  padding:
+    0 12px;
+
+  border:
+    1px dashed
+    rgba(
+      160,
+      133,
+      255,
+      0.20
+    );
+
+  border-radius:
+    9px;
+
+  color:
+    #a19aaf;
+
+  background:
+    rgba(
+      160,
+      133,
+      255,
+      0.02
+    );
+
+  text-align:
+    left;
+
+  cursor:
+    pointer;
+
+  transition:
+    border-color 150ms ease,
+    color 150ms ease,
+    background 150ms ease;
+}
+
+
+.semanticReviewToggle span {
+  font-size:
+    10px !important;
+}
+
+
+.semanticReviewToggle strong {
+  color:
+    #c9bcf0;
+
+  font-size:
+    10px;
+
+  font-weight:
+    700;
+}
+
+
+.semanticReviewToggle:hover {
+  border-color:
+    rgba(
+      160,
+      133,
+      255,
+      0.36
+    );
+
+  color:
+    #c2bbce;
+
+  background:
+    rgba(
+      160,
+      133,
+      255,
+      0.05
+    );
+}
+
+
+@media (
+  max-width: 760px
+) {
+  .semanticReviewPhase {
+    padding:
+      17px !important;
+  }
+
+
+  .semanticReviewPhase::before {
+    display:
+      none;
+  }
+
+
+  .semanticReviewPhase
+  > div:first-child
+  > div:first-child
+  > strong {
+    font-size:
+      16px !important;
+  }
+}
+
+
+@media (
+  max-width: 560px
+) {
+  .semanticReviewToggle {
+    align-items:
+      flex-start;
+
+    flex-direction:
+      column;
+
+    gap:
+      4px;
+
+    padding:
+      10px 12px;
+  }
+}
+
+/* ============================================================
+   DATALENS COMPACT ANALYST CONFIRMATION v0.1
+
+   Phase 03:
+   analyst ownership after local-model interpretation and
+   deterministic controls.
+   ============================================================ */
+
+.analystConfirmationPhase {
+  position:
+    relative;
+
+  overflow:
+    hidden;
+
+  padding:
+    20px !important;
+
+  border-color:
+    rgba(
+      160,
+      133,
+      255,
+      0.16
+    ) !important;
+
+  background:
+    radial-gradient(
+      circle at 0% 0%,
+      rgba(
+        160,
+        133,
+        255,
+        0.055
+      ),
+      transparent 30%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(
+        13,
+        17,
+        24,
+        0.95
+      ),
+      rgba(
+        8,
+        13,
+        19,
+        0.95
+      )
+    ) !important;
+}
+
+
+.analystConfirmationPhase::before {
+  content:
+    "03";
+
+  position:
+    absolute;
+
+  top:
+    17px;
+
+  right:
+    18px;
+
+  color:
+    rgba(
+      160,
+      133,
+      255,
+      0.09
+    );
+
+  font-family:
+    var(
+      --dl-font-mono
+    );
+
+  font-size:
+    42px;
+
+  font-weight:
+    700;
+
+  line-height:
+    1;
+
+  pointer-events:
+    none;
+}
+
+
+.analystConfirmationResolvedPhase {
+  border-color:
+    rgba(
+      105,
+      217,
+      182,
+      0.17
+    ) !important;
+}
+
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+
+.analystConfirmationPhase
+> div:first-child
+> div:first-child
+> span:first-child {
+  color:
+    #9b98a9 !important;
+
+  font-size:
+    10px !important;
+
+  font-weight:
+    650;
+
+  letter-spacing:
+    0.12em !important;
+
+  opacity:
+    1 !important;
+}
+
+
+.analystConfirmationPhase
+> div:first-child
+> div:first-child
+> strong {
+  color:
+    #edf2ef;
+
+  font-size:
+    18px !important;
+
+  font-weight:
+    680;
+
+  letter-spacing:
+    -0.025em;
+}
+
+
+.analystConfirmationPhase
+> div:first-child
+> div:first-child
+> p {
+  color:
+    #a4ada8;
+
+  font-size:
+    12px !important;
+
+  line-height:
+    1.62 !important;
+
+  opacity:
+    1 !important;
+}
+
+
+.analystConfirmationPhase
+> div:first-child
+> span {
+  position:
+    relative;
+
+  z-index:
+    1;
+}
+
+
+/* ============================================================
+   AUDIT SUMMARY
+   ============================================================ */
+
+.analystConfirmationSummary {
+  display:
+    grid;
+
+  grid-template-columns:
+    repeat(
+      4,
+      minmax(
+        0,
+        1fr
+      )
+    );
+
+  gap:
+    8px;
+
+  margin-top:
+    16px;
+}
+
+
+.analystConfirmationSummary article {
+  min-width:
+    0;
+
+  padding:
+    11px 12px;
+
+  border:
+    1px solid
+    rgba(
+      255,
+      255,
+      255,
+      0.055
+    );
+
+  border-radius:
+    9px;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.012
+    );
+}
+
+
+.analystConfirmationSummary span {
+  display:
+    block;
+
+  color:
+    #8e9993;
+
+  font-size:
+    9.5px;
+
+  line-height:
+    1.4;
+}
+
+
+.analystConfirmationSummary strong {
+  display:
+    block;
+
+  margin-top:
+    5px;
+
+  color:
+    #e3ebe7;
+
+  font-size:
+    14px;
+
+  font-weight:
+    700;
+}
+
+
+/* ============================================================
+   RESOLVED SIGNAL
+   ============================================================ */
+
+.analystConfirmationResolved {
+  display:
+    flex;
+
+  align-items:
+    flex-start;
+
+  gap:
+    11px;
+
+  margin-top:
+    10px;
+
+  padding:
+    12px 13px;
+
+  border:
+    1px solid
+    rgba(
+      105,
+      217,
+      182,
+      0.16
+    );
+
+  border-radius:
+    9px;
+
+  background:
+    rgba(
+      105,
+      217,
+      182,
+      0.025
+    );
+}
+
+
+.analystConfirmationResolvedMark {
+  display:
+    inline-flex;
+
+  flex:
+    0 0 auto;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  width:
+    22px;
+
+  height:
+    22px;
+
+  border:
+    1px solid
+    rgba(
+      105,
+      217,
+      182,
+      0.22
+    );
+
+  border-radius:
+    50%;
+
+  color:
+    #8bd3b8;
+
+  font-size:
+    11px;
+
+  font-weight:
+    800;
+}
+
+
+.analystConfirmationResolved strong {
+  display:
+    block;
+
+  color:
+    #dfece6;
+
+  font-size:
+    11px;
+
+  font-weight:
+    700;
+}
+
+
+.analystConfirmationResolved p {
+  margin:
+    4px 0 0;
+
+  color:
+    #93a39b;
+
+  font-size:
+    10px;
+
+  line-height:
+    1.5;
+}
+
+
+/* ============================================================
+   EVIDENCE
+   ============================================================ */
+
+.analystDecisionList {
+  display:
+    grid;
+}
+
+
+.analystDecisionListCollapsed {
+  display:
+    none !important;
+}
+
+
+.analystEvidenceToggle {
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    space-between;
+
+  gap:
+    18px;
+
+  width:
+    100%;
+
+  min-height:
+    44px;
+
+  margin-top:
+    11px;
+
+  padding:
+    0 12px;
+
+  border:
+    1px dashed
+    rgba(
+      105,
+      217,
+      182,
+      0.17
+    );
+
+  border-radius:
+    9px;
+
+  color:
+    #91a099;
+
+  background:
+    rgba(
+      105,
+      217,
+      182,
+      0.015
+    );
+
+  text-align:
+    left;
+
+  cursor:
+    pointer;
+
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    color 150ms ease;
+}
+
+
+.analystEvidenceToggle span {
+  font-size:
+    10px;
+}
+
+
+.analystEvidenceToggle strong {
+  color:
+    #a8d8c5;
+
+  font-size:
+    10px;
+
+  font-weight:
+    700;
+}
+
+
+.analystEvidenceToggle:hover {
+  border-color:
+    rgba(
+      105,
+      217,
+      182,
+      0.31
+    );
+
+  background:
+    rgba(
+      105,
+      217,
+      182,
+      0.04
+    );
+}
+
+
+/* ============================================================
+   READABILITY FOR EXPANDED AUDIT
+   ============================================================ */
+
+.analystConfirmationPhase article strong {
+  color:
+    #dfe7e3;
+}
+
+
+.analystConfirmationPhase article p,
+.analystConfirmationPhase article span,
+.analystConfirmationPhase label {
+  font-size:
+    10px !important;
+
+  line-height:
+    1.5 !important;
+}
+
+
+@media (
+  max-width: 900px
+) {
+  .analystConfirmationSummary {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(
+          0,
+          1fr
+        )
+      );
+  }
+}
+
+
+@media (
+  max-width: 560px
+) {
+  .analystConfirmationPhase {
+    padding:
+      17px !important;
+  }
+
+
+  .analystConfirmationPhase::before {
+    display:
+      none;
+  }
+
+
+  .analystConfirmationSummary {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .analystEvidenceToggle {
+    align-items:
+      flex-start;
+
+    flex-direction:
+      column;
+
+    gap:
+      4px;
+
+    padding:
+      10px 12px;
+  }
+}
+
+
+/*
+ * DATALENS_CSS_MOJIBAKE_REPAIR_V0_1
+ *
+ * Legacy malformed punctuation was normalized.
+ * Disclosure minus glyphs use an ASCII-safe CSS escape.
+ */
+
+
+/* ============================================================
+   DATALENS COMPACT ANALYSIS PLANNER v0.1
+
+   Planner purpose first.
+   Capability catalog on demand.
+   ============================================================ */
+
+.analysisPlannerPanel {
+  margin-top:
+    14px !important;
+
+  padding:
+    15px 17px !important;
+
+  border-radius:
+    14px !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(
+        56,
+        110,
+        196,
+        0.065
+      ),
+      rgba(
+        255,
+        255,
+        255,
+        0.012
+      )
+    ) !important;
+}
+
+
+.analysisPlannerPanel h3 {
+  margin:
+    5px 0 !important;
+
+  font-size:
+    15px !important;
+
+  letter-spacing:
+    -0.018em;
+}
+
+
+.analysisPlannerPanel
+> div:first-child {
+  align-items:
+    center !important;
+}
+
+
+.analysisPlannerPanel
+.resultSubtitle {
+  max-width:
+    760px;
+
+  font-size:
+    11.5px !important;
+
+  line-height:
+    1.58;
+}
+
+
+.analysisPlannerCapabilities {
+  margin-top:
+    10px;
+
+  overflow:
+    hidden;
+
+  border:
+    1px solid
+    rgba(
+      126,
+      177,
+      255,
+      0.10
+    );
+
+  border-radius:
+    9px;
+
+  background:
+    rgba(
+      2,
+      7,
+      15,
+      0.18
+    );
+}
+
+
+.analysisPlannerCapabilities
+> summary {
+  display:
+    grid;
+
+  grid-template-columns:
+    1fr auto 20px;
+
+  align-items:
+    center;
+
+  gap:
+    10px;
+
+  min-height:
+    36px;
+
+  padding:
+    0 10px;
+
+  color:
+    #8e9caf;
+
+  list-style:
+    none;
+
+  cursor:
+    pointer;
+
+  font-size:
+    10px;
+}
+
+
+.analysisPlannerCapabilities
+> summary::-webkit-details-marker {
+  display:
+    none;
+}
+
+
+.analysisPlannerCapabilities
+> summary strong {
+  color:
+    #a9cfff;
+
+  font-size:
+    9.5px;
+
+  font-weight:
+    700;
+}
+
+
+.analysisPlannerCapabilities
+> summary::after {
+  content:
+    "+";
+
+  color:
+    #89a5c9;
+
+  font-family:
+    var(
+      --dl-font-mono
+    );
+
+  font-size:
+    11px;
+
+  text-align:
+    center;
+}
+
+
+.analysisPlannerCapabilities[open]
+> summary::after {
+  content:
+    "\2212";
+}
+
+
+.analysisPlannerCapabilitiesBody {
+  padding:
+    10px 11px 11px;
+
+  border-top:
+    1px solid
+    rgba(
+      126,
+      177,
+      255,
+      0.08
+    );
+}
+
+
+.analysisPlannerCapabilitiesBody p {
+  max-width:
+    820px;
+
+  margin:
+    0;
+
+  color:
+    #8795a9;
+
+  font-size:
+    10px;
+
+  line-height:
+    1.55;
+}
+
+
+.analysisPlannerFamilyList {
+  display:
+    flex;
+
+  flex-wrap:
+    wrap;
+
+  gap:
+    6px;
+
+  margin-top:
+    9px;
+}
+
+
+.analysisPlannerFamilyList span {
+  padding:
+    5px 7px;
+
+  border:
+    1px solid
+    rgba(
+      126,
+      177,
+      255,
+      0.13
+    );
+
+  border-radius:
+    999px;
+
+  color:
+    #9eafc5;
+
+  background:
+    rgba(
+      126,
+      177,
+      255,
+      0.025
+    );
+
+  font-size:
+    9px;
+}
+
+
+@media (
+  max-width: 700px
+) {
+  .analysisPlannerPanel {
+    padding:
+      14px !important;
+  }
+
+
+  .analysisPlannerCapabilities
+  > summary {
+    grid-template-columns:
+      1fr auto 18px;
+
+    padding:
+      8px 10px;
+  }
+}
+
+
+
+/* ============================================================
+   DATALENS COMPACT ANALYSIS AUDIT v0.1
+
+   Decision summary first.
+   Detailed evidence remains available on demand.
+   ============================================================ */
+
+.analysisAuditSummary {
+  display:
+    grid;
+
+  gap:
+    10px;
+}
+
+
+.analysisAuditMetrics {
+  display:
+    grid;
+
+  grid-template-columns:
+    repeat(
+      4,
+      minmax(
+        0,
+        1fr
+      )
+    );
+
+  gap:
+    8px;
+}
+
+
+.analysisAuditMetrics article {
+  min-height:
+    54px;
+
+  padding:
+    10px 11px;
+
+  border:
+    1px solid
+    rgba(
+      126,
+      177,
+      255,
+      0.09
+    );
+
+  border-radius:
+    9px;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.012
+    );
+}
+
+
+.analysisAuditMetrics span {
+  display:
+    block;
+
+  color:
+    #758397;
+
+  font-size:
+    9px;
+
+  text-transform:
+    uppercase;
+
+  letter-spacing:
+    0.055em;
+}
+
+
+.analysisAuditMetrics strong {
+  display:
+    block;
+
+  margin-top:
+    5px;
+
+  color:
+    #d7e2ef;
+
+  font-size:
+    14px;
+
+  font-weight:
+    720;
+}
+
+
+.analysisAuditSignal {
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    10px;
+
+  min-height:
+    46px;
+
+  padding:
+    9px 11px;
+
+  border:
+    1px solid
+    rgba(
+      122,
+      203,
+      160,
+      0.12
+    );
+
+  border-radius:
+    9px;
+
+  background:
+    rgba(
+      122,
+      203,
+      160,
+      0.025
+    );
+}
+
+
+.analysisAuditSignal
+> span {
+  display:
+    grid;
+
+  flex:
+    0 0 auto;
+
+  width:
+    22px;
+
+  height:
+    22px;
+
+  place-items:
+    center;
+
+  border:
+    1px solid
+    rgba(
+      122,
+      203,
+      160,
+      0.25
+    );
+
+  border-radius:
+    999px;
+
+  color:
+    #8cd7b7;
+
+  font-size:
+    10px;
+}
+
+
+.analysisAuditSignal strong {
+  display:
+    block;
+
+  color:
+    #cbdad4;
+
+  font-size:
+    10.5px;
+}
+
+
+.analysisAuditSignal small {
+  display:
+    block;
+
+  margin-top:
+    2px;
+
+  color:
+    #75887f;
+
+  font-size:
+    9.5px;
+
+  line-height:
+    1.45;
+}
+
+
+.analysisAuditEvidence {
+  overflow:
+    hidden;
+
+  border:
+    1px solid
+    rgba(
+      126,
+      177,
+      255,
+      0.10
+    );
+
+  border-radius:
+    9px;
+
+  background:
+    rgba(
+      2,
+      7,
+      15,
+      0.16
+    );
+}
+
+
+.analysisAuditEvidence
+> summary {
+  display:
+    grid;
+
+  grid-template-columns:
+    1fr auto 20px;
+
+  align-items:
+    center;
+
+  gap:
+    10px;
+
+  min-height:
+    38px;
+
+  padding:
+    0 11px;
+
+  color:
+    #9aa9bc;
+
+  list-style:
+    none;
+
+  cursor:
+    pointer;
+
+  font-size:
+    10px;
+
+  font-weight:
+    650;
+}
+
+
+.analysisAuditEvidence
+> summary::-webkit-details-marker {
+  display:
+    none;
+}
+
+
+.analysisAuditEvidence
+> summary small {
+  color:
+    #6f7e92;
+
+  font-size:
+    9px;
+
+  font-weight:
+    500;
+}
+
+
+.analysisAuditEvidence
+> summary::after {
+  content:
+    "+";
+
+  color:
+    #89a5c9;
+
+  font-size:
+    11px;
+
+  text-align:
+    center;
+}
+
+
+.analysisAuditEvidence[open]
+> summary::after {
+  content:
+    "\2212";
+}
+
+
+.analysisAuditEvidenceBody {
+  display:
+    grid;
+
+  gap:
+    10px;
+
+  padding:
+    10px;
+
+  border-top:
+    1px solid
+    rgba(
+      126,
+      177,
+      255,
+      0.08
+    );
+}
+
+
+@media (
+  max-width: 760px
+) {
+  .analysisAuditMetrics {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(
+          0,
+          1fr
+        )
+      );
+  }
+}
+
+
+
+/* ============================================================
+   DATALENS NESTED ANALYSIS EVIDENCE v0.1
+
+   Heavy proof families remain collapsed until requested.
+   ============================================================ */
+
+.analysisEvidenceSection {
+  overflow:
+    hidden;
+
+  margin:
+    0;
+
+  border:
+    1px solid
+    rgba(
+      126,
+      177,
+      255,
+      0.09
+    );
+
+  border-radius:
+    9px;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.01
+    );
+}
+
+
+.analysisEvidenceSection
+> summary {
+  display:
+    grid;
+
+  grid-template-columns:
+    1fr auto 20px;
+
+  align-items:
+    center;
+
+  gap:
+    10px;
+
+  min-height:
+    40px;
+
+  padding:
+    0 11px;
+
+  color:
+    #9aa9bc;
+
+  list-style:
+    none;
+
+  cursor:
+    pointer;
+
+  font-size:
+    10px;
+
+  font-weight:
+    650;
+}
+
+
+.analysisEvidenceSection
+> summary::-webkit-details-marker {
+  display:
+    none;
+}
+
+
+.analysisEvidenceSection
+> summary small {
+  color:
+    #6f7e92;
+
+  font-size:
+    9px;
+
+  font-weight:
+    500;
+}
+
+
+.analysisEvidenceSection
+> summary::after {
+  content:
+    "+";
+
+  color:
+    #89a5c9;
+
+  font-size:
+    11px;
+
+  text-align:
+    center;
+}
+
+
+.analysisEvidenceSection[open]
+> summary::after {
+  content:
+    "\2212";
+}
+
+
+.analysisEvidenceSectionBody {
+  padding:
+    10px;
+
+  border-top:
+    1px solid
+    rgba(
+      126,
+      177,
+      255,
+      0.07
+    );
+}
+
+
+.analysisEvidenceSectionBody
+> :first-child {
+  margin-top:
+    0;
+}
+
+
+.analysisEvidenceSectionBody
+> :last-child {
+  margin-bottom:
+    0;
+}
+
+
+.analysisEvidenceMethodology {
+  display:
+    grid;
+
+  gap:
+    7px;
+
+  max-height:
+    420px;
+
+  overflow:
+    auto;
+}
+
+
+.analysisEvidenceMethodology p {
+  margin:
+    0;
+
+  color:
+    #8491a3;
+
+  font-size:
+    9.5px;
+
+  line-height:
+    1.55;
+}
+
+
+
+/* ============================================================
+   DATALENS ANALYSIS EVIDENCE READABILITY v0.1
+
+   Desktop evidence content must remain readable during
+   normal use and video capture. Micro typography is reserved
+   for secondary metadata only.
+   ============================================================ */
+
+.analysisTechnicalDisclosure
+> .analysisDisclosureSummary
+.eyebrow {
+  font-size:
+    10px !important;
+}
+
+
+.analysisTechnicalDisclosure
+> .analysisDisclosureSummary
+strong {
+  font-size:
+    13px !important;
+}
+
+
+.analysisTechnicalDisclosure
+> .analysisDisclosureSummary
+small {
+  font-size:
+    11px !important;
+
+  line-height:
+    1.5;
+}
+
+
+.analysisTechnicalDisclosure
+.analysisDisclosureMeta {
+  font-size:
+    10px !important;
+}
+
+
+/* Audit summary */
+
+.analysisAuditMetrics span {
+  font-size:
+    10.5px;
+}
+
+
+.analysisAuditMetrics strong {
+  margin-top:
+    6px;
+
+  font-size:
+    17px;
+}
+
+
+.analysisAuditSignal {
+  min-height:
+    52px;
+
+  padding:
+    11px 13px;
+}
+
+
+.analysisAuditSignal strong {
+  font-size:
+    12px;
+}
+
+
+.analysisAuditSignal small {
+  margin-top:
+    3px;
+
+  font-size:
+    10.5px;
+
+  line-height:
+    1.55;
+}
+
+
+/* Second-level disclosure */
+
+.analysisAuditEvidence
+> summary {
+  min-height:
+    43px;
+
+  padding:
+    0 13px;
+
+  font-size:
+    11.5px;
+}
+
+
+.analysisAuditEvidence
+> summary small {
+  font-size:
+    10px;
+}
+
+
+.analysisAuditEvidenceBody {
+  gap:
+    11px;
+
+  padding:
+    11px;
+}
+
+
+/* Evidence families */
+
+.analysisEvidenceSection
+> summary {
+  min-height:
+    44px;
+
+  padding:
+    0 13px;
+
+  font-size:
+    11.5px;
+}
+
+
+.analysisEvidenceSection
+> summary small {
+  font-size:
+    10px;
+}
+
+
+.analysisEvidenceSectionBody {
+  padding:
+    13px;
+}
+
+
+/* Existing nested technical panels */
+
+.analysisAuditEvidenceBody
+.technicalPanel
+> summary {
+  min-height:
+    42px;
+
+  padding:
+    0 12px;
+
+  font-size:
+    11.5px;
+}
+
+
+.analysisAuditEvidenceBody
+.technicalReasons p {
+  font-size:
+    10.8px;
+
+  line-height:
+    1.62;
+}
+
+
+/* Finding / quality cards */
+
+.analysisAuditEvidenceBody
+.explanationCard {
+  padding:
+    13px;
+}
+
+
+.analysisAuditEvidenceBody
+.explanationCard
+.eyebrow {
+  font-size:
+    9.5px;
+}
+
+
+.analysisAuditEvidenceBody
+.explanationTitle {
+  font-size:
+    12.5px;
+
+  line-height:
+    1.4;
+}
+
+
+.analysisAuditEvidenceBody
+.explanationText {
+  font-size:
+    10.8px;
+
+  line-height:
+    1.62;
+}
+
+
+.analysisAuditEvidenceBody
+.resultSubtitle {
+  font-size:
+    10.5px !important;
+
+  line-height:
+    1.55;
+}
+
+
+/* RAG metrics */
+
+.analysisAuditEvidenceBody
+.sectionHead
+.eyebrow {
+  font-size:
+    9.5px;
+}
+
+
+.analysisAuditEvidenceBody
+.sectionHead h2 {
+  font-size:
+    14px;
+}
+
+
+.analysisAuditEvidenceBody
+.metricCard span {
+  font-size:
+    10px;
+}
+
+
+.analysisAuditEvidenceBody
+.metricCard strong {
+  font-size:
+    15px;
+}
+
+
+/* Methodology is long, but it should never be microscopic. */
+
+.analysisEvidenceMethodology {
+  gap:
+    9px;
+
+  max-height:
+    480px;
+}
+
+
+.analysisEvidenceMethodology p {
+  font-size:
+    11px;
+
+  line-height:
+    1.68;
+}
+
+
+@media (
+  min-width: 1400px
+) {
+  .analysisAuditEvidenceBody
+  .explanationText,
+  .analysisAuditEvidenceBody
+  .technicalReasons p,
+  .analysisEvidenceMethodology p {
+    font-size:
+      11.25px;
+  }
+}
+
+
+
+/* ============================================================
+   DATALENS ANALYSIS EVIDENCE READING COMFORT v0.2
+
+   Final desktop readability pass:
+   readable business text, controlled line length,
+   secondary metadata kept visually subordinate.
+   ============================================================ */
+
+
+/* Main audit heading */
+
+.analysisTechnicalDisclosure
+> .analysisDisclosureSummary
+strong {
+  font-size:
+    14px !important;
+
+  line-height:
+    1.35;
+}
+
+
+.analysisTechnicalDisclosure
+> .analysisDisclosureSummary
+small {
+  max-width:
+    760px;
+
+  font-size:
+    12px !important;
+
+  line-height:
+    1.6;
+}
+
+
+/* Audit summary */
+
+.analysisAuditMetrics span {
+  font-size:
+    11px;
+}
+
+
+.analysisAuditMetrics strong {
+  font-size:
+    18px;
+}
+
+
+.analysisAuditSignal strong {
+  font-size:
+    12.5px;
+}
+
+
+.analysisAuditSignal small {
+  max-width:
+    880px;
+
+  font-size:
+    11.5px;
+
+  line-height:
+    1.62;
+}
+
+
+/* Disclosure rows */
+
+.analysisAuditEvidence
+> summary {
+  min-height:
+    46px;
+
+  padding:
+    0 14px;
+
+  font-size:
+    12.5px;
+}
+
+
+.analysisAuditEvidence
+> summary small {
+  font-size:
+    10.5px;
+}
+
+
+.analysisEvidenceSection
+> summary {
+  min-height:
+    46px;
+
+  padding:
+    0 14px;
+
+  font-size:
+    12.5px;
+}
+
+
+.analysisEvidenceSection
+> summary small {
+  font-size:
+    10.5px;
+}
+
+
+/* Existing evidence disclosures */
+
+.analysisAuditEvidenceBody
+.technicalPanel
+> summary {
+  min-height:
+    45px;
+
+  padding:
+    0 13px;
+
+  font-size:
+    12.5px;
+}
+
+
+/* Evidence card content */
+
+.analysisAuditEvidenceBody
+.explanationCard {
+  padding:
+    15px;
+}
+
+
+.analysisAuditEvidenceBody
+.explanationCard
+.eyebrow {
+  font-size:
+    10px;
+}
+
+
+.analysisAuditEvidenceBody
+.explanationTitle {
+  font-size:
+    13.5px;
+
+  line-height:
+    1.45;
+}
+
+
+.analysisAuditEvidenceBody
+.explanationText {
+  max-width:
+    95ch;
+
+  font-size:
+    12px;
+
+  line-height:
+    1.68;
+}
+
+
+.analysisAuditEvidenceBody
+.resultSubtitle {
+  font-size:
+    11.5px !important;
+
+  line-height:
+    1.62;
+}
+
+
+.analysisAuditEvidenceBody
+.technicalReasons p {
+  max-width:
+    100ch;
+
+  font-size:
+    12px;
+
+  line-height:
+    1.7;
+}
+
+
+/* Quality / RAG supporting metrics */
+
+.analysisAuditEvidenceBody
+.metricCard span {
+  font-size:
+    10.5px;
+}
+
+
+.analysisAuditEvidenceBody
+.metricCard strong {
+  font-size:
+    16px;
+}
+
+
+/* Methodology: readable document rather than a text wall */
+
+.analysisEvidenceMethodology {
+  gap:
+    11px;
+
+  max-height:
+    520px;
+
+  padding-right:
+    10px;
+}
+
+
+.analysisEvidenceMethodology p {
+  max-width:
+    100ch;
+
+  font-size:
+    12.25px;
+
+  line-height:
+    1.72;
+}
+
+
+/* Give expanded proof content slightly more breathing room */
+
+.analysisEvidenceSectionBody {
+  padding:
+    15px;
+}
+
+
+.analysisAuditEvidenceBody {
+  gap:
+    12px;
+
+  padding:
+    12px;
+}
+
+
+/* Large desktop / video capture */
+
+@media (
+  min-width: 1500px
+) {
+  .analysisAuditEvidenceBody
+  .explanationText,
+  .analysisAuditEvidenceBody
+  .technicalReasons p,
+  .analysisEvidenceMethodology p {
+    font-size:
+      12.5px;
+  }
+
+
+  .analysisAuditEvidence
+  > summary,
+  .analysisEvidenceSection
+  > summary,
+  .analysisAuditEvidenceBody
+  .technicalPanel
+  > summary {
+    font-size:
+      13px;
+  }
+}
+
+
+
+/* ============================================================
+   DATALENS ANALYSIS SECTION RHYTHM v0.1
+
+   Separate planning from the analytical workspace.
+   ============================================================ */
+
+.analysisPlannerPanel {
+  margin-bottom:
+    24px !important;
+}
+
+
+/*
+ * Slightly stronger separation on large desktop captures.
+ */
+
+@media (
+  min-width: 1400px
+) {
+  .analysisPlannerPanel {
+    margin-bottom:
+      28px !important;
+  }
+}
+
+
+/*
+ * Preserve compact rhythm on smaller screens.
+ */
+
+@media (
+  max-width: 760px
+) {
+  .analysisPlannerPanel {
+    margin-bottom:
+      18px !important;
+  }
+}
+
+
+
+/* ============================================================
+   DATALENS EVIDENCE DISCLOSURE ALIGNMENT v0.1
+
+   Replace the native details marker with the DataLens
+   disclosure language and align evidence labels consistently.
+   ============================================================ */
+
+.analysisAuditEvidenceBody
+.technicalPanel
+> summary {
+  display:
+    grid !important;
+
+  grid-template-columns:
+    minmax(
+      0,
+      1fr
+    )
+    20px;
+
+  align-items:
+    center !important;
+
+  gap:
+    12px;
+
+  min-height:
+    46px;
+
+  padding:
+    0 14px !important;
+
+  list-style:
+    none !important;
+
+  cursor:
+    pointer;
+
+  text-align:
+    left;
+}
+
+
+.analysisAuditEvidenceBody
+.technicalPanel
+> summary::-webkit-details-marker {
+  display:
+    none;
+}
+
+
+.analysisAuditEvidenceBody
+.technicalPanel
+> summary::marker {
+  content:
+    "";
+}
+
+
+.analysisAuditEvidenceBody
+.technicalPanel
+> summary::after {
+  content:
+    "+" !important;
+
+  display:
+    block;
+
+  width:
+    20px;
+
+  color:
+    #89a5c9;
+
+  font-size:
+    11px;
+
+  font-weight:
+    600;
+
+  line-height:
+    1;
+
+  text-align:
+    center;
+}
+
+
+.analysisAuditEvidenceBody
+.technicalPanel[open]
+> summary::after {
+  content:
+    "\2212" !important;
+}
+
+
+
+/* ============================================================
+   DATALENS METHODOLOGY PRODUCT SUMMARY v0.1
+
+   Product methodology first.
+   Raw technical evidence remains on demand.
+   ============================================================ */
+
+.methodologyProductSummary {
+  display:
+    grid;
+
+  gap:
+    11px;
+}
+
+
+.methodologyProductSummary
+> .eyebrow {
+  color:
+    #71829a;
+
+  font-size:
+    10px;
+
+  letter-spacing:
+    0.075em;
+
+  text-transform:
+    uppercase;
+}
+
+
+.methodologyPrinciples {
+  display:
+    grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(
+        0,
+        1fr
+      )
+    );
+
+  gap:
+    9px;
+}
+
+
+.methodologyPrinciples article {
+  display:
+    flex;
+
+  align-items:
+    flex-start;
+
+  gap:
+    10px;
+
+  min-height:
+    78px;
+
+  padding:
+    13px;
+
+  border:
+    1px solid
+    rgba(
+      122,
+      203,
+      160,
+      0.11
+    );
+
+  border-radius:
+    9px;
+
+  background:
+    rgba(
+      122,
+      203,
+      160,
+      0.02
+    );
+}
+
+
+.methodologyPrinciples
+article
+> span {
+  display:
+    grid;
+
+  flex:
+    0 0 auto;
+
+  width:
+    23px;
+
+  height:
+    23px;
+
+  place-items:
+    center;
+
+  margin-top:
+    1px;
+
+  border:
+    1px solid
+    rgba(
+      122,
+      203,
+      160,
+      0.25
+    );
+
+  border-radius:
+    999px;
+
+  color:
+    #8cd7b7;
+
+  font-size:
+    10px;
+}
+
+
+.methodologyPrinciples strong {
+  display:
+    block;
+
+  color:
+    #d2dce8;
+
+  font-size:
+    12.5px;
+
+  line-height:
+    1.4;
+}
+
+
+.methodologyPrinciples p {
+  max-width:
+    72ch;
+
+  margin:
+    4px 0 0;
+
+  color:
+    #8695a8;
+
+  font-size:
+    11.5px;
+
+  line-height:
+    1.62;
+}
+
+
+.methodologyPrinciples
+article:last-child {
+  grid-column:
+    1 / -1;
+}
+
+
+.methodologyTechnicalNotes {
+  overflow:
+    hidden;
+
+  margin-top:
+    13px;
+
+  border:
+    1px solid
+    rgba(
+      126,
+      177,
+      255,
+      0.10
+    );
+
+  border-radius:
+    9px;
+
+  background:
+    rgba(
+      2,
+      7,
+      15,
+      0.18
+    );
+}
+
+
+.methodologyTechnicalNotes
+> summary {
+  display:
+    grid;
+
+  grid-template-columns:
+    minmax(
+      0,
+      1fr
+    )
+    auto
+    20px;
+
+  align-items:
+    center;
+
+  gap:
+    10px;
+
+  min-height:
+    46px;
+
+  padding:
+    0 13px;
+
+  color:
+    #a0aec0;
+
+  list-style:
+    none;
+
+  cursor:
+    pointer;
+
+  font-size:
+    12px;
+
+  font-weight:
+    650;
+}
+
+
+.methodologyTechnicalNotes
+> summary::-webkit-details-marker {
+  display:
+    none;
+}
+
+
+.methodologyTechnicalNotes
+> summary::marker {
+  content:
+    "";
+}
+
+
+.methodologyTechnicalNotes
+> summary small {
+  color:
+    #718096;
+
+  font-size:
+    10px;
+
+  font-weight:
+    500;
+}
+
+
+.methodologyTechnicalNotes
+> summary::after {
+  content:
+    "+";
+
+  color:
+    #89a5c9;
+
+  font-size:
+    11px;
+
+  text-align:
+    center;
+}
+
+
+.methodologyTechnicalNotes[open]
+> summary::after {
+  content:
+    "\2212";
+}
+
+
+.methodologyTechnicalNotesBody {
+  margin:
+    0;
+
+  padding:
+    14px;
+
+  border-top:
+    1px solid
+    rgba(
+      126,
+      177,
+      255,
+      0.07
+    );
+
+  background:
+    rgba(
+      0,
+      0,
+      0,
+      0.08
+    );
+}
+
+
+@media (
+  max-width: 860px
+) {
+  .methodologyPrinciples {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .methodologyPrinciples
+  article:last-child {
+    grid-column:
+      auto;
+  }
+}
+
+
+
+/* ============================================================
+   DATALENS REPORT EXECUTIVE KPI v0.1
+
+   Decision signals replace verbose executive-summary prose.
+   ============================================================ */
+
+.reportExecutiveSummary {
+  display:
+    grid;
+
+  gap:
+    10px;
+
+  margin-top:
+    12px;
+
+  padding:
+    14px 16px;
+
+  border:
+    1px solid
+    rgba(
+      126,
+      177,
+      255,
+      0.11
+    );
+
+  border-radius:
+    12px;
+
+  background:
+    rgba(
+      3,
+      8,
+      17,
+      0.28
+    );
+}
+
+
+.reportExecutiveSummary
+> .eyebrow {
+  font-size:
+    9.5px;
+}
+
+
+.reportExecutiveGrid {
+  display:
+    grid;
+
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(
+        0,
+        1fr
+      )
+    );
+
+  gap:
+    8px;
+}
+
+
+.reportExecutiveMetric {
+  min-width:
+    0;
+
+  padding:
+    11px 12px;
+
+  border:
+    1px solid
+    rgba(
+      126,
+      177,
+      255,
+      0.08
+    );
+
+  border-radius:
+    9px;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.012
+    );
+}
+
+
+.reportExecutiveMetric strong {
+  display:
+    block;
+
+  color:
+    #eef4fc;
+
+  font-size:
+    17px;
+
+  font-weight:
+    650;
+
+  line-height:
+    1.1;
+}
+
+
+.reportExecutiveMetric span {
+  display:
+    block;
+
+  margin-top:
+    5px;
+
+  color:
+    #8291a4;
+
+  font-size:
+    10.5px;
+
+  line-height:
+    1.4;
+}
+
+
+@media (
+  max-width: 760px
+) {
+  .reportExecutiveGrid {
+    grid-template-columns:
+      1fr;
+  }
+}
+
+
+
+/* ============================================================
+   DATALENS FOCUS MARK v0.1
+   52-V6-D2.2
+
+   Data      -> geometric D
+   Lens      -> controlled opening
+   Signal    -> spectral blue point
+   Evidence  -> precise deterministic geometry
+============================================================ */
+
+.brandMark {
+  position:
+    relative;
+
+  display:
+    inline-grid;
+
+  flex:
+    0 0 28px;
+
+  width:
+    28px;
+
+  height:
+    28px;
+
+  place-items:
+    center;
+
+  border:
+    0 !important;
+
+  border-radius:
+    0 !important;
+
+  background:
+    none !important;
+
+  box-shadow:
+    none !important;
+
+  color:
+    #d9e7fb;
+}
+
+
+/*
+ * Remove every visual primitive from
+ * the previous magnifying-glass mark.
+ */
+
+.brandMark::before,
+.brandMark::after {
+  display:
+    none !important;
+
+  content:
+    none !important;
+}
+
+
+.brandMarkSvg {
+  display:
+    block;
+
+  width:
+    28px;
+
+  height:
+    28px;
+
+  overflow:
+    visible;
+}
+
+
+.brandMarkOutline {
+  fill:
+    none;
+
+  stroke:
+    currentColor;
+
+  stroke-width:
+    1.75;
+
+  stroke-linecap:
+    round;
+
+  stroke-linejoin:
+    round;
+
+  vector-effect:
+    non-scaling-stroke;
+
+  opacity:
+    0.92;
+}
+
+
+.brandMarkSignal {
+  fill:
+    var(
+      --dl-accent,
+      #7ca8ff
+    );
+
+  filter:
+    drop-shadow(
+      0 0 4px
+      rgba(
+        124,
+        168,
+        255,
+        0.42
+      )
+    );
+}
+
+
+/* ============================================================
+   DATALENS UNIFIED AI ENGINEERING NAV v0.1
+   52-V6-D3
+============================================================ */
+
+.workspaceAiSection {
+  display:
+    grid;
+
+  gap:
+    9px;
+
+  margin-top:
+    24px;
+
+  padding-top:
+    19px;
+
+  border-top:
+    1px solid
+    var(
+      --dl-border-subtle
+    );
+}
+
+
+.workspaceAiEyebrow {
+  padding:
+    0 9px;
+
+  color:
+    #69778a;
+
+  font-family:
+    var(
+      --dl-font-mono
+    );
+
+  font-size:
+    9px;
+
+  font-weight:
+    650;
+
+  letter-spacing:
+    0.14em;
+
+  line-height:
+    1;
+
+  text-transform:
+    uppercase;
+}
+
+
+.workspaceAiLinks {
+  display:
+    grid;
+
+  gap:
+    4px;
+}
+
+
+.workspaceAiLink {
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    10px;
+
+  min-height:
+    42px;
+
+  padding:
+    7px 9px;
+
+  border:
+    1px solid
+    transparent;
+
+  border-radius:
+    9px;
+
+  color:
+    #9eabbd;
+
+  background:
+    transparent;
+
+  font-size:
+    12.5px;
+
+  font-weight:
+    590;
+
+  text-decoration:
+    none;
+
+  transition:
+    color 150ms ease,
+    border-color 150ms ease,
+    background 150ms ease;
+}
+
+
+.workspaceAiLink:hover {
+  border-color:
+    rgba(
+      124,
+      168,
+      255,
+      0.12
+    );
+
+  color:
+    #dce7f7;
+
+  background:
+    rgba(
+      124,
+      168,
+      255,
+      0.025
+    );
+}
+
+
+.workspaceAiLinkMark {
+  display:
+    grid;
+
+  flex:
+    0 0 24px;
+
+  width:
+    24px;
+
+  height:
+    24px;
+
+  place-items:
+    center;
+
+  border:
+    1px solid
+    rgba(
+      124,
+      168,
+      255,
+      0.12
+    );
+
+  border-radius:
+    7px;
+
+  color:
+    #7f91ab;
+
+  background:
+    rgba(
+      124,
+      168,
+      255,
+      0.025
+    );
+
+  font-family:
+    var(
+      --dl-font-mono
+    );
+
+  font-size:
+    7.5px;
+
+  font-weight:
+    700;
+
+  letter-spacing:
+    0.04em;
+}
+
+
+/*
+ * The old footer observability treatment is no longer
+ * part of the product navigation.
+ */
+
+.observabilityLink {
+  display:
+    none !important;
+}
+
+
+/* ============================================================
+   DATALENS AI NAV ACTIVE STATE v0.1
+   52-V6-D3.1-R1
+============================================================ */
+
+.workspaceAiLinkActive {
+  border-color:
+    rgba(
+      124,
+      168,
+      255,
+      0.32
+    );
+
+  color:
+    #f1f6fd;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(
+        124,
+        168,
+        255,
+        0.10
+      ),
+      rgba(
+        124,
+        168,
+        255,
+        0.035
+      )
+    );
+
+  box-shadow:
+    inset 2px 0 0
+    var(
+      --dl-accent,
+      #7ca8ff
+    );
+}
+
+
+.workspaceAiLinkActive
+.workspaceAiLinkMark {
+  border-color:
+    rgba(
+      124,
+      168,
+      255,
+      0.24
+    );
+
+  color:
+    #a8c7ff;
+
+  background:
+    rgba(
+      124,
+      168,
+      255,
+      0.08
+    );
 }

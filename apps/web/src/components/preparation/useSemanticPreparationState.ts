@@ -42,6 +42,7 @@ type BuildSemanticCleaningPlanInput = {
 };
 
 
+// DATALENS_SEMANTIC_PARTIAL_DECISION_HOOK_V0_1
 export function useSemanticPreparationState({
   apiUrl,
   clearFinalValidationError,
@@ -346,14 +347,7 @@ export function useSemanticPreparationState({
     shouldMerge:
       boolean
   ) {
-    if (
-      semanticCleaningExecution
-    ) {
-      return;
-    }
-
-
-    setSelectedSemanticActionIds(
+setSelectedSemanticActionIds(
       (
         current
       ) => {
@@ -404,14 +398,7 @@ export function useSemanticPreparationState({
     canonicalValue:
       string
   ) {
-    if (
-      semanticCleaningExecution
-    ) {
-      return;
-    }
-
-
-    setSemanticCanonicalValues(
+setSemanticCanonicalValues(
       (
         current
       ) => ({

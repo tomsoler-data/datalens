@@ -1,8 +1,24 @@
 "use client";
 
+import {
+  useState,
+} from "react";
+
 import type {
   SemanticConfirmationReportView,
 } from "./semanticConfirmationApi";
+
+import styles from "../../app/page.module.css";
+
+
+/*
+ * DATALENS_COMPACT_ANALYST_CONFIRMATION_V0_1
+ *
+ * Presentation-only compact audit state.
+ *
+ * Semantic decisions, deterministic controls, analyst
+ * confirmation and server-owned execution state remain intact.
+ */
 
 
 type SemanticDecisionLike = {
@@ -136,6 +152,14 @@ export default function SemanticConfirmationPanel({
   onManualResolutionChange,
   onConfirm,
 }: SemanticConfirmationPanelProps) {
+  const [
+    evidenceExpanded,
+    setEvidenceExpanded,
+  ] =
+    useState(
+      false
+    );
+
   if (
     review ===
     null
@@ -215,6 +239,29 @@ export default function SemanticConfirmationPanel({
     );
 
 
+  const examinedDecisionCount =
+    confirmed
+      ? decisionCount
+      : explicitlyConfirmedCount;
+
+
+  const deterministicControlCount =
+    review.decisions.filter(
+      (
+        decision
+      ) =>
+        decision.python_validated
+    ).length;
+
+
+  const appliedFusionCount =
+    appliedActionIds.size;
+
+
+  const showDecisionEvidence =
+    !confirmed ||
+    evidenceExpanded;
+
   const allDecisionsReady =
     decisionCount >
       0
@@ -263,6 +310,14 @@ export default function SemanticConfirmationPanel({
 
   return (
     <section
+      className={
+        `${styles.analystConfirmationPhase} ${
+          confirmed
+            ? styles.analystConfirmationResolvedPhase
+            : ""
+        }`
+      }
+
       style={{
         marginTop:
           "12px",
@@ -345,7 +400,7 @@ export default function SemanticConfirmationPanel({
             {
               confirmed
                 ? "Revue sémantique confirmée"
-                : "Confirmer les décisions validées par Python"
+                : "Confirmer les décisions validées par le moteur déterministe"
             }
           </strong>
 
@@ -408,7 +463,105 @@ export default function SemanticConfirmationPanel({
       </div>
 
 
+            {
+        decisionCount >
+        0
+          ? (
+              <div
+                className={
+                  styles.analystConfirmationSummary
+                }
+              >
+                <article>
+                  <span>
+                    Décisions examinées
+                  </span>
+
+                  <strong>
+                    {
+                      `${examinedDecisionCount}/${decisionCount}`
+                    }
+                  </strong>
+                </article>
+
+
+                <article>
+                  <span>
+                    Contrôles déterministes
+                  </span>
+
+                  <strong>
+                    {
+                      `${deterministicControlCount}/${decisionCount}`
+                    }
+                  </strong>
+                </article>
+
+
+                <article>
+                  <span>
+                    Fusions appliquées
+                  </span>
+
+                  <strong>
+                    {
+                      appliedFusionCount
+                    }
+                  </strong>
+                </article>
+
+
+                <article>
+                  <span>
+                    À revoir
+                  </span>
+
+                  <strong>
+                    {
+                      unresolvedCount
+                    }
+                  </strong>
+                </article>
+              </div>
+            )
+          : null
+      }
+
+
       {
+        confirmed &&
+        decisionCount >
+        0
+          ? (
+              <div
+                className={
+                  styles.analystConfirmationResolved
+                }
+              >
+                <span
+                  className={
+                    styles.analystConfirmationResolvedMark
+                  }
+                >
+                  ✓
+                </span>
+
+                <div>
+                  <strong>
+                    Toutes les décisions requises ont été confirmées.
+                  </strong>
+
+                  <p>
+                    Les contrôles sont résolus et la préparation
+                    peut poursuivre avec le dataset dérivé.
+                  </p>
+                </div>
+              </div>
+            )
+          : null
+      }
+
+{
         decisionCount ===
         0
           ? (
@@ -443,6 +596,12 @@ export default function SemanticConfirmationPanel({
             )
           : (
               <div
+                className={
+                  showDecisionEvidence
+                    ? styles.analystDecisionList
+                    : styles.analystDecisionListCollapsed
+                }
+
                 style={{
                   display:
                     "grid",
@@ -593,7 +752,7 @@ export default function SemanticConfirmationPanel({
 
                                 {" · "}
 
-                                Python validé
+                                Contrôle déterministe
 
                                 {" · "}
 
@@ -929,7 +1088,50 @@ export default function SemanticConfirmationPanel({
       }
 
 
-      {
+            {
+        confirmed &&
+        decisionCount >
+        0
+          ? (
+              <button
+                type="button"
+                className={
+                  styles.analystEvidenceToggle
+                }
+                aria-expanded={
+                  evidenceExpanded
+                }
+                onClick={
+                  () =>
+                    setEvidenceExpanded(
+                      (
+                        current
+                      ) =>
+                        !current
+                    )
+                }
+              >
+                <span>
+                  {
+                    evidenceExpanded
+                      ? "Décisions et preuves affichées"
+                      : `${decisionCount} décisions archivées avec leurs preuves`
+                  }
+                </span>
+
+                <strong>
+                  {
+                    evidenceExpanded
+                      ? "Réduire"
+                      : "Voir les décisions et preuves"
+                  }
+                </strong>
+              </button>
+            )
+          : null
+      }
+
+{
         confirmation
         &&
         !confirmation.confirmed

@@ -271,6 +271,20 @@ export default function PreparationWorkflowHistoryPanel({
       ""
     );
 
+  /*
+   * DATALENS_COMPACT_WORKFLOW_HISTORY_V0_1
+   *
+   * Keep workflow history compact by default.
+   * Server-owned workflows are unchanged.
+   */
+  const [
+    historyExpanded,
+    setHistoryExpanded,
+  ] =
+    useState(
+      false
+    );
+
 
   useEffect(
     () => {
@@ -520,6 +534,110 @@ export default function PreparationWorkflowHistoryPanel({
         item
       ) =>
         item.archived
+    );
+
+  const activeSessionItem =
+    activeWorkflowId
+      ? (
+          activeSessions.find(
+            (
+              item
+            ) =>
+              item.session
+                .workflow_id ===
+              activeWorkflowId
+          ) ??
+          null
+        )
+      : null;
+
+
+  /*
+   * Compact mode:
+   *
+   * - always preserve the active workflow;
+   * - show at most three active workflows;
+   * - hide archives until expanded.
+   */
+  const compactOtherSessions =
+    activeSessions
+      .filter(
+        (
+          item
+        ) =>
+          item.session
+            .workflow_id !==
+          activeWorkflowId
+      )
+      .slice(
+        0,
+        activeSessionItem
+          ? 2
+          : 3
+      );
+
+
+  const compactActiveSessions =
+    activeSessionItem
+      ? [
+          activeSessionItem,
+          ...compactOtherSessions,
+        ]
+      : compactOtherSessions;
+
+
+  const visibleActiveSessions =
+    historyExpanded
+      ? activeSessions
+      : compactActiveSessions;
+
+
+  const hiddenActiveSessionCount =
+    Math.max(
+      0,
+      activeSessions.length -
+        visibleActiveSessions.length
+    );
+
+
+  const historyHasHiddenContent =
+    hiddenActiveSessionCount >
+      0 ||
+    archivedSessions.length >
+      0;
+
+  /*
+   * DATALENS_ACTIVE_WORKFLOW_SPOTLIGHT_V0_1
+   *
+   * The currently mounted workflow is presented separately
+   * from historical workflows.
+   *
+   * No server-owned workflow state is changed.
+   */
+  const visibleHistorySessions =
+    activeSessionItem
+      ? (
+          visibleActiveSessions.filter(
+            (
+              item
+            ) =>
+              item.session
+                .workflow_id !==
+              activeWorkflowId
+          )
+        )
+      : visibleActiveSessions;
+
+
+  const recentWorkflowCount =
+    Math.max(
+      0,
+      activeSessions.length -
+        (
+          activeSessionItem
+            ? 1
+            : 0
+        )
     );
 
 
@@ -1158,7 +1276,11 @@ export default function PreparationWorkflowHistoryPanel({
   return (
     <section
       className={
-        styles.history
+        `${styles.history} ${
+          historyExpanded
+            ? styles.historyExpanded
+            : styles.historyCompact
+        }`
       }
     >
       <div
@@ -1197,7 +1319,28 @@ export default function PreparationWorkflowHistoryPanel({
         </div>
 
 
-        <button
+        <div
+          className={
+            styles.headerControls
+          }
+        >
+          <span
+            className={
+              styles.historyCount
+            }
+          >
+            {
+              activeSessions.length
+            }
+            {
+              activeSessions.length === 1
+                ? " actif"
+                : " actifs"
+            }
+          </span>
+
+
+          <button
           className={
             styles.refreshButton
           }
@@ -1215,6 +1358,39 @@ export default function PreparationWorkflowHistoryPanel({
               : "Actualiser"
           }
         </button>
+
+
+          {
+            historyExpanded
+              ? (
+                  <button
+                    className={
+                      styles.historyToggleButton
+                    }
+                    type="button"
+                    aria-expanded={
+                      historyExpanded
+                    }
+                    onClick={
+                      () =>
+                        setHistoryExpanded(
+                          (
+                            current
+                          ) =>
+                            !current
+                        )
+                    }
+                  >
+                    {
+                      historyExpanded
+                        ? "Réduire"
+                        : "Tout afficher"
+                    }
+                  </button>
+                )
+              : null
+          }
+        </div>
       </div>
 
 
@@ -1255,8 +1431,89 @@ export default function PreparationWorkflowHistoryPanel({
 
 
       {
-        activeSessions.length >
-        0
+        activeSessionItem
+          ? (
+              <section
+                className={
+                  styles.activeWorkflowSpotlight
+                }
+                aria-label="Workflow actif"
+              >
+                <div
+                  className={
+                    styles.activeWorkflowTop
+                  }
+                >
+                  <div
+                    className={
+                      styles.activeWorkflowIdentity
+                    }
+                  >
+                    <span
+                      className={
+                        styles.activeWorkflowEyebrow
+                      }
+                    >
+                      Workflow actif
+                    </span>
+
+                    <span
+                      className={
+                        styles.activeWorkflowOpened
+                      }
+                    >
+                      <span
+                        aria-hidden="true"
+                      />
+
+                      Session ouverte
+                    </span>
+                  </div>
+
+
+                  <span
+                    className={
+                      `${
+                        styles.activeWorkflowState
+                      } ${
+                        activeSessionItem
+                          .session
+                          .snapshot
+                          .ready_for_analysis
+                          ? styles.activeWorkflowStateReady
+                          : styles.activeWorkflowStateProgress
+                      }`
+                    }
+                  >
+                    {
+                      statusLabel(
+                        activeSessionItem
+                          .session
+                      )
+                    }
+                  </span>
+                </div>
+
+
+                <div
+                  className={
+                    styles.activeWorkflowContent
+                  }
+                >
+                  {
+                    renderItem(
+                      activeSessionItem
+                    )
+                  }
+                </div>
+              </section>
+            )
+          : null
+      }
+
+      {
+        visibleHistorySessions.length >
+          0
           ? (
               <div
                 className={
@@ -1268,20 +1525,24 @@ export default function PreparationWorkflowHistoryPanel({
                     styles.sectionTitle
                   }
                 >
-                  Actifs
-                  {" \u00b7 "}
+                  Récents
+                  {" · "}
                   {
-                    activeSessions.length
+                    recentWorkflowCount
                   }
                 </div>
 
                 <div
                   className={
-                    styles.list
-                  }
+                  `${styles.list} ${
+                    historyExpanded
+                      ? styles.listExpanded
+                      : ""
+                  }`
+                }
                 >
                   {
-                    activeSessions.map(
+                    visibleHistorySessions.map(
                       renderItem
                     )
                   }
@@ -1293,8 +1554,78 @@ export default function PreparationWorkflowHistoryPanel({
 
 
       {
+        !historyExpanded &&
+        historyHasHiddenContent
+          ? (
+              <button
+                className={
+                  styles.moreRow
+                }
+                type="button"
+                onClick={
+                  () =>
+                    setHistoryExpanded(
+                      true
+                    )
+                }
+              >
+                <span>
+                  {
+                    hiddenActiveSessionCount >
+                      0
+                      ? (
+                          `+ ${hiddenActiveSessionCount} autre${
+                            hiddenActiveSessionCount > 1
+                              ? "s"
+                              : ""
+                          } workflow${
+                            hiddenActiveSessionCount > 1
+                              ? "s"
+                              : ""
+                          }`
+                        )
+                      : (
+                          `${archivedSessions.length} workflow${
+                            archivedSessions.length > 1
+                              ? "s"
+                              : ""
+                          } archivé${
+                            archivedSessions.length > 1
+                              ? "s"
+                              : ""
+                          }`
+                        )
+                  }
+
+                  {
+                    hiddenActiveSessionCount >
+                      0 &&
+                    archivedSessions.length >
+                      0
+                      ? (
+                          ` · ${archivedSessions.length} archive${
+                            archivedSessions.length > 1
+                              ? "s"
+                              : ""
+                          }`
+                        )
+                      : ""
+                  }
+                </span>
+
+                <strong>
+                  Tout afficher
+                </strong>
+              </button>
+            )
+          : null
+      }
+
+
+      {
+        historyExpanded &&
         archivedSessions.length >
-        0
+          0
           ? (
               <div
                 className={
@@ -1315,8 +1646,12 @@ export default function PreparationWorkflowHistoryPanel({
 
                 <div
                   className={
-                    styles.list
-                  }
+                  `${styles.list} ${
+                    historyExpanded
+                      ? styles.listExpanded
+                      : ""
+                  }`
+                }
                 >
                   {
                     archivedSessions.map(

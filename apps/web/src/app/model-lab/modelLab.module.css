@@ -4245,3 +4245,580 @@
       1;
   }
 }
+
+
+/* ============================================================
+   DATALENS MODEL LAB PRODUCT SHELL v0.1
+   52-V6-B3
+============================================================ */
+
+@media (
+  min-width:
+    1100px
+) {
+  .page {
+    padding:
+      24px
+      34px
+      48px;
+  }
+
+
+  .shell {
+    width:
+      min(
+        100%,
+        1480px
+      );
+  }
+
+
+  .header {
+    padding:
+      4px 0 20px;
+  }
+
+
+  .headerTop {
+    margin-bottom:
+      22px;
+  }
+
+
+  .hero {
+    grid-template-columns:
+      minmax(
+        0,
+        1fr
+      )
+      minmax(
+        240px,
+        300px
+      );
+
+    gap:
+      24px;
+
+    align-items:
+      center;
+  }
+
+
+  .heroCopy {
+    max-width:
+      760px;
+  }
+
+
+  .title {
+    font-size:
+      clamp(
+        2.8rem,
+        4.5vw,
+        4.8rem
+      );
+
+    letter-spacing:
+      -0.055em;
+
+    line-height:
+      0.96;
+  }
+
+
+  .subtitle {
+    max-width:
+      670px;
+
+    margin:
+      16px 0 0;
+
+    font-size:
+      clamp(
+        0.94rem,
+        1.1vw,
+        1.05rem
+      );
+
+    line-height:
+      1.58;
+  }
+
+
+  .authorityCard {
+    padding:
+      16px 18px;
+  }
+
+
+  .authorityLabel {
+    margin-bottom:
+      6px;
+
+    font-size:
+      0.64rem;
+  }
+
+
+  .authorityCard strong {
+    font-size:
+      0.92rem;
+  }
+
+
+  .authorityCard p {
+    margin:
+      8px 0 0;
+
+    font-size:
+      0.75rem;
+
+    line-height:
+      1.5;
+  }
+
+
+  .contextCard {
+    padding:
+      16px 18px;
+  }
+
+
+  .contextLabel {
+    margin-bottom:
+      8px;
+  }
+
+
+  .contextMeta {
+    margin-top:
+      6px;
+  }
+
+
+  .workspace {
+    margin-top:
+      18px;
+  }
+
+
+  .trainingToolbar {
+    margin-bottom:
+      14px;
+
+    padding:
+      15px 18px;
+  }
+
+
+  .trainingPanel {
+    margin-bottom:
+      14px;
+
+    padding:
+      20px;
+  }
+
+
+  .trainingPanelHeader {
+    gap:
+      18px;
+  }
+
+
+  .trainingPanelHeader p:last-child {
+    max-width:
+      760px;
+
+    font-size:
+      0.76rem;
+
+    line-height:
+      1.55;
+  }
+}
+
+
+/* ============================================================
+   DATALENS MODEL LAB TRAINING WORKFLOW v0.1
+   52-V6-B4-R5
+============================================================ */
+
+.trainingWorkflowSteps {
+  display:
+    grid;
+
+  grid-template-columns:
+    repeat(
+      4,
+      minmax(
+        0,
+        1fr
+      )
+    );
+
+  gap:
+    8px;
+
+  margin-bottom:
+    18px;
+}
+
+
+.trainingWorkflowStep {
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  min-width:
+    0;
+
+  gap:
+    10px;
+
+  padding:
+    10px 12px;
+
+  border:
+    1px solid
+    var(
+      --border
+    );
+
+  border-radius:
+    10px;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.012
+    );
+}
+
+
+.trainingWorkflowStep > span {
+  display:
+    grid;
+
+  flex:
+    0 0 auto;
+
+  width:
+    24px;
+
+  height:
+    24px;
+
+  place-items:
+    center;
+
+  border:
+    1px solid
+    rgba(
+      115,
+      169,
+      255,
+      0.24
+    );
+
+  border-radius:
+    7px;
+
+  color:
+    var(
+      --accent-strong
+    );
+
+  background:
+    rgba(
+      115,
+      169,
+      255,
+      0.07
+    );
+
+  font-size:
+    0.64rem;
+
+  font-weight:
+    800;
+}
+
+
+.trainingWorkflowStep > div {
+  display:
+    grid;
+
+  min-width:
+    0;
+
+  gap:
+    2px;
+}
+
+
+.trainingWorkflowStep strong {
+  overflow:
+    hidden;
+
+  color:
+    var(
+      --text
+    );
+
+  font-size:
+    0.7rem;
+
+  text-overflow:
+    ellipsis;
+
+  white-space:
+    nowrap;
+}
+
+
+.trainingWorkflowStep small {
+  overflow:
+    hidden;
+
+  color:
+    var(
+      --text-muted
+    );
+
+  font-size:
+    0.59rem;
+
+  text-overflow:
+    ellipsis;
+
+  white-space:
+    nowrap;
+}
+
+
+.trainingFormGrid {
+  padding:
+    15px;
+
+  border:
+    1px solid
+    var(
+      --border
+    );
+
+  border-radius:
+    12px;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.01
+    );
+}
+
+
+.trainingFeatures {
+  margin-top:
+    12px;
+
+  padding:
+    15px;
+
+  border:
+    1px solid
+    var(
+      --border
+    );
+
+  border-radius:
+    12px;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.01
+    );
+}
+
+
+.trainingValidationHeader {
+  display:
+    flex;
+
+  align-items:
+    flex-end;
+
+  justify-content:
+    space-between;
+
+  gap:
+    18px;
+
+  margin-top:
+    16px;
+}
+
+
+.trainingValidationHeader > div {
+  display:
+    grid;
+
+  gap:
+    3px;
+}
+
+
+.trainingValidationHeader span {
+  color:
+    var(
+      --accent
+    );
+
+  font-size:
+    0.62rem;
+
+  font-weight:
+    800;
+
+  letter-spacing:
+    0.1em;
+
+  text-transform:
+    uppercase;
+}
+
+
+.trainingValidationHeader strong {
+  color:
+    var(
+      --text
+    );
+
+  font-size:
+    0.78rem;
+}
+
+
+.trainingValidationHeader small {
+  color:
+    var(
+      --text-muted
+    );
+
+  font-size:
+    0.62rem;
+}
+
+
+.trainingContractSummary {
+  margin-top:
+    8px;
+}
+
+
+@media (
+  max-width:
+    900px
+) {
+  .trainingWorkflowSteps {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(
+          0,
+          1fr
+        )
+      );
+  }
+}
+
+
+@media (
+  max-width:
+    620px
+) {
+  .trainingWorkflowSteps {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .trainingValidationHeader {
+    align-items:
+      flex-start;
+
+    flex-direction:
+      column;
+  }
+}
+
+
+/* ============================================================
+   DATALENS MODEL LAB UNIFIED SHELL v0.1
+   52-V6-D3.1-R1
+
+   Model Lab content remains local.
+   Product chrome is inherited from the DataLens workspace.
+============================================================ */
+
+.unifiedShell {
+  padding-top:
+    26px;
+}
+
+
+.unifiedShell
+.header {
+  padding:
+    8px 0
+    24px;
+}
+
+
+.unifiedShell
+.hero {
+  align-items:
+    end;
+
+  gap:
+    32px;
+}
+
+
+.unifiedShell
+.title {
+  font-size:
+    clamp(
+      2.6rem,
+      4.7vw,
+      4.9rem
+    );
+}
+
+
+.unifiedShell
+.subtitle {
+  margin-top:
+    18px;
+}
+
+
+@media (
+  min-width:
+    1100px
+) {
+  .unifiedShell
+  .contextGrid {
+    margin-top:
+      2px;
+  }
+}

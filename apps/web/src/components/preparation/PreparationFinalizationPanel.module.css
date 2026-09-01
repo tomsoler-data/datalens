@@ -658,3 +658,183 @@
       1fr;
   }
 }
+
+/* ============================================================
+   DATALENS FINALIZATION READABILITY v0.1
+   ============================================================ */
+
+.eyebrow {
+  font-size:
+    10px;
+
+  opacity:
+    0.62;
+}
+
+
+.header h3,
+.sectionHeading h4 {
+  font-size:
+    16px;
+}
+
+
+.header p,
+.sectionHeading p {
+  max-width:
+    900px;
+
+  font-size:
+    12px;
+
+  line-height:
+    1.62;
+
+  opacity:
+    0.76;
+}
+
+
+.readinessBadge {
+  font-size:
+    9.5px;
+}
+
+
+.selectionCount strong {
+  font-size:
+    13px;
+}
+
+
+.selectionCount span {
+  font-size:
+    9.5px;
+
+  opacity:
+    0.66;
+}
+
+
+.candidateStage {
+  font-size:
+    9px;
+
+  opacity:
+    0.62;
+}
+
+
+.candidateTop strong {
+  font-size:
+    12px;
+}
+
+
+.candidateBadges span {
+  font-size:
+    9px;
+}
+
+
+.candidateMetrics span,
+.lineage {
+  font-size:
+    10px;
+
+  line-height:
+    1.5;
+
+  opacity:
+    0.64;
+}
+
+
+.outputExplanationHead span {
+  font-size:
+    9.5px;
+}
+
+
+.outputExplanationHead strong {
+  font-size:
+    10.5px;
+}
+
+
+.outputExplanation h5 {
+  font-size:
+    11px;
+}
+
+
+.outputExplanation p,
+.outputExplanationMessage,
+.outputExplanationFallback {
+  font-size:
+    10.5px;
+
+  line-height:
+    1.55;
+}
+
+
+.selectionFooter p {
+  font-size:
+    10.5px;
+
+  line-height:
+    1.5;
+
+  opacity:
+    0.70;
+}
+
+
+.selectionFooter small {
+  font-size:
+    9.5px;
+
+  opacity:
+    0.60;
+}
+
+
+.statusGrid span {
+  font-size:
+    9.5px;
+
+  opacity:
+    0.62;
+}
+
+
+.statusGrid strong {
+  font-size:
+    11px;
+}
+
+
+.validationFooter strong {
+  font-size:
+    11px;
+}
+
+
+.validationFooter p {
+  font-size:
+    10.5px;
+
+  line-height:
+    1.55;
+
+  opacity:
+    0.68;
+}
+
+
+.primaryButton,
+.secondaryButton {
+  font-size:
+    10px;
+}

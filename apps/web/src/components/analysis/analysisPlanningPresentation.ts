@@ -1,3 +1,14 @@
+/*
+ * DATALENS_ANALYSIS_PLANNER_PRODUCT_LANGUAGE_V0_1
+ *
+ * Business-facing planner copy describes product roles:
+ * the local model interprets when necessary and the
+ * deterministic engine validates before execution.
+ *
+ * Internal implementation identifiers remain unchanged.
+ */
+
+
 export function familyLabel(
   family:
     string |
@@ -22,6 +33,9 @@ export function familyLabel(
 
     case "quantitative_association":
       return "Association quantitative";
+
+    case "categorical_association":
+      return "Association catégorielle";
 
     case "aggregate_breakdown":
       return "Répartition";
@@ -97,7 +111,7 @@ export function plannerEngineLabel(
       model
     )
   ) {
-    return "Python déterministe";
+    return "Moteur déterministe";
   }
 
 
@@ -108,7 +122,7 @@ export function plannerEngineLabel(
         "gemma"
       )
   ) {
-    return "Gemma · IA locale";
+    return "Modèle local";
   }
 
 
@@ -137,16 +151,16 @@ export function plannerUiCopy(
       description:
         (
           "DataLens a reconnu une demande analytique générique. " +
-          "Python a sélectionné les variables compatibles depuis " +
-          "le catalogue analytique validé, sans demander au LLM " +
-          "d’inventer le périmètre."
+          "Le moteur déterministe a sélectionné les variables compatibles " +
+          "depuis le catalogue analytique validé, sans demander au modèle " +
+          "local d’inventer le périmètre."
         ),
 
       details:
         (
-          "Ce chemin ne nécessite pas de génération LLM pour la planification. " +
-          "Le tool calling local reste contrôlé et Python vérifie les arguments " +
-          "avant tout calcul."
+          "Ce chemin ne nécessite pas d’interprétation par le modèle local. " +
+          "Les appels d’outils restent contrôlés et le moteur déterministe " +
+          "vérifie les arguments avant tout calcul."
         ),
     };
   }
@@ -157,23 +171,23 @@ export function plannerUiCopy(
   ) {
     return {
       eyebrow:
-        "AI Planner · local",
+        "Planification · modèle local",
 
       title:
-        "Plan proposé par l’IA locale",
+        "Plan proposé par le modèle local",
 
       description:
         (
           "Le modèle local traduit votre demande en contrat analytique. " +
-          "Python vérifie ensuite le dataset, les colonnes, leurs rôles " +
-          "et les invariants avant toute exécution."
+          "Le moteur déterministe vérifie ensuite le dataset, les colonnes, " +
+          "leurs rôles et les invariants avant toute exécution."
         ),
 
       details:
         (
           "La planification utilise le modèle local lorsque la demande " +
-          "nécessite une interprétation sémantique. Le function calling est " +
-          "également contrôlé avant le calcul Python."
+          "nécessite une interprétation sémantique. Les appels d’outils " +
+          "sont également contrôlés avant le calcul déterministe."
         ),
     };
   }
@@ -190,14 +204,14 @@ export function plannerUiCopy(
       (
         "DataLens choisit automatiquement le chemin le plus sûr : " +
         "résolution déterministe lorsque l’intention est générique et " +
-        "suffisamment claire, ou planner IA local lorsqu’une interprétation " +
+        "suffisamment claire, ou modèle local lorsqu’une interprétation " +
         "sémantique est nécessaire."
       ),
 
     details:
       (
-        "Dans tous les cas, Python reste l’autorité de validation avant " +
-        "l’exécution statistique."
+        "Dans tous les cas, le moteur déterministe reste l’autorité " +
+        "de validation avant l’exécution statistique."
       ),
   };
 }

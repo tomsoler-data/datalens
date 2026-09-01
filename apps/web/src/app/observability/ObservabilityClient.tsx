@@ -1,5 +1,12 @@
 "use client";
 
+// DATALENS_OBSERVABILITY_UNIFIED_SHELL_V0_1
+// DATALENS_OBSERVABILITY_UNIFIED_SHELL_ENCODING_R2
+
+// DATALENS_OBSERVABILITY_HYDRATION_GUARD_V0_1
+
+// DATALENS_OBSERVABILITY_PRODUCT_LANGUAGE_V0_1
+
 
 import {
   useCallback,
@@ -16,6 +23,24 @@ import {
 } from "next/navigation";
 
 import styles from "./observability.module.css";
+
+import WorkspaceNavigation
+  from "../../components/workspace/WorkspaceNavigation";
+
+import type {
+  WorkspaceStep,
+} from "../../components/workspace/workspaceNavigationTypes";
+
+import {
+  persistActiveWorkspaceStep,
+} from "../../components/workspace/workspaceNavigationStorage";
+
+import {
+  readActivePreparationWorkflowId,
+} from "../../components/preparation/preparationWorkflowStorage";
+
+import workspaceStyles
+  from "../page.module.css";
 
 
 const API_URL =
@@ -1489,7 +1514,7 @@ function AggregateOverview({
           }
         >
           <span>
-            Normalisation Python
+            Normalisation déterministe
           </span>
 
           <strong>
@@ -2010,7 +2035,7 @@ function AggregateOverview({
 
           <div>
             <span>
-              Exécution Python
+              Exécution déterministe
             </span>
 
             <strong>
@@ -2405,7 +2430,7 @@ function DetailedTimingPanel({
       },
       {
         label:
-          "Validation Python",
+          "Validation déterministe",
 
         detail:
           "Contrat, colonnes, rôles et garde-fous",
@@ -2470,7 +2495,7 @@ function DetailedTimingPanel({
       },
       {
         label:
-          "Validation Python",
+          "Validation déterministe",
 
         detail:
           "Outil et arguments contrôlés exactement",
@@ -2485,7 +2510,7 @@ function DetailedTimingPanel({
           "Exécution déterministe",
 
         detail:
-          "Calcul final exécuté par Python",
+          "Calcul final exécuté par le moteur déterministe",
 
         value:
           safeTimingValue(
@@ -3463,7 +3488,7 @@ function TraceOverview({
                                   }
                                 >
                                   <strong>
-                                    Normalisation Python
+                                    Normalisation déterministe
                                   </strong>
 
                                   {
@@ -4125,6 +4150,14 @@ export default function ObservabilityClient() {
 
 
   const [
+    hydrated,
+    setHydrated,
+  ] = useState(
+    false
+  );
+
+
+  const [
     detailLoading,
     setDetailLoading,
   ] = useState(
@@ -4364,6 +4397,10 @@ export default function ObservabilityClient() {
 
   useEffect(
     () => {
+      setHydrated(
+        true
+      );
+
       void loadAll();
     },
     // Initial load only. Refreshes are explicit to avoid
@@ -4416,56 +4453,179 @@ export default function ObservabilityClient() {
     );
 
 
+  const workspaceWorkflowId =
+    hydrated
+      ? readActivePreparationWorkflowId()
+      : null;
+
+
+  function handleWorkspaceStepChange(
+    step:
+      WorkspaceStep
+  ): void {
+    const activeWorkflowId =
+      readActivePreparationWorkflowId();
+
+
+    if (
+      activeWorkflowId
+    ) {
+      persistActiveWorkspaceStep(
+        activeWorkflowId,
+        step
+      );
+    }
+
+
+    router.push(
+      "/"
+    );
+  }
+
+
   return (
     <main
       className={
-        styles.page
+        workspaceStyles.page
       }
     >
       <header
         className={
-          styles.topbar
+          workspaceStyles.header
         }
       >
-        <div
+        <Link
+          href="/"
+          aria-label="DataLens - workspace"
           className={
-            styles.brand
+            workspaceStyles.brand
           }
         >
           <span
             className={
-              styles.brandMark
+              workspaceStyles.brandMark
             }
             aria-hidden="true"
           >
-            D
+            <svg
+              className={
+                workspaceStyles.brandMarkSvg
+              }
+              viewBox="0 0 28 28"
+              focusable="false"
+              aria-hidden="true"
+            >
+              <path
+                className={
+                  workspaceStyles.brandMarkOutline
+                }
+                d="M7 5 H13 C18.2 5 21.5 8.2 21.5 11.1"
+              />
+
+              <path
+                className={
+                  workspaceStyles.brandMarkOutline
+                }
+                d="M21.5 16.9 C21.5 19.8 18.2 23 13 23 H7 V5"
+              />
+
+              <circle
+                className={
+                  workspaceStyles.brandMarkSignal
+                }
+                cx="21.5"
+                cy="14"
+                r="1.75"
+              />
+            </svg>
           </span>
 
-          <div>
-            <strong>
-              DataLens
-            </strong>
+          <strong>
+            DataLens
+          </strong>
+        </Link>
 
-            <span>
-              Observabilité IA locale
-            </span>
-          </div>
-        </div>
 
-        <nav
+        <div
           className={
-            styles.topActions
+            workspaceStyles.privacyStatus
           }
-          aria-label="Navigation observabilité"
         >
-          <Link
+          <span
+            aria-hidden="true"
             className={
-              styles.secondaryLink
+              workspaceStyles.statusDot
             }
-            href="/"
-          >
-            Workspace →
-          </Link>
+          />
+
+          <span>
+            Traitement local · données privées
+          </span>
+        </div>
+      </header>
+
+
+      <WorkspaceNavigation
+        activeStep={
+          null
+        }
+        onStepChange={
+          handleWorkspaceStepChange
+        }
+        dataReady={
+          Boolean(
+            workspaceWorkflowId
+          )
+        }
+        reportReady={
+          Boolean(
+            workspaceWorkflowId
+          )
+        }
+        interventionCount={
+          0
+        }
+        activeAiTool="observability"
+      />
+
+
+      <div
+        className={
+          `${workspaceStyles.shell} ${styles.unifiedShell}`
+        }
+      >
+        <div
+          className={
+            styles.unifiedToolbar
+          }
+        >
+          <div>
+            <span
+              className={
+                styles.unifiedEyebrow
+              }
+            >
+              AI ENGINEERING · CONTROL ROOM
+            </span>
+
+            <h1
+              className={
+                styles.unifiedTitle
+              }
+            >
+              Observabilité
+            </h1>
+
+            <p
+              className={
+                styles.unifiedSubtitle
+              }
+            >
+              Surveiller, diagnostiquer et tracer
+              les exécutions analytiques locales.
+            </p>
+          </div>
+
 
           <button
             className={
@@ -4477,24 +4637,25 @@ export default function ObservabilityClient() {
                 void loadAll()
             }
             disabled={
+              !hydrated ||
               loading
             }
           >
             {
+              !hydrated ||
               loading
-                ? "Actualisation…"
+                ? "Actualisation?"
                 : "Actualiser"
             }
           </button>
-        </nav>
-      </header>
+        </div>
 
 
-      <div
-        className={
-          styles.shell
-        }
-      >
+        <div
+          className={
+            styles.shell
+          }
+        >
         <aside
           className={
             styles.sidebar
@@ -4551,7 +4712,14 @@ export default function ObservabilityClient() {
                         traceList
                           .malformed_line_count
                       }
-                      {" ligne(s) invalide(s)"}
+                      {" "}
+                      {
+                        traceList
+                          .malformed_line_count ===
+                        1
+                          ? "ligne invalide"
+                          : "lignes invalides"
+                      }
                     </span>
                   </div>
                 )
@@ -4750,6 +4918,7 @@ export default function ObservabilityClient() {
                     )
           }
         </section>
+      </div>
       </div>
     </main>
   );

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import {
   useEffect,
@@ -21,6 +21,14 @@ import type {
 } from "./preparationTypes";
 
 import styles from "./PreparationFinalizationPanel.module.css";
+
+
+/*
+ * DATALENS_FINALIZATION_PRODUCT_LANGUAGE_V0_1
+ *
+ * Business-facing finalization copy describes DataLens product
+ * guarantees rather than implementation-specific terminology.
+ */
 
 
 type PreparationFinalizationPanelProps = {
@@ -1127,7 +1135,7 @@ export default function PreparationFinalizationPanel({
 
   const validationStatusText =
     ready
-      ? "✓ READY FOR ANALYSIS"
+      ? "✓ PRÊT POUR ANALYSE"
       : validate?.status ===
           "blocked"
         ? "× VALIDATION BLOQUÉE"
@@ -1191,10 +1199,10 @@ export default function PreparationFinalizationPanel({
           </h3>
 
           <p>
-            L’analyste choisit le ou les artefacts matérialisés
-            qui doivent entrer dans l’analyse. Le serveur contrôle
-            ensuite la lineage, verrouille cette sélection après
-            VALIDATE et reste seul responsable de READY FOR ANALYSIS.
+            L’analyste choisit la ou les sorties préparées
+            qui entreront dans l’analyse. DataLens vérifie ensuite
+            leur traçabilité, verrouille la sélection après validation
+            et n’ouvre l’analyse qu’une fois les contrôles terminés.
           </p>
         </div>
 
@@ -1234,7 +1242,7 @@ export default function PreparationFinalizationPanel({
                 styles.eyebrow
               }
             >
-              Scope analytique
+              Périmètre d’analyse
             </span>
 
             <h4
@@ -1244,10 +1252,11 @@ export default function PreparationFinalizationPanel({
             </h4>
 
             <p>
-              DataLens présélectionne les artefacts terminaux de la
-              lineage. Une sortie issue de COMBINE, TRANSFORM ou CLEAN
-              remplace automatiquement ses ancêtres pour éviter
-              d’analyser plusieurs fois la même information.
+              DataLens présélectionne les sorties finales de la
+              chaîne de préparation. Une sortie issue du nettoyage,
+              d’une transformation ou d’un assemblage remplace ses
+              versions intermédiaires afin d’éviter d’analyser
+              plusieurs fois la même information.
             </p>
           </div>
 
@@ -1550,10 +1559,10 @@ export default function PreparationFinalizationPanel({
                                               outputExplanation
                                                 ?.explanation
                                                 ?.python_validated
-                                                ? "Explication validée par Python"
+                                                ? "Explication contrôlée"
                                                 : outputExplanationLoading
-                                                  ? "Gemma prépare l’explication…"
-                                                  : "Preuves Python"
+                                                  ? "Le modèle local prépare l’explication…"
+                                                  : "Preuves déterministes"
                                             }
                                           </strong>
                                         </div>
@@ -1651,23 +1660,23 @@ export default function PreparationFinalizationPanel({
                                                         styles.outputExplanationFallback
                                                       }
                                                     >
-                                                      Explication IA indisponible. La recommandation Python reste valide.
+                                                      Explication du modèle local indisponible. La recommandation déterministe reste valide.
                                                     </small>
                                                   </>
                                                 )
                                               : outputExplanationLoading
                                                 ? (
                                                     <p>
-                                                      La recommandation est déjà déterminée par Python.
+                                                      La recommandation est déjà établie par le moteur déterministe.
                                                       Le modèle local transforme maintenant ces preuves
                                                       en une explication courte pour l’analyste.
                                                     </p>
                                                   )
                                                 : (
                                                     <p>
-                                                      Cette sortie est terminale dans la lineage
-                                                      et remplace ses artefacts ancêtres dans le
-                                                      scope analytique final.
+                                                      Cette sortie est la version finale de la chaîne de
+                                                      préparation et remplace ses versions intermédiaires
+                                                      dans le périmètre analytique.
                                                     </p>
                                                   )
                                         }
@@ -1750,7 +1759,7 @@ export default function PreparationFinalizationPanel({
                 : outputSelected
                   ? (
                       <p>
-                        Scope actuellement committé ·
+                        Périmètre actuellement enregistré ·
                         {" "}
                         {
                           selectedCandidateNames.join(
@@ -1781,7 +1790,7 @@ export default function PreparationFinalizationPanel({
               draftChanged
                 ? (
                     <small>
-                      Les changements ci-dessus ne sont pas encore enregistrés côté serveur.
+                      Les changements ci-dessus ne sont pas encore enregistrés dans le workflow.
                     </small>
                   )
                 : null

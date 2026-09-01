@@ -12,8 +12,18 @@ import {
   formatNumber,
 } from "../analysis/analysisPresentation";
 
-import styles from "../../app/page.module.css";
 
+
+
+
+
+/*
+ * DATALENS_REPORT_QUALITY_COMPACT_V0_1
+ * DATALENS_REPORT_QUALITY_GRAMMAR_R1_V0_1
+ *
+ * Report quality keeps decision metrics and audit access
+ * while removing redundant explanatory copy.
+ */
 
 export default function QualityReportSection({
   report,
@@ -163,14 +173,6 @@ export default function QualityReportSection({
         }}
       >
         <div>
-          <span
-            className={
-              styles.eyebrow
-            }
-          >
-            Préparation des données
-          </span>
-
           <h2
             style={{
               marginBottom:
@@ -180,19 +182,6 @@ export default function QualityReportSection({
             Qualité des données
           </h2>
 
-          <p
-            className={
-              styles.resultSubtitle
-            }
-            style={{
-              maxWidth:
-                "700px",
-            }}
-          >
-            Résumé des contrôles effectués avant
-            l’analyse. Le détail complet reste
-            disponible sans alourdir le rapport.
-          </p>
         </div>
 
 
@@ -268,7 +257,7 @@ export default function QualityReportSection({
             "8px",
 
           marginTop:
-            "12px",
+            "10px",
         }}
       >
         <article
@@ -319,7 +308,12 @@ export default function QualityReportSection({
             {
               `${formatNumber(
                 report.issue_count
-              )} problème(s)`
+              )} ${
+                report.issue_count ===
+                1
+                  ? "problème"
+                  : "problèmes"
+              }`
             }
           </strong>
 
@@ -395,7 +389,12 @@ export default function QualityReportSection({
             {
               `${formatNumber(
                 appliedTransformationCount
-              )} transformation(s)`
+              )} ${
+                appliedTransformationCount ===
+                1
+                  ? "transformation"
+                  : "transformations"
+              }`
             }
           </strong>
 
@@ -414,7 +413,12 @@ export default function QualityReportSection({
             {
               `${formatNumber(
                 deterministicProposalCount
-              )} correction(s) déterministe(s) proposée(s)`
+              )} ${
+                deterministicProposalCount ===
+                1
+                  ? "correction déterministe proposée"
+                  : "corrections déterministes proposées"
+              }`
             }
           </small>
         </article>
@@ -471,7 +475,12 @@ export default function QualityReportSection({
             {
               `${formatNumber(
                 preparedRowsAfter
-              )} ligne(s)`
+              )} ${
+                preparedRowsAfter ===
+                1
+                  ? "ligne"
+                  : "lignes"
+              }`
             }
           </strong>
 
@@ -504,7 +513,7 @@ export default function QualityReportSection({
       <details
         style={{
           marginTop:
-            "11px",
+            "9px",
 
           border:
             "1px solid rgba(255,255,255,0.05)",
@@ -531,7 +540,7 @@ export default function QualityReportSection({
               700,
           }}
         >
-          Voir le détail de la préparation
+          Détails de préparation
         </summary>
 
 

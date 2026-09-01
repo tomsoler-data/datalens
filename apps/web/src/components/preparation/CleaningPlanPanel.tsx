@@ -12,6 +12,15 @@ import {
 import styles from "../../app/page.module.css";
 
 
+/*
+ * DATALENS_CLEANING_EXECUTION_VISUAL_V0_1
+ *
+ * Presentation-only visual hierarchy for deterministic
+ * cleaning. Cleaning contracts and execution semantics
+ * remain unchanged.
+ */
+
+
 export default function CleaningPlanPanel({
   plan,
   loading,
@@ -198,6 +207,9 @@ export default function CleaningPlanPanel({
 
   return (
     <section
+      className={
+        styles.cleaningExecution
+      }
       style={{
         marginTop:
           "12px",

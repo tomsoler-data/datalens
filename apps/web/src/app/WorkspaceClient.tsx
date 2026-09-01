@@ -172,6 +172,15 @@ import EntityOutlierRequestedAnswer from "../components/analysis/EntityOutlierRe
 
 import styles from "./page.module.css";
 
+
+/*
+ * DATALENS_DETERMINISTIC_PRODUCT_LANGUAGE_R2_V0_1
+ *
+ * User-facing copy now describes DataLens product guarantees:
+ * local model proposals, deterministic controls and analyst
+ * confirmation.
+ */
+
 import type {
   DatasetManifest,
   FindingRagContext,
@@ -226,6 +235,85 @@ import { deriveReportSelectionRestoration } from "./reportSelectionRestoration";
 const API_URL =
   process.env.NEXT_PUBLIC_DATALENS_API_URL ??
   "http://127.0.0.1:8000";
+
+/*
+ * DATALENS_WORKSPACE_HEADER_V0_1
+ *
+ * Presentation-only metadata for the DataLens workspace.
+ *
+ * No workflow state, server-owned artifact or analytical
+ * execution semantics are changed here.
+ */
+const WORKSPACE_STEP_PRESENTATION:
+  Record<
+    WorkspaceStep,
+    {
+      eyebrow:
+        string;
+
+      title:
+        string;
+
+      description:
+        string;
+    }
+  > = {
+    data: {
+      eyebrow:
+        "DATA WORKSPACE",
+
+      title:
+        "Données",
+
+      description:
+        "Importez, inspectez et sélectionnez les datasets qui alimenteront votre analyse.",
+    },
+
+    documents: {
+      eyebrow:
+        "CONTEXT WORKSPACE",
+
+      title:
+        "Documents & objectif",
+
+      description:
+        "Ajoutez votre contexte métier et formulez précisément ce que vous souhaitez comprendre.",
+    },
+
+    preparation: {
+      eyebrow:
+        "PREPARATION WORKSPACE",
+
+      title:
+        "Préparation",
+
+      description:
+        "Contrôlez la qualité, résolvez les ambiguïtés et préparez une source fiable pour l’analyse.",
+    },
+
+    analyses: {
+      eyebrow:
+        "ANALYSIS WORKSPACE",
+
+      title:
+        "Analyses",
+
+      description:
+        "Explorez les résultats déterministes, les demandes ciblées et les explications contextualisées.",
+    },
+
+    report: {
+      eyebrow:
+        "EVIDENCE WORKSPACE",
+
+      title:
+        "Rapport",
+
+      description:
+        "Assemblez les résultats retenus et produisez une restitution traçable et défendable.",
+    },
+  };
+
 
 
 
@@ -3375,7 +3463,7 @@ function handleStartNewWorkflow() {
     try {
       /*
        * Known Requested Analysis intents are routed through
-       * deterministic Python planning first.
+       * deterministic planning first.
        *
        * Unknown intents fall back to the existing local
        * AI-native planner unchanged.
@@ -3790,6 +3878,46 @@ function handleStartNewWorkflow() {
     });
 
 
+  const workspacePresentation =
+    WORKSPACE_STEP_PRESENTATION[
+      activeStep
+    ];
+
+
+  const workspaceDatasetCount =
+    ingestion
+      ?.dataset_count ??
+    0;
+
+
+  const workspaceRowCount =
+    ingestion
+      ?.total_rows ??
+    0;
+
+
+  const workspaceColumnCount =
+    ingestion
+      ?.datasets
+      .reduce(
+        (
+          total,
+          dataset
+        ) =>
+          total +
+          dataset.column_count,
+        0
+      ) ??
+    0;
+
+
+  const workspaceStatusLabel =
+    preparationReadyForAnalysis
+      ? "Prêt pour analyse"
+      : ingestion
+        ? "Données chargées"
+        : "En attente de données";
+
   return (
     <main
       className={
@@ -3819,7 +3947,40 @@ function handleStartNewWorkflow() {
               styles.brandMark
             }
             aria-hidden="true"
-          />
+          >
+            {/* DATALENS_FOCUS_MARK_V0_1 */}
+            <svg
+              className={
+                styles.brandMarkSvg
+              }
+              viewBox="0 0 28 28"
+              focusable="false"
+              aria-hidden="true"
+            >
+              <path
+                className={
+                  styles.brandMarkOutline
+                }
+                d="M7 5 H13 C18.2 5 21.5 8.2 21.5 11.1"
+              />
+
+              <path
+                className={
+                  styles.brandMarkOutline
+                }
+                d="M21.5 16.9 C21.5 19.8 18.2 23 13 23 H7 V5"
+              />
+
+              <circle
+                className={
+                  styles.brandMarkSignal
+                }
+                cx="21.5"
+                cy="14"
+                r="1.75"
+              />
+            </svg>
+          </span>
 
           <strong>
             DataLens
@@ -3853,24 +4014,147 @@ function handleStartNewWorkflow() {
       >
         <section
           className={
-            styles.hero
+            styles.workspaceHeader
           }
         >
-          <h1>
-            Analysez vos données
+          <div
+            className={
+              styles.workspaceHeaderMain
+            }
+          >
+            <div
+              className={
+                styles.workspaceEyebrowRow
+              }
+            >
+              <span
+                className={
+                  styles.workspaceEyebrow
+                }
+              >
+                {
+                  workspacePresentation
+                    .eyebrow
+                }
+              </span>
 
-            <span>
-              avec plus de clarté.
-            </span>
-          </h1>
+              <span
+                className={
+                  `${styles.workspaceStatus} ${
+                    preparationReadyForAnalysis
+                      ? styles.workspaceStatusReady
+                      : ingestion
+                        ? styles.workspaceStatusLoaded
+                        : styles.workspaceStatusIdle
+                  }`
+                }
+              >
+                <span
+                  className={
+                    styles.workspaceStatusDot
+                  }
+                  aria-hidden="true"
+                />
 
-          <p>
-            Décrivez ce que vous souhaitez comprendre,
-            ajoutez vos données et, si nécessaire, votre
-            contexte métier. DataLens confie les calculs à
-            Python et utilise l’IA locale pour comprendre la
-            demande, préparer le plan et contextualiser les résultats.
-          </p>
+                {
+                  workspaceStatusLabel
+                }
+              </span>
+            </div>
+
+            <h1>
+              {
+                workspacePresentation
+                  .title
+              }
+            </h1>
+
+            <p>
+              {
+                workspacePresentation
+                  .description
+              }
+            </p>
+          </div>
+
+          <div
+            className={
+              styles.workspaceSnapshot
+            }
+            aria-label="Résumé du workspace"
+          >
+            <div
+              className={
+                styles.workspaceSnapshotItem
+              }
+            >
+              <strong>
+                {
+                  workspaceDatasetCount > 0
+                    ? workspaceDatasetCount
+                    : "—"
+                }
+              </strong>
+
+              <span>
+                datasets
+              </span>
+            </div>
+
+            <div
+              className={
+                styles.workspaceSnapshotItem
+              }
+            >
+              <strong>
+                {
+                  workspaceRowCount > 0
+                    ? workspaceRowCount
+                        .toLocaleString(
+                          "fr-FR"
+                        )
+                    : "—"
+                }
+              </strong>
+
+              <span>
+                lignes
+              </span>
+            </div>
+
+            <div
+              className={
+                styles.workspaceSnapshotItem
+              }
+            >
+              <strong>
+                {
+                  workspaceColumnCount > 0
+                    ? workspaceColumnCount
+                    : "—"
+                }
+              </strong>
+
+              <span>
+                colonnes
+              </span>
+            </div>
+
+            <div
+              className={
+                styles.workspaceSnapshotPrivacy
+              }
+            >
+              <span
+                className={
+                  styles.workspaceSnapshotPrivacyDot
+                }
+                aria-hidden="true"
+              />
+
+              Local
+            </div>
+          </div>
         </section>
 
 
@@ -4017,7 +4301,7 @@ function handleStartNewWorkflow() {
             >
               Facultatif. Si vous laissez ce champ vide, DataLens explore les
               analyses compatibles automatiquement. Si vous formulez une demande,
-              elle devient prioritaire ; Python conserve toujours la validation
+              elle devient prioritaire ; le moteur déterministe conserve toujours la validation
               des datasets, des colonnes et des calculs.
             </p>
           </section>
@@ -5519,6 +5803,13 @@ function handleStartNewWorkflow() {
                     styles.results
                   }
                 >
+                  {/*
+                   * DATALENS_REPORT_HEADER_CONTEXT_V0_1
+                   * DATALENS_REPORT_HEADER_MICRO_POLISH_R1_V0_1
+                   *
+                   * Analysis keeps the analytical result header.
+                   * Report receives a concise synthesis header.
+                   */}
                   <header
                     className={
                       styles.resultHeader
@@ -5530,7 +5821,12 @@ function handleStartNewWorkflow() {
                           styles.eyebrow
                         }
                       >
-                        Analyse terminée
+                        {
+                          activeStep ===
+                            "report"
+                              ? "Synthèse de l'analyse"
+                              : "Analyse terminée"
+                        }
                       </span>
 
                       <h2
@@ -5539,58 +5835,84 @@ function handleStartNewWorkflow() {
                         }
                       >
                         {
-                          report.title
+                          activeStep ===
+                            "report"
+                              ? "Synthèse analytique"
+                              : report.title
                         }
                       </h2>
 
-                      <p
-                        className={
-                          styles.resultSubtitle
-                        }
-                      >
-                        {
-                          report.inventory.dataset_count
-                        } fichiers
-                        {" · "}
-                        {
-                          report.inventory
-                            .discovered_analysis_count
-                        } analyses découvertes
-                        {" · "}
-                        {
-                          report.inventory
-                            .executed_analysis_count
-                        } exécutées
-                      </p>
+                      {
+                      activeStep ===
+                        "analyses"
+                        ? (
+                            <p
+                              className={
+                                styles.resultSubtitle
+                              }
+                            >
+                              {
+                                report.inventory
+                                  .dataset_count
+                              }
+                              {" "}
+                              {
+                                report.inventory
+                                  .dataset_count ===
+                                1
+                                  ? "fichier"
+                                  : "fichiers"
+                              }
+                              {" · "}
+                              {
+                                report.inventory
+                                  .discovered_analysis_count
+                              }
+                              {" analyses découvertes"}
+                              {" · "}
+                              {
+                                report.inventory
+                                  .executed_analysis_count
+                              }
+                              {" exécutées"}
+                            </p>
+                          )
+                        : null
+                    }
                     </div>
 
 
-                    <div
-                      className={
-                        styles.resultMeta
-                      }
-                    >
-                      <span>
-                        Mode
-                      </span>
+                    {
+                      activeStep ===
+                        "analyses"
+                        ? (
+                            <div
+                              className={
+                                styles.resultMeta
+                              }
+                            >
+                              <span>
+                                Mode
+                              </span>
 
-                      <strong>
-                        {
-                          ragReport
-                            ? "Analyse + RAG"
-                            : "Analyse"
-                        }
-                      </strong>
-                    </div>
+                              <strong>
+                                {
+                                  ragReport
+                                    ? "Analyse + RAG"
+                                    : "Analyse"
+                                }
+                              </strong>
+                            </div>
+                          )
+                        : null
+                    }
                   </header>
 
 
                   {
-                    !(
-                      activeStep ===
-                        "analyses" &&
-                      report.entity_outlier_finding
-                    )
+                    activeStep ===
+                      "analyses" &&
+                    !report.entity_outlier_finding
                       ? (
                           <div
                     className={
@@ -5770,40 +6092,107 @@ function handleStartNewWorkflow() {
                       ? (
                           <section
                             className={
-                              styles.summaryPanel
+                              styles.reportExecutiveSummary
                             }
+                            aria-label="Synthèse de l'analyse"
                           >
-                            <div
+                            {/*
+                             * DATALENS_REPORT_EXECUTIVE_KPI_V0_1
+                             *
+                             * The report exposes decision signals
+                             * instead of replaying backend prose.
+                             */}
+
+                            <span
                               className={
-                                styles.summaryItem
+                                styles.eyebrow
                               }
                             >
-                              <span>
-                                Synthèse
-                              </span>
+                              Synthèse
+                            </span>
 
-                              {
-                                report.executive_summary.map(
-                                  (
-                                    item
-                                  ) => (
-                                    <p
-                                      key={
-                                        item
-                                      }
-                                    >
-                                      {
-                                        item
-                                      }
-                                    </p>
-                                  )
-                                )
+
+                            <div
+                              className={
+                                styles.reportExecutiveGrid
                               }
+                            >
+                              <article
+                                className={
+                                  styles.reportExecutiveMetric
+                                }
+                              >
+                                <strong>
+                                  {
+                                    report.inventory
+                                      .dataset_count
+                                  }
+                                </strong>
+
+                                <span>
+                                  {
+                                    report.inventory
+                                      .dataset_count ===
+                                    1
+                                      ? "Source analysée"
+                                      : "Sources analysées"
+                                  }
+                                </span>
+                              </article>
+
+
+                              <article
+                                className={
+                                  styles.reportExecutiveMetric
+                                }
+                              >
+                                <strong>
+                                  {
+                                    report.inventory
+                                      .executed_analysis_count
+                                  }
+                                </strong>
+
+                                <span>
+                                  {
+                                    report.inventory
+                                      .executed_analysis_count ===
+                                    1
+                                      ? "Analyse exécutée"
+                                      : "Analyses exécutées"
+                                  }
+                                </span>
+                              </article>
+
+
+                              <article
+                                className={
+                                  styles.reportExecutiveMetric
+                                }
+                              >
+                                <strong>
+                                  {
+                                    report.main_findings
+                                      .length
+                                  }
+                                </strong>
+
+                                <span>
+                                  {
+                                    report.main_findings
+                                      .length ===
+                                    1
+                                      ? "Constat prioritaire"
+                                      : "Constats prioritaires"
+                                  }
+                                </span>
+                              </article>
                             </div>
                           </section>
                         )
                       : null
                   }
+
 
                   {
                     activeStep ===
@@ -5945,7 +6334,7 @@ function handleStartNewWorkflow() {
                                   >
                                     Posez une autre question sur les mêmes données
                                     préparées. Chaque demande repasse par le planner,
-                                    la validation Python et les outils déterministes.
+                                    la validation par le moteur déterministe et les outils de contrôle.
                                   </p>
                                 </div>
 
@@ -6353,7 +6742,7 @@ function handleStartNewWorkflow() {
           </strong>
 
           <span>
-            Python déterministe
+            Moteur déterministe
             {" · "}
             IA locale
             {" · "}

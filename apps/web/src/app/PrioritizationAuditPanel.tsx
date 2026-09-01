@@ -128,7 +128,7 @@ const REASON_PRESENTATION:
       label:
         "Pas exécutable immédiatement",
       description:
-        "La Discovery a identifié le candidat, mais son contrat n'est pas encore suffisamment sûr pour une exécution automatique.",
+        "DataLens a identifié le candidat, mais son contrat n'est pas encore suffisamment sûr pour une exécution automatique.",
     },
 
     identifier_misuse: {
@@ -505,7 +505,7 @@ function DecisionList({
                       }
                     >
                       <span>
-                        Score Discovery
+                        Score initial
                         {" "}
                         <strong>
                           {
@@ -539,6 +539,15 @@ function DecisionList({
   );
 }
 
+
+
+
+/*
+ * DATALENS_PRIORITIZATION_PRODUCT_LANGUAGE_V0_1
+ *
+ * User-facing prioritization copy describes DataLens
+ * product roles rather than implementation technology.
+ */
 
 export default function PrioritizationAuditPanel({
   audit,
@@ -601,7 +610,7 @@ export default function PrioritizationAuditPanel({
           </h3>
 
           <p>
-            La Discovery conserve tous les candidats. Python applique ensuite des garde-fous de valeur analytique, de diversité et de coût pour choisir le sous-ensemble envoyé aux exécuteurs automatiques.
+            DataLens conserve tous les candidats identifiés. Le moteur déterministe applique ensuite des garde-fous de valeur analytique, de diversité et de coût pour retenir uniquement les analyses exécutées automatiquement.
           </p>
         </div>
 
@@ -610,7 +619,7 @@ export default function PrioritizationAuditPanel({
             styles.pythonBadge
           }
         >
-          Décision Python déterministe
+          Décision déterministe
         </span>
       </div>
 

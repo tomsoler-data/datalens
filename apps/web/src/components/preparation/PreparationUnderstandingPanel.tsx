@@ -1,4 +1,5 @@
 import type {
+  DatasetManifest,
   MultiDatasetIngestion,
 } from "../../app/types";
 
@@ -6,7 +7,73 @@ import {
   formatNumber,
 } from "../analysis/analysisPresentation";
 
-import styles from "../../app/page.module.css";
+import styles
+  from "./PreparationUnderstandingPanel.module.css";
+
+
+function formatBytes(
+  bytes:
+    number
+): string {
+  if (
+    !Number.isFinite(
+      bytes
+    ) ||
+    bytes <= 0
+  ) {
+    return "—";
+  }
+
+
+  if (
+    bytes <
+    1024
+  ) {
+    return `${bytes} B`;
+  }
+
+
+  if (
+    bytes <
+    1024 * 1024
+  ) {
+    return `${(
+      bytes /
+      1024
+    ).toFixed(
+      1
+    )} KB`;
+  }
+
+
+  return `${(
+    bytes /
+    (
+      1024 *
+      1024
+    )
+  ).toFixed(
+    1
+  )} MB`;
+}
+
+
+function datasetMissingCells(
+  manifest:
+    DatasetManifest
+): number {
+  return manifest
+    .columns
+    .reduce(
+      (
+        total,
+        column
+      ) =>
+        total +
+        column.missing_count,
+      0
+    );
+}
 
 
 export default function PreparationUnderstandingPanel({
@@ -24,42 +91,278 @@ export default function PreparationUnderstandingPanel({
   }
 
 
+  const totalColumns =
+    ingestion.datasets.reduce(
+      (
+        total,
+        dataset
+      ) =>
+        total +
+        dataset.column_count,
+      0
+    );
+
+
+  const totalMissingCells =
+    ingestion.datasets.reduce(
+      (
+        total,
+        dataset
+      ) =>
+        total +
+        datasetMissingCells(
+          dataset
+        ),
+      0
+    );
+
+
+  const totalMemoryBytes =
+    ingestion.datasets.reduce(
+      (
+        total,
+        dataset
+      ) =>
+        total +
+        dataset.memory_bytes,
+      0
+    );
+
+
+  const datasetWarningCount =
+    ingestion.datasets.reduce(
+      (
+        total,
+        dataset
+      ) =>
+        total +
+        dataset.warnings.length,
+      0
+    );
+
+
+  const warningCount =
+    ingestion.warnings.length +
+    datasetWarningCount;
+
+
   return (
     <section
-      style={{
-        marginTop:
-          "18px",
-
-        padding:
-          "18px",
-
-        border:
-          "1px solid rgba(126, 177, 255, 0.12)",
-
-        borderRadius:
-          "16px",
-
-        background:
-          "linear-gradient(180deg, rgba(126,177,255,0.032), rgba(255,255,255,0.012))",
-      }}
+      className={
+        styles.panel
+      }
     >
+      <header
+        className={
+          styles.header
+        }
+      >
+        <div
+          className={
+            styles.headerCopy
+          }
+        >
+          <span
+            className={
+              styles.eyebrow
+            }
+          >
+            DATA PROFILE
+          </span>
+
+          <h3>
+            Comprendre le périmètre
+          </h3>
+
+          <p>
+            Avant toute correction, DataLens décrit les sources,
+            leur volume et leur structure afin de comprendre le
+            contexte analytique sans modifier les données.
+          </p>
+        </div>
+
+
+        <span
+          className={
+            styles.datasetCount
+          }
+        >
+          {
+            ingestion.dataset_count
+          }
+
+          {
+            ingestion.dataset_count ===
+            1
+              ? " dataset"
+              : " datasets"
+          }
+        </span>
+      </header>
+
+
       <div
-        style={{
-          display:
-            "flex",
+        className={
+          styles.metrics
+        }
+      >
+        <article
+          className={
+            styles.metric
+          }
+        >
+          <span
+            className={
+              styles.metricIcon
+            }
+            aria-hidden="true"
+          >
+            D
+          </span>
 
-          alignItems:
-            "flex-start",
+          <div>
+            <strong>
+              {
+                ingestion.dataset_count
+              }
+            </strong>
 
-          justifyContent:
-            "space-between",
+            <span>
+              Datasets
+            </span>
+          </div>
+        </article>
 
-          gap:
-            "18px",
 
-          flexWrap:
-            "wrap",
-        }}
+        <article
+          className={
+            styles.metric
+          }
+        >
+          <span
+            className={
+              styles.metricIcon
+            }
+            aria-hidden="true"
+          >
+            R
+          </span>
+
+          <div>
+            <strong>
+              {
+                formatNumber(
+                  ingestion.total_rows
+                )
+              }
+            </strong>
+
+            <span>
+              Lignes
+            </span>
+          </div>
+        </article>
+
+
+        <article
+          className={
+            styles.metric
+          }
+        >
+          <span
+            className={
+              styles.metricIcon
+            }
+            aria-hidden="true"
+          >
+            C
+          </span>
+
+          <div>
+            <strong>
+              {
+                formatNumber(
+                  totalColumns
+                )
+              }
+            </strong>
+
+            <span>
+              Colonnes
+            </span>
+          </div>
+        </article>
+
+
+        <article
+          className={
+            `${styles.metric} ${
+              totalMissingCells > 0
+                ? styles.metricAttention
+                : ""
+            }`
+          }
+        >
+          <span
+            className={
+              styles.metricIcon
+            }
+            aria-hidden="true"
+          >
+            ∅
+          </span>
+
+          <div>
+            <strong>
+              {
+                formatNumber(
+                  totalMissingCells
+                )
+              }
+            </strong>
+
+            <span>
+              Manquantes
+            </span>
+          </div>
+        </article>
+
+
+        <article
+          className={
+            styles.metric
+          }
+        >
+          <span
+            className={
+              styles.metricIcon
+            }
+            aria-hidden="true"
+          >
+            M
+          </span>
+
+          <div>
+            <strong>
+              {
+                formatBytes(
+                  totalMemoryBytes
+                )
+              }
+            </strong>
+
+            <span>
+              Empreinte
+            </span>
+          </div>
+        </article>
+      </div>
+
+
+      <div
+        className={
+          styles.sourcesHeader
+        }
       >
         <div>
           <span
@@ -67,59 +370,30 @@ export default function PreparationUnderstandingPanel({
               styles.eyebrow
             }
           >
-            Compréhension des données
+            SOURCES
           </span>
 
-          <h3
-            style={{
-              margin:
-                "7px 0 0",
-
-              fontSize:
-                "1.02rem",
-            }}
-          >
-            Structure et périmètre des jeux de données
-          </h3>
-
-          <p
-            style={{
-              margin:
-                "7px 0 0",
-
-              maxWidth:
-                "800px",
-
-              opacity:
-                0.66,
-
-              fontSize:
-                "0.79rem",
-
-              lineHeight:
-                1.58,
-            }}
-          >
-            Avant de corriger quoi que ce soit, DataLens présente les
-            fichiers chargés, leur volume et leur structure. Cette étape
-            sert à comprendre le périmètre avant le contrôle de qualité.
-          </p>
+          <strong>
+            Jeux de données observés
+          </strong>
         </div>
+
 
         <span
           className={
-            styles.sectionStatus
+            warningCount > 0
+              ? styles.warningBadge
+              : styles.cleanBadge
           }
         >
           {
-            ingestion.dataset_count
-          }
-          {" dataset"}
-          {
-            ingestion.dataset_count >
-              1
-              ? "s"
-              : ""
+            warningCount > 0
+              ? `${warningCount} signal${
+                  warningCount > 1
+                    ? "s"
+                    : ""
+                }`
+              : "Aucun signal d’ingestion"
           }
         </span>
       </div>
@@ -127,200 +401,229 @@ export default function PreparationUnderstandingPanel({
 
       <div
         className={
-          styles.metricGrid
+          styles.datasetGrid
         }
-        style={{
-          marginTop:
-            "16px",
-        }}
-      >
-        <article
-          className={
-            styles.metricCard
-          }
-        >
-          <span>
-            Datasets
-          </span>
-
-          <strong>
-            {
-              ingestion.dataset_count
-            }
-          </strong>
-        </article>
-
-        <article
-          className={
-            styles.metricCard
-          }
-        >
-          <span>
-            Lignes totales
-          </span>
-
-          <strong>
-            {
-              formatNumber(
-                ingestion.total_rows
-              )
-            }
-          </strong>
-        </article>
-      </div>
-
-
-      <div
-        style={{
-          display:
-            "grid",
-
-          gridTemplateColumns:
-            "repeat(auto-fit, minmax(190px, 1fr))",
-
-          gap:
-            "8px",
-
-          marginTop:
-            "12px",
-        }}
       >
         {
           ingestion.datasets.map(
             (
               manifest
-            ) => (
-              <article
-                key={
-                  manifest.dataset_id
-                }
-                style={{
-                  minWidth:
-                    0,
+            ) => {
+              const missingCells =
+                datasetMissingCells(
+                  manifest
+                );
 
-                  padding:
-                    "12px",
 
-                  border:
-                    "1px solid rgba(255,255,255,0.055)",
-
-                  borderRadius:
-                    "10px",
-
-                  background:
-                    "rgba(255,255,255,0.01)",
-                }}
-              >
-                <span
-                  style={{
-                    display:
-                      "block",
-
-                    fontSize:
-                      "0.54rem",
-
-                    fontWeight:
-                      800,
-
-                    letterSpacing:
-                      "0.07em",
-
-                    textTransform:
-                      "uppercase",
-
-                    opacity:
-                      0.42,
-                  }}
+              return (
+                <article
+                  className={
+                    styles.datasetCard
+                  }
+                  key={
+                    manifest.dataset_id
+                  }
                 >
-                  CSV
-                </span>
+                  <div
+                    className={
+                      styles.datasetTop
+                    }
+                  >
+                    <span
+                      className={
+                        styles.fileType
+                      }
+                    >
+                      {
+                        manifest.extension
+                          .replace(
+                            ".",
+                            ""
+                          )
+                          .toUpperCase()
+                      }
+                    </span>
 
-                <strong
-                  title={
-                    manifest.filename
-                  }
-                  style={{
-                    display:
-                      "block",
+                    <span
+                      className={
+                        styles.localSignal
+                      }
+                    >
+                      <span
+                        aria-hidden="true"
+                      />
 
-                    marginTop:
-                      "7px",
+                      LOCAL
+                    </span>
+                  </div>
 
-                    overflow:
-                      "hidden",
 
-                    textOverflow:
-                      "ellipsis",
+                  <strong
+                    className={
+                      styles.filename
+                    }
+                    title={
+                      manifest.filename
+                    }
+                  >
+                    {
+                      manifest.filename
+                    }
+                  </strong>
 
-                    whiteSpace:
-                      "nowrap",
 
-                    fontSize:
-                      "0.7rem",
-                  }}
-                >
+                  <div
+                    className={
+                      styles.datasetStats
+                    }
+                  >
+                    <div>
+                      <strong>
+                        {
+                          formatNumber(
+                            manifest.row_count
+                          )
+                        }
+                      </strong>
+
+                      <span>
+                        lignes
+                      </span>
+                    </div>
+
+
+                    <div>
+                      <strong>
+                        {
+                          manifest.column_count
+                        }
+                      </strong>
+
+                      <span>
+                        colonnes
+                      </span>
+                    </div>
+
+
+                    <div>
+                      <strong
+                        className={
+                          missingCells >
+                            0
+                            ? styles.attentionValue
+                            : undefined
+                        }
+                      >
+                        {
+                          formatNumber(
+                            missingCells
+                          )
+                        }
+                      </strong>
+
+                      <span>
+                        manquantes
+                      </span>
+                    </div>
+
+
+                    <div>
+                      <strong>
+                        {
+                          formatBytes(
+                            manifest.memory_bytes
+                          )
+                        }
+                      </strong>
+
+                      <span>
+                        mémoire
+                      </span>
+                    </div>
+                  </div>
+
+
                   {
-                    manifest.filename
+                    manifest.warnings.length >
+                    0
+                      ? (
+                          <div
+                            className={
+                              styles.datasetWarning
+                            }
+                          >
+                            <span
+                              aria-hidden="true"
+                            >
+                              !
+                            </span>
+
+                            <div>
+                              <strong>
+                                Signal d’ingestion
+                              </strong>
+
+                              <p>
+                                {
+                                  manifest
+                                    .warnings[
+                                    0
+                                  ]
+                                }
+                              </p>
+                            </div>
+                          </div>
+                        )
+                      : null
                   }
-                </strong>
-
-                <span
-                  style={{
-                    display:
-                      "block",
-
-                    marginTop:
-                      "6px",
-
-                    fontSize:
-                      "0.59rem",
-
-                    opacity:
-                      0.5,
-                  }}
-                >
-                  {
-                    formatNumber(
-                      manifest.row_count
-                    )
-                  }
-                  {" lignes · "}
-                  {
-                    manifest.column_count
-                  }
-                  {" colonnes"}
-                </span>
-              </article>
-            )
+                </article>
+              );
+            }
           )
         }
       </div>
 
 
-      <div
-        style={{
-          marginTop:
-            "14px",
-
-          paddingTop:
-            "12px",
-
-          borderTop:
-            "1px solid rgba(255,255,255,0.06)",
-
-          fontSize:
-            "0.64rem",
-
-          lineHeight:
-            1.5,
-
-          opacity:
-            0.56,
-        }}
+      <footer
+        className={
+          styles.observationNotice
+        }
       >
-        Aucune donnée n’est modifiée ici. Le contrôle des anomalies est
-        présenté séparément dans l’étape Qualité.
-      </div>
+        <span
+          className={
+            styles.observationIcon
+          }
+          aria-hidden="true"
+        >
+          ◉
+        </span>
+
+        <div>
+          <strong>
+            Observation uniquement
+          </strong>
+
+          <p>
+            Aucune donnée n’est modifiée pendant cette étape.
+            Les anomalies et décisions de correction sont traitées
+            séparément dans le contrôle Qualité.
+          </p>
+        </div>
+
+
+        <span
+          className={
+            styles.ruleVersion
+          }
+          title={
+            ingestion.ingestion_rule_version
+          }
+        >
+          {
+            ingestion.ingestion_rule_version
+          }
+        </span>
+      </footer>
     </section>
   );
 }

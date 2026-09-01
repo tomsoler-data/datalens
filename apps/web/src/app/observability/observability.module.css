@@ -1561,3 +1561,476 @@
     justify-content: flex-start;
   }
 }
+
+
+/* ============================================================
+   DATALENS OBSERVABILITY CONTROL ROOM v0.1
+   52-V6-A3
+
+   Presentation only.
+   No trace, metric, API, planner or tool-calling contract changed.
+============================================================ */
+
+@media (
+  min-width:
+    1100px
+) {
+  .shell {
+    grid-template-columns:
+      minmax(
+        310px,
+        360px
+      )
+      minmax(
+        0,
+        1fr
+      );
+
+    width:
+      min(
+        2100px,
+        calc(
+          100% - 28px
+        )
+      );
+  }
+
+
+  .sidebar {
+    padding:
+      22px 16px 30px;
+  }
+
+
+  .content {
+    padding:
+      24px
+      24px
+      72px;
+  }
+
+
+  .detailStack {
+    gap:
+      14px;
+  }
+
+
+  .aggregatePanel {
+    gap:
+      18px;
+
+    margin-bottom:
+      14px;
+
+    padding:
+      22px;
+  }
+
+
+  .aggregateHead h2 {
+    margin-top:
+      7px;
+
+    font-size:
+      1.3rem;
+
+    letter-spacing:
+      -0.02em;
+  }
+
+
+  .aggregateHead p {
+    max-width:
+      760px;
+
+    margin-top:
+      8px;
+
+    font-size:
+      0.78rem;
+
+    line-height:
+      1.55;
+  }
+
+
+  .aggregateMetricGrid {
+    gap:
+      10px;
+  }
+
+
+  .aggregateMetricCard {
+    min-height:
+      104px;
+
+    padding:
+      15px;
+  }
+
+
+  .aggregateMetricCard span {
+    font-size:
+      0.69rem;
+  }
+
+
+  .aggregateMetricCard strong {
+    margin-top:
+      8px;
+
+    font-size:
+      1.22rem;
+  }
+
+
+  .aggregateMetricCard small {
+    margin-top:
+      6px;
+
+    font-size:
+      0.64rem;
+  }
+
+
+  .aggregateMetricGrid
+  > .aggregateMetricCard:nth-child(-n + 4) {
+    border-color:
+      rgba(
+        126,
+        177,
+        255,
+        0.12
+      );
+
+    background:
+      linear-gradient(
+        180deg,
+        rgba(
+          90,
+          148,
+          231,
+          0.045
+        ),
+        rgba(
+          255,
+          255,
+          255,
+          0.015
+        )
+      );
+  }
+
+
+  .aggregateMetricGrid
+  > .aggregateMetricCard:nth-child(-n + 4)
+  strong {
+    font-size:
+      1.34rem;
+  }
+
+
+  .aggregateBreakdown {
+    grid-template-columns:
+      minmax(
+        0,
+        0.92fr
+      )
+      minmax(
+        0,
+        1.08fr
+      );
+
+    gap:
+      10px;
+  }
+
+
+  .aggregateBreakdownCard {
+    padding:
+      16px;
+  }
+
+
+  .breakdownHead strong {
+    font-size:
+      0.82rem;
+  }
+
+
+  .latencyRows span {
+    font-size:
+      0.7rem;
+  }
+
+
+  .latencyRows strong {
+    font-size:
+      0.73rem;
+  }
+
+
+  .heroPanel {
+    padding:
+      24px;
+  }
+
+
+  .heroTop h1 {
+    font-size:
+      clamp(
+        1.55rem,
+        1.8vw,
+        2rem
+      );
+  }
+
+
+  .metricGrid {
+    gap:
+      10px;
+  }
+
+
+  .metricCard {
+    min-height:
+      104px;
+
+    padding:
+      15px;
+  }
+
+
+  .metricCard span {
+    font-size:
+      0.72rem;
+  }
+
+
+  .metricCard strong {
+    font-size:
+      clamp(
+        1.24rem,
+        1.5vw,
+        1.55rem
+      );
+  }
+
+
+  .panel {
+    padding:
+      20px;
+  }
+
+
+  .sidebarHead h2,
+  .sectionHead h2 {
+    font-size:
+      1.06rem;
+  }
+
+
+  .traceObjective {
+    font-size:
+      0.82rem;
+
+    line-height:
+      1.45;
+  }
+
+
+  .traceMeta,
+  .storeMeta {
+    font-size:
+      0.68rem;
+  }
+
+
+  .datasetLine {
+    font-size:
+      0.67rem;
+  }
+
+
+  .eyebrow {
+    font-size:
+      0.65rem;
+  }
+}
+
+
+@media (
+  min-width:
+    1750px
+) {
+  .shell {
+    grid-template-columns:
+      350px
+      minmax(
+        0,
+        1fr
+      );
+  }
+
+
+  .content {
+    padding-right:
+      30px;
+
+    padding-left:
+      30px;
+  }
+
+
+  .aggregatePanel {
+    padding:
+      24px;
+  }
+}
+
+
+/* ============================================================
+   DATALENS OBSERVABILITY UNIFIED SHELL v0.1
+   52-V6-D3.2-R1
+
+   Observability data and trace behavior remain unchanged.
+   Only the application chrome is shared with DataLens.
+============================================================ */
+
+.unifiedShell {
+  padding-top:
+    22px;
+}
+
+
+.unifiedToolbar {
+  display:
+    flex;
+
+  align-items:
+    flex-end;
+
+  justify-content:
+    space-between;
+
+  gap:
+    24px;
+
+  margin:
+    0 0
+    14px;
+
+  padding:
+    2px 2px
+    0;
+}
+
+
+.unifiedEyebrow {
+  display:
+    block;
+
+  margin-bottom:
+    7px;
+
+  color:
+    var(
+      --dl-accent,
+      #7ca8ff
+    );
+
+  font-family:
+    var(
+      --dl-font-mono
+    );
+
+  font-size:
+    9px;
+
+  font-weight:
+    700;
+
+  letter-spacing:
+    0.14em;
+
+  text-transform:
+    uppercase;
+}
+
+
+.unifiedTitle {
+  margin:
+    0;
+
+  color:
+    #f3f7fc;
+
+  font-size:
+    clamp(
+      1.75rem,
+      2.2vw,
+      2.35rem
+    );
+
+  font-weight:
+    690;
+
+  letter-spacing:
+    -0.045em;
+
+  line-height:
+    1;
+}
+
+
+.unifiedSubtitle {
+  max-width:
+    680px;
+
+  margin:
+    9px 0 0;
+
+  color:
+    #8795a8;
+
+  font-size:
+    0.78rem;
+
+  line-height:
+    1.5;
+}
+
+
+.unifiedShell
+> .shell {
+  width:
+    100%;
+
+  max-width:
+    none;
+
+  margin:
+    0;
+}
+
+
+@media (
+  max-width:
+    760px
+) {
+  .unifiedToolbar {
+    align-items:
+      stretch;
+
+    flex-direction:
+      column;
+  }
+
+
+  .unifiedToolbar
+  .refreshButton {
+    align-self:
+      flex-start;
+  }
+}

@@ -95,6 +95,15 @@ type ReportSelectionPanelProps = {
 };
 
 
+
+
+/*
+ * DATALENS_REPORT_SELECTION_COMPACT_V0_1
+ *
+ * Report composition prioritizes choices and actions.
+ * Explanatory prose is intentionally minimized.
+ */
+
 export default function ReportSelectionPanel({
   ragContextByAnalysisId,
   reportAvailableAnalysisById,
@@ -115,16 +124,16 @@ export default function ReportSelectionPanel({
 <section
                             style={{
                               marginTop:
-                                "18px",
+                                "14px",
 
                               padding:
-                                "20px",
+                                "16px",
 
                               border:
                                 "1px solid rgba(126, 177, 255, 0.18)",
 
                               borderRadius:
-                                "16px",
+                                "14px",
 
                               background:
                                 "rgba(3, 8, 17, 0.38)",
@@ -152,7 +161,7 @@ export default function ReportSelectionPanel({
                                     styles.eyebrow
                                   }
                                 >
-                                  Sélection du rapport
+                                  Composition du rapport
                                 </span>
 
                                 <h2
@@ -171,23 +180,8 @@ export default function ReportSelectionPanel({
                                       600,
                                   }}
                                 >
-                                  Analyses sélectionnées
+                                  Analyses du rapport
                                 </h2>
-
-                                <p
-                                  className={
-                                    styles.resultSubtitle
-                                  }
-                                  style={{
-                                    marginBottom:
-                                      0,
-                                  }}
-                                >
-                                  Les analyses demandées par prompt ou dans vos
-                                  documents sont sélectionnées par défaut. Vous
-                                  pouvez les retirer ; les analyses automatiques
-                                  restent facultatives.
-                                </p>
                               </div>
 
                               <span
@@ -259,9 +253,7 @@ export default function ReportSelectionPanel({
                                           1.65,
                                       }}
                                     >
-                                      Aucune analyse n’est sélectionnée.
-                                      Ajoutez une analyse automatique ou relancez
-                                      une demande afin de construire le rapport.
+                                      Aucune analyse sélectionnée.
                                     </div>
                                   )
                                 : (
@@ -1615,7 +1607,7 @@ export default function ReportSelectionPanel({
                                               "0.82rem",
                                           }}
                                         >
-                                          Réintégrer une analyse demandée
+                                          Analyse demandée
                                         </strong>
                                       </div>
 
@@ -1854,7 +1846,7 @@ export default function ReportSelectionPanel({
                                                 "0.82rem",
                                             }}
                                           >
-                                            Ajouter seulement ce qui est utile
+                                            Analyses disponibles
                                           </strong>
                                         </div>
 
