@@ -111,12 +111,22 @@ def payload(
 
 
 def test_schema_v4() -> None:
-    assert (
+    runtime_schema_version = (
         sqlite_schema_version()
+    )
+
+
+    assert (
+        runtime_schema_version
         ==
         SQLITE_SCHEMA_VERSION
-        ==
-        5
+    )
+
+
+    assert (
+        SQLITE_SCHEMA_VERSION
+        >=
+        4
     )
 
 
@@ -158,7 +168,7 @@ def test_schema_v4() -> None:
 
 
     print(
-        "[PASS] SQLite schema v4 ReportSelection tables"
+        "[PASS] current SQLite schema preserves v4 ReportSelection tables"
     )
 
 

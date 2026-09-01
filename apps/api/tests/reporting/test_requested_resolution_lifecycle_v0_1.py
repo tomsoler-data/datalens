@@ -960,7 +960,7 @@ def main() -> None:
 
 
             # ====================================================
-            # 3. FALSE -> TRUE DEFAULT REPORT SELECTION
+            # 3. FALSE -> TRUE PRESERVES MANUAL REPORT SELECTION
             # ====================================================
 
             after_selection = (
@@ -982,18 +982,18 @@ def main() -> None:
             assert (
                 after_selection.selected_count
                 ==
-                1
+                0
             )
 
             assert (
                 before.analysis_id
-                in
+                not in
                 selected_ids
             )
 
 
             print(
-                "[PASS] newly executable document request is selected by default"
+                "[PASS] newly executable document request remains manually unselected"
             )
 
 
@@ -1181,12 +1181,12 @@ def main() -> None:
             assert (
                 time_selection.selected_count
                 ==
-                1
+                0
             )
 
             assert (
                 time_before.analysis_id
-                in
+                not in
                 time_selected_ids
             )
 
@@ -1212,7 +1212,7 @@ def main() -> None:
             )
 
             print(
-                "[PASS] newly executable time-series request is selected by default"
+                "[PASS] newly executable time-series request remains manually unselected"
             )
 
 
