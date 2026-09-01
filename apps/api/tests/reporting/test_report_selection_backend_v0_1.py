@@ -172,7 +172,8 @@ def test_server_owned_registration_and_selection() -> None:
     )
 
 
-    # Initial executed analysis is selected by default.
+    # Execution and report composition are separate concerns.
+    # Registering an executable analysis must not select it.
     state = (
         get_report_selection(
             workflow_id=
@@ -184,15 +185,13 @@ def test_server_owned_registration_and_selection() -> None:
     assert (
         state.selected_count
         ==
-        1
+        0
     )
 
     assert (
-        state.analyses[
-            0
-        ].analysis_id
+        state.analyses
         ==
-        first.analysis_id
+        []
     )
 
 
@@ -229,8 +228,8 @@ def test_server_owned_registration_and_selection() -> None:
     )
 
 
-    # Executed prompt analyses are selected by default,
-    # including follow-up prompts.
+    # Follow-up execution must also remain outside report
+    # composition until the user explicitly selects it.
     state = (
         get_report_selection(
             workflow_id=
@@ -242,15 +241,13 @@ def test_server_owned_registration_and_selection() -> None:
     assert (
         state.selected_count
         ==
-        2
+        0
     )
 
     assert (
-        state.analyses[
-            1
-        ].analysis_id
+        state.analyses
         ==
-        second.analysis_id
+        []
     )
 
 
@@ -258,6 +255,62 @@ def test_server_owned_registration_and_selection() -> None:
         build_client()
     )
 
+
+    # --------------------------------------------------------
+    # Explicitly select the first analysis.
+    # --------------------------------------------------------
+
+    first_add_response = (
+        client.post(
+            "/report/selection/add",
+
+            json={
+                "workflow_id":
+                    workflow_id,
+
+                "analysis_id":
+                    first.analysis_id,
+            },
+        )
+    )
+
+
+    assert (
+        first_add_response.status_code
+        ==
+        200
+    )
+
+
+    first_added = (
+        first_add_response.json()
+    )
+
+
+    assert (
+        first_added[
+            "selected_count"
+        ]
+        ==
+        1
+    )
+
+    assert (
+        first_added[
+            "analyses"
+        ][
+            0
+        ][
+            "analysis_id"
+        ]
+        ==
+        first.analysis_id
+    )
+
+
+    # --------------------------------------------------------
+    # Explicitly select the follow-up analysis.
+    # --------------------------------------------------------
 
     add_response = (
         client.post(
@@ -294,6 +347,72 @@ def test_server_owned_registration_and_selection() -> None:
         2
     )
 
+
+    selected_ids = {
+        item[
+            "analysis_id"
+        ]
+
+        for item
+        in added[
+            "analyses"
+        ]
+    }
+
+
+    assert (
+        selected_ids
+        ==
+        {
+            first.analysis_id,
+            second.analysis_id,
+        }
+    )
+
+
+    # --------------------------------------------------------
+    # Repeated explicit add remains idempotent.
+    # --------------------------------------------------------
+
+    repeated_add_response = (
+        client.post(
+            "/report/selection/add",
+
+            json={
+                "workflow_id":
+                    workflow_id,
+
+                "analysis_id":
+                    second.analysis_id,
+            },
+        )
+    )
+
+
+    assert (
+        repeated_add_response.status_code
+        ==
+        200
+    )
+
+
+    repeated_added = (
+        repeated_add_response.json()
+    )
+
+
+    assert (
+        repeated_added[
+            "selected_count"
+        ]
+        ==
+        2
+    )
+
+
+    # --------------------------------------------------------
+    # Server-owned report ordering.
+    # --------------------------------------------------------
 
     reorder_response = (
         client.post(
@@ -337,6 +456,22 @@ def test_server_owned_registration_and_selection() -> None:
         second.analysis_id
     )
 
+    assert (
+        reordered[
+            "analyses"
+        ][
+            1
+        ][
+            "analysis_id"
+        ]
+        ==
+        first.analysis_id
+    )
+
+
+    # --------------------------------------------------------
+    # Removing from the report must not delete the artifact.
+    # --------------------------------------------------------
 
     remove_response = (
         client.post(
@@ -580,11 +715,11 @@ def main() -> None:
         )
 
         print(
-            "[PASS] initial analysis selected by default"
+            "[PASS] initial execution remains manually unselected"
         )
 
         print(
-            "[PASS] follow-up selected by default"
+            "[PASS] follow-up execution remains manually unselected"
         )
 
         print(
