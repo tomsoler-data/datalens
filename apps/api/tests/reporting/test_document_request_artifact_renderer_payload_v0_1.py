@@ -69,7 +69,7 @@ def requested_finding() -> dict:
 
         "summary":
             [
-                "Le chiffre d'affaires a ?t? agr?g? par semaine.",
+                "Le chiffre d'affaires a été agrégé par semaine.",
             ],
 
         "reasons":

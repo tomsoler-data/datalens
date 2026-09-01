@@ -86,9 +86,11 @@ export default function WorkspaceNavigation({
   dataReady,
   reportReady,
   interventionCount,
+  activeAiTool = null,
 }: {
   activeStep:
-    WorkspaceStep;
+    WorkspaceStep |
+    null;
 
   onStepChange:
     (
@@ -104,6 +106,11 @@ export default function WorkspaceNavigation({
 
   interventionCount:
     number;
+
+  activeAiTool?:
+    | "model-lab"
+    | "observability"
+    | null;
 }) {
   function isEnabled(
     step:
@@ -255,29 +262,93 @@ export default function WorkspaceNavigation({
       </div>
 
 
-      <Link
-        href="/observability"
-        target="_blank"
-        rel="noreferrer"
-        title="Ouvrir l’observabilité IA locale dans un nouvel onglet"
+      {/* DATALENS_UNIFIED_AI_ENGINEERING_NAV_V0_1 */}
+      {/* DATALENS_AI_NAV_ACTIVE_STATE_V0_1 */}
+      <div
         className={
-          styles.observabilityLink
+          styles.workspaceAiSection
         }
       >
         <span
-          aria-hidden="true"
           className={
-            styles.observabilityIcon
+            styles.workspaceAiEyebrow
           }
         >
-          AI
+          AI ENGINEERING
         </span>
 
-        <span>
-          Observabilité
-          {" ↗"}
-        </span>
-      </Link>
+
+        <div
+          className={
+            styles.workspaceAiLinks
+          }
+        >
+          <Link
+            href="/model-lab"
+            aria-current={
+              activeAiTool ===
+                "model-lab"
+                ? "page"
+                : undefined
+            }
+            title="Ouvrir Model Lab"
+            className={
+              `${styles.workspaceAiLink} ${
+                activeAiTool ===
+                  "model-lab"
+                  ? styles.workspaceAiLinkActive
+                  : ""
+              }`
+            }
+          >
+            <span
+              aria-hidden="true"
+              className={
+                styles.workspaceAiLinkMark
+              }
+            >
+              ML
+            </span>
+
+            <span>
+              Model Lab
+            </span>
+          </Link>
+
+
+          <Link
+            href="/observability"
+            aria-current={
+              activeAiTool ===
+                "observability"
+                ? "page"
+                : undefined
+            }
+            title="Ouvrir l’observabilité locale"
+            className={
+              `${styles.workspaceAiLink} ${
+                activeAiTool ===
+                  "observability"
+                  ? styles.workspaceAiLinkActive
+                  : ""
+              }`
+            }
+          >
+            <span
+              aria-hidden="true"
+              className={
+                styles.workspaceAiLinkMark
+              }
+            >
+              TR
+            </span>
+
+            <span>
+              Observabilité
+            </span>
+          </Link>
+        </div>
+      </div>
     </nav>
   );
 }

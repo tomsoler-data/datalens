@@ -20,7 +20,7 @@ from pydantic import (
 # ============================================================
 
 ANALYTICAL_CONTRACT_RULE_VERSION = (
-    "analytical_contract_v0.2"
+    "analytical_contract_v0.3"
 )
 
 
@@ -103,6 +103,25 @@ AggregationSourceRole = Literal[
 SortDirection = Literal[
     "ascending",
     "descending",
+]
+
+
+BenchmarkReference = Literal[
+    "overall_aggregate",
+]
+
+
+BenchmarkOperator = Literal[
+    "gt",
+    "gte",
+    "lt",
+    "lte",
+]
+
+
+BenchmarkSelection = Literal[
+    "matching_only",
+    "annotate_all",
 ]
 
 
@@ -306,6 +325,54 @@ class RankingSpec(
         default=10,
         ge=1,
         le=100,
+    )
+
+
+# ============================================================
+# BENCHMARK
+# DATALENS_CANONICAL_BENCHMARK_SPEC_V0_1
+# ============================================================
+
+class BenchmarkSpec(
+    BaseModel
+):
+    """
+    Generic deterministic comparison applied after a grouped
+    aggregation.
+
+    `overall_aggregate` means:
+
+    - reuse the contract aggregation function;
+    - reuse the same aggregation source;
+    - reuse the same analytical population;
+    - suppress the grouping roles for the reference value.
+
+    Example:
+
+        grouped metric:
+            mean(value) by group
+
+        benchmark:
+            reference = overall_aggregate
+            operator = gt
+
+    This is generic analytical vocabulary. Business concepts
+    such as return rate remain outside the canonical core.
+    """
+
+    model_config = ConfigDict(
+        extra="forbid"
+    )
+
+
+    reference: BenchmarkReference = (
+        "overall_aggregate"
+    )
+
+    operator: BenchmarkOperator
+
+    selection: BenchmarkSelection = (
+        "matching_only"
     )
 
 
@@ -578,6 +645,11 @@ class AnalyticalContract(
         | None
     ) = None
 
+    benchmark: (
+        BenchmarkSpec
+        | None
+    ) = None
+
     window: (
         WindowSpec
         | None
@@ -785,7 +857,50 @@ class AnalyticalContract(
                 )
 
 
-        elif (
+        # ====================================================
+        # BENCHMARK INVARIANTS
+        #
+        # Benchmark v0.1 is deliberately a post-aggregation
+        # operation. It is accepted only for grouped aggregation
+        # contracts. Execution support is added separately.
+        # ====================================================
+
+        if (
+            self.benchmark
+            is not None
+        ):
+            if (
+                self.family
+                !=
+                "aggregation"
+            ):
+                raise ValueError(
+                    "BenchmarkSpec v0.1 is supported only for "
+                    "aggregation contracts."
+                )
+
+
+            if (
+                self.aggregation
+                is None
+            ):
+                raise ValueError(
+                    "A benchmark contract requires an "
+                    "AggregationSpec."
+                )
+
+
+            if not (
+                self.aggregation
+                .group_by_roles
+            ):
+                raise ValueError(
+                    "BenchmarkSpec requires at least one grouped "
+                    "aggregation role."
+                )
+
+
+        if (
             self.family ==
             "time_series"
         ):

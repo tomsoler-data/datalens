@@ -54,10 +54,10 @@ def plan() -> RequestedAnalysisPlan:
             "request:derived-revenue",
 
         request_text=
-            "?volution du chiffre d?affaires / moyenne mobile.",
+            "Évolution du chiffre d'affaires / moyenne mobile.",
 
         evidence_quote=
-            "?volution du chiffre d?affaires / moyenne mobile.",
+            "Évolution du chiffre d'affaires / moyenne mobile.",
 
         source_filename=
             "workspace:analysis-follow-up",

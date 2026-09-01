@@ -270,6 +270,76 @@ def _workflow_id_from_scope(
 
     return normalized
 
+def stamp_validated_runtime_workflow_id(
+    *,
+    scope: Scope,
+    workflow_id: str,
+) -> str:
+    """
+    Publish an already server-validated Preparation workflow
+    identifier into trusted ASGI state for RuntimeTrace
+    correlation.
+
+    This helper does NOT prove workflow existence.
+
+    The caller must invoke it only after authoritative
+    server-side workflow validation.
+
+    RuntimeTraceMiddleware remains independent from:
+    - request bodies;
+    - multipart/form-data;
+    - query strings;
+    - path parameters;
+    - incoming headers.
+    """
+
+    if not isinstance(
+        workflow_id,
+        str,
+    ):
+        raise ValueError(
+            "workflow_id must be a string."
+        )
+
+    normalized = (
+        workflow_id.strip()
+    )
+
+    if not _SAFE_WORKFLOW_ID_RE.fullmatch(
+        normalized
+    ):
+        raise ValueError(
+            "workflow_id is not valid for runtime correlation."
+        )
+
+    state = (
+        scope.get(
+            "state"
+        )
+    )
+
+    if state is None:
+        state = {}
+
+        scope[
+            "state"
+        ] = state
+
+    if not isinstance(
+        state,
+        dict,
+    ):
+        raise TypeError(
+            "ASGI scope state must be a mutable mapping."
+        )
+
+    state[
+        RUNTIME_WORKFLOW_ID_STATE_KEY
+    ] = normalized
+
+    return normalized
+
+
 
 def build_runtime_trace(
     *,

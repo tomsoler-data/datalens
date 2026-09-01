@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from fastapi import Request as FastAPIRequest
+
 
 import json
 
@@ -31,6 +33,10 @@ from pydantic import (
     BaseModel,
 )
 
+
+from app.observability.runtime_trace import (
+    stamp_validated_runtime_workflow_id,
+)
 
 from app.analysis.analytical_views import (
     ANALYTICAL_VIEW_RULE_VERSION,
@@ -101,6 +107,10 @@ from app.planning import (
 
 from app.planning.request_coverage import (
     AnalysisRequestCoverageReport,
+)
+
+from app.planning.objective_coverage import (
+    require_objective_coverage,
 )
 
 from app.planning.ai_analytical_planner import (
@@ -3312,6 +3322,33 @@ def run_ai_analytical_tool(
         )
 
 
+        # ====================================================
+        # OBJECTIVE COVERAGE EXECUTION GATE
+        # DATALENS_OBJECTIVE_COVERAGE_EXECUTION_GATE_V0_1
+        #
+        # A Python-valid contract is not sufficient on its own.
+        # Before any deterministic analytical tool may execute,
+        # the union of validated contracts must preserve every
+        # conservative metric / dimension requirement extracted
+        # from the user objective.
+        #
+        # ObjectiveCoverageIncompleteError inherits ValueError
+        # and is therefore mapped by the existing endpoint
+        # boundary to HTTP 422.
+        # ====================================================
+
+        require_objective_coverage(
+            objective=
+                normalized_objective,
+
+            catalog=
+                catalog,
+
+            planner_report=
+                planner_report,
+        )
+
+
         orchestration_report = (
             execute_ai_planner_report(
                 planner_report=
@@ -3382,6 +3419,8 @@ def run_ai_analytical_tool(
         AINativePipelineReport,
 )
 def run_ai_native_pipeline(
+    request: FastAPIRequest = None,
+
     dataset_files: (
         list[
             UploadFile
@@ -3720,6 +3759,21 @@ def run_ai_native_pipeline(
         )
 
 
+        # Publish runtime correlation only after the
+        # authoritative server-owned Preparation handoff.
+        #
+        # request=None intentionally preserves historical
+        # direct Python invocations used in deterministic tests.
+        if request is not None:
+            stamp_validated_runtime_workflow_id(
+                scope=
+                    request.scope,
+
+                workflow_id=
+                    workflow_id,
+            )
+
+
         reject_post_validation_preparation_overrides(
             approved_action_ids_json=
                 approved_action_ids_json,
@@ -3822,6 +3876,27 @@ def run_ai_native_pipeline(
                 model=
                     planner_model,
             )
+        )
+
+
+        # ====================================================
+        # OBJECTIVE COVERAGE EXECUTION GATE
+        # DATALENS_OBJECTIVE_COVERAGE_EXECUTION_GATE_V0_1
+        #
+        # Keep the failure stage as "planner" until semantic
+        # objective coverage has also passed. Qwen tool calling
+        # must never receive an incomplete analytical plan.
+        # ====================================================
+
+        require_objective_coverage(
+            objective=
+                normalized_objective,
+
+            catalog=
+                catalog,
+
+            planner_report=
+                planner_report,
         )
 
 

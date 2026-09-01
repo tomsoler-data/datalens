@@ -216,6 +216,9 @@ def observed_segment_category_failure() -> AIPlannerProposal:
         ranking_limit=None,
         window_operation="none",
         window_size=None,
+        benchmark_reference=None,
+        benchmark_operator=None,
+        benchmark_selection=None,
         blockers=[
             "no_time_series",
             "no_session",
@@ -238,7 +241,7 @@ def main() -> None:
     assert (
         AI_ANALYTICAL_PLANNER_RULE_VERSION
         ==
-        "ai_analytical_planner_v0.27"
+        "ai_analytical_planner_v0.34"
     )
 
     source = next(

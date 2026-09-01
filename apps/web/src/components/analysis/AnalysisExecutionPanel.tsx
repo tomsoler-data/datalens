@@ -13,6 +13,7 @@ import {
 } from "./analysisExecutionPresentation";
 
 import {
+  familyLabel,
   plannerEngineLabel,
 } from "./analysisPlanningPresentation";
 
@@ -62,8 +63,31 @@ export default function AnalysisExecutionPanel({
   objective,
   preparationReadyForAnalysis,
 }: AnalysisExecutionPanelProps) {
+  /*
+   * DATALENS_COMPACT_ANALYSIS_PLANNER_V0_1
+   *
+   * Presentation only:
+   * planner purpose stays visible;
+   * capability metadata is available on demand.
+   */
+  const supportedFamilies =
+    aiNativeReport
+      ?.supported_native_families
+    ??
+    [
+      "quantitative_association",
+      "categorical_association",
+      "group_comparison",
+      "distribution",
+      "time_series",
+    ];
+
+
   return (
 <section
+          className={
+            styles.analysisPlannerPanel
+          }
           aria-labelledby="ai-planner-title"
           style={{
             marginTop:
@@ -298,98 +322,72 @@ export default function AnalysisExecutionPanel({
           }
 
 
-          <div
-            style={{
-              marginTop:
-                "10px",
 
-              display:
-                "grid",
-
-              gap:
-                "8px",
-            }}
+          <details
+            className={
+              styles.analysisPlannerCapabilities
+            }
           >
-            <p
-              style={{
-                margin:
-                  0,
+            <summary>
+              <span>
+                Capacités analytiques
+              </span>
 
-                fontSize:
-                  "0.76rem",
-
-                opacity:
-                  0.62,
-              }}
-            >
-              {
-                activePlannerUi.details
-              }
-            </p>
+              <strong>
+                {
+                  supportedFamilies.length
+                }
+                {" famille"}
+                {
+                  supportedFamilies.length >
+                  1
+                    ? "s"
+                    : ""
+                }
+              </strong>
+            </summary>
 
 
             <div
-              aria-label="Familles analytiques natives supportées"
-              style={{
-                display:
-                  "flex",
-
-                gap:
-                  "6px",
-
-                flexWrap:
-                  "wrap",
-              }}
-            >
-              {
-                (
-                  aiNativeReport
-                    ?.supported_native_families
-                  ??
-                  [
-                    "quantitative_association",
-                    "categorical_association",
-                    "group_comparison",
-                    "distribution",
-                    "time_series",
-                  ]
-                ).map(
-                  (
-                    family
-                  ) => (
-                    <span
-                      key={
-                        family
-                      }
-                      style={{
-                        padding:
-                          "5px 7px",
-
-                        border:
-                          "1px solid rgba(126, 177, 255, 0.15)",
-
-                        borderRadius:
-                          "999px",
-
-                        background:
-                          "rgba(126, 177, 255, 0.035)",
-
-                        fontSize:
-                          "0.67rem",
-
-                        opacity:
-                          0.74,
-                      }}
-                    >
-                      {
-                        family
-                      }
-                    </span>
-                  )
-                )
+              className={
+                styles.analysisPlannerCapabilitiesBody
               }
+            >
+              <p>
+                {
+                  activePlannerUi.details
+                }
+              </p>
+
+
+              <div
+                className={
+                  styles.analysisPlannerFamilyList
+                }
+                aria-label="Capacit?s analytiques disponibles"
+              >
+                {
+                  supportedFamilies.map(
+                    (
+                      family
+                    ) => (
+                      <span
+                        key={
+                          family
+                        }
+                      >
+                        {
+                          familyLabel(
+                            family
+                          )
+                        }
+                      </span>
+                    )
+                  )
+                }
+              </div>
             </div>
-          </div>
+          </details>
 
 
           {

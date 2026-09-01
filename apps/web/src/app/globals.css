@@ -1,74 +1,381 @@
 :root {
-  --background:
-    #050812;
+  /* ==========================================================
+     DATALENS — VISUAL IDENTITY v0.1
+     Lens · Signal · Evidence
+     ========================================================== */
 
-  --surface:
-    #0a0f1d;
+  /* ==========================================================
+     CANVAS
+     ========================================================== */
 
-  --surface-strong:
-    #0d1424;
+  --dl-canvas:
+    #06080d;
 
-  --surface-soft:
+  --dl-canvas-elevated:
+    #080b11;
+
+
+  /* ==========================================================
+     SURFACES
+     ========================================================== */
+
+  --dl-surface-1:
+    #0b0f16;
+
+  --dl-surface-2:
+    #0e141d;
+
+  --dl-surface-3:
+    #121a25;
+
+  --dl-surface-4:
+    #172130;
+
+  --dl-surface-glass:
     rgba(
       14,
-      23,
-      40,
-      0.72
+      20,
+      29,
+      0.82
     );
 
-  --border:
+
+  /* ==========================================================
+     BORDERS
+     ========================================================== */
+
+  --dl-border-subtle:
     rgba(
+      185,
+      200,
+      222,
+      0.08
+    );
+
+  --dl-border:
+    rgba(
+      185,
+      200,
+      222,
+      0.13
+    );
+
+  --dl-border-strong:
+    rgba(
+      185,
+      200,
+      222,
+      0.22
+    );
+
+
+  /* ==========================================================
+     TEXT
+     ========================================================== */
+
+  --dl-text-1:
+    #f5f7fb;
+
+  --dl-text-2:
+    #b9c3d1;
+
+  --dl-text-3:
+    #7f8a9b;
+
+  --dl-text-4:
+    #596577;
+
+
+  /* ==========================================================
+     BRAND — DATALENS
+     ========================================================== */
+
+  --dl-accent:
+    #7ca8ff;
+
+  --dl-accent-hover:
+    #96b9ff;
+
+  --dl-accent-soft:
+    rgba(
+      124,
+      168,
+      255,
+      0.10
+    );
+
+  --dl-accent-medium:
+    rgba(
+      124,
+      168,
+      255,
+      0.18
+    );
+
+  --dl-accent-border:
+    rgba(
+      124,
+      168,
+      255,
+      0.32
+    );
+
+
+  /* ==========================================================
+     SEMANTIC / AI
+     ========================================================== */
+
+  --dl-ai:
+    #aa94ff;
+
+  --dl-ai-soft:
+    rgba(
+      170,
       148,
-      163,
-      184,
+      255,
+      0.11
+    );
+
+
+  /* ==========================================================
+     VALIDATED / DETERMINISTIC
+     ========================================================== */
+
+  --dl-valid:
+    #69d9b6;
+
+  --dl-valid-soft:
+    rgba(
+      105,
+      217,
+      182,
+      0.10
+    );
+
+
+  /* ==========================================================
+     WARNING
+     ========================================================== */
+
+  --dl-warning:
+    #e8bb70;
+
+  --dl-warning-soft:
+    rgba(
+      232,
+      187,
+      112,
+      0.10
+    );
+
+
+  /* ==========================================================
+     DANGER
+     ========================================================== */
+
+  --dl-danger:
+    #ff9199;
+
+  --dl-danger-soft:
+    rgba(
+      255,
+      145,
+      153,
+      0.10
+    );
+
+
+  /* ==========================================================
+     TYPOGRAPHY
+
+     No remote font dependency.
+     DataLens stays local-first.
+     ========================================================== */
+
+  --dl-font-sans:
+    "Segoe UI Variable",
+    "Segoe UI",
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+
+  --dl-font-mono:
+    "Cascadia Code",
+    "SFMono-Regular",
+    Consolas,
+    "Liberation Mono",
+    monospace;
+
+
+  /* ==========================================================
+     SHAPE
+     ========================================================== */
+
+  --dl-radius-xs:
+    6px;
+
+  --dl-radius-sm:
+    9px;
+
+  --dl-radius-md:
+    13px;
+
+  --dl-radius-lg:
+    18px;
+
+  --dl-radius-xl:
+    24px;
+
+
+  /* ==========================================================
+     SHADOW / GLOW
+     ========================================================== */
+
+  --dl-shadow-sm:
+    0 8px 24px
+    rgba(
+      0,
+      0,
+      0,
+      0.18
+    );
+
+  --dl-shadow-md:
+    0 18px 50px
+    rgba(
+      0,
+      0,
+      0,
+      0.25
+    );
+
+  --dl-glow-accent:
+    0 0 32px
+    rgba(
+      124,
+      168,
+      255,
       0.14
     );
 
+
+  /* ==========================================================
+     LAYOUT
+     ========================================================== */
+
+  --dl-app-max:
+    1680px;
+
+  --dl-sidebar-width:
+    236px;
+
+  --dl-topbar-height:
+    68px;
+
+
+  /* ==========================================================
+     LEGACY COMPATIBILITY
+
+     Existing components still reference these variables.
+     They deliberately map onto the new DataLens system.
+     ========================================================== */
+
+  --background:
+    var(
+      --dl-canvas
+    );
+
+  --surface:
+    var(
+      --dl-surface-1
+    );
+
+  --surface-strong:
+    var(
+      --dl-surface-2
+    );
+
+  --surface-soft:
+    var(
+      --dl-surface-glass
+    );
+
+  --border:
+    var(
+      --dl-border
+    );
+
   --border-strong:
-    rgba(
-      148,
-      163,
-      184,
-      0.24
+    var(
+      --dl-border-strong
     );
 
   --text:
-    #f7f9fc;
+    var(
+      --dl-text-1
+    );
 
   --text-soft:
-    #aab5c8;
+    var(
+      --dl-text-2
+    );
 
   --text-muted:
-    #718096;
+    var(
+      --dl-text-3
+    );
 
   --accent:
-    #73a9ff;
+    var(
+      --dl-accent
+    );
 
   --accent-strong:
-    #a4c8ff;
+    var(
+      --dl-accent-hover
+    );
 
   --success:
-    #82d9b6;
+    var(
+      --dl-valid
+    );
 
   --warning:
-    #f0c47b;
+    var(
+      --dl-warning
+    );
 
   --danger:
-    #ff9c9c;
+    var(
+      --dl-danger
+    );
 
   --radius-sm:
-    12px;
+    var(
+      --dl-radius-sm
+    );
 
   --radius-md:
-    18px;
+    var(
+      --dl-radius-md
+    );
 
   --radius-lg:
-    26px;
+    var(
+      --dl-radius-lg
+    );
 
   --container:
     1440px;
 }
 
+
+/* ============================================================
+   RESET
+   ============================================================ */
 
 * {
   box-sizing:
@@ -80,9 +387,12 @@ html {
   min-width:
     320px;
 
+  min-height:
+    100%;
+
   background:
     var(
-      --background
+      --dl-canvas
     );
 
   color-scheme:
@@ -98,24 +408,65 @@ body {
     0;
 
   background:
+    radial-gradient(
+      circle at 48% -18%,
+      rgba(
+        124,
+        168,
+        255,
+        0.10
+      ),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at 82% 6%,
+      rgba(
+        170,
+        148,
+        255,
+        0.035
+      ),
+      transparent 26%
+    ),
     var(
-      --background
+      --dl-canvas
     );
 
   color:
     var(
-      --text
+      --dl-text-1
     );
 
   font-family:
-    Arial,
-    Helvetica,
-    sans-serif;
+    var(
+      --dl-font-sans
+    );
+
+  font-size:
+    14px;
+
+  line-height:
+    1.5;
+
+  font-feature-settings:
+    "ss01" 1,
+    "cv02" 1,
+    "cv03" 1;
+
+  text-rendering:
+    optimizeLegibility;
 
   -webkit-font-smoothing:
     antialiased;
+
+  -moz-osx-font-smoothing:
+    grayscale;
 }
 
+
+/* ============================================================
+   FORM CONTROLS
+   ============================================================ */
 
 button,
 input,
@@ -132,18 +483,166 @@ button {
 }
 
 
-a {
+input,
+textarea,
+select {
   color:
-    inherit;
+    var(
+      --dl-text-1
+    );
 }
 
 
+/* ============================================================
+   LINKS
+   ============================================================ */
+
+a {
+  color:
+    inherit;
+
+  text-decoration:
+    none;
+}
+
+
+/* ============================================================
+   TEXT SELECTION
+   ============================================================ */
+
 ::selection {
+  color:
+    #ffffff;
+
   background:
     rgba(
-      115,
-      169,
+      124,
+      168,
       255,
-      0.28
+      0.30
+    );
+}
+
+
+/* ============================================================
+   SCROLLBAR
+   ============================================================ */
+
+* {
+  scrollbar-width:
+    thin;
+
+  scrollbar-color:
+    rgba(
+      185,
+      200,
+      222,
+      0.18
+    )
+    transparent;
+}
+
+
+*::-webkit-scrollbar {
+  width:
+    8px;
+
+  height:
+    8px;
+}
+
+
+*::-webkit-scrollbar-track {
+  background:
+    transparent;
+}
+
+
+*::-webkit-scrollbar-thumb {
+  border:
+    2px solid
+    transparent;
+
+  border-radius:
+    999px;
+
+  background:
+    rgba(
+      185,
+      200,
+      222,
+      0.18
+    );
+
+  background-clip:
+    padding-box;
+}
+
+
+*::-webkit-scrollbar-thumb:hover {
+  background:
+    rgba(
+      185,
+      200,
+      222,
+      0.30
+    );
+
+  background-clip:
+    padding-box;
+}
+
+
+/* ============================================================
+   DATALENS UTILITY SIGNALS
+   ============================================================ */
+
+.dl-mono {
+  font-family:
+    var(
+      --dl-font-mono
+    );
+
+  font-variant-numeric:
+    tabular-nums;
+}
+
+
+.dl-data-signal {
+  color:
+    var(
+      --dl-accent
+    );
+}
+
+
+.dl-ai-signal {
+  color:
+    var(
+      --dl-ai
+    );
+}
+
+
+.dl-valid-signal {
+  color:
+    var(
+      --dl-valid
+    );
+}
+
+
+.dl-warning-signal {
+  color:
+    var(
+      --dl-warning
+    );
+}
+
+
+.dl-danger-signal {
+  color:
+    var(
+      --dl-danger
     );
 }

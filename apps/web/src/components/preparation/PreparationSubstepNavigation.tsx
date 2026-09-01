@@ -701,6 +701,13 @@ export default function PreparationSubstepNavigation({
             styles.progress
           }
         >
+          {/*
+           * DATALENS_PREPARATION_VIEW_COUNTER_V0_1
+           *
+           * This is the currently displayed preparation view,
+           * not the global workflow completion ratio.
+           */}
+          {"Vue "}
           {
             STEPS.findIndex(
               (

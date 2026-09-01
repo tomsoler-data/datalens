@@ -36,9 +36,17 @@ from app.planning.analytical_contract import (
     AggregationSpec,
     AnalysisFamily,
     AnalyticalContract,
+    BenchmarkSpec,
     RankingSpec,
     VariableBinding,
     WindowSpec,
+)
+
+
+from app.planning.objective_coverage import (
+    ObjectiveCoverageReport,
+    build_objective_coverage,
+    validated_contracts_from_planner_report,
 )
 
 
@@ -47,7 +55,7 @@ from app.planning.analytical_contract import (
 # ============================================================
 
 AI_ANALYTICAL_PLANNER_RULE_VERSION = (
-    "ai_analytical_planner_v0.27"
+    "ai_analytical_planner_v0.34"
 )
 
 
@@ -264,6 +272,26 @@ WireWindowOperation = Literal[
 ]
 
 
+
+WireBenchmarkReference = Literal[
+    "overall_aggregate",
+]
+
+
+WireBenchmarkOperator = Literal[
+    "gt",
+    "gte",
+    "lt",
+    "lte",
+]
+
+
+WireBenchmarkSelection = Literal[
+    "matching_only",
+    "annotate_all",
+]
+
+
 class AIPlannerProposal(
     BaseModel
 ):
@@ -346,6 +374,22 @@ class AIPlannerProposal(
         int
         | None
     )
+
+    benchmark_reference: (
+        WireBenchmarkReference
+        | None
+    )
+
+    benchmark_operator: (
+        WireBenchmarkOperator
+        | None
+    )
+
+    benchmark_selection: (
+        WireBenchmarkSelection
+        | None
+    )
+
 
     blockers: list[
         str
@@ -1069,6 +1113,72 @@ RÈGLES DE SÉCURITÉ :
 - confidence évalue la confiance dans le PLAN, pas dans un résultat.
 - Ne propose pas d'analyses supplémentaires non demandées.
 
+BENCHMARK DÉTERMINISTE
+
+Les trois champs suivants doivent TOUJOURS être présents
+dans chaque proposition JSON :
+- benchmark_reference
+- benchmark_operator
+- benchmark_selection
+
+Sans benchmark demandé :
+benchmark_reference = null
+benchmark_operator = null
+benchmark_selection = null
+
+Un benchmark actif est autorisé UNIQUEMENT avec :
+family = aggregation
+
+Pour comparer une métrique agrégée par groupe avec la même
+métrique calculée sur l'ensemble de la population analytique :
+
+benchmark_reference = overall_aggregate
+
+Opérateurs :
+- strictement supérieur à = gt
+- supérieur ou égal à = gte
+- strictement inférieur à = lt
+- inférieur ou égal à = lte
+
+Sélection :
+- matching_only : retourne uniquement les groupes qui satisfont
+  la comparaison
+- annotate_all : conserve tous les groupes lorsque la demande
+  exige explicitement une annotation de comparaison
+
+Le benchmark réutilise EXACTEMENT :
+- le même dataset
+- la même population analytique
+- la même aggregation_function
+- la même source d'agrégation
+
+La référence overall_aggregate supprime uniquement le groupement.
+
+"Supérieur à la moyenne" n'est PAS un ranking.
+C'est une agrégation groupée avec benchmark overall_aggregate.
+
+
+DECISION COVERAGE
+
+"plus performant", "plus performants", "plus performante" ou
+"plus performantes" exprime un classement relatif :
+- family = ranking
+- ranking_order = descending
+- benchmark_reference = null
+- benchmark_operator = null
+- benchmark_selection = null
+
+Une demande vague comme "performance selon le pays" ne suffit PAS
+à inventer un classement.
+
+"supérieur à la moyenne" exprime au contraire un benchmark :
+- family = aggregation
+- benchmark_reference = overall_aggregate
+- benchmark_operator = gt
+- benchmark_selection = matching_only
+
+Ranking et benchmark sont deux décisions analytiques distinctes.
+
 EXEMPLE 1
 
 Catalogue :
@@ -1095,6 +1205,9 @@ ranking_order = none
 ranking_limit = null
 window_operation = none
 window_size = null
+benchmark_reference = null
+benchmark_operator = null
+benchmark_selection = null
 blockers = []
 
 EXEMPLE 2
@@ -1123,6 +1236,9 @@ ranking_order = none
 ranking_limit = null
 window_operation = none
 window_size = null
+benchmark_reference = null
+benchmark_operator = null
+benchmark_selection = null
 blockers = []
 
 EXEMPLE 3
@@ -1151,6 +1267,9 @@ ranking_order = none
 ranking_limit = null
 window_operation = none
 window_size = null
+benchmark_reference = null
+benchmark_operator = null
+benchmark_selection = null
 blockers = []
 
 EXEMPLE 4
@@ -1179,6 +1298,9 @@ ranking_order = none
 ranking_limit = null
 window_operation = none
 window_size = null
+benchmark_reference = null
+benchmark_operator = null
+benchmark_selection = null
 blockers = []
 
 EXEMPLE 5
@@ -1206,6 +1328,9 @@ ranking_order = none
 ranking_limit = null
 window_operation = none
 window_size = null
+benchmark_reference = null
+benchmark_operator = null
+benchmark_selection = null
 blockers = []
 
 EXEMPLE 6
@@ -1237,6 +1362,9 @@ value_column = unit_price
 aggregation_function = mean
 ranking_order = descending
 ranking_limit = 1
+benchmark_reference = null
+benchmark_operator = null
+benchmark_selection = null
 tous les autres rôles de colonnes = null
 
 EXEMPLE 8
@@ -1258,7 +1386,43 @@ value_column = list_price
 aggregation_function = mean
 ranking_order = descending
 ranking_limit = 2
+benchmark_reference = null
+benchmark_operator = null
+benchmark_selection = null
 tous les autres rôles de colonnes = null
+
+
+EXEMPLE 9
+
+Catalogue :
+dataset:hr
+department = categorical
+salary = quantitative
+
+Objectif :
+"Quels départements ont un salaire moyen supérieur à la moyenne globale ?"
+
+Sortie conceptuelle :
+decision = propose
+family = aggregation
+dataset_id = dataset:hr
+group_column = department
+value_column = salary
+x_column = null
+y_column = null
+time_column = null
+dimension_column = null
+entity_column = null
+aggregation_function = mean
+ranking_order = none
+ranking_limit = null
+window_operation = none
+window_size = null
+benchmark_reference = overall_aggregate
+benchmark_operator = gt
+benchmark_selection = matching_only
+blockers = []
+
 
 Retourne uniquement la structure JSON imposée.
 """.strip()
@@ -1440,6 +1604,18 @@ def build_user_prompt(
         "dimension temporelle et value_column pour la mesure ; "
         "x_column, y_column, group_column et dimension_column doivent "
         "être null.\n"
+        "Les champs benchmark_reference, benchmark_operator et "
+        "benchmark_selection sont toujours requis dans le JSON. "
+        "Sans benchmark, mets les trois à null. Un benchmark actif "
+        "exige family=aggregation et une agrégation groupée. "
+        "overall_aggregate compare chaque groupe à la même agrégation "
+        "calculée sur la population globale. Une demande du type "
+        "supérieur à la moyenne doit utiliser ce benchmark, jamais "
+        "un ranking.\n"
+        "\"plus performants\" ou une forme équivalente exige un "
+        "ranking descendant. Une simple demande de performance ne suffit "
+        "pas à inventer un classement. \"supérieur à la moyenne\" exige "
+        "au contraire une agrégation groupée avec overall_aggregate.\n"
         "Les lignes ANALYTICAL_VIEW décrivent des vues déterministes "
         "server-owned. Respecte EXACTEMENT leur dataset_id, leur grain, "
         "leur group/entity et leur target_measure. Une vue "
@@ -5541,6 +5717,35 @@ def canonicalize_categorical_additive_view_from_objective(
         return proposal, []
 
 
+    # ========================================================
+    # ADDITIVE AGGREGATION AUTHORITY
+    #
+    # A categorical_additive_measure is physically a
+    # server-owned groupby_sum view. It must therefore never
+    # replace an explicitly requested mean / median / min / max.
+    #
+    # explicit_aggregation == 'none' remains allowed because
+    # requests such as 'CA par pays' intentionally rely on the
+    # additive semantics declared by the view provenance.
+    # ========================================================
+
+    explicit_aggregation = (
+        explicit_aggregation_from_objective(
+            objective
+        )
+    )
+
+
+    if (
+        explicit_aggregation
+        not in {
+            "none",
+            "sum",
+        }
+    ):
+        return proposal, []
+
+
     candidates: list[
         PlannerDatasetProfile
     ] = []
@@ -5997,6 +6202,33 @@ def canonicalize_analytical_view_intent(
         return proposal, []
 
 
+    # ========================================================
+    # ADDITIVE AGGREGATION AUTHORITY
+    #
+    # If the objective explicitly requests a non-additive
+    # aggregation, do not promote a categorical groupby_sum
+    # view even when the model selected that derived dataset.
+    # Ordinary deterministic validation remains responsible
+    # for accepting or rejecting the untouched proposal.
+    # ========================================================
+
+    explicit_aggregation = (
+        explicit_aggregation_from_objective(
+            objective
+        )
+    )
+
+
+    if (
+        explicit_aggregation
+        not in {
+            "none",
+            "sum",
+        }
+    ):
+        return proposal, []
+
+
     dataset = catalog_index(
         catalog
     ).get(
@@ -6303,9 +6535,166 @@ def explicit_aggregation_from_objective(
     return "none"
 
 
+
+def explicit_benchmark_operator_from_objective(
+    objective: str,
+) -> (
+    WireBenchmarkOperator
+    | None
+):
+    """
+    Detect only explicit same-population benchmark language.
+
+    A bare occurrence of moyenne / mean / average is not
+    sufficient because these words may simply describe the
+    aggregation function.
+
+    The comparison itself must be explicit.
+    """
+
+    normalized = " ".join(
+        normalized_objective_tokens(
+            objective
+        )
+    )
+
+
+    gte_patterns = [
+        (
+            r"\bsuperieur(?:e|s|es)? "
+            r"ou egal(?:e|s|es)? "
+            r"a la moyenne\b"
+        ),
+        (
+            r"\bau dessus ou egal(?:e|s|es)? "
+            r"a la moyenne\b"
+        ),
+        (
+            r"\bgreater than or equal to "
+            r"(?:the )?(?:average|mean)\b"
+        ),
+        (
+            r"\bat least "
+            r"(?:the )?(?:average|mean)\b"
+        ),
+    ]
+
+
+    lte_patterns = [
+        (
+            r"\binferieur(?:e|s|es)? "
+            r"ou egal(?:e|s|es)? "
+            r"a la moyenne\b"
+        ),
+        (
+            r"\ben dessous ou egal(?:e|s|es)? "
+            r"a la moyenne\b"
+        ),
+        (
+            r"\bless than or equal to "
+            r"(?:the )?(?:average|mean)\b"
+        ),
+        (
+            r"\bat most "
+            r"(?:the )?(?:average|mean)\b"
+        ),
+    ]
+
+
+    gt_patterns = [
+        (
+            r"\bsuperieur(?:e|s|es)? "
+            r"a la moyenne\b"
+        ),
+        (
+            r"\bau dessus de la moyenne\b"
+        ),
+        (
+            r"\babove "
+            r"(?:the )?(?:average|mean)\b"
+        ),
+        (
+            r"\bhigher than "
+            r"(?:the )?(?:average|mean)\b"
+        ),
+        (
+            r"\bgreater than "
+            r"(?:the )?(?:average|mean)\b"
+        ),
+    ]
+
+
+    lt_patterns = [
+        (
+            r"\binferieur(?:e|s|es)? "
+            r"a la moyenne\b"
+        ),
+        (
+            r"\ben dessous de la moyenne\b"
+        ),
+        (
+            r"\bbelow "
+            r"(?:the )?(?:average|mean)\b"
+        ),
+        (
+            r"\blower than "
+            r"(?:the )?(?:average|mean)\b"
+        ),
+        (
+            r"\bless than "
+            r"(?:the )?(?:average|mean)\b"
+        ),
+    ]
+
+
+    for pattern in gte_patterns:
+        if re.search(
+            pattern,
+            normalized,
+        ):
+            return "gte"
+
+
+    for pattern in lte_patterns:
+        if re.search(
+            pattern,
+            normalized,
+        ):
+            return "lte"
+
+
+    for pattern in gt_patterns:
+        if re.search(
+            pattern,
+            normalized,
+        ):
+            return "gt"
+
+
+    for pattern in lt_patterns:
+        if re.search(
+            pattern,
+            normalized,
+        ):
+            return "lt"
+
+
+    return None
+
+
 def explicit_ranking_order_from_objective(
     objective: str,
 ) -> WireRankingOrder:
+    # Benchmark language has semantic priority over ranking.
+    if (
+        explicit_benchmark_operator_from_objective(
+            objective
+        )
+        is not None
+    ):
+        return "none"
+
+
     normalized = " ".join(
         normalized_objective_tokens(
             objective
@@ -6317,8 +6706,14 @@ def explicit_ranking_order_from_objective(
         r"\bplus (?:eleve|elevee|eleves|elevees)\b",
         r"\bplus (?:haut|haute|hauts|hautes)\b",
         r"\bplus (?:grand|grande|grands|grandes)\b",
+
+        # Explicit comparative performance only.
+        r"\bplus performant(?:e|s|es)?\b",
+
         r"\bhighest\b",
         r"\blargest\b",
+        r"\bbest performing\b",
+        r"\bmost performant\b",
         r"\btop\b",
         r"\bdecroissant(?:e|es|s)?\b",
         r"\bdescending\b",
@@ -6329,8 +6724,13 @@ def explicit_ranking_order_from_objective(
         r"\bplus (?:faible|faibles)\b",
         r"\bplus (?:bas|basse|basses)\b",
         r"\bplus (?:petit|petite|petits|petites)\b",
+
+        r"\bmoins performant(?:e|s|es)?\b",
+
         r"\blowest\b",
         r"\bsmallest\b",
+        r"\bworst performing\b",
+        r"\bleast performant\b",
         r"\bcroissant(?:e|es|s)?\b",
         r"\bascending\b",
     ]
@@ -6353,6 +6753,7 @@ def explicit_ranking_order_from_objective(
 
 
     return "none"
+
 
 
 def explicit_ranking_limit_from_objective(
@@ -6461,6 +6862,7 @@ def explicit_ranking_limit_from_objective(
     return 10
 
 
+
 def canonicalize_aggregation_ranking_intent(
     *,
     objective: str,
@@ -6495,7 +6897,9 @@ def canonicalize_aggregation_ranking_intent(
         return proposal, []
 
 
-    normalizations: list[str] = []
+    normalizations: list[
+        str
+    ] = []
 
 
     explicit_aggregation = (
@@ -6511,19 +6915,34 @@ def canonicalize_aggregation_ranking_intent(
 
 
     if (
-        explicit_aggregation != "none"
+        explicit_aggregation
+        !=
+        "none"
         and
-        aggregation_function != explicit_aggregation
+        aggregation_function
+        !=
+        explicit_aggregation
     ):
-        aggregation_function = explicit_aggregation
+        aggregation_function = (
+            explicit_aggregation
+        )
+
         normalizations.append(
-            "Python a confirmé l'agrégation explicitement "
-            "demandée dans l'objectif : "
-            f"aggregation={aggregation_function}."
+            (
+                "Python confirmed the aggregation explicitly "
+                "requested by the objective: "
+                f"aggregation={aggregation_function}."
+            )
         )
 
 
-    categorical_candidates: list[str] = []
+    # ========================================================
+    # CATEGORICAL GROUP / DIMENSION CANDIDATES
+    # ========================================================
+
+    categorical_candidates: list[
+        str
+    ] = []
 
 
     for candidate_name in [
@@ -6562,13 +6981,27 @@ def canonicalize_aggregation_ranking_intent(
 
 
     dimension_column = (
-        categorical_candidates[0]
-        if len(categorical_candidates) == 1
+        categorical_candidates[
+            0
+        ]
+        if (
+            len(
+                categorical_candidates
+            )
+            ==
+            1
+        )
         else None
     )
 
 
-    quantitative_candidates: list[str] = []
+    # ========================================================
+    # QUANTITATIVE VALUE CANDIDATES
+    # ========================================================
+
+    quantitative_candidates: list[
+        str
+    ] = []
 
 
     for candidate_name in [
@@ -6581,7 +7014,9 @@ def canonicalize_aggregation_ranking_intent(
         if (
             not candidate_name
             or
-            candidate_name == dimension_column
+            candidate_name
+            ==
+            dimension_column
         ):
             continue
 
@@ -6613,13 +7048,269 @@ def canonicalize_aggregation_ranking_intent(
 
     value_column = (
         proposal.value_column
-        if proposal.value_column in quantitative_candidates
+
+        if (
+            proposal.value_column
+            in
+            quantitative_candidates
+        )
+
         else (
-            quantitative_candidates[0]
-            if len(quantitative_candidates) == 1
+            quantitative_candidates[
+                0
+            ]
+
+            if (
+                len(
+                    quantitative_candidates
+                )
+                ==
+                1
+            )
+
             else None
         )
     )
+
+
+    # ========================================================
+    # BENCHMARK DECISION COVERAGE
+    #
+    # Priority over ranking.
+    # ========================================================
+
+    benchmark_operator = (
+        explicit_benchmark_operator_from_objective(
+            objective
+        )
+    )
+
+
+    if (
+        benchmark_operator
+        is not None
+        and
+        aggregation_function
+        !=
+        "none"
+        and
+        dimension_column
+        is not None
+        and
+        (
+            value_column
+            is not None
+            or
+            aggregation_function
+            ==
+            "count"
+        )
+    ):
+        normalizations.append(
+            (
+                "Python normalized an explicit benchmark "
+                "objective: "
+                f"group={dimension_column}, "
+                f"value={value_column}, "
+                f"aggregation={aggregation_function}, "
+                "reference=overall_aggregate, "
+                f"operator={benchmark_operator}."
+            )
+        )
+
+
+        return (
+            proposal.model_copy(
+                update={
+                    "family":
+                        "aggregation",
+
+                    "x_column":
+                        None,
+
+                    "y_column":
+                        None,
+
+                    "group_column":
+                        dimension_column,
+
+                    "value_column":
+                        value_column,
+
+                    "time_column":
+                        None,
+
+                    "dimension_column":
+                        None,
+
+                    "entity_column":
+                        None,
+
+                    "aggregation_function":
+                        aggregation_function,
+
+                    "ranking_order":
+                        "none",
+
+                    "ranking_limit":
+                        None,
+
+                    "window_operation":
+                        "none",
+
+                    "window_size":
+                        None,
+
+                    "benchmark_reference":
+                        "overall_aggregate",
+
+                    "benchmark_operator":
+                        benchmark_operator,
+
+                    "benchmark_selection":
+                        "matching_only",
+                }
+            ),
+            normalizations,
+        )
+
+
+    # ========================================================
+    # RANKING DECISION COVERAGE
+    # ========================================================
+
+    # ========================================================
+    # EXPLICIT AGGREGATION BINDING RECOVERY
+    #
+    # If an explicitly aggregated request still lacks a
+    # required role after validating the LLM wire, recover
+    # only from exactly two physical columns resolved from
+    # the objective itself.
+    #
+    # Required topology:
+    #   exactly one categorical column
+    #   exactly one quantitative column
+    #
+    # No recovery for vague, one-column or 3+-column requests.
+    # ========================================================
+
+    if (
+        explicit_aggregation != "none"
+        and
+        (
+            dimension_column is None
+            or
+            (
+                value_column is None
+                and
+                explicit_aggregation != "count"
+            )
+        )
+    ):
+        objective_mentions = (
+            objective_schema_column_mentions(
+                objective=objective,
+                dataset=dataset,
+            )
+        )
+
+
+        if len(objective_mentions) == 2:
+            objective_profiles = [
+                find_column(
+                    dataset,
+                    column_name,
+                )
+                for column_name
+                in objective_mentions
+            ]
+
+
+            if all(
+                profile is not None
+                for profile
+                in objective_profiles
+            ):
+                objective_categorical = [
+                    profile.name
+                    for profile
+                    in objective_profiles
+                    if (
+                        profile is not None
+                        and
+                        is_categorical(
+                            profile.analysis_kind
+                        )
+                    )
+                ]
+
+
+                objective_quantitative = [
+                    profile.name
+                    for profile
+                    in objective_profiles
+                    if (
+                        profile is not None
+                        and
+                        is_quantitative(
+                            profile.analysis_kind
+                        )
+                    )
+                ]
+
+
+                if (
+                    len(objective_categorical) == 1
+                    and
+                    len(objective_quantitative) == 1
+                ):
+                    recovered_dimension = (
+                        objective_categorical[0]
+                    )
+
+
+                    recovered_value = (
+                        objective_quantitative[0]
+                    )
+
+
+                    changed_roles = []
+
+
+                    if dimension_column is None:
+                        dimension_column = (
+                            recovered_dimension
+                        )
+                        changed_roles.append(
+                            "group"
+                        )
+
+
+                    if (
+                        value_column is None
+                        and
+                        explicit_aggregation != "count"
+                    ):
+                        value_column = (
+                            recovered_value
+                        )
+                        changed_roles.append(
+                            "value"
+                        )
+
+
+                    if changed_roles:
+                        normalizations.append(
+                            (
+                                "Python recovered explicit "
+                                "aggregation bindings from exactly "
+                                "two objective-resolved physical "
+                                "columns: "
+                                f"group={recovered_dimension}, "
+                                f"value={recovered_value}, "
+                                f"aggregation={aggregation_function}."
+                            )
+                        )
 
 
     ranking_order = (
@@ -6632,105 +7323,199 @@ def canonicalize_aggregation_ranking_intent(
     ranking_limit = (
         explicit_ranking_limit_from_objective(
             objective,
-            ranking_order=ranking_order,
+            ranking_order=(
+                ranking_order
+            ),
         )
     )
 
 
     if (
-        ranking_order != "none"
+        ranking_order
+        !=
+        "none"
         and
-        aggregation_function != "none"
+        aggregation_function
+        !=
+        "none"
         and
-        dimension_column is not None
+        dimension_column
+        is not None
         and
         (
-            value_column is not None
+            value_column
+            is not None
             or
-            aggregation_function == "count"
+            aggregation_function
+            ==
+            "count"
         )
     ):
         normalizations.append(
-            "Python a normalisé une intention de classement "
-            "explicitement formulée : "
-            f"dimension={dimension_column}, "
-            f"value={value_column}, "
-            f"aggregation={aggregation_function}, "
-            f"order={ranking_order}, "
-            f"limit={ranking_limit}."
+            (
+                "Python normalized an explicitly formulated "
+                "ranking objective: "
+                f"dimension={dimension_column}, "
+                f"value={value_column}, "
+                f"aggregation={aggregation_function}, "
+                f"order={ranking_order}, "
+                f"limit={ranking_limit}."
+            )
         )
 
 
         return (
             proposal.model_copy(
                 update={
-                    "family": "ranking",
-                    "x_column": None,
-                    "y_column": None,
-                    "group_column": None,
-                    "value_column": value_column,
-                    "time_column": None,
-                    "dimension_column": dimension_column,
-                    "entity_column": None,
-                    "aggregation_function": aggregation_function,
-                    "ranking_order": ranking_order,
-                    "ranking_limit": ranking_limit,
-                    "window_operation": "none",
-                    "window_size": None,
+                    "family":
+                        "ranking",
+
+                    "x_column":
+                        None,
+
+                    "y_column":
+                        None,
+
+                    "group_column":
+                        None,
+
+                    "value_column":
+                        value_column,
+
+                    "time_column":
+                        None,
+
+                    "dimension_column":
+                        dimension_column,
+
+                    "entity_column":
+                        None,
+
+                    "aggregation_function":
+                        aggregation_function,
+
+                    "ranking_order":
+                        ranking_order,
+
+                    "ranking_limit":
+                        ranking_limit,
+
+                    "window_operation":
+                        "none",
+
+                    "window_size":
+                        None,
+
+                    # Ranking and benchmark are mutually exclusive.
+                    "benchmark_reference":
+                        None,
+
+                    "benchmark_operator":
+                        None,
+
+                    "benchmark_selection":
+                        None,
                 }
             ),
             normalizations,
         )
 
 
+    # ========================================================
+    # EXPLICIT GROUPED AGGREGATION
+    # WITHOUT BENCHMARK
+    # ========================================================
+
     if (
-        explicit_aggregation != "none"
+        explicit_aggregation
+        !=
+        "none"
         and
-        proposal.family in {
+        proposal.family
+        in {
             "group_comparison",
             "aggregation",
         }
         and
-        dimension_column is not None
+        dimension_column
+        is not None
         and
         (
-            value_column is not None
+            value_column
+            is not None
             or
-            aggregation_function == "count"
+            aggregation_function
+            ==
+            "count"
         )
     ):
         normalizations.append(
-            "Python a normalisé une demande descriptive "
-            "explicitement agrégée vers `aggregation` : "
-            f"group={dimension_column}, "
-            f"value={value_column}, "
-            f"aggregation={aggregation_function}."
+            (
+                "Python normalized an explicitly aggregated "
+                "descriptive objective to `aggregation`: "
+                f"group={dimension_column}, "
+                f"value={value_column}, "
+                f"aggregation={aggregation_function}."
+            )
         )
 
 
         return (
             proposal.model_copy(
                 update={
-                    "family": "aggregation",
-                    "x_column": None,
-                    "y_column": None,
-                    "group_column": dimension_column,
-                    "value_column": value_column,
-                    "time_column": None,
-                    "dimension_column": None,
-                    "entity_column": None,
-                    "aggregation_function": aggregation_function,
-                    "ranking_order": "none",
-                    "ranking_limit": None,
-                    "window_operation": "none",
-                    "window_size": None,
+                    "family":
+                        "aggregation",
+
+                    "x_column":
+                        None,
+
+                    "y_column":
+                        None,
+
+                    "group_column":
+                        dimension_column,
+
+                    "value_column":
+                        value_column,
+
+                    "time_column":
+                        None,
+
+                    "dimension_column":
+                        None,
+
+                    "entity_column":
+                        None,
+
+                    "aggregation_function":
+                        aggregation_function,
+
+                    "ranking_order":
+                        "none",
+
+                    "ranking_limit":
+                        None,
+
+                    "window_operation":
+                        "none",
+
+                    "window_size":
+                        None,
+
+                    # No explicit benchmark cue.
+
+
                 }
             ),
             normalizations,
         )
 
 
-    return proposal, normalizations
+    return (
+        proposal,
+        normalizations,
+    )
+
 
 
 def apply_deterministic_abstention_guards(
@@ -7063,6 +7848,391 @@ def apply_deterministic_abstention_guards(
     )
 
 
+
+
+# ============================================================
+# DETERMINISTIC DECISION COVERAGE
+# DATALENS_DECISION_COVERAGE_V0_1
+# ============================================================
+
+def decision_coverage_errors(
+    *,
+    objective: str,
+    proposal: AIPlannerProposal,
+) -> list[
+    str
+]:
+    errors: list[
+        str
+    ] = []
+
+
+    fidelity_prefix = (
+        "FID\u00c9LIT\u00c9 OBJECTIF: "
+    )
+
+
+    expected_benchmark_operator = (
+        explicit_benchmark_operator_from_objective(
+            objective
+        )
+    )
+
+
+    benchmark_values = (
+        proposal.benchmark_reference,
+        proposal.benchmark_operator,
+        proposal.benchmark_selection,
+    )
+
+
+    benchmark_active = any(
+        value is not None
+        for value
+        in benchmark_values
+    )
+
+
+    # ========================================================
+    # EXPLICIT BENCHMARK REQUIRED
+    # ========================================================
+
+    if (
+        expected_benchmark_operator
+        is not None
+    ):
+        if (
+            proposal.family
+            !=
+            "aggregation"
+        ):
+            errors.append(
+                (
+                    fidelity_prefix
+                    +
+                    "explicit benchmark language requires "
+                    "family=aggregation."
+                )
+            )
+
+
+        if (
+            proposal.benchmark_reference
+            !=
+            "overall_aggregate"
+        ):
+            errors.append(
+                (
+                    fidelity_prefix
+                    +
+                    "explicit comparison to the average requires "
+                    "benchmark_reference=overall_aggregate."
+                )
+            )
+
+
+        if (
+            proposal.benchmark_operator
+            !=
+            expected_benchmark_operator
+        ):
+            errors.append(
+                (
+                    fidelity_prefix
+                    +
+                    "benchmark operator does not preserve the "
+                    "explicit comparison requested by the user: "
+                    f"expected={expected_benchmark_operator}, "
+                    f"actual={proposal.benchmark_operator}."
+                )
+            )
+
+
+        if (
+            proposal.benchmark_selection
+            !=
+            "matching_only"
+        ):
+            errors.append(
+                (
+                    fidelity_prefix
+                    +
+                    "this explicit threshold request requires "
+                    "benchmark_selection=matching_only."
+                )
+            )
+
+
+    # ========================================================
+    # UNSOLICITED BENCHMARK
+    # ========================================================
+
+    elif benchmark_active:
+        errors.append(
+            (
+                fidelity_prefix
+                +
+                "the planner emitted a benchmark although the "
+                "objective contains no supported explicit "
+                "benchmark comparison."
+            )
+        )
+
+
+    # ========================================================
+    # EXPLICIT RANKING REQUIRED
+    # ========================================================
+
+    expected_ranking_order = (
+        explicit_ranking_order_from_objective(
+            objective
+        )
+    )
+
+
+    if (
+        expected_ranking_order
+        !=
+        "none"
+    ):
+        if (
+            proposal.family
+            !=
+            "ranking"
+        ):
+            errors.append(
+                (
+                    fidelity_prefix
+                    +
+                    "explicit ranking language requires "
+                    "family=ranking."
+                )
+            )
+
+
+        if (
+            proposal.ranking_order
+            !=
+            expected_ranking_order
+        ):
+            errors.append(
+                (
+                    fidelity_prefix
+                    +
+                    "ranking order does not preserve the "
+                    "explicit objective: "
+                    f"expected={expected_ranking_order}, "
+                    f"actual={proposal.ranking_order}."
+                )
+            )
+
+
+        if (
+            proposal.ranking_limit
+            is None
+        ):
+            errors.append(
+                (
+                    fidelity_prefix
+                    +
+                    "an explicit ranking objective requires "
+                    "ranking_limit."
+                )
+            )
+
+
+        if benchmark_active:
+            errors.append(
+                (
+                    fidelity_prefix
+                    +
+                    "an explicit ranking objective must not "
+                    "carry benchmark semantics."
+                )
+            )
+
+
+    return errors
+
+
+# ============================================================
+# BENCHMARK WIRE
+# DATALENS_AI_PLANNER_BENCHMARK_WIRE_V0_1
+# ============================================================
+
+BENCHMARK_WIRE_FIELDS = (
+    "benchmark_reference",
+    "benchmark_operator",
+    "benchmark_selection",
+)
+
+
+def benchmark_wire_errors(
+    proposal: AIPlannerProposal,
+) -> list[
+    str
+]:
+    values = (
+        proposal.benchmark_reference,
+        proposal.benchmark_operator,
+        proposal.benchmark_selection,
+    )
+
+
+    if all(
+        value is None
+        for value
+        in values
+    ):
+        return []
+
+
+    if any(
+        value is None
+        for value
+        in values
+    ):
+        return [
+            (
+                "BENCHMARK WIRE: reference, operator and selection "
+                "must be either all null or all explicitly populated."
+            )
+        ]
+
+
+    errors: list[
+        str
+    ] = []
+
+
+    if (
+        proposal.decision
+        !=
+        "propose"
+    ):
+        errors.append(
+            (
+                "BENCHMARK WIRE: blocked or ambiguous proposals "
+                "cannot carry an executable benchmark."
+            )
+        )
+
+
+    if (
+        proposal.family
+        !=
+        "aggregation"
+    ):
+        errors.append(
+            (
+                "BENCHMARK WIRE: BenchmarkSpec is supported only "
+                "for aggregation proposals."
+            )
+        )
+
+
+    if (
+        proposal.aggregation_function
+        ==
+        "none"
+    ):
+        errors.append(
+            (
+                "BENCHMARK WIRE: an active benchmark requires "
+                "an aggregation_function."
+            )
+        )
+
+
+    if (
+        proposal.group_column
+        is None
+        and
+        proposal.dimension_column
+        is None
+    ):
+        errors.append(
+            (
+                "BENCHMARK WIRE: an active benchmark requires "
+                "at least one grouped aggregation role."
+            )
+        )
+
+
+    return errors
+
+
+def clear_benchmark_wire(
+    proposal: AIPlannerProposal,
+) -> AIPlannerProposal:
+    if (
+        proposal.benchmark_reference
+        is None
+        and
+        proposal.benchmark_operator
+        is None
+        and
+        proposal.benchmark_selection
+        is None
+    ):
+        return proposal
+
+
+    return proposal.model_copy(
+        update={
+            "benchmark_reference":
+                None,
+
+            "benchmark_operator":
+                None,
+
+            "benchmark_selection":
+                None,
+        }
+    )
+
+
+def build_benchmark(
+    proposal: AIPlannerProposal,
+) -> (
+    BenchmarkSpec
+    | None
+):
+    errors = (
+        benchmark_wire_errors(
+            proposal
+        )
+    )
+
+
+    if errors:
+        raise ValueError(
+            "; ".join(
+                errors
+            )
+        )
+
+
+    if (
+        proposal.benchmark_reference
+        is None
+    ):
+        return None
+
+
+    return BenchmarkSpec(
+        reference=(
+            proposal.benchmark_reference
+        ),
+        operator=(
+            proposal.benchmark_operator
+        ),
+        selection=(
+            proposal.benchmark_selection
+        ),
+    )
+
+
 # ============================================================
 # CONTRACT ID
 # ============================================================
@@ -7073,15 +8243,38 @@ def build_contract_id(
     proposal: AIPlannerProposal,
     proposal_index: int,
 ) -> str:
+    proposal_payload = (
+        proposal.model_dump(
+            mode="json"
+        )
+    )
+
+
+    if all(
+        proposal_payload.get(
+            field
+        )
+        is None
+
+        for field
+        in BENCHMARK_WIRE_FIELDS
+    ):
+        for field in (
+            BENCHMARK_WIRE_FIELDS
+        ):
+            proposal_payload.pop(
+                field,
+                None,
+            )
+
+
     payload = json.dumps(
         {
             "objective":
                 objective,
 
             "proposal":
-                proposal.model_dump(
-                    mode="json"
-                ),
+                proposal_payload,
 
             "proposal_index":
                 proposal_index,
@@ -7871,6 +9064,359 @@ def validate_ai_proposal(
 
 
     # ========================================================
+    # BENCHMARK DECISION BOUNDARY v0.34
+    #
+    # A benchmark comparison is a decision-level semantic.
+    #
+    # Column, role and aggregation canonicalization may repair
+    # deterministic topology. However, an already-emitted
+    # benchmark operator/reference/selection cannot be silently
+    # changed into another benchmark decision.
+    #
+    # Conversely, when an exact explicit descriptive
+    # aggregation is already executable and its ONLY remaining
+    # Decision Coverage problem is a fully-populated benchmark
+    # that the objective never requested, that benchmark is
+    # treated as removable LLM noise.
+    # ========================================================
+
+    supported_benchmark_operators = (
+        "gt",
+        "gte",
+        "lt",
+        "lte",
+    )
+
+
+    accepted_benchmark_operators = []
+
+
+    # --------------------------------------------------------
+    # Ask the existing authoritative Decision Coverage layer
+    # which benchmark operator, if any, is compatible with the
+    # objective.
+    #
+    # We do not duplicate the natural-language detector here.
+    # --------------------------------------------------------
+
+    for (
+        benchmark_operator_candidate
+    ) in supported_benchmark_operators:
+        benchmark_probe = (
+            proposal.model_copy(
+                update={
+                    "family":
+                        "aggregation",
+
+                    "ranking_order":
+                        "none",
+
+                    "ranking_limit":
+                        None,
+
+                    "benchmark_reference":
+                        "overall_aggregate",
+
+                    "benchmark_operator":
+                        benchmark_operator_candidate,
+
+                    "benchmark_selection":
+                        "matching_only",
+                }
+            )
+        )
+
+
+        benchmark_probe_errors = (
+            decision_coverage_errors(
+                objective=objective,
+                proposal=benchmark_probe,
+            )
+        )
+
+
+        if (
+            not benchmark_probe_errors
+        ):
+            accepted_benchmark_operators.append(
+                benchmark_operator_candidate
+            )
+
+
+    objective_expected_benchmark_operator = (
+        accepted_benchmark_operators[0]
+        if (
+            len(
+                accepted_benchmark_operators
+            )
+            ==
+            1
+        )
+        else None
+    )
+
+
+    objective_requests_supported_benchmark = (
+        objective_expected_benchmark_operator
+        is not
+        None
+    )
+
+
+    # --------------------------------------------------------
+    # RAW BENCHMARK FIDELITY
+    #
+    # If the LLM ALREADY emitted a complete benchmark wire,
+    # its decision must match the objective exactly.
+    #
+    # This specifically closes the v0.33 path dependency:
+    #
+    #   canonical wire + lt
+    #       must not become
+    #   canonical wire + gt
+    #
+    # A family-classification recovery remains allowed when the
+    # model did not emit a complete benchmark wire at all.
+    # --------------------------------------------------------
+
+    raw_benchmark_wire = (
+        raw_proposal.benchmark_reference,
+        raw_proposal.benchmark_operator,
+        raw_proposal.benchmark_selection,
+    )
+
+
+    raw_benchmark_is_absent = all(
+        value is None
+        for value
+        in raw_benchmark_wire
+    )
+
+
+    raw_benchmark_is_complete = all(
+        value is not None
+        for value
+        in raw_benchmark_wire
+    )
+
+
+    raw_benchmark_is_partial = (
+        not raw_benchmark_is_absent
+        and
+        not raw_benchmark_is_complete
+    )
+
+
+    if (
+        objective_requests_supported_benchmark
+    ):
+        expected_benchmark_wire = (
+            "overall_aggregate",
+            objective_expected_benchmark_operator,
+            "matching_only",
+        )
+
+
+        raw_requires_fail_closed = (
+            (
+                raw_benchmark_is_complete
+                and
+                raw_benchmark_wire
+                !=
+                expected_benchmark_wire
+            )
+            or
+            raw_benchmark_is_partial
+            or
+            (
+                raw_benchmark_is_absent
+                and
+                raw_proposal.family
+                ==
+                "aggregation"
+            )
+        )
+
+
+        if raw_requires_fail_closed:
+            # -----------------------------------------------
+            # Restore the actual model decision.
+            #
+            # The canonicalizer may have rewritten it.
+            # The final rejected proposal must show what the
+            # LLM really emitted instead of a synthetic fix.
+            # -----------------------------------------------
+
+            proposal = (
+                proposal.model_copy(
+                    update={
+                        "benchmark_reference":
+                            raw_proposal
+                            .benchmark_reference,
+
+                        "benchmark_operator":
+                            raw_proposal
+                            .benchmark_operator,
+
+                        "benchmark_selection":
+                            raw_proposal
+                            .benchmark_selection,
+                    }
+                )
+            )
+
+
+            # -----------------------------------------------
+            # Remove a now-misleading normalization message if
+            # the benchmark canonicalizer previously claimed
+            # that it normalized the explicit benchmark.
+            # -----------------------------------------------
+
+            normalizations = [
+                normalization
+
+                for normalization
+                in normalizations
+
+                if (
+                    "normalized an explicit benchmark objective"
+                    not in
+                    normalization.lower()
+                )
+            ]
+
+
+            errors.append(
+                (
+                    "FID?LIT? OBJECTIF: Python refused to "
+                    "silently rewrite the raw benchmark "
+                    "decision emitted by the planner. "
+                    f"expected={expected_benchmark_wire}, "
+                    f"raw={raw_benchmark_wire}."
+                )
+            )
+
+
+    # --------------------------------------------------------
+    # UNSOLICITED BENCHMARK NOISE
+    #
+    # This recovery is deliberately much narrower:
+    #
+    #   - objective has NO supported explicit benchmark
+    #   - explicit aggregation exists
+    #   - exact executable aggregation topology exists
+    #   - no ranking semantics
+    #   - benchmark wire is complete
+    #   - no previous structural/fidelity error
+    #   - Decision Coverage reports exactly ONE error
+    #   - that one error is benchmark-related
+    #
+    # Only then may the extra benchmark be removed.
+    # --------------------------------------------------------
+
+    if (
+        not objective_requests_supported_benchmark
+        and
+        not errors
+        and
+        explicit_aggregation_from_objective(
+            objective
+        )
+        !=
+        "none"
+        and
+        proposal.family
+        ==
+        "aggregation"
+        and
+        proposal.group_column
+        is not
+        None
+        and
+        (
+            proposal.value_column
+            is not
+            None
+            or
+            proposal.aggregation_function
+            ==
+            "count"
+        )
+        and
+        proposal.ranking_order
+        ==
+        "none"
+        and
+        proposal.ranking_limit
+        is None
+        and
+        proposal.benchmark_reference
+        is not
+        None
+        and
+        proposal.benchmark_operator
+        is not
+        None
+        and
+        proposal.benchmark_selection
+        is not
+        None
+    ):
+        pre_clear_decision_errors = (
+            decision_coverage_errors(
+                objective=objective,
+                proposal=proposal,
+            )
+        )
+
+
+        if (
+            len(
+                pre_clear_decision_errors
+            )
+            ==
+            1
+            and
+            "benchmark"
+            in
+            pre_clear_decision_errors[
+                0
+            ].lower()
+        ):
+            proposal = (
+                clear_benchmark_wire(
+                    proposal
+                )
+            )
+
+
+            normalizations.append(
+                (
+                    "Python removed an unsolicited benchmark "
+                    "from an exact explicit descriptive "
+                    "aggregation after Decision Coverage "
+                    "confirmed that the benchmark was the "
+                    "only remaining decision-level mismatch."
+                )
+            )
+
+
+    errors.extend(
+        decision_coverage_errors(
+            objective=objective,
+            proposal=proposal,
+        )
+    )
+
+
+    errors.extend(
+        benchmark_wire_errors(
+            proposal
+        )
+    )
+
+
+    # ========================================================
     # REJECT BEFORE CANONICAL CONTRACT
     # ========================================================
 
@@ -7923,6 +9469,13 @@ def validate_ai_proposal(
 
     window = (
         build_window(
+            proposal
+        )
+    )
+
+
+    benchmark = (
+        build_benchmark(
             proposal
         )
     )
@@ -7984,6 +9537,9 @@ def validate_ai_proposal(
                 ),
                 window=(
                     window
+                ),
+                benchmark=(
+                    benchmark
                 ),
                 filters=[],
                 joins=[],
@@ -8376,7 +9932,7 @@ def _generate_raw_ai_plan_with_timing(
             (
                 "Gemma a retourné un plan qui ne "
                 "respecte pas le protocole structuré "
-                "du AI Planner v0.15."
+                "du AI Planner v0.31."
             )
         ) from error
 
@@ -8438,6 +9994,206 @@ def generate_raw_ai_plan(
 # ============================================================
 # GUARDED CORRECTION RETRY
 # ============================================================
+
+
+# ============================================================
+# OBJECTIVE COVERAGE RETRY
+# DATALENS_OBJECTIVE_COVERAGE_RETRY_V0_1
+# ============================================================
+
+def build_planner_objective_coverage(
+    *,
+    objective: str,
+    catalog: PlannerCatalog,
+    report: AIPlannerReport,
+) -> ObjectiveCoverageReport:
+    """
+    Evaluate semantic objective coverage across the union of
+    Python-validated analytical contracts produced by one AI
+    planner attempt.
+
+    This check complements structural proposal validation:
+
+        contract validation
+            -> is this contract technically safe/executable?
+
+        objective coverage
+            -> does the validated contract set actually preserve
+               the deterministic requirements of the request?
+    """
+
+    contracts = (
+        validated_contracts_from_planner_report(
+            report
+        )
+    )
+
+
+    return (
+        build_objective_coverage(
+            objective=
+                objective,
+
+            catalog=
+                catalog,
+
+            contracts=
+                contracts,
+        )
+    )
+
+
+def objective_coverage_retry_feedback(
+    report: ObjectiveCoverageReport,
+) -> list[
+    str
+]:
+    """
+    Convert deterministic missing objective requirements into
+    bounded retry feedback for the second local-LLM attempt.
+
+    Physical candidate columns come only from the Python-owned
+    dataset catalog through Objective Coverage. The LLM is not
+    allowed to invent replacements.
+    """
+
+    if (
+        report.status
+        !=
+        "incomplete"
+    ):
+        return []
+
+
+    feedback: list[
+        str
+    ] = [
+        (
+            "OBJECTIVE COVERAGE INCOMPLETE: "
+            "the validated analytical plan does not preserve "
+            "every deterministic requirement extracted from "
+            "the user request."
+        )
+    ]
+
+
+    for requirement in (
+        report.requirements
+    ):
+        if requirement.covered:
+            continue
+
+
+        details = [
+            (
+                "Missing required concept="
+                f"{requirement.concept}"
+            ),
+            (
+                "type="
+                f"{requirement.requirement_type}"
+            ),
+        ]
+
+
+        if requirement.candidate_columns:
+            details.append(
+                (
+                    "compatible catalog column(s)="
+                    +
+                    ", ".join(
+                        requirement
+                        .candidate_columns
+                    )
+                )
+            )
+
+        else:
+            details.append(
+                (
+                    "compatible catalog column(s)="
+                    "NONE"
+                )
+            )
+
+
+        if requirement.allowed_roles:
+            details.append(
+                (
+                    "allowed role(s)="
+                    +
+                    ", ".join(
+                        requirement
+                        .allowed_roles
+                    )
+                )
+            )
+
+
+        if (
+            requirement
+            .required_aggregation
+            is not None
+        ):
+            details.append(
+                (
+                    "required aggregation="
+                    +
+                    requirement
+                    .required_aggregation
+                )
+            )
+
+
+        feedback.append(
+            "; ".join(
+                details
+            )
+            +
+            "."
+        )
+
+
+    for topology in (
+        report.topology_requirements
+    ):
+        if topology.covered:
+            continue
+
+        feedback.append(
+            (
+                "Missing required metric/dimension topology: "
+                f"metric={topology.metric_concept}; "
+                "required dimensions="
+                +
+                ", ".join(
+                    topology
+                    .required_dimension_concepts
+                )
+                +
+                ". The metric must be computed in at least one "
+                "validated proposal grouped by ALL of these "
+                "dimensions together."
+            )
+        )
+
+
+    feedback.append(
+        (
+            "Regenerate the analytical plan so the UNION of "
+            "validated proposals covers every missing concept "
+            "and every required metric/dimension topology. "
+            "Do not substitute an unrelated column. Multiple "
+            "proposals are allowed when the request contains "
+            "multiple metrics."
+        )
+    )
+
+
+    return (
+        feedback
+    )
+
 
 def rejected_feedback(
     report: AIPlannerReport,
@@ -8628,6 +10384,20 @@ def plan_analyses_with_ai(
     )
 
 
+    first_objective_coverage = (
+        build_planner_objective_coverage(
+            objective=
+                normalized_objective,
+
+            catalog=
+                catalog,
+
+            report=
+                first_report,
+        )
+    )
+
+
     first_validation_ms = (
         (
             perf_counter()
@@ -8671,8 +10441,16 @@ def plan_analyses_with_ai(
         MAX_AI_PLANNER_ATTEMPTS <
         2
         or
-        not should_retry_rejected_plan(
-            first_report
+        not (
+            should_retry_rejected_plan(
+                first_report
+            )
+            or
+            (
+                first_objective_coverage.status
+                ==
+                "incomplete"
+            )
         )
     ):
         total_ms = (
@@ -8719,11 +10497,15 @@ def plan_analyses_with_ai(
     )
 
 
-    feedback = (
-        rejected_feedback(
+    feedback = [
+        *rejected_feedback(
             first_report
-        )
-    )
+        ),
+
+        *objective_coverage_retry_feedback(
+            first_objective_coverage
+        ),
+    ]
 
 
     retry_feedback_ms = (

@@ -95,7 +95,7 @@ export default function DatasetImportControls({
                       preparationSessionLoading
                     }
                     placeholder={
-                      "Ex. Analyse ventes Lapage"
+                      "Ex. Analyse des ventes"
                     }
                     onChange={
                       (
