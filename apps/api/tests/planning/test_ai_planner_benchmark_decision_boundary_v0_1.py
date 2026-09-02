@@ -13,7 +13,7 @@ from app.planning.ai_analytical_planner import (
 
 
 EXPECTED_VERSION = (
-    "ai_analytical_planner_v0.34"
+    "ai_analytical_planner_v0.35"
 )
 
 
@@ -584,7 +584,7 @@ def main() -> None:
 
 
     print(
-        "[PASS] planner version v0.34"
+        "[PASS] planner version v0.35"
     )
 
 

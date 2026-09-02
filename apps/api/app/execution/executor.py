@@ -34,6 +34,11 @@ from app.statistics import (
     execute_correlation_decision,
 )
 
+from app.statistics.executor import (
+    calculate_pearson_statistic,
+    calculate_spearman_statistic,
+)
+
 from app.visualization import (
     decide_correlation_visualization,
 )
@@ -2537,38 +2542,263 @@ def execute_quantitative_association(
         !=
         "selected"
     ):
+        # ====================================================
+        # DESCRIPTIVE CORRELATION FALLBACK v0.1
+        #
+        # Statistical authority remains unchanged:
+        #
+        # - decision.status is still not selected;
+        # - execute_correlation_decision() is NOT called;
+        # - no p-value is calculated;
+        # - no inferential test is promoted.
+        #
+        # We still quantify the observed relationship
+        # descriptively and preserve the requested scatter.
+        # ====================================================
+
+        descriptive_warnings: list[
+            str
+        ] = []
+
+
+        x_values = (
+            pair_frame[
+                x_column
+            ]
+            .to_numpy(
+                dtype=float
+            )
+        )
+
+        y_values = (
+            pair_frame[
+                y_column
+            ]
+            .to_numpy(
+                dtype=float
+            )
+        )
+
+
+        try:
+            pearson_r = float(
+                calculate_pearson_statistic(
+                    x_values,
+                    y_values,
+                )
+            )
+
+
+            if not np.isfinite(
+                pearson_r
+            ):
+                pearson_r = None
+
+
+        except Exception as error:
+            pearson_r = None
+
+            descriptive_warnings.append(
+                (
+                    "Le coefficient descriptif "
+                    "de Pearson n'a pas pu être "
+                    "calculé : "
+                    f"{type(error).__name__}: "
+                    f"{error}"
+                )
+            )
+
+
+        try:
+            spearman_rho = float(
+                calculate_spearman_statistic(
+                    x_values,
+                    y_values,
+                )
+            )
+
+
+            if not np.isfinite(
+                spearman_rho
+            ):
+                spearman_rho = None
+
+
+        except Exception as error:
+            spearman_rho = None
+
+            descriptive_warnings.append(
+                (
+                    "Le coefficient descriptif "
+                    "de Spearman n'a pas pu être "
+                    "calculé : "
+                    f"{type(error).__name__}: "
+                    f"{error}"
+                )
+            )
+
+
+        chart_source = (
+            pair_frame
+            .copy()
+        )
+
+
+        if (
+            len(
+                chart_source
+            )
+            >
+            MAX_CHART_POINTS
+        ):
+            indexes = np.linspace(
+                0,
+                len(
+                    chart_source
+                )
+                -
+                1,
+                MAX_CHART_POINTS,
+                dtype=int,
+            )
+
+
+            chart_source = (
+                chart_source.iloc[
+                    indexes
+                ]
+            )
+
+
+        chart_data = [
+            {
+                "x":
+                    float(
+                        row[
+                            x_column
+                        ]
+                    ),
+
+                "y":
+                    float(
+                        row[
+                            y_column
+                        ]
+                    ),
+            }
+
+            for _, row
+            in chart_source.iterrows()
+        ]
+
+
+        summary = [
+            (
+                "DataLens n'a pas sélectionné "
+                "automatiquement de test de "
+                "corrélation inférentiel pour "
+                "cette relation."
+            ),
+
+            (
+                "La relation reste quantifiée "
+                "de manière descriptive et le "
+                "nuage de points reste disponible."
+            ),
+        ]
+
+
+        if (
+            pearson_r
+            is not None
+        ):
+            summary.append(
+                (
+                    "Pearson r descriptif = "
+                    f"{pearson_r:.4g}."
+                )
+            )
+
+
+        if (
+            spearman_rho
+            is not None
+        ):
+            summary.append(
+                (
+                    "Spearman rho descriptif = "
+                    f"{spearman_rho:.4g}."
+                )
+            )
+
+
         return build_result(
             analysis,
+
             execution_status=
                 "needs_information",
 
-            summary=[
-                (
-                    "DataLens considère cette "
-                    "relation comme intéressante "
-                    "à explorer, mais aucun test "
-                    "de corrélation n'est imposé "
-                    "automatiquement."
-                )
-            ],
+            summary=
+                summary,
 
             metrics={
+                "x_column":
+                    x_column,
+
+                "y_column":
+                    y_column,
+
                 "valid_pairs":
                     int(
                         len(
                             pair_frame
                         )
                     ),
+
+                "chart_point_count":
+                    int(
+                        len(
+                            chart_data
+                        )
+                    ),
+
+                "pearson_r":
+                    pearson_r,
+
+                "spearman_rho":
+                    spearman_rho,
+
+                "inference_performed":
+                    False,
+
+                "p_value":
+                    None,
+
+                "statistically_significant":
+                    None,
+
+                "interpretation_scope":
+                    "descriptive_only",
+
+                "descriptive_fallback_rule_version":
+                    "descriptive_correlation_fallback_v0.1",
             },
+
+            chart_data=
+                chart_data,
 
             statistical_decision=
                 decision_dump,
+
+            statistical_result=
+                None,
 
             visualization=
                 visualization_dump,
 
             warnings=[
                 *decision.warnings,
+                *descriptive_warnings,
             ],
 
             limitations=[
@@ -2576,10 +2806,24 @@ def execute_quantitative_association(
                     "The current statistical "
                     "decision engine did not "
                     "select a sufficiently "
-                    "defensible correlation test."
-                )
+                    "defensible inferential "
+                    "correlation test."
+                ),
+
+                (
+                    "Pearson r and Spearman rho "
+                    "are reported as descriptive "
+                    "association measures only."
+                ),
+
+                (
+                    "No p-value is calculated or "
+                    "interpreted for this "
+                    "descriptive fallback."
+                ),
             ],
         )
+
 
 
     execution = (

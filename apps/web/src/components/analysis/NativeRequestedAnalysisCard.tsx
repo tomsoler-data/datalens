@@ -568,6 +568,20 @@ function NativeRequestedAnalysisSingleCard({
     );
 
 
+  const descriptivePearson =
+    metricNumber(
+      result.metrics,
+      "pearson_r"
+    );
+
+
+  const descriptiveSpearman =
+    metricNumber(
+      result.metrics,
+      "spearman_rho"
+    );
+
+
   const cramersV =
     typeof statisticalResult.cramers_v ===
       "number"
@@ -966,6 +980,42 @@ function NativeRequestedAnalysisSingleCard({
         value:
           formatDecimal(
             coefficient
+          ),
+      }
+    );
+  }
+
+
+  if (
+    descriptivePearson !==
+    null
+  ) {
+    kpis.push(
+      {
+        label:
+          "Pearson r (descriptif)",
+
+        value:
+          formatDecimal(
+            descriptivePearson
+          ),
+      }
+    );
+  }
+
+
+  if (
+    descriptiveSpearman !==
+    null
+  ) {
+    kpis.push(
+      {
+        label:
+          "Spearman rho (descriptif)",
+
+        value:
+          formatDecimal(
+            descriptiveSpearman
           ),
       }
     );

@@ -138,7 +138,7 @@ def main() -> None:
     )
 
     assert PLANNER_CATALOG_RULE_VERSION == "planner_catalog_v0.3"
-    assert AI_ANALYTICAL_PLANNER_RULE_VERSION == "ai_analytical_planner_v0.34"
+    assert AI_ANALYTICAL_PLANNER_RULE_VERSION == "ai_analytical_planner_v0.35"
 
     brand_profile = next(
         dataset
