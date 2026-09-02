@@ -14,9 +14,6 @@ on:
   pull_request:
     branches:
       - main
-    paths:
-      - "apps/api/**"
-      - ".github/workflows/datalens-evals.yml"
 
   workflow_dispatch:
 
