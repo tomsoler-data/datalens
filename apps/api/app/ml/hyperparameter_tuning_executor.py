@@ -29,10 +29,10 @@ from app.ml.cross_validation import (
 
 
 from app.ml.cross_validation_executor import (
+    MLCrossValidationExecutionError,
     MLCrossValidationInputError,
-    _build_cross_validation_splitter,
+    _build_cross_validation_pairs,
     _fold_metrics,
-    _validate_cross_validation_feasibility,
 )
 
 
@@ -140,12 +140,16 @@ def _build_inner_cv_pairs(
     y_train: pd.Series,
     training_contract: MLTrainingContract,
     search_contract: MLHyperparameterSearchContract,
+    groups_train: pd.Series | None = None,
 ):
     """
     Build deterministic INNER CV folds from OUTER train only.
 
-    x_test / y_test are intentionally not accepted by this
-    function, making the leakage boundary explicit.
+    x_test / y_test and holdout-test groups are intentionally
+    not accepted by this function.
+
+    Group-aware tuning therefore receives only groups belonging
+    to the authoritative OUTER training partition.
     """
 
     cv_contract = (
@@ -163,27 +167,34 @@ def _build_inner_cv_pairs(
 
 
     try:
-        _validate_cross_validation_feasibility(
-            x=
-                x_train,
+        return (
+            _build_cross_validation_pairs(
+                x=
+                    x_train,
 
-            y=
-                y_train,
+                y=
+                    y_train,
 
-            training_contract=
-                training_contract,
+                training_contract=
+                    training_contract,
 
-            cross_validation_contract=
-                cv_contract,
+                cross_validation_contract=
+                    cv_contract,
+
+                groups=
+                    groups_train,
+            )
         )
 
+
     except MLCrossValidationInputError as error:
+
         raise (
             MLHyperparameterTuningInputError(
                 (
                     "Hyperparameter Tuning refused "
                     "the OUTER training split because "
-                    "inner Cross-Validation is not "
+                    "INNER Cross-Validation is not "
                     "feasible. "
                     f"{error}"
                 )
@@ -191,69 +202,18 @@ def _build_inner_cv_pairs(
         ) from error
 
 
-    splitter = (
-        _build_cross_validation_splitter(
-            training_contract=
-                training_contract,
+    except MLCrossValidationExecutionError as error:
 
-            cross_validation_contract=
-                cv_contract,
-        )
-    )
-
-
-    try:
-        if (
-            training_contract.problem_type
-            ==
-            "classification"
-        ):
-            split_pairs = list(
-                splitter.split(
-                    x_train,
-                    y_train,
-                )
-            )
-
-        else:
-            split_pairs = list(
-                splitter.split(
-                    x_train
-                )
-            )
-
-    except ValueError as error:
-        raise (
-            MLHyperparameterTuningInputError(
-                (
-                    "Hyperparameter Tuning could not "
-                    "construct deterministic INNER "
-                    "Cross-Validation folds from the "
-                    "OUTER training split."
-                )
-            )
-        ) from error
-
-
-    if (
-        len(
-            split_pairs
-        )
-        !=
-        search_contract.folds
-    ):
         raise (
             MLHyperparameterTuningExecutionError(
                 (
-                    "Hyperparameter Tuning splitter "
-                    "did not produce the configured "
-                    "number of INNER folds."
+                    "Hyperparameter Tuning INNER "
+                    "Cross-Validation violated the "
+                    "validated fold invariants. "
+                    f"{error}"
                 )
             )
-        )
-
-
-    return split_pairs
+        ) from error
 
 
 # ============================================================
@@ -831,28 +791,6 @@ def execute_ml_hyperparameter_tuning(
     )
 
 
-    if (
-        contract
-        .split
-        .strategy
-        ==
-        "group_holdout"
-    ):
-
-        raise (
-            MLHyperparameterTuningInputError(
-                (
-                    "Entity-aware Hyperparameter "
-                    "Tuning is not supported by "
-                    "Hyperparameter Tuning v0.1. "
-                    "Group-aware INNER "
-                    "Cross-Validation is required "
-                    "before tuning can be enabled."
-                )
-            )
-        )
-
-
     base_training_contract_sha256 = (
         ml_training_contract_sha256(
             contract
@@ -896,6 +834,8 @@ def execute_ml_hyperparameter_tuning(
             x_holdout_test,
             y_outer_train,
             y_holdout_test,
+            outer_train_groups,
+            holdout_test_groups,
         ) = (
             _split_dataset(
                 x=
@@ -906,6 +846,12 @@ def execute_ml_hyperparameter_tuning(
 
                 contract=
                     contract,
+
+                dataframe=
+                    dataframe,
+
+                return_group_partitions=
+                    True,
             )
         )
 
@@ -953,6 +899,72 @@ def execute_ml_hyperparameter_tuning(
         )
 
 
+    group_aware = (
+        contract
+        .split
+        .strategy
+        ==
+        "group_holdout"
+    )
+
+
+    if group_aware:
+
+        if (
+            outer_train_groups
+            is None
+            or
+            holdout_test_groups
+            is None
+        ):
+            raise (
+                MLHyperparameterTuningExecutionError(
+                    (
+                        "Entity-aware OUTER holdout "
+                        "did not expose its validated "
+                        "group partitions."
+                    )
+                )
+            )
+
+
+        if (
+            set(
+                outer_train_groups.tolist()
+            )
+            &
+            set(
+                holdout_test_groups.tolist()
+            )
+        ):
+            raise (
+                MLHyperparameterTuningExecutionError(
+                    (
+                        "Entity-aware OUTER holdout "
+                        "contains overlapping train/"
+                        "test entity groups."
+                    )
+                )
+            )
+
+
+    elif (
+        outer_train_groups
+        is not None
+        or
+        holdout_test_groups
+        is not None
+    ):
+        raise (
+            MLHyperparameterTuningExecutionError(
+                (
+                    "Row holdout unexpectedly "
+                    "exposed entity group partitions."
+                )
+            )
+        )
+
+
     outer_train_rows = int(
         len(
             x_outer_train
@@ -985,6 +997,9 @@ def execute_ml_hyperparameter_tuning(
 
             search_contract=
                 tuning,
+
+            groups_train=
+                outer_train_groups,
         )
     )
 
@@ -1126,7 +1141,10 @@ def execute_ml_hyperparameter_tuning(
             validation_strategy=(
                 hyperparameter_validation_strategy(
                     problem_type=
-                        contract.problem_type
+                        contract.problem_type,
+
+                    group_aware=
+                        group_aware,
                 )
             ),
 

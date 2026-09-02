@@ -53,6 +53,8 @@ MLHyperparameterSearchStrategy = Literal[
 MLHyperparameterValidationStrategy = Literal[
     "k_fold",
     "stratified_k_fold",
+    "group_k_fold",
+    "stratified_group_k_fold",
 ]
 
 
@@ -129,8 +131,12 @@ class MLHyperparameterSearchContract(
     - never accepts arbitrary scorers;
     - does not persist candidate models.
 
-    Validation strategy and primary metric are server-owned from
-    problem_type and therefore are not caller-configurable.
+    Validation strategy is server-owned from problem_type and
+    Training Contract split semantics.
+
+    Primary metric remains server-owned from problem_type.
+
+    Neither is caller-configurable.
     """
 
     model_config = ConfigDict(
@@ -382,6 +388,7 @@ class MLHyperparameterCandidateResult(
 def hyperparameter_validation_strategy(
     *,
     problem_type: str,
+    group_aware: bool = False,
 ) -> MLHyperparameterValidationStrategy:
 
     if (
@@ -389,7 +396,14 @@ def hyperparameter_validation_strategy(
         ==
         "regression"
     ):
-        return "k_fold"
+        return (
+            "group_k_fold"
+
+            if group_aware
+
+            else
+            "k_fold"
+        )
 
 
     if (
@@ -397,7 +411,14 @@ def hyperparameter_validation_strategy(
         ==
         "classification"
     ):
-        return "stratified_k_fold"
+        return (
+            "stratified_group_k_fold"
+
+            if group_aware
+
+            else
+            "stratified_k_fold"
+        )
 
 
     raise ValueError(
@@ -995,10 +1016,23 @@ class MLHyperparameterSearchResult(
             )
 
 
+        group_aware = (
+            self.validation_strategy
+            in
+            {
+                "group_k_fold",
+                "stratified_group_k_fold",
+            }
+        )
+
+
         expected_validation_strategy = (
             hyperparameter_validation_strategy(
                 problem_type=
-                    self.problem_type
+                    self.problem_type,
+
+                group_aware=
+                    group_aware,
             )
         )
 

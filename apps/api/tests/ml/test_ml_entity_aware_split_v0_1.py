@@ -803,81 +803,79 @@ def test_historical_row_holdout_remains_compatible(
     )
 
 
-def test_row_based_cv_and_tuning_fail_closed(
+def test_group_aware_cv_and_tuning_handoff(
 ) -> None:
 
-    contract = (
-        group_contract()
+    repo = (
+        Path(
+            __file__
+        )
+        .resolve()
+        .parents[
+            4
+        ]
     )
 
 
-    try:
-
-        execute_ml_cross_validation(
-            training_contract=
-                contract,
-
-            cross_validation_contract=
-                MLCrossValidationContract(
-                    folds=
-                        3
-                ),
-        )
+    cv_source = (
+        repo
+        /
+        "apps/api/app/ml/cross_validation_executor.py"
+    ).read_text(
+        encoding="utf-8"
+    )
 
 
-    except MLCrossValidationInputError as error:
-
-        assert (
-            "Entity-aware Cross-Validation"
-            in
-            str(
-                error
-            )
-        )
+    tuning_source = (
+        repo
+        /
+        "apps/api/app/ml/hyperparameter_tuning_executor.py"
+    ).read_text(
+        encoding="utf-8"
+    )
 
 
-    else:
-
-        raise AssertionError(
-            (
-                "Row-based CV accepted "
-                "group_holdout."
-            )
-        )
+    assert (
+        "GroupKFold"
+        in
+        cv_source
+    )
 
 
-    try:
-
-        execute_ml_hyperparameter_tuning(
-            training_contract=
-                contract,
-
-            search_contract=
-                MLHyperparameterSearchContract(
-                    folds=
-                        3
-                ),
-        )
+    assert (
+        "StratifiedGroupKFold"
+        in
+        cv_source
+    )
 
 
-    except MLHyperparameterTuningInputError as error:
-
-        assert (
-            "Group-aware INNER"
-            in
-            str(
-                error
-            )
-        )
-
-        return
+    assert (
+        "_build_cross_validation_pairs"
+        in
+        cv_source
+    )
 
 
-    raise AssertionError(
-        (
-            "Row-based tuning accepted "
-            "group_holdout."
-        )
+    assert (
+        "_build_cross_validation_pairs"
+        in
+        tuning_source
+    )
+
+
+    assert (
+        "Entity-aware Cross-Validation "
+        "is not supported"
+        not in
+        cv_source
+    )
+
+
+    assert (
+        "Group-aware INNER "
+        "Cross-Validation is required"
+        not in
+        tuning_source
     )
 
 
@@ -1187,10 +1185,10 @@ def main(
     )
 
 
-    test_row_based_cv_and_tuning_fail_closed()
+    test_group_aware_cv_and_tuning_handoff()
 
     print(
-        "[PASS] row-based CV/tuning blocked for group holdout"
+        "[PASS] group-aware CV/tuning handoff"
     )
 
 
