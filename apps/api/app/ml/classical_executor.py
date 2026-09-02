@@ -37,6 +37,7 @@ from sklearn.linear_model import (
 
 
 from sklearn.model_selection import (
+    GroupShuffleSplit,
     train_test_split,
 )
 
@@ -57,6 +58,8 @@ from app.ml.baseline import (
 
 
 from app.ml.contracts import (
+    MLGroupHoldoutSplitContract,
+    MLSplitContract,
     MLTrainingContract,
 )
 
@@ -1202,11 +1205,250 @@ def _build_estimator(
 # ============================================================
 
 
+def _validated_group_values(
+    *,
+    dataframe: pd.DataFrame | None,
+    x: pd.DataFrame,
+    y: pd.Series,
+    contract: MLTrainingContract,
+) -> pd.Series:
+
+    split = (
+        contract.split
+    )
+
+
+    if not isinstance(
+        split,
+        MLGroupHoldoutSplitContract,
+    ):
+
+        raise (
+            ClassicalMLInputError(
+                (
+                    "Group validation requires a "
+                    "group_holdout split contract."
+                )
+            )
+        )
+
+
+    if dataframe is None:
+
+        raise (
+            ClassicalMLInputError(
+                (
+                    "group_holdout requires the "
+                    "server-owned source dataframe."
+                )
+            )
+        )
+
+
+    if (
+        len(
+            dataframe
+        )
+        !=
+        len(
+            x
+        )
+        or
+        len(
+            x
+        )
+        !=
+        len(
+            y
+        )
+        or
+        not dataframe.index.equals(
+            x.index
+        )
+        or
+        not x.index.equals(
+            y.index
+        )
+    ):
+
+        raise (
+            ClassicalMLInputError(
+                (
+                    "Entity-aware split input "
+                    "alignment is invalid."
+                )
+            )
+        )
+
+
+    group_column = (
+        split.group_column
+    )
+
+
+    if (
+        group_column
+        not in
+        dataframe.columns
+    ):
+
+        raise (
+            ClassicalMLInputError(
+                (
+                    "Group holdout column is "
+                    "missing from the validated "
+                    "dataset. "
+                    f"group_column={group_column}"
+                )
+            )
+        )
+
+
+    group_values = (
+        dataframe.loc[
+            :,
+            group_column,
+        ]
+    )
+
+
+    if not isinstance(
+        group_values,
+        pd.Series,
+    ):
+
+        raise (
+            ClassicalMLInputError(
+                (
+                    "Group holdout column must "
+                    "resolve to exactly one Series."
+                )
+            )
+        )
+
+
+    group_values = (
+        group_values.copy(
+            deep=True
+        )
+    )
+
+
+    if bool(
+        group_values
+        .isna()
+        .any()
+    ):
+
+        raise (
+            ClassicalMLInputError(
+                (
+                    "Group holdout column contains "
+                    "missing values. "
+                    f"group_column={group_column}"
+                )
+            )
+        )
+
+
+    semantics = (
+        infer_analytical_type(
+            group_column,
+            group_values,
+        )
+    )
+
+
+    analytical_type = str(
+        semantics.get(
+            "type"
+        )
+        or
+        ""
+    ).strip()
+
+
+    analytical_subtype = str(
+        semantics.get(
+            "subtype"
+        )
+        or
+        ""
+    ).strip()
+
+
+    if (
+        analytical_type
+        !=
+        "identifier"
+        or
+        analytical_subtype
+        !=
+        "reference"
+    ):
+
+        raise (
+            ClassicalMLInputError(
+                (
+                    "Group holdout requires a "
+                    "repeated reference identifier. "
+                    f"group_column={group_column}, "
+                    f"analytical_type={analytical_type}, "
+                    "analytical_subtype="
+                    f"{analytical_subtype}"
+                )
+            )
+        )
+
+
+    group_count = int(
+        group_values
+        .nunique(
+            dropna=True
+        )
+    )
+
+
+    if group_count < 2:
+
+        raise (
+            ClassicalMLInputError(
+                (
+                    "Group holdout requires at "
+                    "least two distinct entity groups."
+                )
+            )
+        )
+
+
+    if (
+        group_count
+        >=
+        len(
+            group_values
+        )
+    ):
+
+        raise (
+            ClassicalMLInputError(
+                (
+                    "A unique row identifier cannot "
+                    "be used as the entity holdout "
+                    "group."
+                )
+            )
+        )
+
+
+    return group_values
+
+
 def _split_dataset(
     *,
     x: pd.DataFrame,
     y: pd.Series,
     contract: MLTrainingContract,
+    dataframe: pd.DataFrame | None = None,
 ) -> tuple[
     pd.DataFrame,
     pd.DataFrame,
@@ -1214,85 +1456,291 @@ def _split_dataset(
     pd.Series,
 ]:
 
-    if (
-        contract.split.stratify
-        and
-        not contract.split.shuffle
+    split = (
+        contract.split
+    )
+
+
+    # ========================================================
+    # ENTITY-AWARE HOLDOUT
+    # ========================================================
+
+
+    if isinstance(
+        split,
+        MLGroupHoldoutSplitContract,
     ):
-        raise (
-            ClassicalMLInputError(
-                (
-                    "stratify=True requires "
-                    "shuffle=True for the "
-                    "Classical ML holdout split."
-                )
+
+        groups = (
+            _validated_group_values(
+                dataframe=
+                    dataframe,
+
+                x=
+                    x,
+
+                y=
+                    y,
+
+                contract=
+                    contract,
             )
         )
 
 
-    stratify_values = (
-        y
-
-        if (
-            contract.problem_type
-            ==
-            "classification"
-            and
-            contract.split.stratify
-        )
-
-        else None
-    )
-
-
-    random_state = (
-        contract.split.random_seed
-
-        if contract.split.shuffle
-
-        else None
-    )
-
-
-    try:
-        (
-            x_train,
-            x_test,
-            y_train,
-            y_test,
-        ) = (
-            train_test_split(
-                x,
-                y,
+        splitter = (
+            GroupShuffleSplit(
+                n_splits=
+                    1,
 
                 test_size=
-                    contract
-                    .split
-                    .test_size,
+                    split.test_size,
 
                 random_state=
-                    random_state,
-
-                shuffle=
-                    contract
-                    .split
-                    .shuffle,
-
-                stratify=
-                    stratify_values,
+                    split.random_seed,
             )
         )
 
-    except ValueError as error:
-        raise (
-            ClassicalMLInputError(
-                (
-                    "Deterministic train/test "
-                    "split could not be created "
-                    "from the ML Training Contract."
+
+        try:
+
+            (
+                train_indices,
+                test_indices,
+            ) = next(
+                splitter.split(
+                    x,
+                    y,
+                    groups=
+                        groups,
                 )
             )
-        ) from error
+
+
+        except ValueError as error:
+
+            raise (
+                ClassicalMLInputError(
+                    (
+                        "Deterministic entity-aware "
+                        "train/test split could not "
+                        "be created from the ML "
+                        "Training Contract."
+                    )
+                )
+            ) from error
+
+
+        x_train = (
+            x.iloc[
+                train_indices
+            ]
+            .copy(
+                deep=True
+            )
+        )
+
+
+        x_test = (
+            x.iloc[
+                test_indices
+            ]
+            .copy(
+                deep=True
+            )
+        )
+
+
+        y_train = (
+            y.iloc[
+                train_indices
+            ]
+            .copy(
+                deep=True
+            )
+        )
+
+
+        y_test = (
+            y.iloc[
+                test_indices
+            ]
+            .copy(
+                deep=True
+            )
+        )
+
+
+        train_groups = (
+            groups.iloc[
+                train_indices
+            ]
+        )
+
+
+        test_groups = (
+            groups.iloc[
+                test_indices
+            ]
+        )
+
+
+        train_group_values = set(
+            train_groups.tolist()
+        )
+
+
+        test_group_values = set(
+            test_groups.tolist()
+        )
+
+
+        if not train_group_values:
+
+            raise (
+                ClassicalMLInputError(
+                    (
+                        "Entity-aware split produced "
+                        "no training entity groups."
+                    )
+                )
+            )
+
+
+        if not test_group_values:
+
+            raise (
+                ClassicalMLInputError(
+                    (
+                        "Entity-aware split produced "
+                        "no test entity groups."
+                    )
+                )
+            )
+
+
+        overlap = (
+            train_group_values
+            &
+            test_group_values
+        )
+
+
+        if overlap:
+
+            raise (
+                ClassicalMLExecutorError(
+                    (
+                        "Entity-aware split produced "
+                        "overlapping train/test groups."
+                    )
+                )
+            )
+
+
+    # ========================================================
+    # HISTORICAL ROW HOLDOUT
+    # ========================================================
+
+
+    elif isinstance(
+        split,
+        MLSplitContract,
+    ):
+
+        if (
+            split.stratify
+            and
+            not split.shuffle
+        ):
+
+            raise (
+                ClassicalMLInputError(
+                    (
+                        "stratify=True requires "
+                        "shuffle=True for the "
+                        "Classical ML holdout split."
+                    )
+                )
+            )
+
+
+        stratify_values = (
+            y
+
+            if (
+                contract.problem_type
+                ==
+                "classification"
+                and
+                split.stratify
+            )
+
+            else None
+        )
+
+
+        random_state = (
+            split.random_seed
+
+            if split.shuffle
+
+            else None
+        )
+
+
+        try:
+
+            (
+                x_train,
+                x_test,
+                y_train,
+                y_test,
+            ) = (
+                train_test_split(
+                    x,
+                    y,
+
+                    test_size=
+                        split.test_size,
+
+                    random_state=
+                        random_state,
+
+                    shuffle=
+                        split.shuffle,
+
+                    stratify=
+                        stratify_values,
+                )
+            )
+
+
+        except ValueError as error:
+
+            raise (
+                ClassicalMLInputError(
+                    (
+                        "Deterministic train/test "
+                        "split could not be created "
+                        "from the ML Training Contract."
+                    )
+                )
+            ) from error
+
+
+    else:
+
+        raise (
+            ClassicalMLInputError(
+                "Unsupported ML split contract."
+            )
+        )
+
+
+    # ========================================================
+    # COMMON HOLDOUT INVARIANTS
+    # ========================================================
 
 
     if (
@@ -1308,6 +1756,7 @@ def _split_dataset(
         <
         2
     ):
+
         raise (
             ClassicalMLInputError(
                 (
@@ -1333,6 +1782,7 @@ def _split_dataset(
         <
         2
     ):
+
         raise (
             ClassicalMLInputError(
                 (
@@ -1716,6 +2166,9 @@ def execute_classical_ml(
 
             contract=
                 contract,
+
+            dataframe=
+                dataframe,
         )
     )
 

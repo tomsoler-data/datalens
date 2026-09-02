@@ -122,6 +122,92 @@ class MLSplitContract(
     stratify: bool = False
 
 
+class MLGroupHoldoutSplitContract(
+    BaseModel
+):
+    """
+    Deterministic entity-aware train/test split.
+
+    group_column identifies repeated entities whose observations
+    must remain entirely inside one side of the holdout.
+
+    The group column is split metadata, never a model feature.
+    """
+
+    model_config = ConfigDict(
+        extra="forbid",
+        frozen=True,
+    )
+
+
+    strategy: Literal[
+        "group_holdout",
+    ] = "group_holdout"
+
+
+    group_column: str = Field(
+        min_length=1,
+    )
+
+
+    test_size: float = Field(
+        default=0.20,
+        gt=0.0,
+        lt=0.5,
+    )
+
+
+    random_seed: int = Field(
+        default=42,
+        ge=0,
+        le=2_147_483_647,
+    )
+
+
+    shuffle: Literal[
+        True
+    ] = True
+
+
+    stratify: Literal[
+        False
+    ] = False
+
+
+    @field_validator(
+        "group_column",
+        mode="before",
+    )
+    @classmethod
+    def normalize_group_column(
+        cls,
+        value: object,
+    ) -> str:
+
+        normalized = str(
+            value
+            if value is not None
+            else ""
+        ).strip()
+
+
+        if not normalized:
+
+            raise ValueError(
+                "group_column cannot be empty"
+            )
+
+
+        return normalized
+
+
+MLTrainingSplitContract = (
+    MLSplitContract
+    |
+    MLGroupHoldoutSplitContract
+)
+
+
 # ============================================================
 # PREPROCESSING CONTRACT
 # ============================================================
@@ -283,7 +369,7 @@ class MLTrainingContract(
     )
 
 
-    split: MLSplitContract = Field(
+    split: MLTrainingSplitContract = Field(
         default_factory=MLSplitContract,
     )
 
@@ -592,6 +678,43 @@ class MLTrainingContract(
                     f"{self.estimator_hyperparameters.kind}"
                 )
             )
+
+
+        # ----------------------------------------------------
+        # ENTITY-AWARE GROUP ROLE
+        # ----------------------------------------------------
+
+        if isinstance(
+            self.split,
+            MLGroupHoldoutSplitContract,
+        ):
+
+            if (
+                self.split.group_column
+                ==
+                self.target_column
+            ):
+
+                raise ValueError(
+                    (
+                        "group_column cannot also "
+                        "be target_column"
+                    )
+                )
+
+
+            if (
+                self.split.group_column
+                in
+                self.feature_columns
+            ):
+
+                raise ValueError(
+                    (
+                        "group_column cannot also "
+                        "be present in feature_columns"
+                    )
+                )
 
 
         # ----------------------------------------------------

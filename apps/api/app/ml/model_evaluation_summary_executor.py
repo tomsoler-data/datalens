@@ -1205,6 +1205,9 @@ def execute_ml_model_evaluation_summary(
 
                 contract=
                     training_contract,
+
+                dataframe=
+                    dataframe,
             )
         )
 

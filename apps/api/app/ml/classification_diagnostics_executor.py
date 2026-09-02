@@ -1268,6 +1268,9 @@ def execute_ml_classification_diagnostics(
 
                 contract=
                     training_contract,
+
+                dataframe=
+                    dataframe,
             )
         )
 

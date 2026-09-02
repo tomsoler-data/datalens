@@ -105,7 +105,7 @@ export type ModelLabPreprocessingContract = {
 ============================================================ */
 
 
-export type ModelLabSplitContract = {
+export type ModelLabHoldoutSplitContract = {
   strategy:
     "holdout";
 
@@ -121,6 +121,32 @@ export type ModelLabSplitContract = {
   stratify:
     boolean;
 };
+
+
+export type ModelLabGroupHoldoutSplitContract = {
+  strategy:
+    "group_holdout";
+
+  group_column:
+    string;
+
+  test_size:
+    number;
+
+  random_seed:
+    number;
+
+  shuffle:
+    true;
+
+  stratify:
+    false;
+};
+
+
+export type ModelLabSplitContract =
+  | ModelLabHoldoutSplitContract
+  | ModelLabGroupHoldoutSplitContract;
 
 
 /* ============================================================

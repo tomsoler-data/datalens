@@ -247,6 +247,39 @@ def _column_ml_readiness(
         not is_identifier
     )
 
+    nullable = bool(
+        series
+        .isna()
+        .any()
+    )
+
+    non_null_unique_count = int(
+        series
+        .nunique(
+            dropna=True
+        )
+    )
+
+    group_eligible = (
+        is_identifier
+        and
+        analytical_subtype
+        ==
+        "reference"
+        and
+        not nullable
+        and
+        non_null_unique_count
+        >=
+        2
+        and
+        non_null_unique_count
+        <
+        len(
+            series
+        )
+    )
+
     exclusion_reason = None
 
     if is_identifier:
@@ -276,6 +309,9 @@ def _column_ml_readiness(
 
         "ml_eligible_as_feature":
             eligible,
+
+        "ml_eligible_as_group":
+            group_eligible,
 
         "exclusion_reason":
             exclusion_reason,
@@ -502,6 +538,11 @@ def get_model_training_context(
                     ml_eligible_as_feature=
                         readiness[
                             "ml_eligible_as_feature"
+                        ],
+
+                    ml_eligible_as_group=
+                        readiness[
+                            "ml_eligible_as_group"
                         ],
 
                     exclusion_reason=
