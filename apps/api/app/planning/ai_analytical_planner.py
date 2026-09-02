@@ -55,7 +55,7 @@ from app.planning.objective_coverage import (
 # ============================================================
 
 AI_ANALYTICAL_PLANNER_RULE_VERSION = (
-    "ai_analytical_planner_v0.34"
+    "ai_analytical_planner_v0.35"
 )
 
 
@@ -2096,6 +2096,20 @@ SEMANTIC_TOKEN_CANONICAL = {
     "taux": "percent",
 
     "age": "age",
+
+    "at": "at",
+    "au": "at",
+
+    "first": "first",
+    "premier": "first",
+    "premiere": "first",
+    "premiers": "first",
+    "premieres": "first",
+
+    "purchase": "purchase",
+    "purchases": "purchase",
+    "achat": "purchase",
+    "achats": "purchase",
 
     "revenue": "revenue",
     "revenu": "revenue",
@@ -6072,6 +6086,437 @@ def canonicalize_entity_measure_group_comparison_from_objective(
     )
 
 
+def semantic_reference_position(
+    *,
+    objective: str,
+    dataset: PlannerDatasetProfile,
+    column_name: str,
+) -> int:
+    """
+    Return the earliest deterministic semantic span for one
+    physical analytical column in the objective.
+
+    The same local unordered-token rule used by
+    semantic_metric_match_score() is respected so expressions
+    such as:
+
+        average_basket <-> panier moyen
+
+    remain valid even when French and English token order differ.
+
+    This helper is used only to preserve the user's natural x/y
+    ordering after both variables have already been resolved.
+    """
+
+    objective_tokens = [
+        canonical_semantic_token(
+            token
+        )
+
+        for token
+        in normalized_objective_tokens(
+            objective
+        )
+    ]
+
+
+    best_position: (
+        int
+        | None
+    ) = None
+
+
+    for semantic_name in (
+        semantic_names_for_column(
+            dataset=dataset,
+            column_name=column_name,
+        )
+    ):
+        required_tokens = {
+            canonical_semantic_token(
+                token
+            )
+
+            for token
+            in normalized_column_tokens(
+                semantic_name
+            )
+
+            if token
+        }
+
+
+        if not required_tokens:
+            continue
+
+
+        max_window = max(
+            len(
+                required_tokens
+            )
+            +
+            2,
+            3,
+        )
+
+
+        for start in range(
+            len(
+                objective_tokens
+            )
+        ):
+            end_limit = min(
+                len(
+                    objective_tokens
+                ),
+                start
+                +
+                max_window,
+            )
+
+
+            for end in range(
+                start
+                +
+                1,
+                end_limit
+                +
+                1,
+            ):
+                window = (
+                    objective_tokens[
+                        start:
+                        end
+                    ]
+                )
+
+
+                if not required_tokens.issubset(
+                    set(
+                        window
+                    )
+                ):
+                    continue
+
+
+                if (
+                    best_position is None
+                    or
+                    start
+                    <
+                    best_position
+                ):
+                    best_position = (
+                        start
+                    )
+
+
+                break
+
+
+            if (
+                best_position
+                ==
+                start
+            ):
+                break
+
+
+    if best_position is None:
+        return (
+            len(
+                objective_tokens
+            )
+            +
+            1
+        )
+
+
+    return (
+        best_position
+    )
+
+
+
+def canonicalize_derived_quantitative_association_from_objective(
+    *,
+    objective: str,
+    proposal: AIPlannerProposal,
+    catalog: PlannerCatalog,
+) -> tuple[
+    AIPlannerProposal,
+    list[str],
+]:
+    """
+    Resolve a quantitative association directly against one
+    server-owned derived analytical view.
+
+    This canonicalizer does not derive metrics. The analytical
+    view builder remains the only component responsible for
+    materializing derived variables and grains.
+
+    Python promotes the proposal only when:
+
+    - the LLM already selected quantitative_association;
+    - the user did not explicitly name a dataset;
+    - one derived server-owned dataset contains exactly two
+      quantitative columns deterministically identified in the
+      objective;
+    - exactly one derived dataset satisfies that condition.
+
+    If zero or several views match, Python abstains and normal
+    validation remains fail-closed.
+    """
+
+    if (
+        proposal.decision
+        !=
+        "propose"
+        or
+        proposal.family
+        !=
+        "quantitative_association"
+    ):
+        return (
+            proposal,
+            [],
+        )
+
+
+    if explicit_dataset_mentions(
+        objective=objective,
+        catalog=catalog,
+    ):
+        return (
+            proposal,
+            [],
+        )
+
+
+    candidates: list[
+        tuple[
+            PlannerDatasetProfile,
+            list[str],
+        ]
+    ] = []
+
+
+    for dataset in (
+        catalog.datasets
+    ):
+        if not dataset.is_derived:
+            continue
+
+
+        mentions = list(
+            dict.fromkeys(
+                objective_schema_column_mentions(
+                    objective=objective,
+                    dataset=dataset,
+                )
+            )
+        )
+
+
+        quantitative_mentions: list[
+            str
+        ] = []
+
+
+        for column_name in mentions:
+            column = (
+                find_column(
+                    dataset,
+                    column_name,
+                )
+            )
+
+
+            if (
+                column is None
+                or
+                not is_quantitative(
+                    column.analysis_kind
+                )
+            ):
+                continue
+
+
+            quantitative_mentions.append(
+                column.name
+            )
+
+
+        quantitative_mentions = list(
+            dict.fromkeys(
+                quantitative_mentions
+            )
+        )
+
+
+        if (
+            len(
+                quantitative_mentions
+            )
+            !=
+            2
+        ):
+            continue
+
+
+        ordered_mentions = sorted(
+            quantitative_mentions,
+            key=lambda column_name: (
+                semantic_reference_position(
+                    objective=objective,
+                    dataset=dataset,
+                    column_name=column_name,
+                ),
+                column_name,
+            ),
+        )
+
+
+        candidates.append(
+            (
+                dataset,
+                ordered_mentions,
+            )
+        )
+
+
+    if (
+        len(
+            candidates
+        )
+        !=
+        1
+    ):
+        return (
+            proposal,
+            [],
+        )
+
+
+    (
+        selected,
+        ordered_mentions,
+    ) = (
+        candidates[
+            0
+        ]
+    )
+
+
+    previous_dataset = (
+        proposal.dataset_id
+    )
+
+
+    normalized = (
+        proposal.model_copy(
+            update={
+                "family":
+                    "quantitative_association",
+
+                "dataset_id":
+                    selected.dataset_id,
+
+                "analytical_grain":
+                    (
+                        selected.analytical_grain
+                        or
+                        selected.entity_column
+                        or
+                        proposal.analytical_grain
+                    ),
+
+                "x_column":
+                    ordered_mentions[
+                        0
+                    ],
+
+                "y_column":
+                    ordered_mentions[
+                        1
+                    ],
+
+                "group_column":
+                    None,
+
+                "value_column":
+                    None,
+
+                "time_column":
+                    None,
+
+                "dimension_column":
+                    None,
+
+                "entity_column":
+                    None,
+
+                "aggregation_function":
+                    "none",
+
+                "ranking_order":
+                    "none",
+
+                "ranking_limit":
+                    None,
+
+                "window_operation":
+                    "none",
+
+                "window_size":
+                    None,
+
+                "benchmark_reference":
+                    None,
+
+                "benchmark_operator":
+                    None,
+
+                "benchmark_selection":
+                    None,
+            }
+        )
+    )
+
+
+    return (
+        normalized,
+        [
+            (
+                "Python a resolu l'association quantitative "
+                "vers l'unique vue analytique derivee "
+                "server-owned contenant les deux variables "
+                "quantitatives explicitement identifiees dans "
+                "l'objectif : "
+                f"dataset_id={selected.dataset_id}, "
+                f"x={ordered_mentions[0]}, "
+                f"y={ordered_mentions[1]}, "
+                f"grain={normalized.analytical_grain}"
+                +
+                (
+                    f" (dataset propose par le modele : "
+                    f"{previous_dataset})."
+                    if (
+                        previous_dataset
+                        and
+                        previous_dataset
+                        !=
+                        selected.dataset_id
+                    )
+                    else
+                    "."
+                )
+            )
+        ],
+    )
+
+
+
 def canonicalize_inferred_dataset_reference(
     *,
     objective: str,
@@ -8398,6 +8843,22 @@ def validate_ai_proposal(
 
     (
         proposal,
+        derived_quantitative_association_normalizations,
+    ) = canonicalize_derived_quantitative_association_from_objective(
+        objective=(
+            objective
+        ),
+        proposal=(
+            proposal
+        ),
+        catalog=(
+            catalog
+        ),
+    )
+
+
+    (
+        proposal,
         inferred_dataset_normalizations,
     ) = canonicalize_inferred_dataset_reference(
         objective=(
@@ -8479,6 +8940,7 @@ def validate_ai_proposal(
         *monthly_view_normalizations,
         *categorical_view_objective_normalizations,
         *entity_group_objective_normalizations,
+        *derived_quantitative_association_normalizations,
         *inferred_dataset_normalizations,
         *semantic_binding_normalizations,
         *analytical_view_normalizations,

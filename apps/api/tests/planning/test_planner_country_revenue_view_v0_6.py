@@ -203,7 +203,7 @@ def main() -> None:
     assert (
         AI_ANALYTICAL_PLANNER_RULE_VERSION
         ==
-        "ai_analytical_planner_v0.34"
+        "ai_analytical_planner_v0.35"
     )
 
     country_profile = next(
