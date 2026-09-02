@@ -32,6 +32,15 @@ export type ModelTrainingColumnKind =
   | "other";
 
 
+export type ModelTrainingAnalyticalType =
+  | "unknown"
+  | "identifier"
+  | "categorical"
+  | "temporal"
+  | "quantitative"
+  | "text";
+
+
 export type ModelTrainingColumn = {
   name:
     string;
@@ -41,6 +50,23 @@ export type ModelTrainingColumn = {
 
   nullable:
     boolean;
+
+  analytical_type:
+    ModelTrainingAnalyticalType;
+
+  analytical_subtype:
+    string
+    | null;
+
+  ml_eligible_as_target:
+    boolean;
+
+  ml_eligible_as_feature:
+    boolean;
+
+  exclusion_reason:
+    string
+    | null;
 
   rule_version:
     "model_training_api_contract_v0.1";

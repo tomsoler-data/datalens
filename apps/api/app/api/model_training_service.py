@@ -26,6 +26,11 @@ from app.ml.classical_executor import (
 )
 
 
+from app.profiling.types import (
+    infer_analytical_type,
+)
+
+
 from app.preparation.analysis_input_handoff import (
     AnalysisInputHandoffError,
     load_validated_analysis_input,
@@ -163,6 +168,118 @@ def _column_kind(
         return "categorical"
 
     return "other"
+
+
+# ============================================================
+# ML READINESS
+# ============================================================
+
+
+def _column_ml_readiness(
+    *,
+    column_name: str,
+    series: pd.Series,
+) -> dict[
+    str,
+    object,
+]:
+
+    kind = (
+        _column_kind(
+            series
+        )
+    )
+
+    analytical = (
+        infer_analytical_type(
+            column_name,
+            series,
+        )
+    )
+
+    analytical_type = str(
+        analytical.get(
+            "type"
+        )
+        or
+        "unknown"
+    ).strip()
+
+    analytical_subtype_value = (
+        analytical.get(
+            "subtype"
+        )
+    )
+
+    analytical_subtype = (
+        str(
+            analytical_subtype_value
+        ).strip()
+
+        if analytical_subtype_value
+        is not None
+
+        else None
+    )
+
+    if analytical_subtype == "":
+        analytical_subtype = None
+
+    is_identifier = (
+        analytical_type
+        ==
+        "identifier"
+    )
+
+    direct_ml_kind = (
+        kind
+        in
+        {
+            "numeric",
+            "boolean",
+            "categorical",
+        }
+    )
+
+    eligible = (
+        direct_ml_kind
+        and
+        not is_identifier
+    )
+
+    exclusion_reason = None
+
+    if is_identifier:
+
+        exclusion_reason = (
+            "identifier"
+        )
+
+    elif not direct_ml_kind:
+
+        exclusion_reason = (
+            "unsupported_direct_ml_kind"
+        )
+
+    return {
+        "kind":
+            kind,
+
+        "analytical_type":
+            analytical_type,
+
+        "analytical_subtype":
+            analytical_subtype,
+
+        "ml_eligible_as_target":
+            eligible,
+
+        "ml_eligible_as_feature":
+            eligible,
+
+        "exclusion_reason":
+            exclusion_reason,
+    }
 
 
 # ============================================================
@@ -340,15 +457,25 @@ def get_model_training_context(
                 ]
             )
 
+            readiness = (
+                _column_ml_readiness(
+                    column_name=
+                        column_name,
+
+                    series=
+                        series,
+                )
+            )
+
             columns.append(
                 ModelTrainingColumn(
                     name=
                         column_name,
 
                     kind=
-                        _column_kind(
-                            series
-                        ),
+                        readiness[
+                            "kind"
+                        ],
 
                     nullable=
                         bool(
@@ -356,6 +483,31 @@ def get_model_training_context(
                             .isna()
                             .any()
                         ),
+
+                    analytical_type=
+                        readiness[
+                            "analytical_type"
+                        ],
+
+                    analytical_subtype=
+                        readiness[
+                            "analytical_subtype"
+                        ],
+
+                    ml_eligible_as_target=
+                        readiness[
+                            "ml_eligible_as_target"
+                        ],
+
+                    ml_eligible_as_feature=
+                        readiness[
+                            "ml_eligible_as_feature"
+                        ],
+
+                    exclusion_reason=
+                        readiness[
+                            "exclusion_reason"
+                        ],
                 )
             )
 

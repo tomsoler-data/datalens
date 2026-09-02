@@ -1393,6 +1393,13 @@ export default function ModelLabClient() {
                 column
               ) => {
                 if (
+                  !column.ml_eligible_as_target
+                ) {
+                  return false;
+                }
+
+
+                if (
                   trainingProblemType ===
                     "regression"
                 ) {
@@ -1444,6 +1451,8 @@ export default function ModelLabClient() {
                 column.name !==
                   trainingTargetColumn
                 &&
+                column.ml_eligible_as_feature
+                &&
                 isDirectMLFeatureKind(
                   column.kind
                 )
@@ -1453,6 +1462,34 @@ export default function ModelLabClient() {
       [
         selectedTrainingDataset,
         trainingTargetColumn,
+      ]
+    );
+
+
+  const identifierTrainingColumns =
+    useMemo(
+      () => {
+        if (
+          !selectedTrainingDataset
+        ) {
+          return [];
+        }
+
+
+        return (
+          selectedTrainingDataset
+            .columns
+            .filter(
+              (
+                column
+              ) =>
+                column.analytical_type ===
+                  "identifier"
+            )
+        );
+      },
+      [
+        selectedTrainingDataset,
       ]
     );
 
@@ -3819,6 +3856,36 @@ export default function ModelLabClient() {
                                     )
                                   }
                                 </div>
+
+
+                                {
+                                  identifierTrainingColumns.length >
+                                    0
+                                    ? (
+                                        <p
+                                          className={
+                                            styles.trainingFeatureNote
+                                          }
+                                        >
+                                          Identifiants détectés par DataLens et
+                                          exclus automatiquement des cibles et
+                                          variables explicatives :{" "}
+                                          {
+                                            identifierTrainingColumns
+                                              .map(
+                                                (
+                                                  column
+                                                ) =>
+                                                  column.name
+                                              )
+                                              .join(
+                                                ", "
+                                              )
+                                          }.
+                                        </p>
+                                      )
+                                    : null
+                                }
 
 
                                 {
