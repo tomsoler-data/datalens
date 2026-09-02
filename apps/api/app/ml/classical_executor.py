@@ -113,6 +113,11 @@ from app.ml.monitoring_profile_store import (
 )
 
 
+from app.profiling.types import (
+    infer_analytical_type,
+)
+
+
 from app.preparation.analysis_input_handoff import (
     AnalysisInputHandoffError,
     load_validated_analysis_input,
@@ -491,6 +496,83 @@ def _validate_and_extract_xy(
             deep=True
         )
     )
+
+
+    # ========================================================
+    # IDENTIFIER ROLE GUARD
+    # ========================================================
+
+
+    target_semantics = (
+        infer_analytical_type(
+            contract.target_column,
+            y,
+        )
+    )
+
+
+    if (
+        target_semantics.get(
+            "type"
+        )
+        ==
+        "identifier"
+    ):
+        raise (
+            ClassicalMLInputError(
+                (
+                    "Identifier columns cannot be "
+                    "used as ML targets. "
+                    f"target={contract.target_column}"
+                )
+            )
+        )
+
+
+    identifier_features: list[
+        str
+    ] = []
+
+
+    for feature_column in (
+        contract.feature_columns
+    ):
+
+        feature_semantics = (
+            infer_analytical_type(
+                feature_column,
+                x[
+                    feature_column
+                ],
+            )
+        )
+
+        if (
+            feature_semantics.get(
+                "type"
+            )
+            ==
+            "identifier"
+        ):
+            identifier_features.append(
+                feature_column
+            )
+
+
+    if identifier_features:
+
+        raise (
+            ClassicalMLInputError(
+                (
+                    "Identifier columns cannot be "
+                    "used as ML features: "
+                    +
+                    ", ".join(
+                        identifier_features
+                    )
+                )
+            )
+        )
 
 
     # ========================================================

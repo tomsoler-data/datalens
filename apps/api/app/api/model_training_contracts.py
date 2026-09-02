@@ -49,6 +49,16 @@ ModelTrainingColumnKind = Literal[
 ]
 
 
+ModelTrainingAnalyticalType = Literal[
+    "unknown",
+    "identifier",
+    "categorical",
+    "temporal",
+    "quantitative",
+    "text",
+]
+
+
 # ============================================================
 # HELPERS
 # ============================================================
@@ -95,6 +105,24 @@ class ModelTrainingColumn(
     kind: ModelTrainingColumnKind
 
     nullable: bool
+
+    analytical_type: (
+        ModelTrainingAnalyticalType
+    ) = "unknown"
+
+    analytical_subtype: (
+        str
+        | None
+    ) = None
+
+    ml_eligible_as_target: bool = True
+
+    ml_eligible_as_feature: bool = True
+
+    exclusion_reason: (
+        str
+        | None
+    ) = None
 
     rule_version: Literal[
         "model_training_api_contract_v0.1"
