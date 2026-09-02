@@ -88,6 +88,15 @@ export default function ExpandableChart({
         style={{
           position:
             "relative",
+
+          width:
+            "100%",
+
+          maxWidth:
+            "1000px",
+
+          margin:
+            "0 auto",
         }}
       >
         <div
