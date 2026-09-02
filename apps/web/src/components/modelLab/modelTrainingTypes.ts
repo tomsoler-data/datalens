@@ -67,6 +67,9 @@ export type ModelTrainingColumn = {
   ml_eligible_as_group:
     boolean;
 
+  ml_eligible_as_time:
+    boolean;
+
   exclusion_reason:
     string
     | null;

@@ -280,6 +280,27 @@ def _column_ml_readiness(
         )
     )
 
+    time_eligible = (
+        kind
+        ==
+        "datetime"
+        and
+        analytical_type
+        ==
+        "temporal"
+        and
+        analytical_subtype
+        ==
+        "datetime"
+        and
+        not nullable
+        and
+        non_null_unique_count
+        >=
+        2
+    )
+
+
     exclusion_reason = None
 
     if is_identifier:
@@ -312,6 +333,9 @@ def _column_ml_readiness(
 
         "ml_eligible_as_group":
             group_eligible,
+
+        "ml_eligible_as_time":
+            time_eligible,
 
         "exclusion_reason":
             exclusion_reason,
@@ -543,6 +567,11 @@ def get_model_training_context(
                     ml_eligible_as_group=
                         readiness[
                             "ml_eligible_as_group"
+                        ],
+
+                    ml_eligible_as_time=
+                        readiness[
+                            "ml_eligible_as_time"
                         ],
 
                     exclusion_reason=
