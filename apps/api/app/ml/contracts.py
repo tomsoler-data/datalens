@@ -87,8 +87,8 @@ class MLSplitContract(
 
     DataLens v0.1 intentionally supports only a holdout split.
 
-    Cross-validation and time-aware splitting belong to later
-    contract versions.
+    Cross-validation is configured separately from this
+    row-based holdout contract.
     """
 
     model_config = ConfigDict(
@@ -201,10 +201,94 @@ class MLGroupHoldoutSplitContract(
         return normalized
 
 
+class MLTimeHoldoutSplitContract(
+    BaseModel
+):
+    """
+    Deterministic chronological train/test split.
+
+    time_column is server-validated observation-time metadata.
+
+    The most recent observations form the test partition.
+
+    Equal timestamps are never split between train and test.
+
+    The time column is split metadata, never a model feature.
+    """
+
+    model_config = ConfigDict(
+        extra="forbid",
+        frozen=True,
+    )
+
+
+    strategy: Literal[
+        "time_holdout",
+    ] = "time_holdout"
+
+
+    time_column: str = Field(
+        min_length=1,
+    )
+
+
+    test_size: float = Field(
+        default=0.20,
+        gt=0.0,
+        lt=0.5,
+    )
+
+
+    random_seed: int = Field(
+        default=42,
+        ge=0,
+        le=2_147_483_647,
+    )
+
+
+    shuffle: Literal[
+        False
+    ] = False
+
+
+    stratify: Literal[
+        False
+    ] = False
+
+
+    @field_validator(
+        "time_column",
+        mode="before",
+    )
+    @classmethod
+    def normalize_time_column(
+        cls,
+        value: object,
+    ) -> str:
+
+        normalized = str(
+            value
+            if value is not None
+            else ""
+        ).strip()
+
+
+        if not normalized:
+
+            raise ValueError(
+                "time_column cannot be empty"
+            )
+
+
+        return normalized
+
+
 MLTrainingSplitContract = (
     MLSplitContract
     |
     MLGroupHoldoutSplitContract
+    |
+    MLTimeHoldoutSplitContract
 )
 
 
@@ -712,6 +796,43 @@ class MLTrainingContract(
                 raise ValueError(
                     (
                         "group_column cannot also "
+                        "be present in feature_columns"
+                    )
+                )
+
+
+        # ----------------------------------------------------
+        # TEMPORAL OBSERVATION-TIME ROLE
+        # ----------------------------------------------------
+
+        if isinstance(
+            self.split,
+            MLTimeHoldoutSplitContract,
+        ):
+
+            if (
+                self.split.time_column
+                ==
+                self.target_column
+            ):
+
+                raise ValueError(
+                    (
+                        "time_column cannot also "
+                        "be target_column"
+                    )
+                )
+
+
+            if (
+                self.split.time_column
+                in
+                self.feature_columns
+            ):
+
+                raise ValueError(
+                    (
+                        "time_column cannot also "
                         "be present in feature_columns"
                     )
                 )

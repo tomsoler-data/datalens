@@ -36,6 +36,7 @@ from app.ml.model_metrics import (
 
 from app.ml.contracts import (
     MLGroupHoldoutSplitContract,
+    MLTimeHoldoutSplitContract,
     MLTrainingContract,
 )
 
@@ -90,6 +91,26 @@ def _validate_cross_validation_feasibility(
     cross_validation_contract: MLCrossValidationContract,
     groups: pd.Series | None = None,
 ) -> None:
+
+    if isinstance(
+        training_contract.split,
+        MLTimeHoldoutSplitContract,
+    ):
+
+        raise (
+            MLCrossValidationInputError(
+                (
+                    "Time-aware Cross-Validation "
+                    "is not available in Temporal "
+                    "Holdout v0.1. A time_holdout "
+                    "Training Contract must fail "
+                    "closed until the dedicated "
+                    "Temporal Cross-Validation "
+                    "milestone is enabled."
+                )
+            )
+        )
+
 
     folds = (
         cross_validation_contract.folds

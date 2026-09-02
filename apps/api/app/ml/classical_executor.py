@@ -60,6 +60,7 @@ from app.ml.baseline import (
 from app.ml.contracts import (
     MLGroupHoldoutSplitContract,
     MLSplitContract,
+    MLTimeHoldoutSplitContract,
     MLTrainingContract,
 )
 
@@ -1443,6 +1444,247 @@ def _validated_group_values(
     return group_values
 
 
+def _validated_time_values(
+    *,
+    dataframe: pd.DataFrame | None,
+    x: pd.DataFrame,
+    y: pd.Series,
+    contract: MLTrainingContract,
+) -> pd.Series:
+
+    split = (
+        contract.split
+    )
+
+
+    if not isinstance(
+        split,
+        MLTimeHoldoutSplitContract,
+    ):
+
+        raise (
+            ClassicalMLInputError(
+                (
+                    "Time validation requires a "
+                    "time_holdout split contract."
+                )
+            )
+        )
+
+
+    if dataframe is None:
+
+        raise (
+            ClassicalMLInputError(
+                (
+                    "time_holdout requires the "
+                    "server-owned source dataframe."
+                )
+            )
+        )
+
+
+    if (
+        len(
+            dataframe
+        )
+        !=
+        len(
+            x
+        )
+        or
+        len(
+            x
+        )
+        !=
+        len(
+            y
+        )
+        or
+        not dataframe.index.equals(
+            x.index
+        )
+        or
+        not x.index.equals(
+            y.index
+        )
+    ):
+
+        raise (
+            ClassicalMLInputError(
+                (
+                    "Time-aware split input "
+                    "alignment is invalid."
+                )
+            )
+        )
+
+
+    time_column = (
+        split.time_column
+    )
+
+
+    if (
+        time_column
+        not in
+        dataframe.columns
+    ):
+
+        raise (
+            ClassicalMLInputError(
+                (
+                    "Time holdout column is "
+                    "missing from the validated "
+                    "dataset. "
+                    f"time_column={time_column}"
+                )
+            )
+        )
+
+
+    time_values = (
+        dataframe.loc[
+            :,
+            time_column,
+        ]
+    )
+
+
+    if not isinstance(
+        time_values,
+        pd.Series,
+    ):
+
+        raise (
+            ClassicalMLInputError(
+                (
+                    "Time holdout column must "
+                    "resolve to exactly one Series."
+                )
+            )
+        )
+
+
+    time_values = (
+        time_values.copy(
+            deep=True
+        )
+    )
+
+
+    if bool(
+        time_values
+        .isna()
+        .any()
+    ):
+
+        raise (
+            ClassicalMLInputError(
+                (
+                    "Time holdout column contains "
+                    "missing values. "
+                    f"time_column={time_column}"
+                )
+            )
+        )
+
+
+    if not (
+        pd.api.types
+        .is_datetime64_any_dtype(
+            time_values.dtype
+        )
+    ):
+
+        raise (
+            ClassicalMLInputError(
+                (
+                    "Time holdout requires a "
+                    "validated pandas datetime "
+                    "column. Model Lab does not "
+                    "implicitly parse string dates. "
+                    f"time_column={time_column}, "
+                    f"dtype={time_values.dtype}"
+                )
+            )
+        )
+
+
+    semantics = (
+        infer_analytical_type(
+            time_column,
+            time_values,
+        )
+    )
+
+
+    analytical_type = str(
+        semantics.get(
+            "type"
+        )
+        or
+        ""
+    ).strip()
+
+
+    analytical_subtype = str(
+        semantics.get(
+            "subtype"
+        )
+        or
+        ""
+    ).strip()
+
+
+    if (
+        analytical_type
+        !=
+        "temporal"
+        or
+        analytical_subtype
+        !=
+        "datetime"
+    ):
+
+        raise (
+            ClassicalMLInputError(
+                (
+                    "Time holdout requires "
+                    "observation-time datetime "
+                    "semantics. "
+                    f"time_column={time_column}, "
+                    f"analytical_type={analytical_type}, "
+                    "analytical_subtype="
+                    f"{analytical_subtype}"
+                )
+            )
+        )
+
+
+    distinct_timestamps = int(
+        time_values
+        .nunique(
+            dropna=True
+        )
+    )
+
+
+    if distinct_timestamps < 2:
+
+        raise (
+            ClassicalMLInputError(
+                (
+                    "Time holdout requires at "
+                    "least two distinct timestamps."
+                )
+            )
+        )
+
+
+    return time_values
+
+
 def _split_dataset(
     *,
     x: pd.DataFrame,
@@ -1650,6 +1892,280 @@ def _split_dataset(
                     (
                         "Entity-aware split produced "
                         "overlapping train/test groups."
+                    )
+                )
+            )
+
+
+    # ========================================================
+    # TEMPORAL HOLDOUT
+    # ========================================================
+
+
+    elif isinstance(
+        split,
+        MLTimeHoldoutSplitContract,
+    ):
+
+        time_values = (
+            _validated_time_values(
+                dataframe=
+                    dataframe,
+
+                x=
+                    x,
+
+                y=
+                    y,
+
+                contract=
+                    contract,
+            )
+        )
+
+
+        row_count = int(
+            len(
+                x
+            )
+        )
+
+
+        desired_test_rows = max(
+            2,
+            int(
+                math.ceil(
+                    row_count
+                    *
+                    split.test_size
+                )
+            ),
+        )
+
+
+        initial_cut_position = (
+            row_count
+            -
+            desired_test_rows
+        )
+
+
+        if initial_cut_position < 2:
+
+            raise (
+                ClassicalMLInputError(
+                    (
+                        "Time holdout cannot preserve "
+                        "at least two training rows "
+                        "with the configured test_size."
+                    )
+                )
+            )
+
+
+        ordered_positions = (
+            np.argsort(
+                time_values
+                .to_numpy(),
+                kind="stable",
+            )
+        )
+
+
+        ordered_times = (
+            time_values.iloc[
+                ordered_positions
+            ]
+            .reset_index(
+                drop=True
+            )
+        )
+
+
+        cut_position = (
+            initial_cut_position
+        )
+
+
+        boundary_timestamp = (
+            ordered_times.iloc[
+                cut_position
+            ]
+        )
+
+
+        while (
+            cut_position
+            >
+            0
+            and
+            ordered_times.iloc[
+                cut_position
+                -
+                1
+            ]
+            ==
+            boundary_timestamp
+        ):
+
+            cut_position -= 1
+
+
+        if cut_position < 2:
+
+            raise (
+                ClassicalMLInputError(
+                    (
+                        "Time holdout timestamp "
+                        "boundary would leave fewer "
+                        "than two training rows. "
+                        "Equal timestamps are never "
+                        "split across train and test."
+                    )
+                )
+            )
+
+
+        train_positions = (
+            ordered_positions[
+                :cut_position
+            ]
+        )
+
+
+        test_positions = (
+            ordered_positions[
+                cut_position:
+            ]
+        )
+
+
+        if (
+            len(
+                test_positions
+            )
+            <
+            2
+        ):
+
+            raise (
+                ClassicalMLInputError(
+                    (
+                        "Time holdout produced "
+                        "fewer than two test rows."
+                    )
+                )
+            )
+
+
+        x_train = (
+            x.iloc[
+                train_positions
+            ]
+            .copy(
+                deep=True
+            )
+        )
+
+
+        x_test = (
+            x.iloc[
+                test_positions
+            ]
+            .copy(
+                deep=True
+            )
+        )
+
+
+        y_train = (
+            y.iloc[
+                train_positions
+            ]
+            .copy(
+                deep=True
+            )
+        )
+
+
+        y_test = (
+            y.iloc[
+                test_positions
+            ]
+            .copy(
+                deep=True
+            )
+        )
+
+
+        train_times = (
+            time_values.iloc[
+                train_positions
+            ]
+            .copy(
+                deep=True
+            )
+        )
+
+
+        test_times = (
+            time_values.iloc[
+                test_positions
+            ]
+            .copy(
+                deep=True
+            )
+        )
+
+
+        train_max_time = (
+            train_times.max()
+        )
+
+
+        test_min_time = (
+            test_times.min()
+        )
+
+
+        if not (
+            train_max_time
+            <
+            test_min_time
+        ):
+
+            raise (
+                ClassicalMLExecutorError(
+                    (
+                        "Time holdout violated the "
+                        "strict chronological boundary. "
+                        "Every training timestamp must "
+                        "be earlier than every test "
+                        "timestamp."
+                    )
+                )
+            )
+
+
+        timestamp_overlap = (
+            set(
+                train_times.tolist()
+            )
+            &
+            set(
+                test_times.tolist()
+            )
+        )
+
+
+        if timestamp_overlap:
+
+            raise (
+                ClassicalMLExecutorError(
+                    (
+                        "Time holdout produced "
+                        "overlapping timestamps across "
+                        "train and test."
                     )
                 )
             )

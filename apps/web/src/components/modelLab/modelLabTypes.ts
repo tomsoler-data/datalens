@@ -144,9 +144,31 @@ export type ModelLabGroupHoldoutSplitContract = {
 };
 
 
+export type ModelLabTimeHoldoutSplitContract = {
+  strategy:
+    "time_holdout";
+
+  time_column:
+    string;
+
+  test_size:
+    number;
+
+  random_seed:
+    number;
+
+  shuffle:
+    false;
+
+  stratify:
+    false;
+};
+
+
 export type ModelLabSplitContract =
   | ModelLabHoldoutSplitContract
-  | ModelLabGroupHoldoutSplitContract;
+  | ModelLabGroupHoldoutSplitContract
+  | ModelLabTimeHoldoutSplitContract;
 
 
 /* ============================================================

@@ -997,6 +997,7 @@ export default function ModelLabClient() {
     ""
     | "holdout"
     | "group_holdout"
+    | "time_holdout"
   >(
     ""
   );
@@ -1005,6 +1006,14 @@ export default function ModelLabClient() {
   const [
     trainingGroupColumn,
     setTrainingGroupColumn,
+  ] = useState(
+    ""
+  );
+
+
+  const [
+    trainingTimeColumn,
+    setTrainingTimeColumn,
   ] = useState(
     ""
   );
@@ -1541,6 +1550,33 @@ export default function ModelLabClient() {
     );
 
 
+  const eligibleTrainingTimeColumns =
+    useMemo(
+      () => {
+        if (
+          !selectedTrainingDataset
+        ) {
+          return [];
+        }
+
+
+        return (
+          selectedTrainingDataset
+            .columns
+            .filter(
+              (
+                column
+              ) =>
+                column.ml_eligible_as_time
+            )
+        );
+      },
+      [
+        selectedTrainingDataset,
+      ]
+    );
+
+
   const selectedTrainingFeatureSet =
     useMemo(
       () =>
@@ -1698,6 +1734,14 @@ export default function ModelLabClient() {
           trainingGroupColumn
         )
       ) &&
+      (
+        trainingSplitStrategy !==
+          "time_holdout"
+        ||
+        Boolean(
+          trainingTimeColumn
+        )
+      ) &&
       !trainingSubmitting
     );
 
@@ -1732,6 +1776,10 @@ export default function ModelLabClient() {
     );
 
     setTrainingGroupColumn(
+      ""
+    );
+
+    setTrainingTimeColumn(
       ""
     );
 
@@ -1784,6 +1832,10 @@ export default function ModelLabClient() {
     );
 
     setTrainingGroupColumn(
+      ""
+    );
+
+    setTrainingTimeColumn(
       ""
     );
 
@@ -1880,6 +1932,7 @@ export default function ModelLabClient() {
       ""
       | "holdout"
       | "group_holdout"
+      | "time_holdout"
   ) {
     setTrainingSplitStrategy(
       strategy
@@ -1891,6 +1944,16 @@ export default function ModelLabClient() {
         "group_holdout"
     ) {
       setTrainingGroupColumn(
+        ""
+      );
+    }
+
+
+    if (
+      strategy !==
+        "time_holdout"
+    ) {
+      setTrainingTimeColumn(
         ""
       );
     }
@@ -1956,6 +2019,12 @@ export default function ModelLabClient() {
           "group_holdout"
         &&
         !trainingGroupColumn
+      ) ||
+      (
+        trainingSplitStrategy ===
+          "time_holdout"
+        &&
+        !trainingTimeColumn
       )
     ) {
       setTrainingSubmitError(
@@ -2061,23 +2130,46 @@ export default function ModelLabClient() {
                     stratify:
                       false,
                   }
-                : {
-                    strategy:
-                      "holdout",
+                : (
+                    trainingSplitStrategy ===
+                      "time_holdout"
+                      ? {
+                          strategy:
+                            "time_holdout",
 
-                    test_size:
-                      0.2,
+                          time_column:
+                            trainingTimeColumn,
 
-                    random_seed:
-                      42,
+                          test_size:
+                            0.2,
 
-                    shuffle:
-                      true,
+                          random_seed:
+                            42,
 
-                    stratify:
-                      trainingProblemType ===
-                        "classification",
-                  },
+                          shuffle:
+                            false,
+
+                          stratify:
+                            false,
+                        }
+                      : {
+                          strategy:
+                            "holdout",
+
+                          test_size:
+                            0.2,
+
+                          random_seed:
+                            42,
+
+                          shuffle:
+                            true,
+
+                          stratify:
+                            trainingProblemType ===
+                              "classification",
+                        }
+                  ),
           },
 
         expected_preparation_session_revision:
@@ -4092,6 +4184,7 @@ export default function ModelLabClient() {
                                             ""
                                             | "holdout"
                                             | "group_holdout"
+                                            | "time_holdout"
                                         );
                                       }
                                     }
@@ -4109,6 +4202,16 @@ export default function ModelLabClient() {
                                       value="holdout"
                                     >
                                       Par lignes
+                                    </option>
+
+                                    <option
+                                      value="time_holdout"
+                                      disabled={
+                                        eligibleTrainingTimeColumns.length ===
+                                          0
+                                      }
+                                    >
+                                      Chronologique
                                     </option>
 
                                     <option
@@ -4202,6 +4305,79 @@ export default function ModelLabClient() {
                                       )
                                     : null
                                 }
+                                {
+                                  trainingSplitStrategy ===
+                                    "time_holdout"
+                                    ? (
+                                        <label
+                                          className={
+                                            styles.trainingField
+                                          }
+                                        >
+                                          <span>
+                                            Colonne temporelle
+                                          </span>
+
+                                          <select
+                                            value={
+                                              trainingTimeColumn
+                                            }
+                                            onChange={
+                                              (
+                                                event
+                                              ) => {
+                                                setTrainingTimeColumn(
+                                                  event.target.value
+                                                );
+
+                                                setTrainingSubmitError(
+                                                  null
+                                                );
+                                              }
+                                            }
+                                            disabled={
+                                              trainingSubmitting
+                                            }
+                                          >
+                                            <option
+                                              value=""
+                                            >
+                                              Choisir une date d'observation
+                                            </option>
+
+                                            {
+                                              eligibleTrainingTimeColumns.map(
+                                                (
+                                                  column
+                                                ) => (
+                                                  <option
+                                                    key={
+                                                      column.name
+                                                    }
+                                                    value={
+                                                      column.name
+                                                    }
+                                                  >
+                                                    {
+                                                      column.name
+                                                    }
+                                                  </option>
+                                                )
+                                              )
+                                            }
+                                          </select>
+
+                                          <small>
+                                            Seules les colonnes datetime
+                                            non nulles et validees par le
+                                            serveur sont proposees.
+                                          </small>
+                                        </label>
+                                      )
+                                    : null
+                                }
+
+
                               </div>
 
 
@@ -4235,9 +4411,14 @@ export default function ModelLabClient() {
                                         ? "80 / 20 des entités"
                                         : (
                                             trainingSplitStrategy ===
-                                              "holdout"
-                                              ? "80 / 20 des lignes"
-                                              : "À choisir"
+                                              "time_holdout"
+                                              ? "Passé / futur"
+                                              : (
+                                                  trainingSplitStrategy ===
+                                                    "holdout"
+                                                    ? "80 / 20 des lignes"
+                                                    : "À choisir"
+                                                )
                                           )
                                     }
                                   </strong>
@@ -4257,6 +4438,24 @@ export default function ModelLabClient() {
                                             "À choisir"
                                           )
                                         : "Aucune"
+                                    }
+                                  </strong>
+                                </div>
+
+                                <div>
+                                  <span>
+                                    Temps
+                                  </span>
+
+                                  <strong>
+                                    {
+                                      trainingSplitStrategy ===
+                                        "time_holdout"
+                                        ? (
+                                            trainingTimeColumn ||
+                                            "À choisir"
+                                          )
+                                        : "Aucun"
                                     }
                                   </strong>
                                 </div>
@@ -5883,7 +6082,12 @@ export default function ModelLabClient() {
                                                   selectedDetail.split.strategy ===
                                                     "group_holdout"
                                                     ? "Par entité"
-                                                    : "Par lignes"
+                                                    : (
+                                                        selectedDetail.split.strategy ===
+                                                          "time_holdout"
+                                                          ? "Chronologique"
+                                                          : "Par lignes"
+                                                      )
                                                 }
                                               </strong>
                                             </div>
@@ -5922,6 +6126,27 @@ export default function ModelLabClient() {
                                                             selectedDetail
                                                               .split
                                                               .group_column
+                                                          }
+                                                        </dd>
+                                                      </div>
+                                                    )
+                                                  : null
+                                              }
+
+                                              {
+                                                selectedDetail.split.strategy ===
+                                                  "time_holdout"
+                                                  ? (
+                                                      <div>
+                                                        <dt>
+                                                          Temps
+                                                        </dt>
+
+                                                        <dd>
+                                                          {
+                                                            selectedDetail
+                                                              .split
+                                                              .time_column
                                                           }
                                                         </dd>
                                                       </div>
