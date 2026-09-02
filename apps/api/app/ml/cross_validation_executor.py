@@ -456,6 +456,27 @@ def execute_ml_cross_validation(
     )
 
 
+    if (
+        contract
+        .split
+        .strategy
+        ==
+        "group_holdout"
+    ):
+
+        raise (
+            MLCrossValidationInputError(
+                (
+                    "Entity-aware Cross-Validation "
+                    "is not supported by "
+                    "Cross-Validation v0.1. "
+                    "Group-aware CV must preserve "
+                    "entity boundaries across folds."
+                )
+            )
+        )
+
+
     try:
         (
             dataframe,

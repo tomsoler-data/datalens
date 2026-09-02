@@ -831,6 +831,28 @@ def execute_ml_hyperparameter_tuning(
     )
 
 
+    if (
+        contract
+        .split
+        .strategy
+        ==
+        "group_holdout"
+    ):
+
+        raise (
+            MLHyperparameterTuningInputError(
+                (
+                    "Entity-aware Hyperparameter "
+                    "Tuning is not supported by "
+                    "Hyperparameter Tuning v0.1. "
+                    "Group-aware INNER "
+                    "Cross-Validation is required "
+                    "before tuning can be enabled."
+                )
+            )
+        )
+
+
     base_training_contract_sha256 = (
         ml_training_contract_sha256(
             contract

@@ -1262,6 +1262,9 @@ def execute_ml_decision_threshold(
 
                 contract=
                     training_contract,
+
+                dataframe=
+                    dataframe,
             )
         )
 

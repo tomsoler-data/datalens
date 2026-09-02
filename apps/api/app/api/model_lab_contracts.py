@@ -18,7 +18,7 @@ from pydantic import (
 
 from app.ml.contracts import (
     MLPreprocessingContract,
-    MLSplitContract,
+    MLTrainingSplitContract,
 )
 
 from app.ml.estimator_contracts import (
@@ -600,7 +600,7 @@ class ModelLabModelDetail(
     )
 
     split: (
-        MLSplitContract
+        MLTrainingSplitContract
     )
 
     effective_estimator_hyperparameters: (

@@ -119,6 +119,8 @@ class ModelTrainingColumn(
 
     ml_eligible_as_feature: bool = True
 
+    ml_eligible_as_group: bool = False
+
     exclusion_reason: (
         str
         | None

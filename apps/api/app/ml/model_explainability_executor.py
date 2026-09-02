@@ -588,6 +588,9 @@ def execute_ml_model_explainability(
 
                 contract=
                     training_contract,
+
+                dataframe=
+                    dataframe,
             )
         )
 

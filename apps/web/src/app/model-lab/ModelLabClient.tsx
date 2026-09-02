@@ -991,6 +991,26 @@ export default function ModelLabClient() {
 
 
   const [
+    trainingSplitStrategy,
+    setTrainingSplitStrategy,
+  ] = useState<
+    ""
+    | "holdout"
+    | "group_holdout"
+  >(
+    ""
+  );
+
+
+  const [
+    trainingGroupColumn,
+    setTrainingGroupColumn,
+  ] = useState(
+    ""
+  );
+
+
+  const [
     predictionPanelModelId,
     setPredictionPanelModelId,
   ] = useState<
@@ -1494,6 +1514,33 @@ export default function ModelLabClient() {
     );
 
 
+  const eligibleTrainingGroupColumns =
+    useMemo(
+      () => {
+        if (
+          !selectedTrainingDataset
+        ) {
+          return [];
+        }
+
+
+        return (
+          selectedTrainingDataset
+            .columns
+            .filter(
+              (
+                column
+              ) =>
+                column.ml_eligible_as_group
+            )
+        );
+      },
+      [
+        selectedTrainingDataset,
+      ]
+    );
+
+
   const selectedTrainingFeatureSet =
     useMemo(
       () =>
@@ -1640,6 +1687,17 @@ export default function ModelLabClient() {
       trainingFeatureColumns
         .length >
         0 &&
+      Boolean(
+        trainingSplitStrategy
+      ) &&
+      (
+        trainingSplitStrategy !==
+          "group_holdout"
+        ||
+        Boolean(
+          trainingGroupColumn
+        )
+      ) &&
       !trainingSubmitting
     );
 
@@ -1667,6 +1725,14 @@ export default function ModelLabClient() {
 
     setTrainingFeatureColumns(
       []
+    );
+
+    setTrainingSplitStrategy(
+      ""
+    );
+
+    setTrainingGroupColumn(
+      ""
     );
 
     setTrainingSubmitError(
@@ -1711,6 +1777,14 @@ export default function ModelLabClient() {
 
     setTrainingFeatureColumns(
       []
+    );
+
+    setTrainingSplitStrategy(
+      ""
+    );
+
+    setTrainingGroupColumn(
+      ""
     );
 
     setTrainingSubmitError(
@@ -1801,6 +1875,33 @@ export default function ModelLabClient() {
   }
 
 
+  function changeTrainingSplitStrategy(
+    strategy:
+      ""
+      | "holdout"
+      | "group_holdout"
+  ) {
+    setTrainingSplitStrategy(
+      strategy
+    );
+
+
+    if (
+      strategy !==
+        "group_holdout"
+    ) {
+      setTrainingGroupColumn(
+        ""
+      );
+    }
+
+
+    setTrainingSubmitError(
+      null
+    );
+  }
+
+
   function toggleTrainingFeature(
     columnName:
       string
@@ -1848,7 +1949,14 @@ export default function ModelLabClient() {
       !trainingTargetColumn ||
       trainingFeatureColumns
         .length ===
-        0
+        0 ||
+      !trainingSplitStrategy ||
+      (
+        trainingSplitStrategy ===
+          "group_holdout"
+        &&
+        !trainingGroupColumn
+      )
     ) {
       setTrainingSubmitError(
         "Complétez le contrat d’entraînement avant de lancer le modèle."
@@ -1932,23 +2040,44 @@ export default function ModelLabClient() {
               },
 
             split:
-              {
-                strategy:
-                  "holdout",
+              trainingSplitStrategy ===
+                "group_holdout"
+                ? {
+                    strategy:
+                      "group_holdout",
 
-                test_size:
-                  0.2,
+                    group_column:
+                      trainingGroupColumn,
 
-                random_seed:
-                  42,
+                    test_size:
+                      0.2,
 
-                shuffle:
-                  true,
+                    random_seed:
+                      42,
 
-                stratify:
-                  trainingProblemType ===
-                    "classification",
-              },
+                    shuffle:
+                      true,
+
+                    stratify:
+                      false,
+                  }
+                : {
+                    strategy:
+                      "holdout",
+
+                    test_size:
+                      0.2,
+
+                    random_seed:
+                      42,
+
+                    shuffle:
+                      true,
+
+                    stratify:
+                      trainingProblemType ===
+                        "classification",
+                  },
           },
 
         expected_preparation_session_revision:
@@ -3938,6 +4067,146 @@ export default function ModelLabClient() {
 
                               <div
                                 className={
+                                  styles.trainingFormGrid
+                                }
+                              >
+                                <label
+                                  className={
+                                    styles.trainingField
+                                  }
+                                >
+                                  <span>
+                                    Séparation train / test
+                                  </span>
+
+                                  <select
+                                    value={
+                                      trainingSplitStrategy
+                                    }
+                                    onChange={
+                                      (
+                                        event
+                                      ) => {
+                                        changeTrainingSplitStrategy(
+                                          event.target.value as
+                                            ""
+                                            | "holdout"
+                                            | "group_holdout"
+                                        );
+                                      }
+                                    }
+                                    disabled={
+                                      trainingSubmitting
+                                    }
+                                  >
+                                    <option
+                                      value=""
+                                    >
+                                      Choisir la méthode
+                                    </option>
+
+                                    <option
+                                      value="holdout"
+                                    >
+                                      Par lignes
+                                    </option>
+
+                                    <option
+                                      value="group_holdout"
+                                      disabled={
+                                        eligibleTrainingGroupColumns.length ===
+                                          0
+                                      }
+                                    >
+                                      Par entité
+                                    </option>
+                                  </select>
+
+                                  <small>
+                                    Le mode par entité empêche une même
+                                    entité d’apparaître dans le train
+                                    et le test.
+                                  </small>
+                                </label>
+
+
+                                {
+                                  trainingSplitStrategy ===
+                                    "group_holdout"
+                                    ? (
+                                        <label
+                                          className={
+                                            styles.trainingField
+                                          }
+                                        >
+                                          <span>
+                                            Colonne d’entité
+                                          </span>
+
+                                          <select
+                                            value={
+                                              trainingGroupColumn
+                                            }
+                                            onChange={
+                                              (
+                                                event
+                                              ) => {
+                                                setTrainingGroupColumn(
+                                                  event.target.value
+                                                );
+
+                                                setTrainingSubmitError(
+                                                  null
+                                                );
+                                              }
+                                            }
+                                            disabled={
+                                              trainingSubmitting
+                                            }
+                                          >
+                                            <option
+                                              value=""
+                                            >
+                                              Choisir une entité
+                                            </option>
+
+                                            {
+                                              eligibleTrainingGroupColumns.map(
+                                                (
+                                                  column
+                                                ) => (
+                                                  <option
+                                                    key={
+                                                      column.name
+                                                    }
+                                                    value={
+                                                      column.name
+                                                    }
+                                                  >
+                                                    {
+                                                      column.name
+                                                    }
+                                                  </option>
+                                                )
+                                              )
+                                            }
+                                          </select>
+
+                                          <small>
+                                            Seuls les identifiants de
+                                            référence répétés,
+                                            sans valeur manquante et validés
+                                            par le serveur sont proposés.
+                                          </small>
+                                        </label>
+                                      )
+                                    : null
+                                }
+                              </div>
+
+
+                              <div
+                                className={
                                   styles.trainingContractSummary
                                 }
                               >
@@ -3960,7 +4229,35 @@ export default function ModelLabClient() {
                                   </span>
 
                                   <strong>
-                                    80 / 20
+                                    {
+                                      trainingSplitStrategy ===
+                                        "group_holdout"
+                                        ? "80 / 20 des entités"
+                                        : (
+                                            trainingSplitStrategy ===
+                                              "holdout"
+                                              ? "80 / 20 des lignes"
+                                              : "À choisir"
+                                          )
+                                    }
+                                  </strong>
+                                </div>
+
+                                <div>
+                                  <span>
+                                    Entité
+                                  </span>
+
+                                  <strong>
+                                    {
+                                      trainingSplitStrategy ===
+                                        "group_holdout"
+                                        ? (
+                                            trainingGroupColumn ||
+                                            "À choisir"
+                                          )
+                                        : "Aucune"
+                                    }
                                   </strong>
                                 </div>
 
@@ -3981,6 +4278,9 @@ export default function ModelLabClient() {
 
                                   <strong>
                                     {
+                                      trainingSplitStrategy ===
+                                        "holdout"
+                                      &&
                                       trainingProblemType ===
                                         "classification"
                                         ? "Oui"
@@ -5580,7 +5880,10 @@ export default function ModelLabClient() {
 
                                               <strong>
                                                 {
-                                                  selectedDetail.split.strategy
+                                                  selectedDetail.split.strategy ===
+                                                    "group_holdout"
+                                                    ? "Par entité"
+                                                    : "Par lignes"
                                                 }
                                               </strong>
                                             </div>
@@ -5604,6 +5907,27 @@ export default function ModelLabClient() {
                                                   }
                                                 </dd>
                                               </div>
+
+                                              {
+                                                selectedDetail.split.strategy ===
+                                                  "group_holdout"
+                                                  ? (
+                                                      <div>
+                                                        <dt>
+                                                          Entité
+                                                        </dt>
+
+                                                        <dd>
+                                                          {
+                                                            selectedDetail
+                                                              .split
+                                                              .group_column
+                                                          }
+                                                        </dd>
+                                                      </div>
+                                                    )
+                                                  : null
+                                              }
 
                                               <div>
                                                 <dt>
