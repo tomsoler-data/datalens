@@ -1449,16 +1449,33 @@ def _split_dataset(
     y: pd.Series,
     contract: MLTrainingContract,
     dataframe: pd.DataFrame | None = None,
-) -> tuple[
-    pd.DataFrame,
-    pd.DataFrame,
-    pd.Series,
-    pd.Series,
-]:
+    return_group_partitions: bool = False,
+) -> (
+    tuple[
+        pd.DataFrame,
+        pd.DataFrame,
+        pd.Series,
+        pd.Series,
+    ]
+    |
+    tuple[
+        pd.DataFrame,
+        pd.DataFrame,
+        pd.Series,
+        pd.Series,
+        pd.Series | None,
+        pd.Series | None,
+    ]
+):
 
     split = (
         contract.split
     )
+
+
+    train_groups: pd.Series | None = None
+
+    test_groups: pd.Series | None = None
 
 
     # ========================================================
@@ -1791,6 +1808,36 @@ def _split_dataset(
                     "classes."
                 )
             )
+        )
+
+
+    if return_group_partitions:
+
+        return (
+            x_train,
+            x_test,
+            y_train,
+            y_test,
+            (
+                train_groups.copy(
+                    deep=True
+                )
+
+                if train_groups
+                is not None
+
+                else None
+            ),
+            (
+                test_groups.copy(
+                    deep=True
+                )
+
+                if test_groups
+                is not None
+
+                else None
+            ),
         )
 
 

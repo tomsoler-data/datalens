@@ -9,7 +9,9 @@ import pandas as pd
 
 
 from sklearn.model_selection import (
+    GroupKFold,
     KFold,
+    StratifiedGroupKFold,
     StratifiedKFold,
 )
 
@@ -22,6 +24,7 @@ from app.ml.classical_executor import (
     _load_authorized_dataframe,
     _validate_and_extract_xy,
     _validate_metrics,
+    _validated_group_values,
 )
 
 
@@ -32,6 +35,7 @@ from app.ml.model_metrics import (
 
 
 from app.ml.contracts import (
+    MLGroupHoldoutSplitContract,
     MLTrainingContract,
 )
 
@@ -84,19 +88,92 @@ def _validate_cross_validation_feasibility(
     y: pd.Series,
     training_contract: MLTrainingContract,
     cross_validation_contract: MLCrossValidationContract,
+    groups: pd.Series | None = None,
 ) -> None:
 
     folds = (
-        cross_validation_contract
-        .folds
+        cross_validation_contract.folds
     )
 
 
     row_count = int(
-        len(
-            x
-        )
+        len(x)
     )
+
+
+    group_aware = isinstance(
+        training_contract.split,
+        MLGroupHoldoutSplitContract,
+    )
+
+
+    if group_aware:
+
+        if groups is None:
+            raise (
+                MLCrossValidationInputError(
+                    (
+                        "Entity-aware Cross-Validation "
+                        "requires validated group values."
+                    )
+                )
+            )
+
+
+        if (
+            len(groups)
+            !=
+            row_count
+            or
+            not groups.index.equals(
+                x.index
+            )
+            or
+            not x.index.equals(
+                y.index
+            )
+        ):
+            raise (
+                MLCrossValidationInputError(
+                    (
+                        "Entity-aware Cross-Validation "
+                        "group alignment is invalid."
+                    )
+                )
+            )
+
+
+        group_count = int(
+            groups.nunique(
+                dropna=True
+            )
+        )
+
+
+        if group_count < folds:
+            raise (
+                MLCrossValidationInputError(
+                    (
+                        "Entity-aware Cross-Validation "
+                        "requires at least one distinct "
+                        "entity group per fold. "
+                        f"groups={group_count}, "
+                        f"folds={folds}"
+                    )
+                )
+            )
+
+
+    elif groups is not None:
+
+        raise (
+            MLCrossValidationInputError(
+                (
+                    "Row-based Cross-Validation must "
+                    "not receive entity group values."
+                )
+            )
+        )
 
 
     if (
@@ -104,11 +181,7 @@ def _validate_cross_validation_feasibility(
         ==
         "regression"
     ):
-        # Richer regression metrics contain R?.
-        #
-        # R? is not defined for a validation fold containing
-        # only one observation. Requiring at least two rows
-        # per validation fold keeps every v0.1 metric finite.
+
         minimum_rows = (
             folds
             *
@@ -116,18 +189,14 @@ def _validate_cross_validation_feasibility(
         )
 
 
-        if (
-            row_count
-            <
-            minimum_rows
-        ):
+        if row_count < minimum_rows:
             raise (
                 MLCrossValidationInputError(
                     (
                         "Regression Cross-Validation v0.1 "
                         "requires at least two validation "
                         "observations per fold because the "
-                        "metric surface includes R?. "
+                        "metric surface includes R2. "
                         f"rows={row_count}, "
                         f"folds={folds}, "
                         f"minimum_rows={minimum_rows}"
@@ -140,16 +209,13 @@ def _validate_cross_validation_feasibility(
 
 
     class_counts = (
-        y
-        .value_counts(
+        y.value_counts(
             dropna=False
         )
     )
 
 
-    if (
-        class_counts.empty
-    ):
+    if class_counts.empty:
         raise (
             MLCrossValidationInputError(
                 (
@@ -166,11 +232,7 @@ def _validate_cross_validation_feasibility(
     )
 
 
-    if (
-        minimum_class_count
-        <
-        folds
-    ):
+    if minimum_class_count < folds:
         raise (
             MLCrossValidationInputError(
                 (
@@ -186,6 +248,62 @@ def _validate_cross_validation_feasibility(
         )
 
 
+    if group_aware:
+
+        assert groups is not None
+
+
+        class_group_frame = (
+            pd.DataFrame(
+                {
+                    "target":
+                        y.to_numpy(
+                            copy=True
+                        ),
+
+                    "group":
+                        groups.to_numpy(
+                            copy=True
+                        ),
+                }
+            )
+        )
+
+
+        class_group_counts = (
+            class_group_frame
+            .groupby(
+                "target",
+                dropna=False,
+            )["group"]
+            .nunique(
+                dropna=True
+            )
+        )
+
+
+        minimum_class_group_count = int(
+            class_group_counts.min()
+        )
+
+
+        if minimum_class_group_count < folds:
+            raise (
+                MLCrossValidationInputError(
+                    (
+                        "Stratified entity-aware "
+                        "Cross-Validation requires "
+                        "every target class to appear "
+                        "in at least one distinct entity "
+                        "group per fold. "
+                        f"minimum_class_group_count="
+                        f"{minimum_class_group_count}, "
+                        f"folds={folds}"
+                    )
+                )
+            )
+
+
 # ============================================================
 # SPLITTER
 # ============================================================
@@ -198,15 +316,17 @@ def _build_cross_validation_splitter(
 ):
 
     random_state = (
-        cross_validation_contract
-        .random_seed
+        cross_validation_contract.random_seed
 
-        if (
-            cross_validation_contract
-            .shuffle
-        )
+        if cross_validation_contract.shuffle
 
         else None
+    )
+
+
+    group_aware = isinstance(
+        training_contract.split,
+        MLGroupHoldoutSplitContract,
     )
 
 
@@ -215,15 +335,44 @@ def _build_cross_validation_splitter(
         ==
         "regression"
     ):
+
+        if group_aware:
+            return (
+                GroupKFold(
+                    n_splits=
+                        cross_validation_contract.folds,
+
+                    shuffle=
+                        cross_validation_contract.shuffle,
+
+                    random_state=
+                        random_state,
+                )
+            )
+
+
         return (
             KFold(
                 n_splits=
-                    cross_validation_contract
-                    .folds,
+                    cross_validation_contract.folds,
 
                 shuffle=
-                    cross_validation_contract
-                    .shuffle,
+                    cross_validation_contract.shuffle,
+
+                random_state=
+                    random_state,
+            )
+        )
+
+
+    if group_aware:
+        return (
+            StratifiedGroupKFold(
+                n_splits=
+                    cross_validation_contract.folds,
+
+                shuffle=
+                    cross_validation_contract.shuffle,
 
                 random_state=
                     random_state,
@@ -234,17 +383,349 @@ def _build_cross_validation_splitter(
     return (
         StratifiedKFold(
             n_splits=
-                cross_validation_contract
-                .folds,
+                cross_validation_contract.folds,
 
             shuffle=
-                cross_validation_contract
-                .shuffle,
+                cross_validation_contract.shuffle,
 
             random_state=
                 random_state,
         )
     )
+
+
+# ============================================================
+# SHARED FOLD AUTHORITY
+# ============================================================
+
+
+def _build_cross_validation_pairs(
+    *,
+    x: pd.DataFrame,
+    y: pd.Series,
+    training_contract: MLTrainingContract,
+    cross_validation_contract: MLCrossValidationContract,
+    groups: pd.Series | None = None,
+):
+
+    _validate_cross_validation_feasibility(
+        x=
+            x,
+
+        y=
+            y,
+
+        training_contract=
+            training_contract,
+
+        cross_validation_contract=
+            cross_validation_contract,
+
+        groups=
+            groups,
+    )
+
+
+    splitter = (
+        _build_cross_validation_splitter(
+            training_contract=
+                training_contract,
+
+            cross_validation_contract=
+                cross_validation_contract,
+        )
+    )
+
+
+    group_aware = isinstance(
+        training_contract.split,
+        MLGroupHoldoutSplitContract,
+    )
+
+
+    try:
+
+        if group_aware:
+
+            assert groups is not None
+
+            split_iterator = (
+                splitter.split(
+                    x,
+                    y,
+                    groups=
+                        groups,
+                )
+            )
+
+
+        elif (
+            training_contract.problem_type
+            ==
+            "classification"
+        ):
+
+            split_iterator = (
+                splitter.split(
+                    x,
+                    y,
+                )
+            )
+
+
+        else:
+
+            split_iterator = (
+                splitter.split(
+                    x
+                )
+            )
+
+
+        split_pairs = list(
+            split_iterator
+        )
+
+
+    except ValueError as error:
+
+        raise (
+            MLCrossValidationInputError(
+                (
+                    "Cross-validation folds could "
+                    "not be constructed from the "
+                    "validated dataset."
+                )
+            )
+        ) from error
+
+
+    if (
+        len(split_pairs)
+        !=
+        cross_validation_contract.folds
+    ):
+        raise (
+            MLCrossValidationExecutionError(
+                (
+                    "Cross-validation splitter "
+                    "did not produce the configured "
+                    "number of folds."
+                )
+            )
+        )
+
+
+    if not group_aware:
+        return split_pairs
+
+
+    assert groups is not None
+
+
+    all_group_values = set(
+        groups.tolist()
+    )
+
+    validation_group_values_seen = set()
+
+
+    expected_classes = (
+        set(
+            y.tolist()
+        )
+
+        if (
+            training_contract.problem_type
+            ==
+            "classification"
+        )
+
+        else None
+    )
+
+
+    for (
+        zero_based_fold_index,
+        (
+            train_indices,
+            validation_indices,
+        ),
+    ) in enumerate(
+        split_pairs
+    ):
+
+        fold_index = (
+            zero_based_fold_index
+            +
+            1
+        )
+
+
+        train_group_values = set(
+            groups.iloc[
+                train_indices
+            ].tolist()
+        )
+
+        validation_group_values = set(
+            groups.iloc[
+                validation_indices
+            ].tolist()
+        )
+
+
+        if not train_group_values:
+            raise (
+                MLCrossValidationExecutionError(
+                    (
+                        "Entity-aware Cross-Validation "
+                        "produced a fold with no "
+                        "training entity groups. "
+                        f"fold={fold_index}"
+                    )
+                )
+            )
+
+
+        if not validation_group_values:
+            raise (
+                MLCrossValidationExecutionError(
+                    (
+                        "Entity-aware Cross-Validation "
+                        "produced a fold with no "
+                        "validation entity groups. "
+                        f"fold={fold_index}"
+                    )
+                )
+            )
+
+
+        if (
+            train_group_values
+            &
+            validation_group_values
+        ):
+            raise (
+                MLCrossValidationExecutionError(
+                    (
+                        "Entity-aware Cross-Validation "
+                        "produced overlapping train/"
+                        "validation entity groups. "
+                        f"fold={fold_index}"
+                    )
+                )
+            )
+
+
+        if (
+            validation_group_values_seen
+            &
+            validation_group_values
+        ):
+            raise (
+                MLCrossValidationExecutionError(
+                    (
+                        "Entity-aware Cross-Validation "
+                        "assigned an entity group to "
+                        "multiple validation folds."
+                    )
+                )
+            )
+
+
+        validation_group_values_seen.update(
+            validation_group_values
+        )
+
+
+        if (
+            training_contract.problem_type
+            ==
+            "regression"
+            and
+            len(validation_indices)
+            <
+            2
+        ):
+            raise (
+                MLCrossValidationInputError(
+                    (
+                        "Entity-aware regression "
+                        "Cross-Validation produced "
+                        "fewer than two validation "
+                        "rows in a fold. "
+                        f"fold={fold_index}"
+                    )
+                )
+            )
+
+
+        if expected_classes is not None:
+
+            train_classes = set(
+                y.iloc[
+                    train_indices
+                ].tolist()
+            )
+
+            validation_classes = set(
+                y.iloc[
+                    validation_indices
+                ].tolist()
+            )
+
+
+            if train_classes != expected_classes:
+                raise (
+                    MLCrossValidationInputError(
+                        (
+                            "Entity-aware classification "
+                            "Cross-Validation produced "
+                            "a training fold without the "
+                            "complete target class set. "
+                            f"fold={fold_index}"
+                        )
+                    )
+                )
+
+
+            if (
+                validation_classes
+                !=
+                expected_classes
+            ):
+                raise (
+                    MLCrossValidationInputError(
+                        (
+                            "Entity-aware classification "
+                            "Cross-Validation produced "
+                            "a validation fold without "
+                            "the complete target class set. "
+                            f"fold={fold_index}"
+                        )
+                    )
+                )
+
+
+    if (
+        validation_group_values_seen
+        !=
+        all_group_values
+    ):
+        raise (
+            MLCrossValidationExecutionError(
+                (
+                    "Entity-aware Cross-Validation "
+                    "did not assign every entity "
+                    "group to exactly one validation "
+                    "fold."
+                )
+            )
+        )
+
+
+    return split_pairs
 
 
 # ============================================================
@@ -456,27 +937,6 @@ def execute_ml_cross_validation(
     )
 
 
-    if (
-        contract
-        .split
-        .strategy
-        ==
-        "group_holdout"
-    ):
-
-        raise (
-            MLCrossValidationInputError(
-                (
-                    "Entity-aware Cross-Validation "
-                    "is not supported by "
-                    "Cross-Validation v0.1. "
-                    "Group-aware CV must preserve "
-                    "entity boundaries across folds."
-                )
-            )
-        )
-
-
     try:
         (
             dataframe,
@@ -502,7 +962,33 @@ def execute_ml_cross_validation(
             )
         )
 
+
+        groups = (
+            _validated_group_values(
+                dataframe=
+                    dataframe,
+
+                x=
+                    x,
+
+                y=
+                    y,
+
+                contract=
+                    contract,
+            )
+
+            if isinstance(
+                contract.split,
+                MLGroupHoldoutSplitContract,
+            )
+
+            else None
+        )
+
+
     except ClassicalMLInputError as error:
+
         raise (
             MLCrossValidationInputError(
                 (
@@ -514,28 +1000,22 @@ def execute_ml_cross_validation(
         ) from error
 
 
-    _validate_cross_validation_feasibility(
-        x=
-            x,
+    split_pairs = (
+        _build_cross_validation_pairs(
+            x=
+                x,
 
-        y=
-            y,
+            y=
+                y,
 
-        training_contract=
-            contract,
-
-        cross_validation_contract=
-            cv_contract,
-    )
-
-
-    splitter = (
-        _build_cross_validation_splitter(
             training_contract=
                 contract,
 
             cross_validation_contract=
                 cv_contract,
+
+            groups=
+                groups,
         )
     )
 
@@ -543,69 +1023,17 @@ def execute_ml_cross_validation(
     strategy = (
         cross_validation_strategy(
             problem_type=
-                contract.problem_type
+                contract.problem_type,
+
+            group_aware=
+                groups is not None,
         )
     )
-
-
-    if (
-        contract.problem_type
-        ==
-        "classification"
-    ):
-        split_iterator = (
-            splitter.split(
-                x,
-                y,
-            )
-        )
-
-    else:
-        split_iterator = (
-            splitter.split(
-                x
-            )
-        )
 
 
     fold_results: list[
         MLCrossValidationFoldResult
     ] = []
-
-
-    try:
-        split_pairs = list(
-            split_iterator
-        )
-
-    except ValueError as error:
-        raise (
-            MLCrossValidationInputError(
-                (
-                    "Cross-validation folds could "
-                    "not be constructed from the "
-                    "validated dataset."
-                )
-            )
-        ) from error
-
-
-    if (
-        len(
-            split_pairs
-        )
-        !=
-        cv_contract.folds
-    ):
-        raise (
-            MLCrossValidationExecutionError(
-                (
-                    "Cross-validation splitter "
-                    "did not produce the configured "
-                    "number of folds."
-                )
-            )
-        )
 
 
     for (

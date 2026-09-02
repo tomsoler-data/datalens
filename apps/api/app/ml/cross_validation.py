@@ -36,6 +36,8 @@ ML_CROSS_VALIDATION_RULE_VERSION = (
 MLCrossValidationStrategy = Literal[
     "k_fold",
     "stratified_k_fold",
+    "group_k_fold",
+    "stratified_group_k_fold",
 ]
 
 
@@ -59,9 +61,13 @@ class MLCrossValidationContract(
     Cross-validation is an evaluation layer around that training
     contract.
 
-    The fold strategy is server-owned:
-    - regression -> KFold;
-    - classification -> StratifiedKFold.
+    The fold strategy is server-owned from both problem type
+    and the Training Contract split semantics:
+
+    - row regression -> KFold;
+    - row classification -> StratifiedKFold;
+    - grouped regression -> GroupKFold;
+    - grouped classification -> StratifiedGroupKFold.
 
     Callers cannot select an incompatible strategy.
     """
@@ -398,17 +404,24 @@ class MLCrossValidationEvaluationResult(
         "MLCrossValidationEvaluationResult"
     ):
 
+        group_aware = (
+            self.strategy
+            in
+            {
+                "group_k_fold",
+                "stratified_group_k_fold",
+            }
+        )
+
+
         expected_strategy = (
-            "k_fold"
+            cross_validation_strategy(
+                problem_type=
+                    self.problem_type,
 
-            if (
-                self.problem_type
-                ==
-                "regression"
+                group_aware=
+                    group_aware,
             )
-
-            else
-            "stratified_k_fold"
         )
 
 
@@ -530,6 +543,7 @@ class MLCrossValidationEvaluationResult(
 def cross_validation_strategy(
     *,
     problem_type: str,
+    group_aware: bool = False,
 ) -> MLCrossValidationStrategy:
 
     if (
@@ -538,6 +552,11 @@ def cross_validation_strategy(
         "regression"
     ):
         return (
+            "group_k_fold"
+
+            if group_aware
+
+            else
             "k_fold"
         )
 
@@ -548,6 +567,11 @@ def cross_validation_strategy(
         "classification"
     ):
         return (
+            "stratified_group_k_fold"
+
+            if group_aware
+
+            else
             "stratified_k_fold"
         )
 
