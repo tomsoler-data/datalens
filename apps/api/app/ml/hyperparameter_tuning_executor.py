@@ -20,6 +20,7 @@ from app.ml.classical_executor import (
 
 from app.ml.contracts import (
     MLGroupHoldoutSplitContract,
+    MLPurgedGroupTimeHoldoutSplitContract,
     MLTimeHoldoutSplitContract,
     MLTrainingContract,
 )
@@ -797,6 +798,22 @@ def execute_ml_hyperparameter_tuning(
             search_contract
         )
     )
+
+
+    if isinstance(
+        contract.split,
+        MLPurgedGroupTimeHoldoutSplitContract,
+    ):
+
+        raise (
+            MLHyperparameterTuningInputError(
+                (
+                    "Purged group + temporal "
+                    "Hyperparameter Tuning is deferred "
+                    "to E15b."
+                )
+            )
+        )
 
 
     base_training_contract_sha256 = (

@@ -59,6 +59,7 @@ from app.ml.baseline import (
 
 from app.ml.contracts import (
     MLGroupHoldoutSplitContract,
+    MLPurgedGroupTimeHoldoutSplitContract,
     MLSplitContract,
     MLTimeHoldoutSplitContract,
     MLTrainingContract,
@@ -225,6 +226,12 @@ class ClassicalMLExecutionResult(
 
     test_rows: int = Field(
         gt=0,
+    )
+
+
+    purged_rows: int = Field(
+        default=0,
+        ge=0,
     )
 
 
@@ -1221,14 +1228,17 @@ def _validated_group_values(
 
     if not isinstance(
         split,
-        MLGroupHoldoutSplitContract,
+        (
+            MLGroupHoldoutSplitContract,
+            MLPurgedGroupTimeHoldoutSplitContract,
+        ),
     ):
 
         raise (
             ClassicalMLInputError(
                 (
                     "Group validation requires a "
-                    "group_holdout split contract."
+                    "group-aware holdout split contract."
                 )
             )
         )
@@ -1459,14 +1469,17 @@ def _validated_time_values(
 
     if not isinstance(
         split,
-        MLTimeHoldoutSplitContract,
+        (
+            MLTimeHoldoutSplitContract,
+            MLPurgedGroupTimeHoldoutSplitContract,
+        ),
     ):
 
         raise (
             ClassicalMLInputError(
                 (
                     "Time validation requires a "
-                    "time_holdout split contract."
+                    "time-aware holdout split contract."
                 )
             )
         )
@@ -1685,6 +1698,162 @@ def _validated_time_values(
     return time_values
 
 
+def _chronological_holdout_positions(
+    *,
+    time_values: pd.Series,
+    test_size: float,
+) -> tuple[
+    np.ndarray,
+    np.ndarray,
+]:
+    """
+    Resolve the deterministic chronological OUTER boundary.
+
+    Equal timestamps are never split across TRAIN and TEST.
+
+    time_holdout and purged_group_time_holdout deliberately
+    reuse this exact authority.
+    """
+
+    row_count = int(
+        len(
+            time_values
+        )
+    )
+
+
+    desired_test_rows = max(
+        2,
+        int(
+            math.ceil(
+                row_count
+                *
+                test_size
+            )
+        ),
+    )
+
+
+    initial_cut_position = (
+        row_count
+        -
+        desired_test_rows
+    )
+
+
+    if initial_cut_position < 2:
+
+        raise (
+            ClassicalMLInputError(
+                (
+                    "Time holdout cannot preserve "
+                    "at least two training rows "
+                    "with the configured test_size."
+                )
+            )
+        )
+
+
+    ordered_positions = (
+        np.argsort(
+            time_values.to_numpy(),
+            kind="stable",
+        )
+    )
+
+
+    ordered_times = (
+        time_values.iloc[
+            ordered_positions
+        ]
+        .reset_index(
+            drop=True
+        )
+    )
+
+
+    cut_position = (
+        initial_cut_position
+    )
+
+
+    boundary_timestamp = (
+        ordered_times.iloc[
+            cut_position
+        ]
+    )
+
+
+    while (
+        cut_position
+        >
+        0
+        and
+        ordered_times.iloc[
+            cut_position
+            -
+            1
+        ]
+        ==
+        boundary_timestamp
+    ):
+
+        cut_position -= 1
+
+
+    if cut_position < 2:
+
+        raise (
+            ClassicalMLInputError(
+                (
+                    "Time holdout timestamp "
+                    "boundary would leave fewer "
+                    "than two training rows. "
+                    "Equal timestamps are never "
+                    "split across train and test."
+                )
+            )
+        )
+
+
+    train_positions = (
+        ordered_positions[
+            :cut_position
+        ]
+    )
+
+
+    test_positions = (
+        ordered_positions[
+            cut_position:
+        ]
+    )
+
+
+    if (
+        len(
+            test_positions
+        )
+        <
+        2
+    ):
+
+        raise (
+            ClassicalMLInputError(
+                (
+                    "Time holdout produced "
+                    "fewer than two test rows."
+                )
+            )
+        )
+
+
+    return (
+        train_positions,
+        test_positions,
+    )
+
+
 def _split_dataset(
     *,
     x: pd.DataFrame,
@@ -1709,6 +1878,17 @@ def _split_dataset(
         pd.Series | None,
         pd.Series | None,
     ]
+    |
+    tuple[
+        pd.DataFrame,
+        pd.DataFrame,
+        pd.Series,
+        pd.Series,
+        pd.Series | None,
+        pd.Series | None,
+        pd.Series | None,
+        pd.Series | None,
+    ]
 ):
 
     split = (
@@ -1730,16 +1910,320 @@ def _split_dataset(
         return_group_partitions
         and
         return_time_partitions
+        and
+        not isinstance(
+            split,
+            MLPurgedGroupTimeHoldoutSplitContract,
+        )
     ):
 
         raise (
             ClassicalMLInputError(
                 (
                     "Group and time split metadata "
-                    "cannot be requested together."
+                    "cannot be requested together "
+                    "outside purged_group_time_holdout."
                 )
             )
         )
+
+
+    # ========================================================
+    # PURGED GROUP + TEMPORAL HOLDOUT
+    #
+    # 1. Create future TEST from the chronological boundary.
+    # 2. Identify every entity present in future TEST.
+    # 3. Purge historical observations belonging to those
+    #    entities from TRAIN.
+    #
+    # TEST remains unchanged.
+    # ========================================================
+
+
+    if isinstance(
+        split,
+        MLPurgedGroupTimeHoldoutSplitContract,
+    ):
+
+        groups = (
+            _validated_group_values(
+                dataframe=
+                    dataframe,
+
+                x=
+                    x,
+
+                y=
+                    y,
+
+                contract=
+                    contract,
+            )
+        )
+
+
+        time_values = (
+            _validated_time_values(
+                dataframe=
+                    dataframe,
+
+                x=
+                    x,
+
+                y=
+                    y,
+
+                contract=
+                    contract,
+            )
+        )
+
+
+        (
+            candidate_train_positions,
+            test_positions,
+        ) = (
+            _chronological_holdout_positions(
+                time_values=
+                    time_values,
+
+                test_size=
+                    split.test_size,
+            )
+        )
+
+
+        candidate_train_groups = (
+            groups.iloc[
+                candidate_train_positions
+            ]
+            .copy(
+                deep=True
+            )
+        )
+
+
+        test_groups = (
+            groups.iloc[
+                test_positions
+            ]
+            .copy(
+                deep=True
+            )
+        )
+
+
+        test_group_values = set(
+            test_groups.tolist()
+        )
+
+
+        if not test_group_values:
+
+            raise (
+                ClassicalMLInputError(
+                    (
+                        "Purged group + temporal "
+                        "holdout produced no future "
+                        "test entity groups."
+                    )
+                )
+            )
+
+
+        keep_train_mask = (
+            ~candidate_train_groups
+            .isin(
+                test_group_values
+            )
+        ).to_numpy(
+            dtype=bool
+        )
+
+
+        train_positions = (
+            candidate_train_positions[
+                keep_train_mask
+            ]
+        )
+
+
+        if (
+            len(
+                train_positions
+            )
+            <
+            2
+        ):
+
+            raise (
+                ClassicalMLInputError(
+                    (
+                        "Purging future-test entity "
+                        "groups from the historical "
+                        "training candidate left fewer "
+                        "than two training rows."
+                    )
+                )
+            )
+
+
+        x_train = (
+            x.iloc[
+                train_positions
+            ]
+            .copy(
+                deep=True
+            )
+        )
+
+
+        x_test = (
+            x.iloc[
+                test_positions
+            ]
+            .copy(
+                deep=True
+            )
+        )
+
+
+        y_train = (
+            y.iloc[
+                train_positions
+            ]
+            .copy(
+                deep=True
+            )
+        )
+
+
+        y_test = (
+            y.iloc[
+                test_positions
+            ]
+            .copy(
+                deep=True
+            )
+        )
+
+
+        train_groups = (
+            groups.iloc[
+                train_positions
+            ]
+            .copy(
+                deep=True
+            )
+        )
+
+
+        test_groups = (
+            groups.iloc[
+                test_positions
+            ]
+            .copy(
+                deep=True
+            )
+        )
+
+
+        train_times = (
+            time_values.iloc[
+                train_positions
+            ]
+            .copy(
+                deep=True
+            )
+        )
+
+
+        test_times = (
+            time_values.iloc[
+                test_positions
+            ]
+            .copy(
+                deep=True
+            )
+        )
+
+
+        train_group_values = set(
+            train_groups.tolist()
+        )
+
+
+        test_group_values = set(
+            test_groups.tolist()
+        )
+
+
+        if not train_group_values:
+
+            raise (
+                ClassicalMLInputError(
+                    (
+                        "Purged group + temporal "
+                        "holdout produced no training "
+                        "entity groups."
+                    )
+                )
+            )
+
+
+        if (
+            train_group_values
+            &
+            test_group_values
+        ):
+
+            raise (
+                ClassicalMLExecutorError(
+                    (
+                        "Purged group + temporal "
+                        "holdout produced overlapping "
+                        "train/test entity groups."
+                    )
+                )
+            )
+
+
+        if not (
+            train_times.max()
+            <
+            test_times.min()
+        ):
+
+            raise (
+                ClassicalMLExecutorError(
+                    (
+                        "Purged group + temporal "
+                        "holdout violated the strict "
+                        "chronological boundary."
+                    )
+                )
+            )
+
+
+        if (
+            set(
+                train_times.tolist()
+            )
+            &
+            set(
+                test_times.tolist()
+            )
+        ):
+
+            raise (
+                ClassicalMLExecutorError(
+                    (
+                        "Purged group + temporal "
+                        "holdout produced overlapping "
+                        "train/test timestamps."
+                    )
+                )
+            )
 
 
     # ========================================================
@@ -1747,7 +2231,7 @@ def _split_dataset(
     # ========================================================
 
 
-    if isinstance(
+    elif isinstance(
         split,
         MLGroupHoldoutSplitContract,
     ):
@@ -1946,138 +2430,18 @@ def _split_dataset(
         )
 
 
-        row_count = int(
-            len(
-                x
+        (
+            train_positions,
+            test_positions,
+        ) = (
+            _chronological_holdout_positions(
+                time_values=
+                    time_values,
+
+                test_size=
+                    split.test_size,
             )
         )
-
-
-        desired_test_rows = max(
-            2,
-            int(
-                math.ceil(
-                    row_count
-                    *
-                    split.test_size
-                )
-            ),
-        )
-
-
-        initial_cut_position = (
-            row_count
-            -
-            desired_test_rows
-        )
-
-
-        if initial_cut_position < 2:
-
-            raise (
-                ClassicalMLInputError(
-                    (
-                        "Time holdout cannot preserve "
-                        "at least two training rows "
-                        "with the configured test_size."
-                    )
-                )
-            )
-
-
-        ordered_positions = (
-            np.argsort(
-                time_values
-                .to_numpy(),
-                kind="stable",
-            )
-        )
-
-
-        ordered_times = (
-            time_values.iloc[
-                ordered_positions
-            ]
-            .reset_index(
-                drop=True
-            )
-        )
-
-
-        cut_position = (
-            initial_cut_position
-        )
-
-
-        boundary_timestamp = (
-            ordered_times.iloc[
-                cut_position
-            ]
-        )
-
-
-        while (
-            cut_position
-            >
-            0
-            and
-            ordered_times.iloc[
-                cut_position
-                -
-                1
-            ]
-            ==
-            boundary_timestamp
-        ):
-
-            cut_position -= 1
-
-
-        if cut_position < 2:
-
-            raise (
-                ClassicalMLInputError(
-                    (
-                        "Time holdout timestamp "
-                        "boundary would leave fewer "
-                        "than two training rows. "
-                        "Equal timestamps are never "
-                        "split across train and test."
-                    )
-                )
-            )
-
-
-        train_positions = (
-            ordered_positions[
-                :cut_position
-            ]
-        )
-
-
-        test_positions = (
-            ordered_positions[
-                cut_position:
-            ]
-        )
-
-
-        if (
-            len(
-                test_positions
-            )
-            <
-            2
-        ):
-
-            raise (
-                ClassicalMLInputError(
-                    (
-                        "Time holdout produced "
-                        "fewer than two test rows."
-                    )
-                )
-            )
 
 
         x_train = (
@@ -2346,6 +2710,58 @@ def _split_dataset(
                     "classes."
                 )
             )
+        )
+
+
+    if (
+        return_group_partitions
+        and
+        return_time_partitions
+    ):
+
+        if (
+            train_groups
+            is None
+            or
+            test_groups
+            is None
+            or
+            train_times
+            is None
+            or
+            test_times
+            is None
+        ):
+
+            raise (
+                ClassicalMLInputError(
+                    (
+                        "Combined split metadata was "
+                        "requested but the validated "
+                        "group/time partitions are "
+                        "incomplete."
+                    )
+                )
+            )
+
+
+        return (
+            x_train,
+            x_test,
+            y_train,
+            y_test,
+            train_groups.copy(
+                deep=True
+            ),
+            test_groups.copy(
+                deep=True
+            ),
+            train_times.copy(
+                deep=True
+            ),
+            test_times.copy(
+                deep=True
+            ),
         )
 
 
@@ -2793,6 +3209,54 @@ def execute_classical_ml(
     )
 
 
+    purged_rows = int(
+        len(
+            x
+        )
+        -
+        len(
+            x_train
+        )
+        -
+        len(
+            x_test
+        )
+    )
+
+
+    if purged_rows < 0:
+
+        raise (
+            ClassicalMLExecutorError(
+                (
+                    "Classical ML holdout row "
+                    "accounting became negative."
+                )
+            )
+        )
+
+
+    if (
+        not isinstance(
+            contract.split,
+            MLPurgedGroupTimeHoldoutSplitContract,
+        )
+        and
+        purged_rows
+        !=
+        0
+    ):
+
+        raise (
+            ClassicalMLExecutorError(
+                (
+                    "A non-purged holdout strategy "
+                    "discarded validated input rows."
+                )
+            )
+        )
+
+
     try:
         baseline_prediction_bundle = (
             build_ml_baseline_predictions(
@@ -3200,6 +3664,9 @@ def execute_classical_ml(
                         x_test
                     )
                 ),
+
+            purged_rows=
+                purged_rows,
 
             metrics=
                 metrics,

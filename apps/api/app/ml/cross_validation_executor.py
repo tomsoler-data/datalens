@@ -38,6 +38,7 @@ from app.ml.model_metrics import (
 
 from app.ml.contracts import (
     MLGroupHoldoutSplitContract,
+    MLPurgedGroupTimeHoldoutSplitContract,
     MLTimeHoldoutSplitContract,
     MLTrainingContract,
 )
@@ -105,6 +106,22 @@ def _validate_cross_validation_feasibility(
             x
         )
     )
+
+
+    if isinstance(
+        training_contract.split,
+        MLPurgedGroupTimeHoldoutSplitContract,
+    ):
+
+        raise (
+            MLCrossValidationInputError(
+                (
+                    "Purged group + temporal "
+                    "Cross-Validation is deferred "
+                    "to E15b."
+                )
+            )
+        )
 
 
     group_aware = isinstance(
@@ -526,6 +543,22 @@ def _build_cross_validation_splitter(
     training_contract: MLTrainingContract,
     cross_validation_contract: MLCrossValidationContract,
 ):
+
+    if isinstance(
+        training_contract.split,
+        MLPurgedGroupTimeHoldoutSplitContract,
+    ):
+
+        raise (
+            MLCrossValidationInputError(
+                (
+                    "Purged group + temporal "
+                    "Cross-Validation is deferred "
+                    "to E15b."
+                )
+            )
+        )
+
 
     temporal_aware = isinstance(
         training_contract.split,
@@ -1661,6 +1694,22 @@ def execute_ml_cross_validation(
             cross_validation_contract
         )
     )
+
+
+    if isinstance(
+        contract.split,
+        MLPurgedGroupTimeHoldoutSplitContract,
+    ):
+
+        raise (
+            MLCrossValidationInputError(
+                (
+                    "Purged group + temporal "
+                    "Cross-Validation is deferred "
+                    "to E15b."
+                )
+            )
+        )
 
 
     try:
