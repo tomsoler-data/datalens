@@ -800,22 +800,6 @@ def execute_ml_hyperparameter_tuning(
     )
 
 
-    if isinstance(
-        contract.split,
-        MLPurgedGroupTimeHoldoutSplitContract,
-    ):
-
-        raise (
-            MLHyperparameterTuningInputError(
-                (
-                    "Purged group + temporal "
-                    "Hyperparameter Tuning is deferred "
-                    "to E15b."
-                )
-            )
-        )
-
-
     base_training_contract_sha256 = (
         ml_training_contract_sha256(
             contract
@@ -864,6 +848,43 @@ def execute_ml_hyperparameter_tuning(
 
 
         if isinstance(
+            contract.split,
+            MLPurgedGroupTimeHoldoutSplitContract,
+        ):
+
+            (
+                x_outer_train,
+                x_holdout_test,
+                y_outer_train,
+                y_holdout_test,
+                outer_train_groups,
+                holdout_test_groups,
+                outer_train_times,
+                holdout_test_times,
+            ) = (
+                _split_dataset(
+                    x=
+                        x,
+
+                    y=
+                        y,
+
+                    contract=
+                        contract,
+
+                    dataframe=
+                        dataframe,
+
+                    return_group_partitions=
+                        True,
+
+                    return_time_partitions=
+                        True,
+                )
+            )
+
+
+        elif isinstance(
             contract.split,
             MLGroupHoldoutSplitContract,
         ):
@@ -998,8 +1019,11 @@ def execute_ml_hyperparameter_tuning(
         contract
         .split
         .strategy
-        ==
-        "group_holdout"
+        in
+        {
+            "group_holdout",
+            "purged_group_time_holdout",
+        }
     )
 
 
@@ -1007,8 +1031,11 @@ def execute_ml_hyperparameter_tuning(
         contract
         .split
         .strategy
-        ==
-        "time_holdout"
+        in
+        {
+            "time_holdout",
+            "purged_group_time_holdout",
+        }
     )
 
 

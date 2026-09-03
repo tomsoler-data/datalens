@@ -856,105 +856,41 @@ def test_full_classical_execution_reports_purged_rows():
         )
 
 
-def test_combined_cv_fail_closed():
 
-    (
-        _,
-        _,
-        _,
-        contract,
-    ) = material()
+def test_combined_cv_unlocked():
 
+    assert (
+        cross_validation_strategy(
+            problem_type=
+                "regression",
 
-    expect_error(
-        lambda:
-            execute_ml_cross_validation(
-                training_contract=
-                    contract,
+            group_aware=
+                True,
 
-                cross_validation_contract=
-                    MLCrossValidationContract(
-                        folds=
-                            2,
-
-                        shuffle=
-                            False,
-                    ),
-            ),
-
-        MLCrossValidationInputError,
-
-        "E15b",
+            temporal_aware=
+                True,
+        )
+        ==
+        "purged_group_time_series_split"
     )
 
 
-    expect_error(
-        lambda:
-            cross_validation_strategy(
-                problem_type=
-                    "regression",
 
-                group_aware=
-                    True,
+def test_combined_tuning_unlocked():
 
-                temporal_aware=
-                    True,
-            ),
+    assert (
+        hyperparameter_validation_strategy(
+            problem_type=
+                "regression",
 
-        ValueError,
+            group_aware=
+                True,
 
-        "E15b",
-    )
-
-
-def test_combined_tuning_fail_closed():
-
-    (
-        _,
-        _,
-        _,
-        contract,
-    ) = material()
-
-
-    expect_error(
-        lambda:
-            execute_ml_hyperparameter_tuning(
-                training_contract=
-                    contract,
-
-                search_contract=
-                    MLHyperparameterSearchContract(
-                        folds=
-                            2,
-
-                        shuffle=
-                            False,
-                    ),
-            ),
-
-        MLHyperparameterTuningInputError,
-
-        "E15b",
-    )
-
-
-    expect_error(
-        lambda:
-            hyperparameter_validation_strategy(
-                problem_type=
-                    "regression",
-
-                group_aware=
-                    True,
-
-                temporal_aware=
-                    True,
-            ),
-
-        ValueError,
-
-        "E15b",
+            temporal_aware=
+                True,
+        )
+        ==
+        "purged_group_time_series_split"
     )
 
 
@@ -1031,17 +967,17 @@ def main():
     )
 
 
-    test_combined_cv_fail_closed()
+    test_combined_cv_unlocked()
 
     print(
-        "[PASS] combined CV fails closed to E15b"
+        "[PASS] combined CV delegated to E15b"
     )
 
 
-    test_combined_tuning_fail_closed()
+    test_combined_tuning_unlocked()
 
     print(
-        "[PASS] combined tuning fails closed to E15b"
+        "[PASS] combined tuning delegated to E15b"
     )
 
 

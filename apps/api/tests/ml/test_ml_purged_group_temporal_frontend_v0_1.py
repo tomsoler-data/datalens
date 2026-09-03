@@ -389,7 +389,8 @@ def test_backend_transport_generic() -> None:
     )
 
 
-def test_e15b_stays_locked() -> None:
+
+def test_e15b_backend_unlocked() -> None:
 
     cv = read(
         CV_EXECUTOR
@@ -409,7 +410,7 @@ def test_e15b_stays_locked() -> None:
 
 
     assert (
-        "E15b"
+        "combined_aware"
         in
         cv
     )
@@ -423,7 +424,14 @@ def test_e15b_stays_locked() -> None:
 
 
     assert (
-        "E15b"
+        "return_group_partitions="
+        in
+        tuning
+    )
+
+
+    assert (
+        "return_time_partitions="
         in
         tuning
     )
@@ -495,10 +503,10 @@ def main() -> None:
     )
 
 
-    test_e15b_stays_locked()
+    test_e15b_backend_unlocked()
 
     print(
-        "[PASS] combined CV / tuning remain fail-closed to E15b"
+        "[PASS] combined CV / tuning delegated to E15b"
     )
 
 
