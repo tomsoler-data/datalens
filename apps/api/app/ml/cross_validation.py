@@ -39,6 +39,7 @@ MLCrossValidationStrategy = Literal[
     "group_k_fold",
     "stratified_group_k_fold",
     "time_series_split",
+    "purged_group_time_series_split",
 ]
 
 
@@ -415,14 +416,18 @@ class MLCrossValidationEvaluationResult(
             {
                 "group_k_fold",
                 "stratified_group_k_fold",
+                "purged_group_time_series_split",
             }
         )
 
 
         temporal_aware = (
             self.strategy
-            ==
-            "time_series_split"
+            in
+            {
+                "time_series_split",
+                "purged_group_time_series_split",
+            }
         )
 
 
@@ -568,27 +573,13 @@ class MLCrossValidationEvaluationResult(
 # ============================================================
 
 
+
 def cross_validation_strategy(
     *,
     problem_type: str,
     group_aware: bool = False,
     temporal_aware: bool = False,
 ) -> MLCrossValidationStrategy:
-
-    if (
-        group_aware
-        and
-        temporal_aware
-    ):
-
-        raise ValueError(
-            (
-                "Purged group + temporal "
-                "Cross-Validation is deferred "
-                "to E15b."
-            )
-        )
-
 
     if (
         problem_type
@@ -605,6 +596,17 @@ def cross_validation_strategy(
                 "Cross-Validation v0.1. "
                 f"problem_type={problem_type}"
             )
+        )
+
+
+    if (
+        group_aware
+        and
+        temporal_aware
+    ):
+
+        return (
+            "purged_group_time_series_split"
         )
 
 

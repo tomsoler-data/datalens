@@ -86,6 +86,7 @@ class MLCrossValidationExecutionError(
 # ============================================================
 
 
+
 def _validate_cross_validation_feasibility(
     *,
     x: pd.DataFrame,
@@ -108,69 +109,41 @@ def _validate_cross_validation_feasibility(
     )
 
 
-    if isinstance(
-        training_contract.split,
-        MLPurgedGroupTimeHoldoutSplitContract,
-    ):
+    split = (
+        training_contract.split
+    )
 
-        raise (
-            MLCrossValidationInputError(
-                (
-                    "Purged group + temporal "
-                    "Cross-Validation is deferred "
-                    "to E15b."
-                )
-            )
-        )
+
+    combined_aware = isinstance(
+        split,
+        MLPurgedGroupTimeHoldoutSplitContract,
+    )
 
 
     group_aware = isinstance(
-        training_contract.split,
-        MLGroupHoldoutSplitContract,
+        split,
+        (
+            MLGroupHoldoutSplitContract,
+            MLPurgedGroupTimeHoldoutSplitContract,
+        ),
     )
 
 
     temporal_aware = isinstance(
-        training_contract.split,
-        MLTimeHoldoutSplitContract,
+        split,
+        (
+            MLTimeHoldoutSplitContract,
+            MLPurgedGroupTimeHoldoutSplitContract,
+        ),
     )
 
 
-    if (
-        group_aware
-        and
-        temporal_aware
-    ):
-
-        raise (
-            MLCrossValidationInputError(
-                (
-                    "Group-aware and temporal-aware "
-                    "Cross-Validation cannot be "
-                    "combined in v0.1."
-                )
-            )
-        )
-
-
     # ========================================================
-    # TEMPORAL FEASIBILITY
+    # TEMPORAL / COMBINED FEASIBILITY
     # ========================================================
 
 
     if temporal_aware:
-
-        if groups is not None:
-
-            raise (
-                MLCrossValidationInputError(
-                    (
-                        "Temporal Cross-Validation "
-                        "must not receive entity groups."
-                    )
-                )
-            )
-
 
         if times is None:
 
@@ -180,6 +153,33 @@ def _validate_cross_validation_feasibility(
                         "Temporal Cross-Validation "
                         "requires validated observation "
                         "timestamps."
+                    )
+                )
+            )
+
+
+        if combined_aware:
+
+            if groups is None:
+
+                raise (
+                    MLCrossValidationInputError(
+                        (
+                            "Purged group + temporal "
+                            "Cross-Validation requires "
+                            "validated entity groups."
+                        )
+                    )
+                )
+
+
+        elif groups is not None:
+
+            raise (
+                MLCrossValidationInputError(
+                    (
+                        "Temporal Cross-Validation "
+                        "must not receive entity groups."
                     )
                 )
             )
@@ -264,6 +264,73 @@ def _validate_cross_validation_feasibility(
             )
 
 
+        if combined_aware:
+
+            assert groups is not None
+
+
+            if (
+                len(
+                    groups
+                )
+                !=
+                row_count
+                or
+                not groups.index.equals(
+                    x.index
+                )
+            ):
+
+                raise (
+                    MLCrossValidationInputError(
+                        (
+                            "Purged group + temporal "
+                            "Cross-Validation group "
+                            "alignment is invalid."
+                        )
+                    )
+                )
+
+
+            if bool(
+                groups
+                .isna()
+                .any()
+            ):
+
+                raise (
+                    MLCrossValidationInputError(
+                        (
+                            "Purged group + temporal "
+                            "Cross-Validation groups "
+                            "contain missing values."
+                        )
+                    )
+                )
+
+
+            if (
+                int(
+                    groups.nunique(
+                        dropna=True
+                    )
+                )
+                <
+                2
+            ):
+
+                raise (
+                    MLCrossValidationInputError(
+                        (
+                            "Purged group + temporal "
+                            "Cross-Validation requires "
+                            "at least two distinct "
+                            "entity groups."
+                        )
+                    )
+                )
+
+
         distinct_timestamp_count = int(
             times.nunique(
                 dropna=True
@@ -339,7 +406,9 @@ def _validate_cross_validation_feasibility(
 
 
         if (
-            len(groups)
+            len(
+                groups
+            )
             !=
             row_count
             or
@@ -369,7 +438,11 @@ def _validate_cross_validation_feasibility(
         )
 
 
-        if group_count < folds:
+        if (
+            group_count
+            <
+            folds
+        ):
 
             raise (
                 MLCrossValidationInputError(
@@ -414,7 +487,11 @@ def _validate_cross_validation_feasibility(
         )
 
 
-        if row_count < minimum_rows:
+        if (
+            row_count
+            <
+            minimum_rows
+        ):
 
             raise (
                 MLCrossValidationInputError(
@@ -459,7 +536,11 @@ def _validate_cross_validation_feasibility(
     )
 
 
-    if minimum_class_count < folds:
+    if (
+        minimum_class_count
+        <
+        folds
+    ):
 
         raise (
             MLCrossValidationInputError(
@@ -515,7 +596,11 @@ def _validate_cross_validation_feasibility(
         )
 
 
-        if minimum_class_group_count < folds:
+        if (
+            minimum_class_group_count
+            <
+            folds
+        ):
 
             raise (
                 MLCrossValidationInputError(
@@ -538,31 +623,24 @@ def _validate_cross_validation_feasibility(
 # ============================================================
 
 
+
 def _build_cross_validation_splitter(
     *,
     training_contract: MLTrainingContract,
     cross_validation_contract: MLCrossValidationContract,
 ):
 
-    if isinstance(
-        training_contract.split,
-        MLPurgedGroupTimeHoldoutSplitContract,
-    ):
-
-        raise (
-            MLCrossValidationInputError(
-                (
-                    "Purged group + temporal "
-                    "Cross-Validation is deferred "
-                    "to E15b."
-                )
-            )
-        )
+    split = (
+        training_contract.split
+    )
 
 
     temporal_aware = isinstance(
-        training_contract.split,
-        MLTimeHoldoutSplitContract,
+        split,
+        (
+            MLTimeHoldoutSplitContract,
+            MLPurgedGroupTimeHoldoutSplitContract,
+        ),
     )
 
 
@@ -601,7 +679,7 @@ def _build_cross_validation_splitter(
 
 
     group_aware = isinstance(
-        training_contract.split,
+        split,
         MLGroupHoldoutSplitContract,
     )
 
@@ -677,6 +755,7 @@ def _build_cross_validation_splitter(
 # ============================================================
 
 
+
 def _build_cross_validation_pairs(
     *,
     x: pd.DataFrame,
@@ -719,15 +798,29 @@ def _build_cross_validation_pairs(
     )
 
 
-    group_aware = isinstance(
-        training_contract.split,
+    split = (
+        training_contract.split
+    )
+
+
+    combined_aware = isinstance(
+        split,
+        MLPurgedGroupTimeHoldoutSplitContract,
+    )
+
+
+    historical_group_aware = isinstance(
+        split,
         MLGroupHoldoutSplitContract,
     )
 
 
     temporal_aware = isinstance(
-        training_contract.split,
-        MLTimeHoldoutSplitContract,
+        split,
+        (
+            MLTimeHoldoutSplitContract,
+            MLPurgedGroupTimeHoldoutSplitContract,
+        ),
     )
 
 
@@ -735,11 +828,24 @@ def _build_cross_validation_pairs(
 
         # ====================================================
         # TEMPORAL SPLIT OVER UNIQUE TIMESTAMPS
+        #
+        # Combined E15b policy:
+        #
+        # 1. Validation remains the future time window.
+        # 2. Candidate TRAIN remains historical only.
+        # 3. Entity groups present in validation are purged
+        #    from the candidate historical TRAIN.
         # ====================================================
+
 
         if temporal_aware:
 
             assert times is not None
+
+
+            if combined_aware:
+
+                assert groups is not None
 
 
             ordered_positions = (
@@ -824,7 +930,7 @@ def _build_cross_validation_pairs(
                 )
 
 
-                train_indices = (
+                candidate_train_indices = (
                     ordered_positions[
                         train_ordered_offsets
                     ]
@@ -836,6 +942,58 @@ def _build_cross_validation_pairs(
                         validation_ordered_offsets
                     ]
                 )
+
+
+                if combined_aware:
+
+                    assert groups is not None
+
+
+                    validation_group_values = set(
+                        groups.iloc[
+                            validation_indices
+                        ].tolist()
+                    )
+
+
+                    if not validation_group_values:
+
+                        raise (
+                            MLCrossValidationExecutionError(
+                                (
+                                    "Purged group + temporal "
+                                    "Cross-Validation produced "
+                                    "a validation fold with no "
+                                    "entity groups."
+                                )
+                            )
+                        )
+
+
+                    keep_train_mask = (
+                        ~groups.iloc[
+                            candidate_train_indices
+                        ]
+                        .isin(
+                            validation_group_values
+                        )
+                    ).to_numpy(
+                        dtype=bool
+                    )
+
+
+                    train_indices = (
+                        candidate_train_indices[
+                            keep_train_mask
+                        ]
+                    )
+
+
+                else:
+
+                    train_indices = (
+                        candidate_train_indices
+                    )
 
 
                 split_pairs.append(
@@ -850,12 +1008,13 @@ def _build_cross_validation_pairs(
         # HISTORICAL GROUP SPLIT
         # ====================================================
 
-        elif group_aware:
+
+        elif historical_group_aware:
 
             assert groups is not None
 
 
-            split_iterator = (
+            split_pairs = list(
                 splitter.split(
                     x,
                     y,
@@ -865,14 +1024,10 @@ def _build_cross_validation_pairs(
             )
 
 
-            split_pairs = list(
-                split_iterator
-            )
-
-
         # ====================================================
         # HISTORICAL ROW CLASSIFICATION
         # ====================================================
+
 
         elif (
             training_contract.problem_type
@@ -880,7 +1035,7 @@ def _build_cross_validation_pairs(
             "classification"
         ):
 
-            split_iterator = (
+            split_pairs = list(
                 splitter.split(
                     x,
                     y,
@@ -888,26 +1043,17 @@ def _build_cross_validation_pairs(
             )
 
 
-            split_pairs = list(
-                split_iterator
-            )
-
-
         # ====================================================
         # HISTORICAL ROW REGRESSION
         # ====================================================
 
+
         else:
 
-            split_iterator = (
+            split_pairs = list(
                 splitter.split(
                     x
                 )
-            )
-
-
-            split_pairs = list(
-                split_iterator
             )
 
 
@@ -944,13 +1090,18 @@ def _build_cross_validation_pairs(
 
 
     # ========================================================
-    # TEMPORAL FOLD INVARIANTS
+    # TEMPORAL / COMBINED FOLD INVARIANTS
     # ========================================================
 
 
     if temporal_aware:
 
         assert times is not None
+
+
+        if combined_aware:
+
+            assert groups is not None
 
 
         validation_timestamp_values_seen = set()
@@ -1100,7 +1251,19 @@ def _build_cross_validation_pairs(
             )
 
 
+            # Historical time-only CV retains the strict
+            # expanding post-split TRAIN timestamp invariant.
+            #
+            # For combined CV, entity purge can remove
+            # different historical timestamps in each fold.
+            # Therefore the candidate chronological window
+            # expands, but the post-purge timestamp sets are
+            # not required to be strict supersets.
+
+
             if (
+                not combined_aware
+                and
                 previous_train_timestamp_values
                 is not None
             ):
@@ -1153,6 +1316,84 @@ def _build_cross_validation_pairs(
             )
 
 
+            # =================================================
+            # COMBINED ENTITY LEAKAGE INVARIANTS
+            # =================================================
+
+
+            if combined_aware:
+
+                assert groups is not None
+
+
+                train_group_values = set(
+                    groups.iloc[
+                        train_indices
+                    ].tolist()
+                )
+
+
+                validation_group_values = set(
+                    groups.iloc[
+                        validation_indices
+                    ].tolist()
+                )
+
+
+                if not train_group_values:
+
+                    raise (
+                        MLCrossValidationExecutionError(
+                            (
+                                "Purged group + temporal "
+                                "Cross-Validation produced "
+                                "a fold with no training "
+                                "entity groups. "
+                                f"fold={fold_index}"
+                            )
+                        )
+                    )
+
+
+                if not validation_group_values:
+
+                    raise (
+                        MLCrossValidationExecutionError(
+                            (
+                                "Purged group + temporal "
+                                "Cross-Validation produced "
+                                "a fold with no validation "
+                                "entity groups. "
+                                f"fold={fold_index}"
+                            )
+                        )
+                    )
+
+
+                if (
+                    train_group_values
+                    &
+                    validation_group_values
+                ):
+
+                    raise (
+                        MLCrossValidationExecutionError(
+                            (
+                                "Purged group + temporal "
+                                "Cross-Validation produced "
+                                "overlapping train/"
+                                "validation entity groups. "
+                                f"fold={fold_index}"
+                            )
+                        )
+                    )
+
+
+            # =================================================
+            # METRIC FEASIBILITY
+            # =================================================
+
+
             if (
                 training_contract.problem_type
                 ==
@@ -1188,7 +1429,10 @@ def _build_cross_validation_pairs(
                     )
 
 
-            elif expected_classes is not None:
+            elif (
+                expected_classes
+                is not None
+            ):
 
                 train_classes = set(
                     y.iloc[
@@ -1252,7 +1496,7 @@ def _build_cross_validation_pairs(
     # ========================================================
 
 
-    if not group_aware:
+    if not historical_group_aware:
 
         return split_pairs
 
@@ -1412,7 +1656,10 @@ def _build_cross_validation_pairs(
             )
 
 
-        if expected_classes is not None:
+        if (
+            expected_classes
+            is not None
+        ):
 
             train_classes = set(
                 y.iloc[
@@ -1696,22 +1943,6 @@ def execute_ml_cross_validation(
     )
 
 
-    if isinstance(
-        contract.split,
-        MLPurgedGroupTimeHoldoutSplitContract,
-    ):
-
-        raise (
-            MLCrossValidationInputError(
-                (
-                    "Purged group + temporal "
-                    "Cross-Validation is deferred "
-                    "to E15b."
-                )
-            )
-        )
-
-
     try:
         (
             dataframe,
@@ -1755,7 +1986,10 @@ def execute_ml_cross_validation(
 
             if isinstance(
                 contract.split,
-                MLGroupHoldoutSplitContract,
+                (
+                    MLGroupHoldoutSplitContract,
+                    MLPurgedGroupTimeHoldoutSplitContract,
+                ),
             )
 
             else None
@@ -1779,7 +2013,10 @@ def execute_ml_cross_validation(
 
             if isinstance(
                 contract.split,
-                MLTimeHoldoutSplitContract,
+                (
+                    MLTimeHoldoutSplitContract,
+                    MLPurgedGroupTimeHoldoutSplitContract,
+                ),
             )
 
             else None

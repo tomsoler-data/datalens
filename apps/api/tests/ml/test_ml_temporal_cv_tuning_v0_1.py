@@ -375,8 +375,14 @@ def temporal_material(
     )
 
 
+
 def test_temporal_strategy_policy():
 
+    # ========================================================
+    # HISTORICAL TEMPORAL-ONLY POLICY
+    # ========================================================
+
+
     assert (
         cross_validation_strategy(
             problem_type=
@@ -429,39 +435,78 @@ def test_temporal_strategy_policy():
     )
 
 
-    expect_error(
-        lambda:
-            cross_validation_strategy(
-                problem_type=
-                    "regression",
+    # ========================================================
+    # E15b COMBINED GROUP + TEMPORAL POLICY
+    #
+    # Before E15b this combination deliberately failed closed.
+    #
+    # E15b now owns the deterministic combined policy:
+    # future temporal validation + validation-group purge
+    # from historical TRAIN.
+    # ========================================================
 
-                group_aware=
-                    True,
 
-                temporal_aware=
-                    True,
-            ),
-        (
-            ValueError,
-        ),
+    assert (
+        cross_validation_strategy(
+            problem_type=
+                "regression",
+
+            group_aware=
+                True,
+
+            temporal_aware=
+                True,
+        )
+        ==
+        "purged_group_time_series_split"
     )
 
 
-    expect_error(
-        lambda:
-            hyperparameter_validation_strategy(
-                problem_type=
-                    "regression",
+    assert (
+        cross_validation_strategy(
+            problem_type=
+                "classification",
 
-                group_aware=
-                    True,
+            group_aware=
+                True,
 
-                temporal_aware=
-                    True,
-            ),
-        (
-            ValueError,
-        ),
+            temporal_aware=
+                True,
+        )
+        ==
+        "purged_group_time_series_split"
+    )
+
+
+    assert (
+        hyperparameter_validation_strategy(
+            problem_type=
+                "regression",
+
+            group_aware=
+                True,
+
+            temporal_aware=
+                True,
+        )
+        ==
+        "purged_group_time_series_split"
+    )
+
+
+    assert (
+        hyperparameter_validation_strategy(
+            problem_type=
+                "classification",
+
+            group_aware=
+                True,
+
+            temporal_aware=
+                True,
+        )
+        ==
+        "purged_group_time_series_split"
     )
 
 
