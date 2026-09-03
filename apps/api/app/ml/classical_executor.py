@@ -1692,6 +1692,7 @@ def _split_dataset(
     contract: MLTrainingContract,
     dataframe: pd.DataFrame | None = None,
     return_group_partitions: bool = False,
+    return_time_partitions: bool = False,
 ) -> (
     tuple[
         pd.DataFrame,
@@ -1718,6 +1719,27 @@ def _split_dataset(
     train_groups: pd.Series | None = None
 
     test_groups: pd.Series | None = None
+
+
+    train_times: pd.Series | None = None
+
+    test_times: pd.Series | None = None
+
+
+    if (
+        return_group_partitions
+        and
+        return_time_partitions
+    ):
+
+        raise (
+            ClassicalMLInputError(
+                (
+                    "Group and time split metadata "
+                    "cannot be requested together."
+                )
+            )
+        )
 
 
     # ========================================================
@@ -2324,6 +2346,41 @@ def _split_dataset(
                     "classes."
                 )
             )
+        )
+
+
+    if return_time_partitions:
+
+        if (
+            train_times
+            is None
+            or
+            test_times
+            is None
+        ):
+
+            raise (
+                ClassicalMLInputError(
+                    (
+                        "Temporal split metadata was "
+                        "requested for a non-temporal "
+                        "holdout."
+                    )
+                )
+            )
+
+
+        return (
+            x_train,
+            x_test,
+            y_train,
+            y_test,
+            train_times.copy(
+                deep=True
+            ),
+            test_times.copy(
+                deep=True
+            ),
         )
 
 
