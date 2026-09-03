@@ -1,0 +1,174 @@
+{
+  "contract_version": "lapage_v8_bis_gold_v0.1",
+  "frozen": true,
+  "visibility": "evaluator_only",
+  "source_dataset_fingerprints": [
+    {
+      "filename": "customers.csv",
+      "delimiter": ";",
+      "raw_row_count": 8621,
+      "all_null_row_count": 0,
+      "canonicalization": "identity",
+      "canonical_row_count": 8621,
+      "canonical_duplicate_count": 0,
+      "sha256_raw_file": "95772f9e0c47bc4ba72e0f85fa61fb2d608affc0d5d9e3a43795b29a8351e182"
+    },
+    {
+      "filename": "products.csv",
+      "delimiter": ";",
+      "raw_row_count": 3286,
+      "all_null_row_count": 0,
+      "canonicalization": "identity",
+      "canonical_row_count": 3286,
+      "canonical_duplicate_count": 0,
+      "sha256_raw_file": "e4821fbd9855ffce1579b607e1defd08bd669b5462a7180ecc1999053c21c88d"
+    },
+    {
+      "filename": "Transactions.csv",
+      "delimiter": ";",
+      "raw_row_count": 1048575,
+      "all_null_row_count": 361041,
+      "canonicalization": "dropna_how_all",
+      "canonical_row_count": 687534,
+      "canonical_duplicate_count": 0,
+      "sha256_raw_file": "18202a4b873312667714b9d5b2ebda684b519ec083e574ef645aab1ceca8a4d1"
+    }
+  ],
+  "canonicalization_authority": {
+    "transactions_input": 1048575,
+    "transactions_all_null_removed": 361041,
+    "transactions_canonical": 687534,
+    "rule": "pandas.DataFrame.dropna(how='all')",
+    "delimiter": ";",
+    "canonical_duplicate_count": 0,
+    "purchasing_customer_count": 8600,
+    "sold_product_count": 3265
+  },
+  "evaluation_rules": {
+    "never_insert_gold_into_llm_prompt": true,
+    "never_insert_tolerances_into_llm_prompt": true,
+    "never_insert_expected_client_ids_into_llm_prompt": true,
+    "significance_threshold": 0.001,
+    "unsupported_capability_policy": "A capability-observation case may fail closed. Fabricated execution or fabricated metrics are failures."
+  },
+  "cases": [
+    {
+      "case_id": "lapage_total_revenue",
+      "capability_expectation": "must_execute",
+      "gold": {
+        "expected_eur": 12030000.0,
+        "absolute_tolerance": 20000.0
+      }
+    },
+    {
+      "case_id": "lapage_category_revenue_leader",
+      "capability_expectation": "must_execute",
+      "gold": {
+        "leader_category": 1,
+        "leader_revenue_share": 0.4014,
+        "leader_share_absolute_tolerance": 0.015,
+        "category_2_revenue_share": 0.2312,
+        "category_2_share_absolute_tolerance": 0.015
+      }
+    },
+    {
+      "case_id": "lapage_average_basket",
+      "capability_expectation": "must_execute_if_session_view_available",
+      "gold": {
+        "expected_eur": 34.81,
+        "absolute_tolerance": 0.03
+      }
+    },
+    {
+      "case_id": "lapage_gender_category_association",
+      "capability_expectation": "must_execute",
+      "gold": {
+        "family": "categorical_association",
+        "chi_square": 158.254,
+        "chi_square_absolute_tolerance": 0.5,
+        "cramers_v": 0.015,
+        "cramers_v_absolute_tolerance": 0.002,
+        "p_value_max_exclusive": 0.001
+      }
+    },
+    {
+      "case_id": "lapage_age_total_spend",
+      "capability_expectation": "must_execute",
+      "gold": {
+        "family": "quantitative_association",
+        "spearman_rho": -0.185,
+        "absolute_tolerance": 0.01,
+        "p_value_max_exclusive": 0.001
+      }
+    },
+    {
+      "case_id": "lapage_age_purchase_sessions",
+      "capability_expectation": "must_execute",
+      "gold": {
+        "family": "quantitative_association",
+        "spearman_rho": 0.212,
+        "absolute_tolerance": 0.01,
+        "p_value_max_exclusive": 0.001
+      }
+    },
+    {
+      "case_id": "lapage_age_average_basket",
+      "capability_expectation": "must_execute",
+      "gold": {
+        "family": "quantitative_association",
+        "spearman_rho": -0.701,
+        "absolute_tolerance": 0.01,
+        "p_value_max_exclusive": 0.001
+      }
+    },
+    {
+      "case_id": "lapage_age_band_category",
+      "capability_expectation": "must_execute_if_age_band_available",
+      "gold": {
+        "family": "categorical_association",
+        "cramers_v": 0.39,
+        "absolute_tolerance": 0.01,
+        "p_value_max_exclusive": 0.001
+      }
+    },
+    {
+      "case_id": "lapage_customer_outliers",
+      "capability_expectation": "must_execute",
+      "gold": {
+        "priority_client_ids": [
+          "c_1609",
+          "c_3454",
+          "c_4958",
+          "c_6714"
+        ],
+        "priority_total_spend_eur": {
+          "c_1609": 326039.89,
+          "c_3454": 114110.57,
+          "c_4958": 290227.03,
+          "c_6714": 153918.6
+        },
+        "total_spend_absolute_tolerance": 0.02,
+        "must_not_infer_fraud": true,
+        "must_not_infer_b2b": true,
+        "must_not_auto_delete": true
+      }
+    },
+    {
+      "case_id": "lapage_customer_revenue_gini",
+      "capability_expectation": "capability_observation",
+      "gold": {
+        "expected": 0.442,
+        "absolute_tolerance": 0.003
+      }
+    },
+    {
+      "case_id": "lapage_unsold_products",
+      "capability_expectation": "capability_observation",
+      "gold": {
+        "unsold_product_count": 21,
+        "category_0_unsold_count": 16,
+        "dominant_category": 0
+      }
+    }
+  ]
+}
