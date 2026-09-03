@@ -197,6 +197,14 @@ type ModelTrainingContextState = {
 };
 
 
+type ModelTrainingSplitStrategy =
+  | ""
+  | "holdout"
+  | "group_holdout"
+  | "time_holdout"
+  | "purged_group_time_holdout";
+
+
 /* ============================================================
    ACTIVE WORKFLOW STORAGE
 ============================================================ */
@@ -994,10 +1002,7 @@ export default function ModelLabClient() {
     trainingSplitStrategy,
     setTrainingSplitStrategy,
   ] = useState<
-    ""
-    | "holdout"
-    | "group_holdout"
-    | "time_holdout"
+    ModelTrainingSplitStrategy
   >(
     ""
   );
@@ -1577,6 +1582,33 @@ export default function ModelLabClient() {
     );
 
 
+  const trainingSplitUsesGroup =
+    (
+      trainingSplitStrategy ===
+        "group_holdout"
+      ||
+      trainingSplitStrategy ===
+        "purged_group_time_holdout"
+    );
+
+
+  const trainingSplitUsesTime =
+    (
+      trainingSplitStrategy ===
+        "time_holdout"
+      ||
+      trainingSplitStrategy ===
+        "purged_group_time_holdout"
+    );
+
+
+  const trainingSplitIsPurgedGroupTime =
+    (
+      trainingSplitStrategy ===
+        "purged_group_time_holdout"
+    );
+
+
   const selectedTrainingFeatureSet =
     useMemo(
       () =>
@@ -1727,16 +1759,14 @@ export default function ModelLabClient() {
         trainingSplitStrategy
       ) &&
       (
-        trainingSplitStrategy !==
-          "group_holdout"
+        !trainingSplitUsesGroup
         ||
         Boolean(
           trainingGroupColumn
         )
       ) &&
       (
-        trainingSplitStrategy !==
-          "time_holdout"
+        !trainingSplitUsesTime
         ||
         Boolean(
           trainingTimeColumn
@@ -1929,10 +1959,7 @@ export default function ModelLabClient() {
 
   function changeTrainingSplitStrategy(
     strategy:
-      ""
-      | "holdout"
-      | "group_holdout"
-      | "time_holdout"
+      ModelTrainingSplitStrategy
   ) {
     setTrainingSplitStrategy(
       strategy
@@ -1942,6 +1969,9 @@ export default function ModelLabClient() {
     if (
       strategy !==
         "group_holdout"
+      &&
+      strategy !==
+        "purged_group_time_holdout"
     ) {
       setTrainingGroupColumn(
         ""
@@ -1952,6 +1982,9 @@ export default function ModelLabClient() {
     if (
       strategy !==
         "time_holdout"
+      &&
+      strategy !==
+        "purged_group_time_holdout"
     ) {
       setTrainingTimeColumn(
         ""
@@ -2015,14 +2048,12 @@ export default function ModelLabClient() {
         0 ||
       !trainingSplitStrategy ||
       (
-        trainingSplitStrategy ===
-          "group_holdout"
+        trainingSplitUsesGroup
         &&
         !trainingGroupColumn
       ) ||
       (
-        trainingSplitStrategy ===
-          "time_holdout"
+        trainingSplitUsesTime
         &&
         !trainingTimeColumn
       )
@@ -2110,13 +2141,16 @@ export default function ModelLabClient() {
 
             split:
               trainingSplitStrategy ===
-                "group_holdout"
+                "purged_group_time_holdout"
                 ? {
                     strategy:
-                      "group_holdout",
+                      "purged_group_time_holdout",
 
                     group_column:
                       trainingGroupColumn,
+
+                    time_column:
+                      trainingTimeColumn,
 
                     test_size:
                       0.2,
@@ -2125,36 +2159,20 @@ export default function ModelLabClient() {
                       42,
 
                     shuffle:
-                      true,
+                      false,
 
                     stratify:
                       false,
                   }
                 : (
                     trainingSplitStrategy ===
-                      "time_holdout"
+                      "group_holdout"
                       ? {
                           strategy:
-                            "time_holdout",
+                            "group_holdout",
 
-                          time_column:
-                            trainingTimeColumn,
-
-                          test_size:
-                            0.2,
-
-                          random_seed:
-                            42,
-
-                          shuffle:
-                            false,
-
-                          stratify:
-                            false,
-                        }
-                      : {
-                          strategy:
-                            "holdout",
+                          group_column:
+                            trainingGroupColumn,
 
                           test_size:
                             0.2,
@@ -2166,9 +2184,48 @@ export default function ModelLabClient() {
                             true,
 
                           stratify:
-                            trainingProblemType ===
-                              "classification",
+                            false,
                         }
+                      : (
+                          trainingSplitStrategy ===
+                            "time_holdout"
+                            ? {
+                                strategy:
+                                  "time_holdout",
+
+                                time_column:
+                                  trainingTimeColumn,
+
+                                test_size:
+                                  0.2,
+
+                                random_seed:
+                                  42,
+
+                                shuffle:
+                                  false,
+
+                                stratify:
+                                  false,
+                              }
+                            : {
+                                strategy:
+                                  "holdout",
+
+                                test_size:
+                                  0.2,
+
+                                random_seed:
+                                  42,
+
+                                shuffle:
+                                  true,
+
+                                stratify:
+                                  trainingProblemType ===
+                                    "classification",
+                              }
+                        )
                   ),
           },
 
@@ -4181,10 +4238,7 @@ export default function ModelLabClient() {
                                       ) => {
                                         changeTrainingSplitStrategy(
                                           event.target.value as
-                                            ""
-                                            | "holdout"
-                                            | "group_holdout"
-                                            | "time_holdout"
+                                            ModelTrainingSplitStrategy
                                         );
                                       }
                                     }
@@ -4223,19 +4277,57 @@ export default function ModelLabClient() {
                                     >
                                       Par entité
                                     </option>
+
+                                    <option
+                                      value="purged_group_time_holdout"
+                                      disabled={
+                                        eligibleTrainingGroupColumns.length ===
+                                          0
+                                        ||
+                                        eligibleTrainingTimeColumns.length ===
+                                          0
+                                      }
+                                    >
+                                      Chronologique + purge entités
+                                    </option>
                                   </select>
 
                                   <small>
-                                    Le mode par entité empêche une même
-                                    entité d’apparaître dans le train
-                                    et le test.
+                                    {
+                                      trainingSplitIsPurgedGroupTime
+                                        ? (
+                                            "Le test conserve les observations futures. " +
+                                            "Toute entité présente dans ce futur est retirée " +
+                                            "de l’historique d’entraînement pour éviter une " +
+                                            "fuite d’entité entre train et test."
+                                          )
+                                        : (
+                                            trainingSplitStrategy ===
+                                              "group_holdout"
+                                              ? (
+                                                  "Le mode par entité empêche une même entité " +
+                                                  "d’apparaître dans le train et le test."
+                                                )
+                                              : (
+                                                  trainingSplitStrategy ===
+                                                    "time_holdout"
+                                                    ? (
+                                                        "Le mode chronologique entraîne sur le passé " +
+                                                        "et conserve les observations futures pour le test."
+                                                      )
+                                                    : (
+                                                        "Le mode par lignes applique un holdout " +
+                                                        "déterministe 80 / 20."
+                                                      )
+                                                )
+                                          )
+                                    }
                                   </small>
                                 </label>
 
 
                                 {
-                                  trainingSplitStrategy ===
-                                    "group_holdout"
+                                  trainingSplitUsesGroup
                                     ? (
                                         <label
                                           className={
@@ -4306,8 +4398,7 @@ export default function ModelLabClient() {
                                     : null
                                 }
                                 {
-                                  trainingSplitStrategy ===
-                                    "time_holdout"
+                                  trainingSplitUsesTime
                                     ? (
                                         <label
                                           className={
@@ -4342,7 +4433,7 @@ export default function ModelLabClient() {
                                             <option
                                               value=""
                                             >
-                                              Choisir une date d'observation
+                                              Choisir une date d’observation
                                             </option>
 
                                             {
@@ -4369,8 +4460,8 @@ export default function ModelLabClient() {
 
                                           <small>
                                             Seules les colonnes datetime
-                                            non nulles et validees par le
-                                            serveur sont proposees.
+                                            non nulles et validées par le
+                                            serveur sont proposées.
                                           </small>
                                         </label>
                                       )
@@ -4406,18 +4497,22 @@ export default function ModelLabClient() {
 
                                   <strong>
                                     {
-                                      trainingSplitStrategy ===
-                                        "group_holdout"
-                                        ? "80 / 20 des entités"
+                                      trainingSplitIsPurgedGroupTime
+                                        ? "Passé / futur + purge entités"
                                         : (
                                             trainingSplitStrategy ===
-                                              "time_holdout"
-                                              ? "Passé / futur"
+                                              "group_holdout"
+                                              ? "80 / 20 des entités"
                                               : (
                                                   trainingSplitStrategy ===
-                                                    "holdout"
-                                                    ? "80 / 20 des lignes"
-                                                    : "À choisir"
+                                                    "time_holdout"
+                                                    ? "Passé / futur"
+                                                    : (
+                                                        trainingSplitStrategy ===
+                                                          "holdout"
+                                                          ? "80 / 20 des lignes"
+                                                          : "À choisir"
+                                                      )
                                                 )
                                           )
                                     }
@@ -4431,8 +4526,7 @@ export default function ModelLabClient() {
 
                                   <strong>
                                     {
-                                      trainingSplitStrategy ===
-                                        "group_holdout"
+                                      trainingSplitUsesGroup
                                         ? (
                                             trainingGroupColumn ||
                                             "À choisir"
@@ -4449,8 +4543,7 @@ export default function ModelLabClient() {
 
                                   <strong>
                                     {
-                                      trainingSplitStrategy ===
-                                        "time_holdout"
+                                      trainingSplitUsesTime
                                         ? (
                                             trainingTimeColumn ||
                                             "À choisir"
@@ -5847,7 +5940,13 @@ export default function ModelLabClient() {
                                                 {
                                                   selectedDetail.train_rows +
                                                   selectedDetail.test_rows
-                                                } lignes
+                                                } {" "}
+                                                {
+                                                  selectedDetail.split.strategy ===
+                                                    "purged_group_time_holdout"
+                                                    ? "lignes utilisées"
+                                                    : "lignes"
+                                                }
                                               </strong>
                                             </div>
 
@@ -6080,13 +6179,18 @@ export default function ModelLabClient() {
                                               <strong>
                                                 {
                                                   selectedDetail.split.strategy ===
-                                                    "group_holdout"
-                                                    ? "Par entité"
+                                                    "purged_group_time_holdout"
+                                                    ? "Chronologique + purge entités"
                                                     : (
                                                         selectedDetail.split.strategy ===
-                                                          "time_holdout"
-                                                          ? "Chronologique"
-                                                          : "Par lignes"
+                                                          "group_holdout"
+                                                          ? "Par entité"
+                                                          : (
+                                                              selectedDetail.split.strategy ===
+                                                                "time_holdout"
+                                                                ? "Chronologique"
+                                                                : "Par lignes"
+                                                            )
                                                       )
                                                 }
                                               </strong>
@@ -6113,8 +6217,13 @@ export default function ModelLabClient() {
                                               </div>
 
                                               {
-                                                selectedDetail.split.strategy ===
-                                                  "group_holdout"
+                                                (
+                                                  selectedDetail.split.strategy ===
+                                                    "group_holdout"
+                                                  ||
+                                                  selectedDetail.split.strategy ===
+                                                    "purged_group_time_holdout"
+                                                )
                                                   ? (
                                                       <div>
                                                         <dt>
@@ -6134,8 +6243,13 @@ export default function ModelLabClient() {
                                               }
 
                                               {
-                                                selectedDetail.split.strategy ===
-                                                  "time_holdout"
+                                                (
+                                                  selectedDetail.split.strategy ===
+                                                    "time_holdout"
+                                                  ||
+                                                  selectedDetail.split.strategy ===
+                                                    "purged_group_time_holdout"
+                                                )
                                                   ? (
                                                       <div>
                                                         <dt>
@@ -6148,6 +6262,23 @@ export default function ModelLabClient() {
                                                               .split
                                                               .time_column
                                                           }
+                                                        </dd>
+                                                      </div>
+                                                    )
+                                                  : null
+                                              }
+
+                                              {
+                                                selectedDetail.split.strategy ===
+                                                  "purged_group_time_holdout"
+                                                  ? (
+                                                      <div>
+                                                        <dt>
+                                                          Politique
+                                                        </dt>
+
+                                                        <dd>
+                                                          Entités futures purgées du train
                                                         </dd>
                                                       </div>
                                                     )
