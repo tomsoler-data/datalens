@@ -552,6 +552,7 @@ def resolve_candidate_columns(
     return resolved
 
 
+
 # ============================================================
 # REQUIREMENT EXTRACTION
 # ============================================================
@@ -817,6 +818,25 @@ def contract_covers_requirement(
             )
             in
             candidate_names
+
+            or
+            (
+                requirement.requirement_type
+                ==
+                "column"
+                and
+                bool(
+                    binding.semantic_concept
+                )
+                and
+                normalize_text(
+                    str(
+                        binding.semantic_concept
+                    )
+                )
+                in
+                candidate_names
+            )
         )
     ]
 

@@ -3322,6 +3322,226 @@ def schema_like_context_mentions(
     )
 
 
+
+# ============================================================
+# SERVER-OWNED DERIVED SOURCE-MEASURE FIDELITY
+# ============================================================
+#
+# A categorical additive analytical view may deterministically
+# materialize:
+#
+#     source_measure_column = gross_amount
+#         ↓ groupby_sum
+#     target_measure_column = sum_gross_amount
+#
+# When the user explicitly names the SOURCE measure, using the
+# server-owned TARGET measure is not a semantic substitution.
+# It is the deterministic representation of that exact source
+# measure at the declared analytical grain.
+#
+# This exception is intentionally narrow:
+# - derived view only;
+# - categorical_additive_measure only;
+# - groupby_sum only;
+# - sum only;
+# - selected proposal must itself be aggregation/sum;
+# - declared group must remain exact;
+# - declared target measure must actually be bound.
+#
+# Session/entity views and unrelated aliases remain fail-closed.
+# ============================================================
+
+def derived_additive_source_measure_fidelity_satisfied(
+    *,
+    mention: str,
+    proposal: AIPlannerProposal,
+    dataset: PlannerDatasetProfile,
+) -> bool:
+
+    if not (
+        dataset.is_derived
+        and
+        dataset.derivation_type
+        ==
+        "categorical_additive_measure"
+        and
+        dataset.operation
+        ==
+        "groupby_sum"
+        and
+        dataset.aggregation
+        ==
+        "sum"
+    ):
+        return False
+
+
+    if (
+        proposal.dataset_id
+        !=
+        dataset.dataset_id
+    ):
+        return False
+
+
+    if (
+        proposal.family
+        !=
+        "aggregation"
+        or
+        proposal.aggregation_function
+        !=
+        "sum"
+    ):
+        return False
+
+
+    source_measure = (
+        dataset.source_measure_column
+    )
+
+    target_measure = (
+        dataset.target_measure_column
+    )
+
+    declared_group = (
+        dataset.group_column
+    )
+
+
+    if not (
+        source_measure
+        and
+        target_measure
+        and
+        declared_group
+    ):
+        return False
+
+
+    if (
+        normalize_identifier_for_match(
+            mention
+        )
+        !=
+        normalize_identifier_for_match(
+            source_measure
+        )
+    ):
+        return False
+
+
+    proposal_group = (
+        proposal.group_column
+        or
+        proposal.dimension_column
+    )
+
+
+    if (
+        proposal_group
+        !=
+        declared_group
+    ):
+        return False
+
+
+    bound_columns = {
+        normalize_identifier_for_match(
+            column_name
+        )
+
+        for (
+            _,
+            column_name,
+        )
+        in proposed_role_columns(
+            proposal
+        )
+    }
+
+
+    return (
+        normalize_identifier_for_match(
+            target_measure
+        )
+        in
+        bound_columns
+    )
+
+
+
+def derived_additive_binding_semantic_concept(
+    *,
+    dataset: PlannerDatasetProfile,
+    column_name: str,
+) -> str | None:
+    """
+    Preserve the physical source-measure concept on the exact
+    server-owned target binding of a categorical additive view.
+
+    Example:
+
+        source_measure_column = gross_amount
+        target_measure_column = sum_gross_amount
+
+    The physical binding remains sum_gross_amount.
+    The semantic concept becomes gross_amount.
+
+    No semantic provenance is assigned to session/entity views,
+    grouping columns, event_count, or unrelated targets.
+    """
+
+    if not (
+        dataset.is_derived
+        and
+        dataset.derivation_type
+        ==
+        "categorical_additive_measure"
+        and
+        dataset.operation
+        ==
+        "groupby_sum"
+        and
+        dataset.aggregation
+        ==
+        "sum"
+    ):
+        return None
+
+
+    source_measure = (
+        dataset.source_measure_column
+    )
+
+    target_measure = (
+        dataset.target_measure_column
+    )
+
+
+    if not (
+        source_measure
+        and
+        target_measure
+    ):
+        return None
+
+
+    if (
+        normalize_identifier_for_match(
+            column_name
+        )
+        !=
+        normalize_identifier_for_match(
+            target_measure
+        )
+    ):
+        return None
+
+
+    return source_measure
+
+
 def validate_objective_column_fidelity(
     *,
     objective: str,
@@ -3437,6 +3657,21 @@ def validate_objective_column_fidelity(
         if (
             normalized
             in selected_columns
+        ):
+            continue
+
+
+        if (
+            derived_additive_source_measure_fidelity_satisfied(
+                mention=
+                    mention,
+
+                proposal=
+                    proposal,
+
+                dataset=
+                    dataset,
+            )
         ):
             continue
 
@@ -9472,7 +9707,15 @@ def validate_ai_proposal(
                     dataset_filename=(
                         dataset.filename
                     ),
-                    semantic_concept=None,
+                    semantic_concept=(
+                        derived_additive_binding_semantic_concept(
+                            dataset=
+                                dataset,
+
+                            column_name=
+                                column.name,
+                        )
+                    ),
                     analysis_kind=(
                         column.analysis_kind
                     ),
