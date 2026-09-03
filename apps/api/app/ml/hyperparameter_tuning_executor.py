@@ -19,6 +19,8 @@ from app.ml.classical_executor import (
 
 
 from app.ml.contracts import (
+    MLGroupHoldoutSplitContract,
+    MLTimeHoldoutSplitContract,
     MLTrainingContract,
 )
 
@@ -141,15 +143,17 @@ def _build_inner_cv_pairs(
     training_contract: MLTrainingContract,
     search_contract: MLHyperparameterSearchContract,
     groups_train: pd.Series | None = None,
+    times_train: pd.Series | None = None,
 ):
     """
     Build deterministic INNER CV folds from OUTER train only.
 
-    x_test / y_test and holdout-test groups are intentionally
-    not accepted by this function.
+    x_test / y_test, holdout-test groups and holdout-test
+    timestamps are intentionally not accepted by this function.
 
-    Group-aware tuning therefore receives only groups belonging
-    to the authoritative OUTER training partition.
+    Group-aware tuning receives only OUTER TRAIN groups.
+
+    Temporal tuning receives only OUTER TRAIN timestamps.
     """
 
     cv_contract = (
@@ -167,6 +171,7 @@ def _build_inner_cv_pairs(
 
 
     try:
+
         return (
             _build_cross_validation_pairs(
                 x=
@@ -183,6 +188,9 @@ def _build_inner_cv_pairs(
 
                 groups=
                     groups_train,
+
+                times=
+                    times_train,
             )
         )
 
@@ -829,31 +837,101 @@ def execute_ml_hyperparameter_tuning(
         )
 
 
-        (
-            x_outer_train,
-            x_holdout_test,
-            y_outer_train,
-            y_holdout_test,
-            outer_train_groups,
-            holdout_test_groups,
-        ) = (
-            _split_dataset(
-                x=
-                    x,
+        outer_train_groups = None
 
-                y=
-                    y,
+        holdout_test_groups = None
 
-                contract=
-                    contract,
+        outer_train_times = None
 
-                dataframe=
-                    dataframe,
+        holdout_test_times = None
 
-                return_group_partitions=
-                    True,
+
+        if isinstance(
+            contract.split,
+            MLGroupHoldoutSplitContract,
+        ):
+
+            (
+                x_outer_train,
+                x_holdout_test,
+                y_outer_train,
+                y_holdout_test,
+                outer_train_groups,
+                holdout_test_groups,
+            ) = (
+                _split_dataset(
+                    x=
+                        x,
+
+                    y=
+                        y,
+
+                    contract=
+                        contract,
+
+                    dataframe=
+                        dataframe,
+
+                    return_group_partitions=
+                        True,
+                )
             )
-        )
+
+
+        elif isinstance(
+            contract.split,
+            MLTimeHoldoutSplitContract,
+        ):
+
+            (
+                x_outer_train,
+                x_holdout_test,
+                y_outer_train,
+                y_holdout_test,
+                outer_train_times,
+                holdout_test_times,
+            ) = (
+                _split_dataset(
+                    x=
+                        x,
+
+                    y=
+                        y,
+
+                    contract=
+                        contract,
+
+                    dataframe=
+                        dataframe,
+
+                    return_time_partitions=
+                        True,
+                )
+            )
+
+
+        else:
+
+            (
+                x_outer_train,
+                x_holdout_test,
+                y_outer_train,
+                y_holdout_test,
+            ) = (
+                _split_dataset(
+                    x=
+                        x,
+
+                    y=
+                        y,
+
+                    contract=
+                        contract,
+
+                    dataframe=
+                        dataframe,
+                )
+            )
 
     except ClassicalMLInputError as error:
         raise (
@@ -905,6 +983,15 @@ def execute_ml_hyperparameter_tuning(
         .strategy
         ==
         "group_holdout"
+    )
+
+
+    temporal_aware = (
+        contract
+        .split
+        .strategy
+        ==
+        "time_holdout"
     )
 
 
@@ -965,6 +1052,121 @@ def execute_ml_hyperparameter_tuning(
         )
 
 
+    if temporal_aware:
+
+        if (
+            outer_train_times
+            is None
+            or
+            holdout_test_times
+            is None
+        ):
+
+            raise (
+                MLHyperparameterTuningExecutionError(
+                    (
+                        "Temporal OUTER holdout did "
+                        "not expose its validated "
+                        "time partitions."
+                    )
+                )
+            )
+
+
+        if (
+            len(
+                outer_train_times
+            )
+            !=
+            len(
+                x_outer_train
+            )
+            or
+            len(
+                holdout_test_times
+            )
+            !=
+            len(
+                x_holdout_test
+            )
+            or
+            not outer_train_times.index.equals(
+                x_outer_train.index
+            )
+            or
+            not holdout_test_times.index.equals(
+                x_holdout_test.index
+            )
+        ):
+
+            raise (
+                MLHyperparameterTuningExecutionError(
+                    (
+                        "Temporal OUTER holdout time "
+                        "partition alignment is invalid."
+                    )
+                )
+            )
+
+
+        if (
+            set(
+                outer_train_times.tolist()
+            )
+            &
+            set(
+                holdout_test_times.tolist()
+            )
+        ):
+
+            raise (
+                MLHyperparameterTuningExecutionError(
+                    (
+                        "Temporal OUTER holdout "
+                        "contains overlapping train/"
+                        "test timestamps."
+                    )
+                )
+            )
+
+
+        if not (
+            outer_train_times.max()
+            <
+            holdout_test_times.min()
+        ):
+
+            raise (
+                MLHyperparameterTuningExecutionError(
+                    (
+                        "Temporal OUTER holdout "
+                        "violated the strict "
+                        "train_time < test_time "
+                        "boundary."
+                    )
+                )
+            )
+
+
+    elif (
+        outer_train_times
+        is not None
+        or
+        holdout_test_times
+        is not None
+    ):
+
+        raise (
+            MLHyperparameterTuningExecutionError(
+                (
+                    "Non-temporal OUTER holdout "
+                    "unexpectedly exposed time "
+                    "partitions."
+                )
+            )
+        )
+
+
     outer_train_rows = int(
         len(
             x_outer_train
@@ -1000,6 +1202,9 @@ def execute_ml_hyperparameter_tuning(
 
             groups_train=
                 outer_train_groups,
+
+            times_train=
+                outer_train_times,
         )
     )
 
@@ -1145,6 +1350,9 @@ def execute_ml_hyperparameter_tuning(
 
                     group_aware=
                         group_aware,
+
+                    temporal_aware=
+                        temporal_aware,
                 )
             ),
 

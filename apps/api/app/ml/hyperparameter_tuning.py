@@ -55,6 +55,7 @@ MLHyperparameterValidationStrategy = Literal[
     "stratified_k_fold",
     "group_k_fold",
     "stratified_group_k_fold",
+    "time_series_split",
 ]
 
 
@@ -389,13 +390,55 @@ def hyperparameter_validation_strategy(
     *,
     problem_type: str,
     group_aware: bool = False,
+    temporal_aware: bool = False,
 ) -> MLHyperparameterValidationStrategy:
+
+    if (
+        group_aware
+        and
+        temporal_aware
+    ):
+
+        raise ValueError(
+            (
+                "Group-aware and temporal-aware "
+                "Hyperparameter Tuning cannot be "
+                "combined in v0.1."
+            )
+        )
+
+
+    if (
+        problem_type
+        not in
+        {
+            "regression",
+            "classification",
+        }
+    ):
+
+        raise ValueError(
+            (
+                "Unsupported problem type for "
+                "Hyperparameter Tuning v0.1. "
+                f"problem_type={problem_type}"
+            )
+        )
+
+
+    if temporal_aware:
+
+        return (
+            "time_series_split"
+        )
+
 
     if (
         problem_type
         ==
         "regression"
     ):
+
         return (
             "group_k_fold"
 
@@ -406,27 +449,13 @@ def hyperparameter_validation_strategy(
         )
 
 
-    if (
-        problem_type
-        ==
-        "classification"
-    ):
-        return (
-            "stratified_group_k_fold"
+    return (
+        "stratified_group_k_fold"
 
-            if group_aware
+        if group_aware
 
-            else
-            "stratified_k_fold"
-        )
-
-
-    raise ValueError(
-        (
-            "Unsupported problem type for "
-            "Hyperparameter Tuning v0.1. "
-            f"problem_type={problem_type}"
-        )
+        else
+        "stratified_k_fold"
     )
 
 
@@ -1026,6 +1055,13 @@ class MLHyperparameterSearchResult(
         )
 
 
+        temporal_aware = (
+            self.validation_strategy
+            ==
+            "time_series_split"
+        )
+
+
         expected_validation_strategy = (
             hyperparameter_validation_strategy(
                 problem_type=
@@ -1033,6 +1069,9 @@ class MLHyperparameterSearchResult(
 
                 group_aware=
                     group_aware,
+
+                temporal_aware=
+                    temporal_aware,
             )
         )
 
@@ -1046,6 +1085,19 @@ class MLHyperparameterSearchResult(
                 (
                     "Hyperparameter validation strategy "
                     "does not match problem_type."
+                )
+            )
+
+
+        if (
+            temporal_aware
+            and
+            self.shuffle
+        ):
+            raise ValueError(
+                (
+                    "Temporal Hyperparameter Tuning "
+                    "must use shuffle=False."
                 )
             )
 

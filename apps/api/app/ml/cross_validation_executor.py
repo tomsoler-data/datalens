@@ -13,6 +13,7 @@ from sklearn.model_selection import (
     KFold,
     StratifiedGroupKFold,
     StratifiedKFold,
+    TimeSeriesSplit,
 )
 
 
@@ -25,6 +26,7 @@ from app.ml.classical_executor import (
     _validate_and_extract_xy,
     _validate_metrics,
     _validated_group_values,
+    _validated_time_values,
 )
 
 
@@ -90,27 +92,8 @@ def _validate_cross_validation_feasibility(
     training_contract: MLTrainingContract,
     cross_validation_contract: MLCrossValidationContract,
     groups: pd.Series | None = None,
+    times: pd.Series | None = None,
 ) -> None:
-
-    if isinstance(
-        training_contract.split,
-        MLTimeHoldoutSplitContract,
-    ):
-
-        raise (
-            MLCrossValidationInputError(
-                (
-                    "Time-aware Cross-Validation "
-                    "is not available in Temporal "
-                    "Holdout v0.1. A time_holdout "
-                    "Training Contract must fail "
-                    "closed until the dedicated "
-                    "Temporal Cross-Validation "
-                    "milestone is enabled."
-                )
-            )
-        )
-
 
     folds = (
         cross_validation_contract.folds
@@ -118,7 +101,9 @@ def _validate_cross_validation_feasibility(
 
 
     row_count = int(
-        len(x)
+        len(
+            x
+        )
     )
 
 
@@ -128,9 +113,204 @@ def _validate_cross_validation_feasibility(
     )
 
 
+    temporal_aware = isinstance(
+        training_contract.split,
+        MLTimeHoldoutSplitContract,
+    )
+
+
+    if (
+        group_aware
+        and
+        temporal_aware
+    ):
+
+        raise (
+            MLCrossValidationInputError(
+                (
+                    "Group-aware and temporal-aware "
+                    "Cross-Validation cannot be "
+                    "combined in v0.1."
+                )
+            )
+        )
+
+
+    # ========================================================
+    # TEMPORAL FEASIBILITY
+    # ========================================================
+
+
+    if temporal_aware:
+
+        if groups is not None:
+
+            raise (
+                MLCrossValidationInputError(
+                    (
+                        "Temporal Cross-Validation "
+                        "must not receive entity groups."
+                    )
+                )
+            )
+
+
+        if times is None:
+
+            raise (
+                MLCrossValidationInputError(
+                    (
+                        "Temporal Cross-Validation "
+                        "requires validated observation "
+                        "timestamps."
+                    )
+                )
+            )
+
+
+        if cross_validation_contract.shuffle:
+
+            raise (
+                MLCrossValidationInputError(
+                    (
+                        "Temporal Cross-Validation "
+                        "requires shuffle=False."
+                    )
+                )
+            )
+
+
+        if (
+            len(
+                times
+            )
+            !=
+            row_count
+            or
+            len(
+                y
+            )
+            !=
+            row_count
+            or
+            not times.index.equals(
+                x.index
+            )
+            or
+            not x.index.equals(
+                y.index
+            )
+        ):
+
+            raise (
+                MLCrossValidationInputError(
+                    (
+                        "Temporal Cross-Validation "
+                        "timestamp alignment is invalid."
+                    )
+                )
+            )
+
+
+        if bool(
+            times
+            .isna()
+            .any()
+        ):
+
+            raise (
+                MLCrossValidationInputError(
+                    (
+                        "Temporal Cross-Validation "
+                        "timestamps contain missing "
+                        "values."
+                    )
+                )
+            )
+
+
+        if not (
+            pd.api.types
+            .is_datetime64_any_dtype(
+                times.dtype
+            )
+        ):
+
+            raise (
+                MLCrossValidationInputError(
+                    (
+                        "Temporal Cross-Validation "
+                        "requires pandas datetime "
+                        "timestamps."
+                    )
+                )
+            )
+
+
+        distinct_timestamp_count = int(
+            times.nunique(
+                dropna=True
+            )
+        )
+
+
+        minimum_timestamps = (
+            folds
+            +
+            1
+        )
+
+
+        if (
+            distinct_timestamp_count
+            <
+            minimum_timestamps
+        ):
+
+            raise (
+                MLCrossValidationInputError(
+                    (
+                        "Temporal Cross-Validation "
+                        "requires at least folds + 1 "
+                        "distinct timestamps. "
+                        f"timestamps="
+                        f"{distinct_timestamp_count}, "
+                        f"folds={folds}"
+                    )
+                )
+            )
+
+
+        return
+
+
+    # ========================================================
+    # NON-TEMPORAL METADATA GUARD
+    # ========================================================
+
+
+    if times is not None:
+
+        raise (
+            MLCrossValidationInputError(
+                (
+                    "Non-temporal Cross-Validation "
+                    "must not receive timestamp "
+                    "metadata."
+                )
+            )
+        )
+
+
+    # ========================================================
+    # HISTORICAL GROUP FEASIBILITY
+    # ========================================================
+
+
     if group_aware:
 
         if groups is None:
+
             raise (
                 MLCrossValidationInputError(
                     (
@@ -154,6 +334,7 @@ def _validate_cross_validation_feasibility(
                 y.index
             )
         ):
+
             raise (
                 MLCrossValidationInputError(
                     (
@@ -172,6 +353,7 @@ def _validate_cross_validation_feasibility(
 
 
         if group_count < folds:
+
             raise (
                 MLCrossValidationInputError(
                     (
@@ -197,6 +379,11 @@ def _validate_cross_validation_feasibility(
         )
 
 
+    # ========================================================
+    # HISTORICAL ROW / GROUP METRIC FEASIBILITY
+    # ========================================================
+
+
     if (
         training_contract.problem_type
         ==
@@ -211,6 +398,7 @@ def _validate_cross_validation_feasibility(
 
 
         if row_count < minimum_rows:
+
             raise (
                 MLCrossValidationInputError(
                     (
@@ -237,6 +425,7 @@ def _validate_cross_validation_feasibility(
 
 
     if class_counts.empty:
+
         raise (
             MLCrossValidationInputError(
                 (
@@ -254,6 +443,7 @@ def _validate_cross_validation_feasibility(
 
 
     if minimum_class_count < folds:
+
         raise (
             MLCrossValidationInputError(
                 (
@@ -309,6 +499,7 @@ def _validate_cross_validation_feasibility(
 
 
         if minimum_class_group_count < folds:
+
             raise (
                 MLCrossValidationInputError(
                     (
@@ -336,6 +527,37 @@ def _build_cross_validation_splitter(
     cross_validation_contract: MLCrossValidationContract,
 ):
 
+    temporal_aware = isinstance(
+        training_contract.split,
+        MLTimeHoldoutSplitContract,
+    )
+
+
+    if temporal_aware:
+
+        if cross_validation_contract.shuffle:
+
+            raise (
+                MLCrossValidationInputError(
+                    (
+                        "TimeSeriesSplit requires "
+                        "shuffle=False."
+                    )
+                )
+            )
+
+
+        return (
+            TimeSeriesSplit(
+                n_splits=
+                    cross_validation_contract.folds,
+
+                gap=
+                    0,
+            )
+        )
+
+
     random_state = (
         cross_validation_contract.random_seed
 
@@ -358,6 +580,7 @@ def _build_cross_validation_splitter(
     ):
 
         if group_aware:
+
             return (
                 GroupKFold(
                     n_splits=
@@ -387,6 +610,7 @@ def _build_cross_validation_splitter(
 
 
     if group_aware:
+
         return (
             StratifiedGroupKFold(
                 n_splits=
@@ -427,6 +651,7 @@ def _build_cross_validation_pairs(
     training_contract: MLTrainingContract,
     cross_validation_contract: MLCrossValidationContract,
     groups: pd.Series | None = None,
+    times: pd.Series | None = None,
 ):
 
     _validate_cross_validation_feasibility(
@@ -444,6 +669,9 @@ def _build_cross_validation_pairs(
 
         groups=
             groups,
+
+        times=
+            times,
     )
 
 
@@ -464,11 +692,135 @@ def _build_cross_validation_pairs(
     )
 
 
+    temporal_aware = isinstance(
+        training_contract.split,
+        MLTimeHoldoutSplitContract,
+    )
+
+
     try:
 
-        if group_aware:
+        # ====================================================
+        # TEMPORAL SPLIT OVER UNIQUE TIMESTAMPS
+        # ====================================================
+
+        if temporal_aware:
+
+            assert times is not None
+
+
+            ordered_positions = (
+                np.argsort(
+                    times.to_numpy(),
+                    kind="stable",
+                )
+            )
+
+
+            ordered_times = (
+                times.iloc[
+                    ordered_positions
+                ]
+                .reset_index(
+                    drop=True
+                )
+            )
+
+
+            unique_times = (
+                ordered_times
+                .drop_duplicates()
+                .reset_index(
+                    drop=True
+                )
+            )
+
+
+            timestamp_split_pairs = list(
+                splitter.split(
+                    np.arange(
+                        len(
+                            unique_times
+                        )
+                    )
+                )
+            )
+
+
+            split_pairs = []
+
+
+            for (
+                train_timestamp_indices,
+                validation_timestamp_indices,
+            ) in timestamp_split_pairs:
+
+                train_timestamp_values = set(
+                    unique_times.iloc[
+                        train_timestamp_indices
+                    ].tolist()
+                )
+
+
+                validation_timestamp_values = set(
+                    unique_times.iloc[
+                        validation_timestamp_indices
+                    ].tolist()
+                )
+
+
+                train_ordered_offsets = (
+                    np.flatnonzero(
+                        ordered_times
+                        .isin(
+                            train_timestamp_values
+                        )
+                        .to_numpy()
+                    )
+                )
+
+
+                validation_ordered_offsets = (
+                    np.flatnonzero(
+                        ordered_times
+                        .isin(
+                            validation_timestamp_values
+                        )
+                        .to_numpy()
+                    )
+                )
+
+
+                train_indices = (
+                    ordered_positions[
+                        train_ordered_offsets
+                    ]
+                )
+
+
+                validation_indices = (
+                    ordered_positions[
+                        validation_ordered_offsets
+                    ]
+                )
+
+
+                split_pairs.append(
+                    (
+                        train_indices,
+                        validation_indices,
+                    )
+                )
+
+
+        # ====================================================
+        # HISTORICAL GROUP SPLIT
+        # ====================================================
+
+        elif group_aware:
 
             assert groups is not None
+
 
             split_iterator = (
                 splitter.split(
@@ -479,6 +831,15 @@ def _build_cross_validation_pairs(
                 )
             )
 
+
+            split_pairs = list(
+                split_iterator
+            )
+
+
+        # ====================================================
+        # HISTORICAL ROW CLASSIFICATION
+        # ====================================================
 
         elif (
             training_contract.problem_type
@@ -494,6 +855,15 @@ def _build_cross_validation_pairs(
             )
 
 
+            split_pairs = list(
+                split_iterator
+            )
+
+
+        # ====================================================
+        # HISTORICAL ROW REGRESSION
+        # ====================================================
+
         else:
 
             split_iterator = (
@@ -503,9 +873,9 @@ def _build_cross_validation_pairs(
             )
 
 
-        split_pairs = list(
-            split_iterator
-        )
+            split_pairs = list(
+                split_iterator
+            )
 
 
     except ValueError as error:
@@ -522,10 +892,13 @@ def _build_cross_validation_pairs(
 
 
     if (
-        len(split_pairs)
+        len(
+            split_pairs
+        )
         !=
         cross_validation_contract.folds
     ):
+
         raise (
             MLCrossValidationExecutionError(
                 (
@@ -537,8 +910,323 @@ def _build_cross_validation_pairs(
         )
 
 
-    if not group_aware:
+    # ========================================================
+    # TEMPORAL FOLD INVARIANTS
+    # ========================================================
+
+
+    if temporal_aware:
+
+        assert times is not None
+
+
+        validation_timestamp_values_seen = set()
+
+        previous_train_timestamp_values = None
+
+        previous_validation_max = None
+
+
+        expected_classes = (
+            set(
+                y.tolist()
+            )
+
+            if (
+                training_contract.problem_type
+                ==
+                "classification"
+            )
+
+            else None
+        )
+
+
+        for (
+            zero_based_fold_index,
+            (
+                train_indices,
+                validation_indices,
+            ),
+        ) in enumerate(
+            split_pairs
+        ):
+
+            fold_index = (
+                zero_based_fold_index
+                +
+                1
+            )
+
+
+            if (
+                len(
+                    train_indices
+                )
+                ==
+                0
+                or
+                len(
+                    validation_indices
+                )
+                ==
+                0
+            ):
+
+                raise (
+                    MLCrossValidationExecutionError(
+                        (
+                            "Temporal Cross-Validation "
+                            "produced an empty fold. "
+                            f"fold={fold_index}"
+                        )
+                    )
+                )
+
+
+            train_times = (
+                times.iloc[
+                    train_indices
+                ]
+            )
+
+
+            validation_times = (
+                times.iloc[
+                    validation_indices
+                ]
+            )
+
+
+            train_timestamp_values = set(
+                train_times.tolist()
+            )
+
+
+            validation_timestamp_values = set(
+                validation_times.tolist()
+            )
+
+
+            if (
+                train_timestamp_values
+                &
+                validation_timestamp_values
+            ):
+
+                raise (
+                    MLCrossValidationExecutionError(
+                        (
+                            "Temporal Cross-Validation "
+                            "split an equal timestamp "
+                            "across train and validation. "
+                            f"fold={fold_index}"
+                        )
+                    )
+                )
+
+
+            if not (
+                train_times.max()
+                <
+                validation_times.min()
+            ):
+
+                raise (
+                    MLCrossValidationExecutionError(
+                        (
+                            "Temporal Cross-Validation "
+                            "violated the strict "
+                            "train_time < validation_time "
+                            "boundary. "
+                            f"fold={fold_index}"
+                        )
+                    )
+                )
+
+
+            if (
+                validation_timestamp_values_seen
+                &
+                validation_timestamp_values
+            ):
+
+                raise (
+                    MLCrossValidationExecutionError(
+                        (
+                            "Temporal Cross-Validation "
+                            "reused a timestamp in "
+                            "multiple validation folds."
+                        )
+                    )
+                )
+
+
+            validation_timestamp_values_seen.update(
+                validation_timestamp_values
+            )
+
+
+            if (
+                previous_train_timestamp_values
+                is not None
+            ):
+
+                if not (
+                    previous_train_timestamp_values
+                    <
+                    train_timestamp_values
+                ):
+
+                    raise (
+                        MLCrossValidationExecutionError(
+                            (
+                                "Temporal Cross-Validation "
+                                "training windows are not "
+                                "strictly expanding."
+                            )
+                        )
+                    )
+
+
+            if (
+                previous_validation_max
+                is not None
+                and
+                not (
+                    previous_validation_max
+                    <
+                    validation_times.min()
+                )
+            ):
+
+                raise (
+                    MLCrossValidationExecutionError(
+                        (
+                            "Temporal validation windows "
+                            "are not strictly ordered."
+                        )
+                    )
+                )
+
+
+            previous_train_timestamp_values = (
+                train_timestamp_values
+            )
+
+
+            previous_validation_max = (
+                validation_times.max()
+            )
+
+
+            if (
+                training_contract.problem_type
+                ==
+                "regression"
+            ):
+
+                if (
+                    len(
+                        train_indices
+                    )
+                    <
+                    2
+                    or
+                    len(
+                        validation_indices
+                    )
+                    <
+                    2
+                ):
+
+                    raise (
+                        MLCrossValidationInputError(
+                            (
+                                "Temporal regression "
+                                "Cross-Validation requires "
+                                "at least two train rows "
+                                "and two validation rows "
+                                "per fold because the "
+                                "metric surface includes R2. "
+                                f"fold={fold_index}"
+                            )
+                        )
+                    )
+
+
+            elif expected_classes is not None:
+
+                train_classes = set(
+                    y.iloc[
+                        train_indices
+                    ].tolist()
+                )
+
+
+                validation_classes = set(
+                    y.iloc[
+                        validation_indices
+                    ].tolist()
+                )
+
+
+                if (
+                    train_classes
+                    !=
+                    expected_classes
+                ):
+
+                    raise (
+                        MLCrossValidationInputError(
+                            (
+                                "Temporal classification "
+                                "Cross-Validation produced "
+                                "a training fold without "
+                                "the complete target class "
+                                "set. "
+                                f"fold={fold_index}"
+                            )
+                        )
+                    )
+
+
+                if (
+                    validation_classes
+                    !=
+                    expected_classes
+                ):
+
+                    raise (
+                        MLCrossValidationInputError(
+                            (
+                                "Temporal classification "
+                                "Cross-Validation produced "
+                                "a validation fold without "
+                                "the complete target class "
+                                "set. "
+                                f"fold={fold_index}"
+                            )
+                        )
+                    )
+
+
         return split_pairs
+
+
+    # ========================================================
+    # HISTORICAL ROW SPLIT
+    # ========================================================
+
+
+    if not group_aware:
+
+        return split_pairs
+
+
+    # ========================================================
+    # HISTORICAL GROUP FOLD INVARIANTS
+    # ========================================================
 
 
     assert groups is not None
@@ -547,6 +1235,7 @@ def _build_cross_validation_pairs(
     all_group_values = set(
         groups.tolist()
     )
+
 
     validation_group_values_seen = set()
 
@@ -589,6 +1278,7 @@ def _build_cross_validation_pairs(
             ].tolist()
         )
 
+
         validation_group_values = set(
             groups.iloc[
                 validation_indices
@@ -597,6 +1287,7 @@ def _build_cross_validation_pairs(
 
 
         if not train_group_values:
+
             raise (
                 MLCrossValidationExecutionError(
                     (
@@ -610,6 +1301,7 @@ def _build_cross_validation_pairs(
 
 
         if not validation_group_values:
+
             raise (
                 MLCrossValidationExecutionError(
                     (
@@ -627,6 +1319,7 @@ def _build_cross_validation_pairs(
             &
             validation_group_values
         ):
+
             raise (
                 MLCrossValidationExecutionError(
                     (
@@ -644,6 +1337,7 @@ def _build_cross_validation_pairs(
             &
             validation_group_values
         ):
+
             raise (
                 MLCrossValidationExecutionError(
                     (
@@ -665,10 +1359,13 @@ def _build_cross_validation_pairs(
             ==
             "regression"
             and
-            len(validation_indices)
+            len(
+                validation_indices
+            )
             <
             2
         ):
+
             raise (
                 MLCrossValidationInputError(
                     (
@@ -690,6 +1387,7 @@ def _build_cross_validation_pairs(
                 ].tolist()
             )
 
+
             validation_classes = set(
                 y.iloc[
                     validation_indices
@@ -697,7 +1395,12 @@ def _build_cross_validation_pairs(
             )
 
 
-            if train_classes != expected_classes:
+            if (
+                train_classes
+                !=
+                expected_classes
+            ):
+
                 raise (
                     MLCrossValidationInputError(
                         (
@@ -716,6 +1419,7 @@ def _build_cross_validation_pairs(
                 !=
                 expected_classes
             ):
+
                 raise (
                     MLCrossValidationInputError(
                         (
@@ -734,6 +1438,7 @@ def _build_cross_validation_pairs(
         !=
         all_group_values
     ):
+
         raise (
             MLCrossValidationExecutionError(
                 (
@@ -1008,6 +1713,30 @@ def execute_ml_cross_validation(
         )
 
 
+        times = (
+            _validated_time_values(
+                dataframe=
+                    dataframe,
+
+                x=
+                    x,
+
+                y=
+                    y,
+
+                contract=
+                    contract,
+            )
+
+            if isinstance(
+                contract.split,
+                MLTimeHoldoutSplitContract,
+            )
+
+            else None
+        )
+
+
     except ClassicalMLInputError as error:
 
         raise (
@@ -1037,6 +1766,9 @@ def execute_ml_cross_validation(
 
             groups=
                 groups,
+
+            times=
+                times,
         )
     )
 
@@ -1048,6 +1780,9 @@ def execute_ml_cross_validation(
 
             group_aware=
                 groups is not None,
+
+            temporal_aware=
+                times is not None,
         )
     )
 

@@ -38,6 +38,7 @@ MLCrossValidationStrategy = Literal[
     "stratified_k_fold",
     "group_k_fold",
     "stratified_group_k_fold",
+    "time_series_split",
 ]
 
 
@@ -67,7 +68,11 @@ class MLCrossValidationContract(
     - row regression -> KFold;
     - row classification -> StratifiedKFold;
     - grouped regression -> GroupKFold;
-    - grouped classification -> StratifiedGroupKFold.
+    - grouped classification -> StratifiedGroupKFold;
+    - temporal regression -> TimeSeriesSplit;
+    - temporal classification -> TimeSeriesSplit.
+
+    Temporal validation never shuffles or stratifies time.
 
     Callers cannot select an incompatible strategy.
     """
@@ -414,6 +419,13 @@ class MLCrossValidationEvaluationResult(
         )
 
 
+        temporal_aware = (
+            self.strategy
+            ==
+            "time_series_split"
+        )
+
+
         expected_strategy = (
             cross_validation_strategy(
                 problem_type=
@@ -421,6 +433,9 @@ class MLCrossValidationEvaluationResult(
 
                 group_aware=
                     group_aware,
+
+                temporal_aware=
+                    temporal_aware,
             )
         )
 
@@ -436,6 +451,19 @@ class MLCrossValidationEvaluationResult(
                     "not match problem_type. "
                     f"problem_type={self.problem_type}, "
                     f"strategy={self.strategy}"
+                )
+            )
+
+
+        if (
+            temporal_aware
+            and
+            self.shuffle
+        ):
+            raise ValueError(
+                (
+                    "Time-series Cross-Validation "
+                    "must use shuffle=False."
                 )
             )
 
@@ -544,13 +572,55 @@ def cross_validation_strategy(
     *,
     problem_type: str,
     group_aware: bool = False,
+    temporal_aware: bool = False,
 ) -> MLCrossValidationStrategy:
+
+    if (
+        group_aware
+        and
+        temporal_aware
+    ):
+
+        raise ValueError(
+            (
+                "Group-aware and temporal-aware "
+                "Cross-Validation cannot be "
+                "combined in v0.1."
+            )
+        )
+
+
+    if (
+        problem_type
+        not in
+        {
+            "regression",
+            "classification",
+        }
+    ):
+
+        raise ValueError(
+            (
+                "Unsupported problem type for "
+                "Cross-Validation v0.1. "
+                f"problem_type={problem_type}"
+            )
+        )
+
+
+    if temporal_aware:
+
+        return (
+            "time_series_split"
+        )
+
 
     if (
         problem_type
         ==
         "regression"
     ):
+
         return (
             "group_k_fold"
 
@@ -561,25 +631,11 @@ def cross_validation_strategy(
         )
 
 
-    if (
-        problem_type
-        ==
-        "classification"
-    ):
-        return (
-            "stratified_group_k_fold"
+    return (
+        "stratified_group_k_fold"
 
-            if group_aware
+        if group_aware
 
-            else
-            "stratified_k_fold"
-        )
-
-
-    raise ValueError(
-        (
-            "Unsupported problem type for "
-            "Cross-Validation v0.1. "
-            f"problem_type={problem_type}"
-        )
+        else
+        "stratified_k_fold"
     )

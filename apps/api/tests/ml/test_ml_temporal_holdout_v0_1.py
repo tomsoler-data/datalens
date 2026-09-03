@@ -39,6 +39,7 @@ from app.ml.cross_validation import (
 
 from app.ml.cross_validation_executor import (
     MLCrossValidationInputError,
+    _build_cross_validation_pairs,
     _validate_cross_validation_feasibility,
 )
 
@@ -635,13 +636,30 @@ def test_time_validator_fails_closed():
     )
 
 
-def test_temporal_cv_fails_closed_until_next_milestone():
+def test_temporal_cv_handoff_enabled():
     (
         dataframe,
         x,
         y,
         contract,
     ) = material()
+
+
+    times = (
+        _validated_time_values(
+            dataframe=
+                dataframe,
+
+            x=
+                x,
+
+            y=
+                y,
+
+            contract=
+                contract,
+        )
+    )
 
 
     cv_contract = (
@@ -655,28 +673,69 @@ def test_temporal_cv_fails_closed_until_next_milestone():
     )
 
 
-    expect_error(
-        lambda:
-            _validate_cross_validation_feasibility(
-                x=
-                    x,
+    pairs = (
+        _build_cross_validation_pairs(
+            x=
+                x,
 
-                y=
-                    y,
+            y=
+                y,
 
-                training_contract=
-                    contract,
+            training_contract=
+                contract,
 
-                cross_validation_contract=
-                    cv_contract,
-            ),
-        (
-            MLCrossValidationInputError,
-        ),
+            cross_validation_contract=
+                cv_contract,
+
+            times=
+                times,
+        )
     )
 
 
-def test_temporal_tuning_fails_closed_until_next_milestone():
+    assert len(
+        pairs
+    ) == 3
+
+
+    for (
+        train_indices,
+        validation_indices,
+    ) in pairs:
+
+        train_times = (
+            times.iloc[
+                train_indices
+            ]
+        )
+
+
+        validation_times = (
+            times.iloc[
+                validation_indices
+            ]
+        )
+
+
+        assert (
+            train_times.max()
+            <
+            validation_times.min()
+        )
+
+
+        assert not (
+            set(
+                train_times.tolist()
+            )
+            &
+            set(
+                validation_times.tolist()
+            )
+        )
+
+
+def test_temporal_tuning_handoff_enabled():
     (
         dataframe,
         x,
@@ -690,6 +749,8 @@ def test_temporal_tuning_fails_closed_until_next_milestone():
         x_test,
         y_train,
         y_test,
+        train_times,
+        test_times,
     ) = (
         _split_dataset(
             x=
@@ -703,14 +764,29 @@ def test_temporal_tuning_fails_closed_until_next_milestone():
 
             dataframe=
                 dataframe,
+
+            return_time_partitions=
+                True,
         )
+    )
+
+
+    assert train_times is not None
+
+    assert test_times is not None
+
+
+    assert (
+        train_times.max()
+        <
+        test_times.min()
     )
 
 
     search_contract = (
         MLHyperparameterSearchContract(
             folds=
-                3,
+                2,
 
             shuffle=
                 False,
@@ -718,25 +794,62 @@ def test_temporal_tuning_fails_closed_until_next_milestone():
     )
 
 
-    expect_error(
-        lambda:
-            _build_inner_cv_pairs(
-                x_train=
-                    x_train,
+    pairs = (
+        _build_inner_cv_pairs(
+            x_train=
+                x_train,
 
-                y_train=
-                    y_train,
+            y_train=
+                y_train,
 
-                training_contract=
-                    contract,
+            training_contract=
+                contract,
 
-                search_contract=
-                    search_contract,
-            ),
-        (
-            MLHyperparameterTuningInputError,
-        ),
+            search_contract=
+                search_contract,
+
+            times_train=
+                train_times,
+        )
     )
+
+
+    assert len(
+        pairs
+    ) == 2
+
+
+    holdout_timestamps = set(
+        test_times.tolist()
+    )
+
+
+    for (
+        inner_train_indices,
+        inner_validation_indices,
+    ) in pairs:
+
+        inner_times = (
+            pd.concat(
+                [
+                    train_times.iloc[
+                        inner_train_indices
+                    ],
+                    train_times.iloc[
+                        inner_validation_indices
+                    ],
+                ]
+            )
+        )
+
+
+        assert not (
+            set(
+                inner_times.tolist()
+            )
+            &
+            holdout_timestamps
+        )
 
 
 def test_historical_split_contracts_preserved():
@@ -890,17 +1003,17 @@ def main():
     )
 
 
-    test_temporal_cv_fails_closed_until_next_milestone()
+    test_temporal_cv_handoff_enabled()
 
     print(
-        "[PASS] temporal CV handoff fails closed"
+        "[PASS] temporal CV handoff enabled"
     )
 
 
-    test_temporal_tuning_fails_closed_until_next_milestone()
+    test_temporal_tuning_handoff_enabled()
 
     print(
-        "[PASS] temporal tuning handoff fails closed"
+        "[PASS] temporal tuning handoff enabled"
     )
 
 
