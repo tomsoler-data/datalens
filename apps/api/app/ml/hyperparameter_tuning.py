@@ -401,9 +401,9 @@ def hyperparameter_validation_strategy(
 
         raise ValueError(
             (
-                "Group-aware and temporal-aware "
-                "Hyperparameter Tuning cannot be "
-                "combined in v0.1."
+                "Purged group + temporal "
+                "Hyperparameter Tuning is deferred "
+                "to E15b."
             )
         )
 

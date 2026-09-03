@@ -583,9 +583,9 @@ def cross_validation_strategy(
 
         raise ValueError(
             (
-                "Group-aware and temporal-aware "
-                "Cross-Validation cannot be "
-                "combined in v0.1."
+                "Purged group + temporal "
+                "Cross-Validation is deferred "
+                "to E15b."
             )
         )
 

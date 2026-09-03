@@ -283,12 +283,136 @@ class MLTimeHoldoutSplitContract(
         return normalized
 
 
+class MLPurgedGroupTimeHoldoutSplitContract(
+    BaseModel
+):
+    """
+    Deterministic future holdout with entity isolation.
+
+    The future TEST partition is created from the same
+    chronological timestamp boundary as time_holdout.
+
+    Every entity group present in that future TEST partition
+    is removed from the historical TRAIN candidate.
+
+    Rows removed by this entity purge are intentionally
+    excluded from both TRAIN and TEST.
+
+    group_column and time_column are split metadata only.
+    Neither may be a feature or target.
+    """
+
+    model_config = ConfigDict(
+        extra="forbid",
+        frozen=True,
+    )
+
+
+    strategy: Literal[
+        "purged_group_time_holdout",
+    ] = "purged_group_time_holdout"
+
+
+    group_column: str = Field(
+        min_length=1,
+    )
+
+
+    time_column: str = Field(
+        min_length=1,
+    )
+
+
+    test_size: float = Field(
+        default=0.20,
+        gt=0.0,
+        lt=0.5,
+    )
+
+
+    random_seed: int = Field(
+        default=42,
+        ge=0,
+        le=2_147_483_647,
+    )
+
+
+    shuffle: Literal[
+        False
+    ] = False
+
+
+    stratify: Literal[
+        False
+    ] = False
+
+
+    @field_validator(
+        "group_column",
+        "time_column",
+        mode="before",
+    )
+    @classmethod
+    def normalize_metadata_column(
+        cls,
+        value: object,
+        info,
+    ) -> str:
+
+        normalized = str(
+            value
+            if value is not None
+            else ""
+        ).strip()
+
+
+        if not normalized:
+
+            raise ValueError(
+                (
+                    f"{info.field_name} "
+                    "cannot be empty"
+                )
+            )
+
+
+        return normalized
+
+
+    @model_validator(
+        mode="after"
+    )
+    def validate_distinct_metadata_columns(
+        self,
+    ) -> (
+        "MLPurgedGroupTimeHoldoutSplitContract"
+    ):
+
+        if (
+            self.group_column
+            ==
+            self.time_column
+        ):
+
+            raise ValueError(
+                (
+                    "group_column and time_column "
+                    "must reference different columns"
+                )
+            )
+
+
+        return self
+
+
 MLTrainingSplitContract = (
     MLSplitContract
     |
     MLGroupHoldoutSplitContract
     |
     MLTimeHoldoutSplitContract
+    |
+    MLPurgedGroupTimeHoldoutSplitContract
 )
 
 
@@ -770,7 +894,10 @@ class MLTrainingContract(
 
         if isinstance(
             self.split,
-            MLGroupHoldoutSplitContract,
+            (
+                MLGroupHoldoutSplitContract,
+                MLPurgedGroupTimeHoldoutSplitContract,
+            ),
         ):
 
             if (
@@ -807,7 +934,10 @@ class MLTrainingContract(
 
         if isinstance(
             self.split,
-            MLTimeHoldoutSplitContract,
+            (
+                MLTimeHoldoutSplitContract,
+                MLPurgedGroupTimeHoldoutSplitContract,
+            ),
         ):
 
             if (
