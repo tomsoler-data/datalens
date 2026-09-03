@@ -1,0 +1,73 @@
+{
+  "contract_version": "lapage_v8_bis_input_v0.1",
+  "frozen": true,
+  "visibility": "model_visible",
+  "evaluation_policy": {
+    "gold_visible_to_models": false,
+    "gold_visible_to_prompts": false,
+    "model_runs_allowed_during_p0": false,
+    "scoring": "post_execution_evaluator_only"
+  },
+  "source_files": [
+    "customers.csv",
+    "products.csv",
+    "Transactions.csv"
+  ],
+  "cases": [
+    {
+      "case_id": "lapage_total_revenue",
+      "tier": "core",
+      "objective": "Quel est le chiffre d'affaires total sur toute la période analysée ?"
+    },
+    {
+      "case_id": "lapage_category_revenue_leader",
+      "tier": "core",
+      "objective": "Quelle catégorie contribue le plus au chiffre d'affaires et quelle est sa part approximative du chiffre d'affaires total ?"
+    },
+    {
+      "case_id": "lapage_average_basket",
+      "tier": "extended",
+      "objective": "Quel est le panier moyen par session d'achat ?"
+    },
+    {
+      "case_id": "lapage_gender_category_association",
+      "tier": "core",
+      "objective": "Existe-t-il une association entre le genre des clients et la catégorie achetée ? Quantifie l'intensité de cette association."
+    },
+    {
+      "case_id": "lapage_age_total_spend",
+      "tier": "core",
+      "objective": "Quelle est la relation entre l'âge du client au premier achat et son montant total d'achats ?"
+    },
+    {
+      "case_id": "lapage_age_purchase_sessions",
+      "tier": "core",
+      "objective": "Quelle est la relation entre l'âge du client au premier achat et son nombre de sessions d'achat ?"
+    },
+    {
+      "case_id": "lapage_age_average_basket",
+      "tier": "core",
+      "objective": "Quelle est la relation entre l'âge du client au premier achat et son panier moyen par session ?"
+    },
+    {
+      "case_id": "lapage_age_band_category",
+      "tier": "extended",
+      "objective": "Existe-t-il une association entre la tranche d'âge du client et la catégorie achetée ? Quantifie l'intensité de l'association."
+    },
+    {
+      "case_id": "lapage_customer_outliers",
+      "tier": "core",
+      "objective": "Détecte les clients atypiques."
+    },
+    {
+      "case_id": "lapage_customer_revenue_gini",
+      "tier": "capability_observation",
+      "objective": "Quel est le coefficient de Gini du chiffre d'affaires par client ?"
+    },
+    {
+      "case_id": "lapage_unsold_products",
+      "tier": "capability_observation",
+      "objective": "Combien de produits du catalogue n'ont jamais été vendus et dans quelle catégorie sont-ils principalement concentrés ?"
+    }
+  ]
+}
