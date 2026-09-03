@@ -165,10 +165,35 @@ export type ModelLabTimeHoldoutSplitContract = {
 };
 
 
+export type ModelLabPurgedGroupTimeHoldoutSplitContract = {
+  strategy:
+    "purged_group_time_holdout";
+
+  group_column:
+    string;
+
+  time_column:
+    string;
+
+  test_size:
+    number;
+
+  random_seed:
+    number;
+
+  shuffle:
+    false;
+
+  stratify:
+    false;
+};
+
+
 export type ModelLabSplitContract =
   | ModelLabHoldoutSplitContract
   | ModelLabGroupHoldoutSplitContract
-  | ModelLabTimeHoldoutSplitContract;
+  | ModelLabTimeHoldoutSplitContract
+  | ModelLabPurgedGroupTimeHoldoutSplitContract;
 
 
 /* ============================================================
