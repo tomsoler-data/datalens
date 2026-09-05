@@ -2028,6 +2028,224 @@ def aggregate_contract_rows(
 
 
 # ============================================================
+# SHARE-OF-TOTAL EXECUTION
+# DATALENS_SHARE_OF_TOTAL_EXECUTION_V0_1
+# ============================================================
+
+
+def apply_contract_share_of_total(
+    *,
+    contract: AnalyticalContract,
+    rows: list[
+        dict[
+            str,
+            Any,
+        ]
+    ],
+    metrics: dict[
+        str,
+        Any,
+    ],
+) -> tuple[
+    list[
+        dict[
+            str,
+            Any,
+        ]
+    ],
+    dict[
+        str,
+        Any,
+    ],
+]:
+    """
+    Materialize the canonical post-aggregation share-of-total.
+
+    `sum_of_group_values` is evaluated over the complete grouped
+    population produced by aggregate_contract_rows() BEFORE any
+    ranking limit or benchmark selection is applied.
+
+    Contracts without ShareOfTotalSpec preserve historical
+    execution exactly and add no share-related output fields.
+    """
+
+    share_spec = (
+        contract.share_of_total
+    )
+
+
+    if (
+        share_spec
+        is None
+    ):
+
+        return (
+            rows,
+            metrics,
+        )
+
+
+    if (
+        share_spec.reference
+        !=
+        "sum_of_group_values"
+    ):
+
+        raise ValueError(
+            (
+                "Unsupported share-of-total reference: "
+                f"{share_spec.reference}."
+            )
+        )
+
+
+    if not (
+        rows
+    ):
+
+        raise ValueError(
+            (
+                "share_of_total requires at least one grouped "
+                "result."
+            )
+        )
+
+
+    numeric_values: list[
+        float
+    ] = []
+
+
+    for row in (
+        rows
+    ):
+
+        raw_value = (
+            row.get(
+                "value"
+            )
+        )
+
+
+        try:
+
+            numeric_value = float(
+                raw_value
+            )
+
+        except (
+            TypeError,
+            ValueError,
+        ) as error:
+
+            raise ValueError(
+                (
+                    "share_of_total requires numeric grouped "
+                    "values."
+                )
+            ) from error
+
+
+        if pd.isna(
+            numeric_value
+        ):
+
+            raise ValueError(
+                (
+                    "share_of_total cannot use a NaN grouped "
+                    "value."
+                )
+            )
+
+
+        numeric_values.append(
+            numeric_value
+        )
+
+
+    denominator = float(
+        sum(
+            numeric_values
+        )
+    )
+
+
+    if pd.isna(
+        denominator
+    ):
+
+        raise ValueError(
+            "share_of_total denominator is NaN."
+        )
+
+
+    if (
+        denominator
+        ==
+        0.0
+    ):
+
+        raise ValueError(
+            (
+                "share_of_total denominator is zero; "
+                "the requested ratio is undefined."
+            )
+        )
+
+
+    annotated_rows: list[
+        dict[
+            str,
+            Any,
+        ]
+    ] = []
+
+
+    for (
+        row,
+        numeric_value,
+    ) in zip(
+        rows,
+        numeric_values,
+    ):
+
+        annotated_rows.append(
+            {
+                **row,
+
+                "share_of_total":
+                    (
+                        numeric_value
+                        /
+                        denominator
+                    ),
+            }
+        )
+
+
+    share_metrics = {
+        **metrics,
+
+        "share_of_total_reference":
+            share_spec.reference,
+
+        "share_of_total_denominator":
+            denominator,
+
+        "share_of_total_result_count":
+            len(
+                annotated_rows
+            ),
+    }
+
+
+    return (
+        annotated_rows,
+        share_metrics,
+    )
+
+
+# ============================================================
 # BENCHMARK EXECUTION
 # DATALENS_BENCHMARK_EXECUTION_V0_1
 # ============================================================
@@ -2501,6 +2719,21 @@ def execute_aggregation_contract(
 
 
     (
+        share_rows,
+        metrics,
+    ) = apply_contract_share_of_total(
+        contract=
+            contract,
+
+        rows=
+            base_rows,
+
+        metrics=
+            metrics,
+    )
+
+
+    (
         rows,
         metrics,
     ) = apply_contract_benchmark(
@@ -2511,7 +2744,7 @@ def execute_aggregation_contract(
             dataframe,
 
         rows=
-            base_rows,
+            share_rows,
 
         metrics=
             metrics,
@@ -2670,6 +2903,21 @@ def execute_ranking_contract(
     )
 
 
+    (
+        rows,
+        metrics,
+    ) = apply_contract_share_of_total(
+        contract=
+            contract,
+
+        rows=
+            rows,
+
+        metrics=
+            metrics,
+    )
+
+
     reverse = (
         ranking.order ==
         "descending"
@@ -2722,6 +2970,26 @@ def execute_ranking_contract(
             else None
         ),
     }
+
+
+    if (
+        contract.share_of_total
+        is not None
+    ):
+
+        metrics = {
+            **metrics,
+
+            "top_share_of_total": (
+                chart_rows[
+                    0
+                ].get(
+                    "share_of_total"
+                )
+                if chart_rows
+                else None
+            ),
+        }
 
 
     if not chart_rows:

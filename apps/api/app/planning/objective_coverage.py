@@ -50,6 +50,7 @@ ObjectiveRequirementType = Literal[
     "metric",
     "dimension",
     "column",
+    "derived_metric",
 ]
 
 
@@ -309,6 +310,38 @@ SEMANTIC_REQUIREMENT_SPECS = (
             "mean",
     ),
 
+    # ========================================================
+    # AVERAGE BASKET
+    # DATALENS_OBJECTIVE_COVERAGE_AVERAGE_BASKET_V0_1
+    # ========================================================
+
+    SemanticRequirementSpec(
+        requirement_id=
+            "metric:average_basket",
+
+        concept=
+            "average_basket",
+
+        requirement_type=
+            "metric",
+
+        phrases=(
+            "panier moyen",
+            "average basket",
+        ),
+
+        candidate_column_names=(
+            "basket_amount",
+        ),
+
+        allowed_roles=(
+            "value",
+        ),
+
+        required_aggregation=
+            "mean",
+    ),
+
     SemanticRequirementSpec(
         requirement_id=
             "dimension:region",
@@ -441,6 +474,111 @@ def contains_phrase(
 
 
 # ============================================================
+# EXPLICIT DERIVED OUTPUT REQUESTS
+# ============================================================
+
+
+def explicit_share_of_total_phrases(
+    objective: str,
+) -> list[
+    str
+]:
+    """
+    Return explicit textual evidence that the user requested
+    a part / percentage / share / proportion of a total.
+
+    This detector is deliberately conservative:
+
+    - an isolated "part" is insufficient;
+    - a total request alone is insufficient;
+    - ranking language alone is insufficient;
+    - benchmark language alone is insufficient.
+
+    The share term must occur before an explicit `total` token
+    within a short local phrase.
+    """
+
+    normalized = (
+        normalize_text(
+            objective
+        )
+    )
+
+
+    share_terms = (
+        "part",
+        "pourcentage",
+        "share",
+        "percentage",
+        "proportion",
+    )
+
+
+    evidence: list[
+        str
+    ] = []
+
+
+    for term in (
+        share_terms
+    ):
+
+        match = re.search(
+            (
+                rf"\b{re.escape(term)}\b"
+                rf"(?:\s+[a-z0-9]+){{0,12}}"
+                rf"\s+\btotal\b"
+            ),
+            normalized,
+        )
+
+
+        if (
+            match
+            is None
+        ):
+            continue
+
+
+        phrase = (
+            match
+            .group(
+                0
+            )
+            .strip()
+        )
+
+
+        if (
+            phrase
+
+            and
+
+            phrase
+            not in
+            evidence
+        ):
+
+            evidence.append(
+                phrase
+            )
+
+
+    return evidence
+
+
+def explicit_share_of_total_request(
+    objective: str,
+) -> bool:
+
+    return bool(
+        explicit_share_of_total_phrases(
+            objective
+        )
+    )
+
+
+# ============================================================
 # CATALOG
 # ============================================================
 
@@ -500,6 +638,143 @@ def catalog_column_names(
     return names
 
 
+def catalog_semantic_alias_targets(
+    catalog: Any,
+) -> dict[
+    str,
+    list[
+        str
+    ],
+]:
+    """
+    Resolve server-owned analytical measure aliases to the
+    physical target columns they describe.
+
+    Important safety rule:
+
+    aliases never become executable columns themselves.
+
+    A semantic alias is accepted only when:
+
+    - a dataset declares target_measure_column;
+    - that target exists physically in the same dataset;
+    - the alias is explicitly present in the server-owned
+      PlannerDatasetProfile.measure_semantic_aliases field.
+
+    This preserves the narrow contract-local semantic bridge
+    established by the planner catalog instead of rebuilding a
+    broad global synonym table inside Objective Coverage.
+    """
+
+    result: dict[
+        str,
+        list[
+            str
+        ],
+    ] = {}
+
+
+    for dataset in (
+        getattr(
+            catalog,
+            "datasets",
+            [],
+        )
+        or []
+    ):
+        target_measure = str(
+            getattr(
+                dataset,
+                "target_measure_column",
+                "",
+            )
+            or
+            ""
+        ).strip()
+
+
+        if not target_measure:
+            continue
+
+
+        physical_columns = {
+            str(
+                getattr(
+                    column,
+                    "name",
+                    "",
+                )
+                or
+                ""
+            ).strip()
+
+            for column
+            in (
+                getattr(
+                    dataset,
+                    "columns",
+                    [],
+                )
+                or []
+            )
+        }
+
+
+        if (
+            target_measure
+            not in
+            physical_columns
+        ):
+            continue
+
+
+        aliases = (
+            getattr(
+                dataset,
+                "measure_semantic_aliases",
+                [],
+            )
+            or []
+        )
+
+
+        for raw_alias in aliases:
+            normalized_alias = (
+                normalize_text(
+                    str(
+                        raw_alias
+                        or
+                        ""
+                    )
+                )
+            )
+
+
+            if not normalized_alias:
+                continue
+
+
+            targets = (
+                result.setdefault(
+                    normalized_alias,
+                    [],
+                )
+            )
+
+
+            if (
+                target_measure
+                not in
+                targets
+            ):
+                targets.append(
+                    target_measure
+                )
+
+
+    return result
+
+
 def resolve_candidate_columns(
     *,
     catalog_columns: list[
@@ -510,6 +785,16 @@ def resolve_candidate_columns(
         str,
         ...
     ],
+
+    semantic_alias_targets: (
+        dict[
+            str,
+            list[
+                str
+            ],
+        ]
+        | None
+    ) = None,
 ) -> list[
     str
 ]:
@@ -523,9 +808,17 @@ def resolve_candidate_columns(
         in catalog_columns
     }
 
+
+    alias_targets = (
+        semantic_alias_targets
+        or {}
+    )
+
+
     resolved: list[
         str
     ] = []
+
 
     for candidate_name in (
         candidate_names
@@ -536,18 +829,46 @@ def resolve_candidate_columns(
             )
         )
 
+
         actual = (
             normalized_catalog.get(
                 normalized_candidate
             )
         )
 
-        if actual is None:
+
+        if actual is not None:
+            if (
+                actual
+                not in
+                resolved
+            ):
+                resolved.append(
+                    actual
+                )
+
+
             continue
 
-        resolved.append(
-            actual
-        )
+
+        for target_column in (
+            alias_targets.get(
+                normalized_candidate,
+                [],
+            )
+        ):
+            if (
+                target_column
+                in
+                resolved
+            ):
+                continue
+
+
+            resolved.append(
+                target_column
+            )
+
 
     return resolved
 
@@ -575,6 +896,14 @@ def extract_objective_requirements(
             catalog
         )
     )
+
+
+    semantic_alias_targets = (
+        catalog_semantic_alias_targets(
+            catalog
+        )
+    )
+
 
     requirements: list[
         ObjectiveCoverageRequirement
@@ -615,6 +944,9 @@ def extract_objective_requirements(
                 candidate_names=
                     spec
                     .candidate_column_names,
+
+                semantic_alias_targets=
+                    semantic_alias_targets,
             )
         )
 
@@ -635,7 +967,8 @@ def extract_objective_requirements(
             notes.append(
                 (
                     "The requested concept was detected, "
-                    "but no compatible physical column "
+                    "but no compatible physical column or "
+                    "trusted server-owned analytical alias "
                     "was resolved from the current catalog."
                 )
             )
@@ -671,6 +1004,72 @@ def extract_objective_requirements(
 
                 notes=
                     notes,
+            )
+        )
+
+
+    # --------------------------------------------------------
+    # EXPLICIT SHARE OF TOTAL
+    # DATALENS_OBJECTIVE_COVERAGE_SHARE_OF_TOTAL_V0_1
+    # --------------------------------------------------------
+    #
+    # `share_of_total` is an output requirement, not a physical
+    # source-column requirement.
+    #
+    # It therefore has:
+    #
+    # - no candidate physical columns;
+    # - no binding role;
+    # - no standalone aggregation function.
+    #
+    # Until a validated contract explicitly carries executable
+    # share-of-total semantics, contract coverage remains false
+    # and Objective Coverage must report the request incomplete.
+    # --------------------------------------------------------
+
+    share_phrases = (
+        explicit_share_of_total_phrases(
+            objective
+        )
+    )
+
+
+    if (
+        share_phrases
+    ):
+
+        requirements.append(
+            ObjectiveCoverageRequirement(
+                requirement_id=
+                    "derived:share_of_total",
+
+                concept=
+                    "share_of_total",
+
+                requirement_type=
+                    "derived_metric",
+
+                requested_phrases=
+                    share_phrases,
+
+                candidate_columns=[],
+
+                allowed_roles=[],
+
+                required_aggregation=None,
+
+                covered=False,
+
+                covered_by_contract_ids=[],
+
+                notes=[
+                    (
+                        "The user explicitly requested a share "
+                        "of the total. This is a derived output "
+                        "requirement and is not satisfied merely "
+                        "by binding the underlying source metric."
+                    )
+                ],
             )
         )
 
@@ -793,6 +1192,51 @@ def contract_covers_requirement(
         "validated"
     ):
         return False
+
+    # --------------------------------------------------------
+    # DERIVED OUTPUT REQUIREMENTS
+    # DATALENS_OBJECTIVE_COVERAGE_DERIVED_SHARE_SATISFACTION_V0_1
+    # --------------------------------------------------------
+    #
+    # Derived outputs deliberately have no physical candidate
+    # columns. They therefore must be evaluated before the
+    # physical-column coverage path below.
+    #
+    # v0.1 supports only the canonical share_of_total semantic.
+    # Unknown/future derived metrics remain fail-closed.
+    # --------------------------------------------------------
+
+    if (
+        requirement.requirement_type
+        ==
+        "derived_metric"
+    ):
+        if (
+            requirement.concept
+            !=
+            "share_of_total"
+        ):
+            return False
+
+
+        share_spec = (
+            contract.share_of_total
+        )
+
+
+        if (
+            share_spec
+            is None
+        ):
+            return False
+
+
+        return (
+            share_spec.reference
+            ==
+            "sum_of_group_values"
+        )
+
 
     candidate_names = {
         normalize_text(

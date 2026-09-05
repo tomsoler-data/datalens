@@ -146,6 +146,70 @@ def _normalized_optional_text(
     )
 
 
+# ============================================================
+# INTERNAL DERIVED LINEAGE NORMALIZATION
+# DATALENS_PLANNER_CATALOG_LINEAGE_PROPAGATION_V0_1
+# ============================================================
+
+
+def _normalized_dataset_id_list(
+    value: Any,
+) -> list[
+    str
+]:
+    """
+    Normalize an ordered server-owned dataset-id collection.
+
+    Strings and malformed objects fail closed to an empty list.
+    Duplicate IDs are removed while preserving server order.
+    """
+
+    if value is None:
+
+        return []
+
+
+    if not isinstance(
+        value,
+        (
+            list,
+            tuple,
+        ),
+    ):
+
+        return []
+
+
+    normalized: list[
+        str
+    ] = []
+
+
+    for raw_value in value:
+
+        dataset_id = (
+            _normalized_optional_text(
+                raw_value
+            )
+        )
+
+
+        if (
+            dataset_id
+            and
+            dataset_id
+            not in
+            normalized
+        ):
+
+            normalized.append(
+                dataset_id
+            )
+
+
+    return normalized
+
+
 def _analytical_measure_aliases(
     *,
     provenance: dict[
@@ -190,6 +254,170 @@ def _analytical_measure_aliases(
             aliases.append(
                 value
             )
+
+
+    # --------------------------------------------------------
+    # TRUSTED UNIT-PRICE EVENT -> REVENUE SEMANTICS
+    #
+    # A bare price is NOT automatically revenue.
+    #
+    # Revenue aliases are exposed only when server-owned
+    # analytical provenance establishes all of the following:
+    #
+    # - the analytical view is a grouped SUM;
+    # - the source measure is explicitly price / prix;
+    # - no explicit quantity measure exists at fact grain;
+    # - one fact row has been conservatively accepted as one
+    #   monetary event;
+    # - the monetary measure came from a validated analytical
+    #   enrichment boundary.
+    #
+    # This deliberately excludes:
+    #
+    # - cost / cout;
+    # - arbitrary monetary numerics;
+    # - untrusted bare price columns;
+    # - session / basket materializations;
+    # - customer aggregate measures.
+    #
+    # The aliases describe the existing target measure. No
+    # virtual execution column is created.
+    # --------------------------------------------------------
+
+    source_measure = _normalized_optional_text(
+        provenance.get(
+            "source_measure_column"
+        )
+    )
+
+
+    target_measure = _normalized_optional_text(
+        provenance.get(
+            "target_measure_column"
+        )
+    )
+
+
+    analytical_operation = _normalized_optional_text(
+        provenance.get(
+            "operation"
+        )
+    )
+
+
+    analytical_aggregation = _normalized_optional_text(
+        provenance.get(
+            "aggregation"
+        )
+    )
+
+
+    analytical_grain = _normalized_optional_text(
+        provenance.get(
+            "grain"
+        )
+    )
+
+
+    analytical_group_column = _normalized_optional_text(
+        provenance.get(
+            "group_column"
+        )
+    )
+
+
+    metric_semantics = _normalized_optional_text(
+        provenance.get(
+            "metric_semantics"
+        )
+    )
+
+
+    normalized_metric_semantics = (
+        metric_semantics.casefold()
+        if metric_semantics
+        else ""
+    )
+
+
+    trusted_additive_operation = (
+        analytical_operation
+        ==
+        "groupby_sum"
+
+        or
+
+        (
+            analytical_operation
+            ==
+            "scalar_sum"
+
+            and
+            analytical_grain
+            ==
+            "overall"
+
+            and
+            analytical_group_column
+            is None
+        )
+    )
+
+
+    trusted_unit_price_event = (
+        source_measure
+        in {
+            "price",
+            "prix",
+        }
+
+        and
+        bool(
+            target_measure
+        )
+
+        and
+        trusted_additive_operation
+
+        and
+        analytical_aggregation
+        ==
+        "sum"
+
+        and
+        "no explicit quantity"
+        in
+        normalized_metric_semantics
+
+        and
+        "monetary event"
+        in
+        normalized_metric_semantics
+
+        and
+        (
+            "validated dimension"
+            in
+            normalized_metric_semantics
+
+            or
+
+            "server-owned validated preparation output"
+            in
+            normalized_metric_semantics
+        )
+    )
+
+
+    if trusted_unit_price_event:
+        aliases.extend(
+            [
+                "revenue",
+                "turnover",
+                "chiffre_affaires",
+                "ca",
+            ]
+        )
 
 
     derivation = (
@@ -669,6 +897,40 @@ def planner_catalog_from_dataset_records(
         # DATASET PROFILE
         # ====================================================
 
+        # ====================================================
+        # INTERNAL SERVER-OWNED DERIVED LINEAGE
+        # ====================================================
+
+        is_derived_record = bool(
+            record.get(
+                "is_derived",
+                False,
+            )
+        )
+
+
+        fact_dataset_id = (
+            _normalized_optional_text(
+                provenance.get(
+                    "fact_dataset_id"
+                )
+            )
+            if is_derived_record
+            else None
+        )
+
+
+        source_dataset_ids = (
+            _normalized_dataset_id_list(
+                record.get(
+                    "source_dataset_ids"
+                )
+            )
+            if is_derived_record
+            else []
+        )
+
+
         datasets.append(
             PlannerDatasetProfile(
                 dataset_id=
@@ -778,6 +1040,14 @@ def planner_catalog_from_dataset_records(
                             "metric_semantics"
                         )
                     )
+                ),
+
+                fact_dataset_id=(
+                    fact_dataset_id
+                ),
+
+                source_dataset_ids=(
+                    source_dataset_ids
                 ),
 
                 measure_semantic_aliases=(

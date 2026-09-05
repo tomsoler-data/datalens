@@ -328,7 +328,7 @@ def test_strict_quantity_unit_price_derives_internal_gross_amount() -> None:
     assert (
         ANALYTICAL_VIEW_RULE_VERSION
         ==
-        "analytical_view_v0.6"
+        "analytical_view_v0.7"
     )
 
 

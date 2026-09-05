@@ -40,13 +40,16 @@ from app.planning.analytical_contract import (
     RankingSpec,
     VariableBinding,
     WindowSpec,
+    ShareOfTotalSpec,
 )
 
 
 from app.planning.objective_coverage import (
     ObjectiveCoverageReport,
     build_objective_coverage,
+    extract_objective_requirements,
     validated_contracts_from_planner_report,
+    explicit_share_of_total_request,
 )
 
 
@@ -199,6 +202,28 @@ class PlannerDatasetProfile(
 
     measure_semantic_aliases: list[str] = Field(
         default_factory=list
+    )
+
+    # ========================================================
+    # INTERNAL SERVER-OWNED DERIVED LINEAGE
+    # DATALENS_PLANNER_DATASET_INTERNAL_LINEAGE_V0_1
+    #
+    # Validator authority only. These fields are excluded
+    # from ordinary Pydantic serialization and therefore do
+    # not extend the model-visible catalog payload.
+    # ========================================================
+
+    fact_dataset_id: (
+        str
+        | None
+    ) = Field(
+        default=None,
+        exclude=True,
+    )
+
+    source_dataset_ids: list[str] = Field(
+        default_factory=list,
+        exclude=True,
     )
 
 
@@ -2096,6 +2121,11 @@ SEMANTIC_TOKEN_CANONICAL = {
     "taux": "percent",
 
     "age": "age",
+
+    # Generic bilingual categorical concept.
+    # DATALENS_CATEGORICAL_ASSOCIATION_THREE_AXIS_RECOVERY_V0_1
+    "genre": "gender",
+    "genres": "gender",
 
     "at": "at",
     "au": "at",
@@ -5681,6 +5711,7 @@ def canonicalize_monthly_analytical_view_intent(
 
 
 
+
 def canonicalize_categorical_association_from_objective(
     *,
     objective: str,
@@ -5691,34 +5722,32 @@ def canonicalize_categorical_association_from_objective(
     list[str],
 ]:
     """
-    Resolve an explicit categorical association directly from the
-    user objective before inferred dataset repair can anchor the
-    proposal to a wrong derived analytical view.
+    Deterministically recover an explicitly requested
+    categorical association.
 
-    This guard is intentionally conservative:
+    Supported authorities:
 
-    - the objective must explicitly ask for a relation/association;
-    - the user must not explicitly name a dataset;
-    - exactly one NON-DERIVED catalog dataset must contain exactly
-      two categorical columns deterministically referenced by the
-      objective;
-    - no quantitative or third schema column may also be
-      deterministically referenced in that same candidate dataset.
+    1. ordinary non-derived row-level datasets;
+    2. server-owned derived datasets only when BOTH
+       derivation_type and operation are exactly
+       ``requested_event_context``;
+    3. a narrow false-abstention recovery when the model
+       blocked solely because it claimed that a column was
+       missing for an association family.
 
-    This repairs small-model wire failures such as:
+    The objective itself must still identify exactly two
+    categorical variables in exactly one eligible dataset.
 
-        "Existe-t-il une relation entre le segment client et la
-        catégorie de produit ?"
-
-    when Gemma proposes a quantitative association against an
-    unrelated revenue-by-category derived view.
-
-    The normalization does not invent a variable or metric. It
-    simply binds the two categorical schema columns that the
-    objective itself deterministically identifies.
+    Explicit dataset references, explicit ranking intent,
+    ambiguous candidates, unrelated blockers, unrelated
+    derived views and absent requested variables remain
+    fail-closed.
     """
 
-    if proposal.decision != "propose":
+    if proposal.decision not in {
+        "propose",
+        "blocked",
+    }:
         return proposal, []
 
 
@@ -5728,6 +5757,10 @@ def canonicalize_categorical_association_from_objective(
     }:
         return proposal, []
 
+
+    # ========================================================
+    # EXPLICIT DATASET AUTHORITY
+    # ========================================================
 
     if explicit_dataset_mentions(
         objective=objective,
@@ -5743,19 +5776,176 @@ def canonicalize_categorical_association_from_objective(
     )
 
 
+    association_signals = {
+        "relation",
+        "association",
+        "correlation",
+        "relationship",
+        "lien",
+    }
+
+
     if not (
         objective_tokens
         &
-        {
-            "relation",
-            "association",
-            "correlation",
-            "relationship",
-            "lien",
-        }
+        association_signals
     ):
         return proposal, []
 
+
+    # ========================================================
+    # EXPLICIT DECISION INTENT GUARD
+    # ========================================================
+
+    explicit_ranking_signals = {
+        "rank",
+        "ranking",
+        "classement",
+        "classer",
+        "top",
+        "bottom",
+    }
+
+
+    if (
+        objective_tokens
+        &
+        explicit_ranking_signals
+    ):
+        return proposal, []
+
+
+    # ========================================================
+    # EXPLICIT SCHEMA REFERENCE GUARD
+    # ========================================================
+
+    schema_mentions = (
+        schema_like_context_mentions(
+            objective=objective,
+            catalog=catalog,
+        )
+    )
+
+
+    if schema_mentions:
+
+        available_literal_names = {
+            normalize_identifier_for_match(
+                column.name
+            )
+
+            for dataset
+            in catalog.datasets
+
+            for column
+            in dataset.columns
+        }
+
+
+        if any(
+            normalize_identifier_for_match(
+                mention
+            )
+            not in
+            available_literal_names
+
+            for mention
+            in schema_mentions
+        ):
+            return proposal, []
+
+
+    # ========================================================
+    # FALSE-ABSTENTION GUARD
+    # ========================================================
+
+    recovering_false_abstention = (
+        proposal.decision
+        ==
+        "blocked"
+    )
+
+
+    if recovering_false_abstention:
+
+        if (
+            len(
+                proposal.blockers
+            )
+            !=
+            1
+        ):
+            return proposal, []
+
+
+        blocker_tokens = set(
+            normalized_objective_tokens(
+                proposal.blockers[
+                    0
+                ]
+            )
+        )
+
+
+        column_signals = {
+            "column",
+            "colonne",
+            "field",
+            "champ",
+        }
+
+
+        missing_signals = {
+            "missing",
+            "absent",
+            "manquant",
+            "manquante",
+            "manquants",
+            "manquantes",
+        }
+
+
+        family_signals = {
+            "quantitative",
+            "categorical",
+        }
+
+
+        if not (
+            blocker_tokens
+            &
+            column_signals
+        ):
+            return proposal, []
+
+
+        if not (
+            blocker_tokens
+            &
+            missing_signals
+        ):
+            return proposal, []
+
+
+        if (
+            "association"
+            not in
+            blocker_tokens
+        ):
+            return proposal, []
+
+
+        if not (
+            blocker_tokens
+            &
+            family_signals
+        ):
+            return proposal, []
+
+
+    # ========================================================
+    # UNIQUE ELIGIBLE ROW-LEVEL DATASET
+    # ========================================================
 
     candidates: list[
         tuple[
@@ -5766,10 +5956,22 @@ def canonicalize_categorical_association_from_objective(
 
 
     for dataset in catalog.datasets:
-        # Categorical association requires row-level co-occurrence.
-        # Do not infer it from aggregated analytical views.
+
         if dataset.is_derived:
-            continue
+
+            requested_event_context = (
+                dataset.derivation_type
+                ==
+                "requested_event_context"
+                and
+                dataset.operation
+                ==
+                "requested_event_context"
+            )
+
+
+            if not requested_event_context:
+                continue
 
 
         mentions = list(
@@ -5782,7 +5984,88 @@ def canonicalize_categorical_association_from_objective(
         )
 
 
-        if len(mentions) != 2:
+        # ====================================================
+        # CONSERVATIVE BILINGUAL SEMANTIC FALLBACK
+        # ====================================================
+
+        if (
+            len(
+                mentions
+            )
+            !=
+            2
+        ):
+
+            objective_semantic_tokens = {
+                canonical_semantic_token(
+                    token
+                )
+
+                for token
+                in normalized_objective_tokens(
+                    objective
+                )
+            }
+
+
+            semantic_mentions: list[
+                str
+            ] = []
+
+
+            for column in dataset.columns:
+
+                if not is_categorical(
+                    column.analysis_kind
+                ):
+                    continue
+
+
+                column_tokens = [
+                    canonical_semantic_token(
+                        token
+                    )
+
+                    for token
+                    in normalized_column_tokens(
+                        column.name
+                    )
+                ]
+
+
+                if (
+                    column_tokens
+                    and
+                    all(
+                        token
+                        in
+                        objective_semantic_tokens
+
+                        for token
+                        in column_tokens
+                    )
+                ):
+                    semantic_mentions.append(
+                        column.name
+                    )
+
+
+            mentions = list(
+                dict.fromkeys(
+                    mentions
+                    +
+                    semantic_mentions
+                )
+            )
+
+
+        if (
+            len(
+                mentions
+            )
+            !=
+            2
+        ):
             continue
 
 
@@ -5791,6 +6074,7 @@ def canonicalize_categorical_association_from_objective(
                 dataset,
                 column_name,
             )
+
             for column_name
             in mentions
         ]
@@ -5798,6 +6082,7 @@ def canonicalize_categorical_association_from_objective(
 
         if any(
             profile is None
+
             for profile
             in profiles
         ):
@@ -5808,14 +6093,24 @@ def canonicalize_categorical_association_from_objective(
             is_categorical(
                 profile.analysis_kind
             )
+
             for profile
             in profiles
+
             if profile is not None
         ):
             continue
 
 
-        if mentions[0] == mentions[1]:
+        if (
+            mentions[
+                0
+            ]
+            ==
+            mentions[
+                1
+            ]
+        ):
             continue
 
 
@@ -5827,65 +6122,123 @@ def canonicalize_categorical_association_from_objective(
         )
 
 
-    if len(candidates) != 1:
+    if (
+        len(
+            candidates
+        )
+        !=
+        1
+    ):
         return proposal, []
 
 
-    selected, mentions = candidates[0]
-    previous_dataset = proposal.dataset_id
+    selected, mentions = (
+        candidates[
+            0
+        ]
+    )
 
 
-    normalized = proposal.model_copy(
-        update={
-            "family":
-                "categorical_association",
+    previous_dataset = (
+        proposal.dataset_id
+    )
 
-            "dataset_id":
-                selected.dataset_id,
 
-            "analytical_grain":
-                (
-                    selected.analytical_grain
-                    or
-                    "row"
-                ),
+    previous_decision = (
+        proposal.decision
+    )
 
-            "x_column":
-                mentions[0],
 
-            "y_column":
-                mentions[1],
+    normalized = (
+        proposal.model_copy(
+            update={
+                "decision":
+                    "propose",
 
-            "group_column":
-                None,
+                "family":
+                    "categorical_association",
 
-            "value_column":
-                None,
+                "dataset_id":
+                    selected.dataset_id,
 
-            "time_column":
-                None,
+                "analytical_grain":
+                    (
+                        selected.analytical_grain
+                        or
+                        "row"
+                    ),
 
-            "dimension_column":
-                None,
+                "x_column":
+                    mentions[
+                        0
+                    ],
 
-            "entity_column":
-                None,
+                "y_column":
+                    mentions[
+                        1
+                    ],
 
-            "aggregation_function":
-                "none",
+                "group_column":
+                    None,
 
-            "ranking_order":
-                "none",
+                "value_column":
+                    None,
 
-            "ranking_limit":
-                None,
+                "time_column":
+                    None,
 
-            "window_operation":
-                "none",
+                "dimension_column":
+                    None,
 
-            "window_size":
-                None,
-        }
+                "entity_column":
+                    None,
+
+                "aggregation_function":
+                    "none",
+
+                "ranking_order":
+                    "none",
+
+                "ranking_limit":
+                    None,
+
+                "window_operation":
+                    "none",
+
+                "window_size":
+                    None,
+
+                "benchmark_reference":
+                    None,
+
+                "benchmark_operator":
+                    None,
+
+                "benchmark_selection":
+                    None,
+
+                "blockers":
+                    [],
+            }
+        )
+    )
+
+
+    context_kind = (
+        "requested_event_context"
+        if selected.is_derived
+        else
+        "source"
+    )
+
+
+    false_abstention_note = (
+        " false-abstention blocked->propose"
+        if previous_decision
+        ==
+        "blocked"
+        else
+        ""
     )
 
 
@@ -5893,20 +6246,22 @@ def canonicalize_categorical_association_from_objective(
         normalized,
         [
             (
-                "Python a résolu une intention d'association "
-                "catégorielle explicitement formulée vers l'unique "
-                "dataset source server-owned contenant les deux "
-                "variables catégorielles déterministiquement "
-                "identifiées dans l'objectif : "
+                "Python a resolu une association categorielle "
+                "explicitement demandee vers l'unique contexte "
+                "row-level server-owned compatible : "
                 f"dataset_id={selected.dataset_id}, "
+                f"context={context_kind}, "
                 f"x={mentions[0]}, "
                 f"y={mentions[1]}, "
                 "family=categorical_association, "
-                "aggregation=none"
+                "aggregation=none,"
+                f"{false_abstention_note}"
                 +
                 (
-                    f" (dataset proposé par le modèle : "
-                    f"{previous_dataset})."
+                    (
+                        " dataset_model="
+                        f"{previous_dataset}."
+                    )
                     if (
                         previous_dataset
                         and
@@ -5920,6 +6275,7 @@ def canonicalize_categorical_association_from_objective(
             )
         ],
     )
+
 
 
 def canonicalize_categorical_additive_view_from_objective(
@@ -6473,6 +6829,57 @@ def semantic_reference_position(
 
 
 
+# ============================================================
+# QUANTITATIVE ASSOCIATION FALSE-AGGREGATION FAMILY RECOVERY
+# DATALENS_QUANTITATIVE_ASSOCIATION_FALSE_AGGREGATION_FAMILY_RECOVERY_V0_1
+# ============================================================
+
+def objective_contains_explicit_quantitative_association_intent(
+    objective: str,
+) -> bool:
+    """
+    Detect explicit relationship language only.
+
+    This helper exists solely to allow the deterministic
+    derived quantitative-association canonicalizer to recover
+    a small-model family mistake from `aggregation` to
+    `quantitative_association`.
+
+    Metric words such as average / mean / moyen / moyenne are
+    intentionally not evidence of association.
+    """
+
+    normalized = " ".join(
+        normalized_objective_tokens(
+            objective
+        )
+    )
+
+
+    patterns = [
+        r"\brelation entre\b",
+        r"\blien entre\b",
+        r"\bassociation entre\b",
+        r"\bcorrelation entre\b",
+        r"\brelationship between\b",
+        r"\bassociation between\b",
+        r"\bcorrelation between\b",
+    ]
+
+
+    return any(
+        re.search(
+            pattern,
+            normalized,
+        )
+        is not None
+
+        for pattern
+        in patterns
+    )
+
+
+
 def canonicalize_derived_quantitative_association_from_objective(
     *,
     objective: str,
@@ -6492,7 +6899,8 @@ def canonicalize_derived_quantitative_association_from_objective(
 
     Python promotes the proposal only when:
 
-    - the LLM already selected quantitative_association;
+    - the LLM selected quantitative_association, or emitted
+      aggregation despite explicit relationship language;
     - the user did not explicitly name a dataset;
     - one derived server-owned dataset contains exactly two
       quantitative columns deterministically identified in the
@@ -6503,15 +6911,63 @@ def canonicalize_derived_quantitative_association_from_objective(
     validation remains fail-closed.
     """
 
+    # ============================================================
+    # FALSE AMBIGUOUS QUANTITATIVE DECISION RECOVERY
+    # DATALENS_QUANTITATIVE_ASSOCIATION_FALSE_AMBIGUOUS_DECISION_RECOVERY_V0_1
+    # ============================================================
+    if proposal.decision == "blocked":
+        return (
+            proposal,
+            [],
+        )
+
+
+    if proposal.decision == "ambiguous":
+
+        if proposal.blockers:
+            return (
+                proposal,
+                [],
+            )
+
+
+        if not objective_contains_explicit_quantitative_association_intent(
+            objective
+        ):
+            return (
+                proposal,
+                [],
+            )
+
+
+    elif proposal.decision != "propose":
+        return (
+            proposal,
+            [],
+        )
+
+
     if (
-        proposal.decision
-        !=
-        "propose"
-        or
         proposal.family
-        !=
+        ==
         "quantitative_association"
     ):
+        pass
+
+    elif (
+        proposal.family
+        ==
+        "aggregation"
+
+        and
+
+        objective_contains_explicit_quantitative_association_intent(
+            objective
+        )
+    ):
+        pass
+
+    else:
         return (
             proposal,
             [],
@@ -6651,6 +7107,8 @@ def canonicalize_derived_quantitative_association_from_objective(
     normalized = (
         proposal.model_copy(
             update={
+                       "decision": "propose",
+                       "blockers": [],
                 "family":
                     "quantitative_association",
 
@@ -6855,7 +7313,7 @@ def canonicalize_inferred_dataset_reference(
     )
 
 
-def canonicalize_analytical_view_intent(
+def _canonicalize_grouped_analytical_view_intent(
     *,
     objective: str,
     proposal: AIPlannerProposal,
@@ -6997,6 +7455,1056 @@ def canonicalize_analytical_view_intent(
                 "aggregation=sum."
             )
         ],
+    )
+
+
+# ============================================================
+# SCALAR ADDITIVE INTENT CANONICALIZATION
+# ============================================================
+
+def canonicalize_scalar_additive_intent(
+    *,
+    objective: str,
+    proposal: AIPlannerProposal,
+    catalog: PlannerCatalog,
+) -> tuple[
+    AIPlannerProposal,
+    list[
+        str
+    ],
+]:
+    """
+    Canonicalize one ungrouped additive SUM to an existing
+    server-owned scalar analytical authority.
+
+    The repair is deliberately structural rather than lexical.
+
+    It does not infer a new metric and it never redirects toward
+    monthly, categorical, session, customer or entity grains.
+
+    The proposed physical target measure must already match
+    exactly one existing scalar additive target column.
+    """
+
+    del objective
+
+
+    if (
+        proposal.decision
+        !=
+        "propose"
+    ):
+        return (
+            proposal,
+            [],
+        )
+
+
+    if (
+        proposal.family
+        !=
+        "aggregation"
+    ):
+        return (
+            proposal,
+            [],
+        )
+
+
+    if (
+        proposal.aggregation_function
+        !=
+        "sum"
+    ):
+        return (
+            proposal,
+            [],
+        )
+
+
+    if (
+        proposal.value_column
+        is None
+    ):
+        return (
+            proposal,
+            [],
+        )
+
+
+    if any(
+        value
+        is not None
+
+        for value
+        in [
+            proposal.x_column,
+            proposal.y_column,
+            proposal.group_column,
+            proposal.time_column,
+            proposal.dimension_column,
+            proposal.entity_column,
+        ]
+    ):
+        return (
+            proposal,
+            [],
+        )
+
+
+    if (
+        proposal.ranking_order
+        !=
+        "none"
+
+        or
+
+        proposal.ranking_limit
+        is not None
+    ):
+        return (
+            proposal,
+            [],
+        )
+
+
+    if (
+        proposal.window_operation
+        !=
+        "none"
+
+        or
+
+        proposal.window_size
+        is not None
+    ):
+        return (
+            proposal,
+            [],
+        )
+
+
+    if any(
+        value
+        is not None
+
+        for value
+        in [
+            proposal.benchmark_reference,
+            proposal.benchmark_operator,
+            proposal.benchmark_selection,
+        ]
+    ):
+        return (
+            proposal,
+            [],
+        )
+
+
+    index = (
+        catalog_index(
+            catalog
+        )
+    )
+
+
+    if (
+        proposal.dataset_id
+        is not None
+    ):
+        current_dataset = (
+            index.get(
+                proposal.dataset_id
+            )
+        )
+
+
+        if (
+            current_dataset
+            is not None
+
+            and
+
+            find_column(
+                current_dataset,
+                proposal.value_column,
+            )
+            is not None
+        ):
+            # The model already selected a physical column on a
+            # valid dataset. Do not override an executable plan.
+            return (
+                proposal,
+                [],
+            )
+
+
+    candidates: list[
+        PlannerDatasetProfile
+    ] = []
+
+
+    for dataset in (
+        catalog.datasets
+    ):
+        if not dataset.is_derived:
+            continue
+
+
+        if (
+            dataset.derivation_type
+            !=
+            "scalar_additive_measure"
+        ):
+            continue
+
+
+        if (
+            dataset.analytical_grain
+            !=
+            "overall"
+        ):
+            continue
+
+
+        if (
+            dataset.operation
+            !=
+            "scalar_sum"
+        ):
+            continue
+
+
+        if (
+            dataset.aggregation
+            !=
+            "sum"
+        ):
+            continue
+
+
+        if (
+            dataset.group_column
+            is not None
+        ):
+            continue
+
+
+        if (
+            dataset.target_measure_column
+            !=
+            proposal.value_column
+        ):
+            continue
+
+
+        if (
+            find_column(
+                dataset,
+                proposal.value_column,
+            )
+            is None
+        ):
+            continue
+
+
+        candidates.append(
+            dataset
+        )
+
+
+    if (
+        len(
+            candidates
+        )
+        !=
+        1
+    ):
+        # Zero or multiple authorities remain fail-closed.
+        return (
+            proposal,
+            [],
+        )
+
+
+    target = (
+        candidates[
+            0
+        ]
+    )
+
+
+    normalized = (
+        proposal.model_copy(
+            update={
+                "dataset_id":
+                    target.dataset_id,
+
+                "analytical_grain":
+                    "overall",
+
+                "value_column":
+                    target.target_measure_column,
+            }
+        )
+    )
+
+
+    return (
+        normalized,
+
+        [
+            (
+                "Python a resolu l'agregation additive "
+                "scalaire vers l'unique vue overall "
+                "server-owned portant exactement la "
+                "mesure cible demandee."
+            )
+        ],
+    )
+
+
+# ============================================================
+# EXPLICIT SCALAR ABSTENTION RECOVERY
+# ============================================================
+
+def canonicalize_explicit_scalar_abstention(
+    *,
+    objective: str,
+    proposal: AIPlannerProposal,
+    catalog: PlannerCatalog,
+) -> tuple[
+    AIPlannerProposal,
+    list[
+        str
+    ],
+]:
+    """
+    Recover one narrow class of small-model abstention.
+
+    Python may promote `ambiguous` to `propose` only when the
+    user objective and server-owned analytical authorities make
+    the scalar SUM plan unique.
+
+    Model-authored reasons are deliberately ignored.
+
+    A `blocked` decision is never promoted.
+
+    Multiple compatible scalar authorities, vague objectives,
+    non-SUM proposals, explicit dataset references, active
+    window state, real grouping roles, a second metric, and
+    ranking / benchmark semantics explicitly requested by the
+    objective all remain fail-closed.
+
+    Small-model wire noise may be discarded only when every
+    active metric role contains the single Objective Coverage
+    target and ranking / benchmark semantics are absent from
+    the objective itself.
+    """
+
+    # --------------------------------------------------------
+    # Decision boundary
+    # --------------------------------------------------------
+
+    if (
+        proposal.decision
+        !=
+        "ambiguous"
+    ):
+        return (
+            proposal,
+            [],
+        )
+
+
+    if (
+        proposal.family
+        !=
+        "aggregation"
+    ):
+        return (
+            proposal,
+            [],
+        )
+
+
+    if (
+        proposal.aggregation_function
+        !=
+        "sum"
+    ):
+        return (
+            proposal,
+            [],
+        )
+
+
+    # A model-authored blocker represents explicit abstention
+    # evidence and is stronger than this recovery boundary.
+    if any(
+        blocker.strip()
+
+        for blocker
+        in proposal.blockers
+    ):
+        return (
+            proposal,
+            [],
+        )
+
+
+    # --------------------------------------------------------
+    # Topology-changing roles remain fail-closed.
+    #
+    # A scalar total cannot carry grouping, temporal,
+    # dimensional or entity topology.
+    #
+    # x/y/value are deliberately classified later, after
+    # Objective Coverage has resolved one authoritative target.
+    # --------------------------------------------------------
+
+    if any(
+        value
+        is not None
+
+        for value
+        in [
+            proposal.group_column,
+            proposal.time_column,
+            proposal.dimension_column,
+            proposal.entity_column,
+        ]
+    ):
+        return (
+            proposal,
+            [],
+        )
+
+
+    # Window semantics are never treated as harmless noise by
+    # this scalar recovery boundary.
+    if (
+        proposal.window_operation
+        !=
+        "none"
+
+        or
+
+        proposal.window_size
+        is not None
+    ):
+        return (
+            proposal,
+            [],
+        )
+
+
+    # --------------------------------------------------------
+    # Explicit dataset references remain authoritative.
+    #
+    # This recovery is only for an objective that asks for the
+    # metric itself and leaves dataset resolution to the
+    # server-owned analytical catalog.
+    # --------------------------------------------------------
+
+    if explicit_dataset_mentions(
+        objective=
+            objective,
+
+        catalog=
+            catalog,
+    ):
+        return (
+            proposal,
+            [],
+        )
+
+
+    # --------------------------------------------------------
+    # Objective Coverage is the semantic authority.
+    #
+    # Do not duplicate the revenue-total language detector here.
+    # --------------------------------------------------------
+
+    requirements = (
+        extract_objective_requirements(
+            objective=
+                objective,
+
+            catalog=
+                catalog,
+        )
+    )
+
+
+    if (
+        len(
+            requirements
+        )
+        !=
+        1
+    ):
+        return (
+            proposal,
+            [],
+        )
+
+
+    requirement = (
+        requirements[
+            0
+        ]
+    )
+
+
+    if (
+        requirement.concept
+        !=
+        "revenue_total"
+    ):
+        return (
+            proposal,
+            [],
+        )
+
+
+    if (
+        requirement.required_aggregation
+        !=
+        "sum"
+    ):
+        return (
+            proposal,
+            [],
+        )
+
+
+    candidate_columns = list(
+        dict.fromkeys(
+            requirement.candidate_columns
+        )
+    )
+
+
+    if (
+        len(
+            candidate_columns
+        )
+        !=
+        1
+    ):
+        return (
+            proposal,
+            [],
+        )
+
+
+    required_target = (
+        candidate_columns[
+            0
+        ]
+    )
+
+
+    # --------------------------------------------------------
+    # WRONG-SLOT METRIC NOISE
+    #
+    # x / y / value may be discarded only when every non-null
+    # metric slot carries the exact same single target resolved
+    # by Objective Coverage.
+    #
+    # Examples:
+    #
+    #   y=sum_price                  -> removable wire noise
+    #   x=sum_price,y=sum_price      -> removable wire noise
+    #   x=other_metric,y=sum_price   -> genuine second metric,
+    #                                  therefore fail-closed
+    #
+    # An empty metric wire remains valid for the original R10
+    # abstention recovery path.
+    # --------------------------------------------------------
+
+    metric_role_values = [
+        value
+
+        for value
+        in [
+            proposal.x_column,
+            proposal.y_column,
+            proposal.value_column,
+        ]
+
+        if value is not None
+    ]
+
+
+    if (
+        metric_role_values
+
+        and
+
+        set(
+            metric_role_values
+        )
+        !=
+        {
+            required_target,
+        }
+    ):
+        return (
+            proposal,
+            [],
+        )
+
+
+    # --------------------------------------------------------
+    # DECISION-LEVEL WIRE NOISE
+    #
+    # Ranking and benchmark fields may be stripped only when
+    # the authoritative objective detectors say those
+    # semantics were NOT requested.
+    #
+    # We therefore never use the model's reasons as evidence.
+    # --------------------------------------------------------
+
+    explicit_ranking = (
+        explicit_ranking_order_from_objective(
+            objective
+        )
+    )
+
+
+    if (
+        explicit_ranking
+        !=
+        "none"
+    ):
+        return (
+            proposal,
+            [],
+        )
+
+
+    explicit_benchmark = (
+        explicit_benchmark_operator_from_objective(
+            objective
+        )
+    )
+
+
+    if (
+        explicit_benchmark
+        is not None
+    ):
+        return (
+            proposal,
+            [],
+        )
+
+
+    # Any ranking / benchmark state that survives to this point
+    # is unsolicited model wire noise. It will be cleared only
+    # if the unique scalar authority is proven below.
+    unsolicited_ranking_noise = (
+        proposal.ranking_order
+        !=
+        "none"
+
+        or
+
+        proposal.ranking_limit
+        is not None
+    )
+
+
+    unsolicited_benchmark_noise = any(
+        value
+        is not None
+
+        for value
+        in [
+            proposal.benchmark_reference,
+            proposal.benchmark_operator,
+            proposal.benchmark_selection,
+        ]
+    )
+
+
+    wrong_metric_slot_noise = bool(
+        metric_role_values
+    )
+
+
+    # --------------------------------------------------------
+    # Unique server-owned scalar authority
+    # --------------------------------------------------------
+
+    revenue_aliases = {
+        "revenue",
+        "turnover",
+        "chiffre_affaires",
+        "ca",
+    }
+
+
+    candidates: list[
+        PlannerDatasetProfile
+    ] = []
+
+
+    for dataset in (
+        catalog.datasets
+    ):
+
+        if not dataset.is_derived:
+            continue
+
+
+        if (
+            dataset.derivation_type
+            !=
+            "scalar_additive_measure"
+        ):
+            continue
+
+
+        if (
+            dataset.analytical_grain
+            !=
+            "overall"
+        ):
+            continue
+
+
+        if (
+            dataset.operation
+            !=
+            "scalar_sum"
+        ):
+            continue
+
+
+        if (
+            dataset.aggregation
+            !=
+            "sum"
+        ):
+            continue
+
+
+        if (
+            dataset.group_column
+            is not None
+        ):
+            continue
+
+
+        if (
+            dataset.target_measure_column
+            !=
+            required_target
+        ):
+            continue
+
+
+        if (
+            find_column(
+                dataset,
+                required_target,
+            )
+            is None
+        ):
+            continue
+
+
+        aliases = {
+            str(
+                alias
+            ).strip()
+
+            for alias
+            in (
+                dataset
+                .measure_semantic_aliases
+                or []
+            )
+
+            if str(
+                alias
+            ).strip()
+        }
+
+
+        if not (
+            aliases
+            &
+            revenue_aliases
+        ):
+            continue
+
+
+        candidates.append(
+            dataset
+        )
+
+
+    if (
+        len(
+            candidates
+        )
+        !=
+        1
+    ):
+        return (
+            proposal,
+            [],
+        )
+
+
+    selected = (
+        candidates[
+            0
+        ]
+    )
+
+
+    # --------------------------------------------------------
+    # Deterministic promotion
+    #
+    # Model reasons are discarded because they were not used as
+    # evidence and may describe a topology Python rejected.
+    # --------------------------------------------------------
+
+    cleaned_noise: list[
+        str
+    ] = []
+
+
+    if wrong_metric_slot_noise:
+        cleaned_noise.append(
+            "metric_role"
+        )
+
+
+    if unsolicited_ranking_noise:
+        cleaned_noise.append(
+            "ranking"
+        )
+
+
+    if unsolicited_benchmark_noise:
+        cleaned_noise.append(
+            "benchmark"
+        )
+
+
+    deterministic_reason = (
+        "Python a récupéré une abstention du planner uniquement "
+        "parce que l'objectif exige exactement un total de revenu "
+        "par SUM et que le catalogue expose une unique autorité "
+        "scalaire server-owned compatible."
+        +
+        (
+            " Le bruit de wire non sollicité nettoyé est : "
+            +
+            ", ".join(
+                cleaned_noise
+            )
+            +
+            "."
+            if cleaned_noise
+            else ""
+        )
+    )
+
+
+    normalized = (
+        proposal.model_copy(
+            update={
+                "decision":
+                    "propose",
+
+                "family":
+                    "aggregation",
+
+                "dataset_id":
+                    selected.dataset_id,
+
+                "analytical_grain":
+                    "overall",
+
+                "x_column":
+                    None,
+
+                "y_column":
+                    None,
+
+                "group_column":
+                    None,
+
+                "value_column":
+                    selected.target_measure_column,
+
+                "time_column":
+                    None,
+
+                "dimension_column":
+                    None,
+
+                "entity_column":
+                    None,
+
+                "aggregation_function":
+                    "sum",
+
+                "ranking_order":
+                    "none",
+
+                "ranking_limit":
+                    None,
+
+                "window_operation":
+                    "none",
+
+                "window_size":
+                    None,
+
+                "benchmark_reference":
+                    None,
+
+                "benchmark_operator":
+                    None,
+
+                "benchmark_selection":
+                    None,
+
+                "blockers":
+                    [],
+
+                "reasons":
+                    [
+                        deterministic_reason,
+                    ],
+            }
+        )
+    )
+
+
+    return (
+        normalized,
+
+        [
+            (
+                "Python a récupéré l'abstention `ambiguous` "
+                "vers l'unique agrégation scalaire server-owned "
+                "compatible avec l'exigence Objective Coverage "
+                f"`{requirement.requirement_id}` : "
+                f"dataset_id={selected.dataset_id}, "
+                f"value={selected.target_measure_column}, "
+                "grain=overall, aggregation=sum"
+                +
+                (
+                    "; wire noise nettoyé="
+                    +
+                    ",".join(
+                        cleaned_noise
+                    )
+                    if cleaned_noise
+                    else ""
+                )
+                +
+                "."
+            )
+        ],
+    )
+
+
+def canonicalize_analytical_view_intent(
+    *,
+    objective: str,
+    proposal: AIPlannerProposal,
+    catalog: PlannerCatalog,
+) -> tuple[
+    AIPlannerProposal,
+    list[
+        str
+    ],
+]:
+    """
+    Public analytical-view canonicalization boundary.
+
+    Explicit scalar abstention recovery runs first and is
+    limited to one Objective-Coverage-confirmed, unique,
+    server-owned overall SUM authority.
+
+    Ordinary scalar additive recovery then runs for executable
+    `propose` wires because an ungrouped total must never be
+    redirected toward a grouped analytical view merely because
+    both expose the same target column.
+
+    All prior grouped-view behaviour remains delegated unchanged
+    to the previous canonicalizer.
+    """
+
+    (
+        abstention_proposal,
+        abstention_normalizations,
+    ) = (
+        canonicalize_explicit_scalar_abstention(
+            objective=
+                objective,
+
+            proposal=
+                proposal,
+
+            catalog=
+                catalog,
+        )
+    )
+
+
+    if abstention_normalizations:
+        return (
+            abstention_proposal,
+            abstention_normalizations,
+        )
+
+
+    (
+        scalar_proposal,
+        scalar_normalizations,
+    ) = (
+        canonicalize_scalar_additive_intent(
+            objective=
+                objective,
+
+            proposal=
+                proposal,
+
+            catalog=
+                catalog,
+        )
+    )
+
+
+    if scalar_normalizations:
+        return (
+            scalar_proposal,
+            scalar_normalizations,
+        )
+
+
+    return (
+        _canonicalize_grouped_analytical_view_intent(
+            objective=
+                objective,
+
+            proposal=
+                proposal,
+
+            catalog=
+                catalog,
+        )
     )
 
 
@@ -7389,6 +8897,11 @@ def explicit_ranking_order_from_objective(
 
         # Explicit comparative performance only.
         r"\bplus performant(?:e|s|es)?\b",
+
+        # Explicit contribution winner only.
+        # Neutral "contribution de chaque ..." remains
+        # non-ranking.
+        r"\bcontribu(?:e|ent) le plus\b",
 
         r"\bhighest\b",
         r"\blargest\b",
@@ -8981,6 +10494,2607 @@ def build_contract_id(
 
 
 # ============================================================
+# EXPLICIT SHARE-OF-TOTAL CONTRACT CANONICALIZATION
+# DATALENS_AI_PLANNER_SHARE_OF_TOTAL_WIRING_V0_1
+# ============================================================
+
+
+def canonicalize_explicit_share_of_total_contract(
+    *,
+    objective: str,
+    contract: AnalyticalContract,
+) -> AnalyticalContract:
+    """
+    Attach canonical share-of-total semantics only when:
+
+    - the user explicitly requested a share of the total;
+    - the canonical contract is otherwise executable;
+    - family is aggregation or ranking;
+    - aggregation is grouped SUM.
+
+    The LLM wire remains share-blind.
+    Gemma never chooses the denominator semantics.
+    """
+
+    if not (
+        explicit_share_of_total_request(
+            objective
+        )
+    ):
+        return contract
+
+
+    if (
+        contract.status
+        ==
+        "blocked"
+        or
+        bool(
+            contract.blockers
+        )
+    ):
+        return contract
+
+
+    if (
+        contract.share_of_total
+        is not None
+    ):
+        return contract
+
+
+    if (
+        contract.family
+        not in {
+            "aggregation",
+            "ranking",
+        }
+    ):
+        return contract
+
+
+    aggregation = (
+        contract.aggregation
+    )
+
+
+    if (
+        aggregation
+        is None
+    ):
+        return contract
+
+
+    if (
+        aggregation.function
+        !=
+        "sum"
+    ):
+        return contract
+
+
+    if not (
+        aggregation.group_by_roles
+    ):
+        return contract
+
+
+    payload = (
+        contract.model_dump()
+    )
+
+
+    payload[
+        "share_of_total"
+    ] = (
+        ShareOfTotalSpec(
+            reference=
+                "sum_of_group_values"
+        )
+        .model_dump()
+    )
+
+
+    return (
+        AnalyticalContract
+        .model_validate(
+            payload
+        )
+    )
+
+
+# ============================================================
+# EXPLICIT SESSION AVERAGE FALSE-ABSTENTION RECOVERY
+# DATALENS_EXPLICIT_SESSION_AVERAGE_ABSTENTION_RECOVERY_V0_1
+# ============================================================
+
+
+def canonicalize_explicit_session_average_false_abstention(
+    *,
+    objective: str,
+    proposal: AIPlannerProposal,
+    catalog: PlannerCatalog,
+) -> tuple[
+    AIPlannerProposal,
+    list[str],
+]:
+    """
+    Recover only one deterministically contradicted session-level
+    average abstention.
+
+    Python does NOT invent the measure or the analytical view.
+
+    Recovery requires all of the following:
+
+    - raw decision is exactly `blocked`;
+    - family is aggregation;
+    - the objective explicitly requests `mean`;
+    - the user did not explicitly name a dataset;
+    - the raw dataset reference is exactly the filename of one
+      server-owned `session_materialization`;
+    - raw analytical grain exactly matches that view;
+    - raw value_column is already exactly the view's declared
+      target_measure_column;
+    - the grain column physically exists in the catalog;
+    - the target measure physically exists and is quantitative;
+    - the objective semantically references both the session
+      grain and a distinctive semantic token of the target
+      measure;
+    - at least one blocker explicitly claims that the requested
+      grain is absent/missing, contradicting the catalog.
+
+    Ambiguous proposals and all non-exact cases remain untouched.
+    """
+
+    if (
+        proposal.decision
+        !=
+        "blocked"
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    if (
+        proposal.family
+        !=
+        "aggregation"
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    explicit_aggregation = (
+        explicit_aggregation_from_objective(
+            objective
+        )
+    )
+
+
+    if (
+        explicit_aggregation
+        !=
+        "mean"
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    if explicit_dataset_mentions(
+        objective=
+            objective,
+
+        catalog=
+            catalog,
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    if (
+        proposal.dataset_id
+        is None
+        or
+        proposal.value_column
+        is None
+        or
+        proposal.analytical_grain
+        is None
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    # --------------------------------------------------------
+    # Do not reinterpret a benchmark decision.
+    # --------------------------------------------------------
+
+    if any(
+        value is not None
+
+        for value
+        in (
+            proposal.benchmark_reference,
+            proposal.benchmark_operator,
+            proposal.benchmark_selection,
+        )
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    # --------------------------------------------------------
+    # The blocker itself must specifically claim that the
+    # proposed analytical grain is unavailable.
+    # --------------------------------------------------------
+
+    normalized_grain = (
+        normalize_identifier_for_match(
+            proposal.analytical_grain
+        )
+    )
+
+
+    absence_cues = (
+        "no ",
+        "missing",
+        "absent",
+        "manquant",
+        "introuvable",
+        "unknown",
+        "not found",
+        "does not exist",
+        "n'existe",
+        "sans ",
+    )
+
+
+    contradicted_grain_blocker = (
+        False
+    )
+
+
+    for blocker in (
+        proposal.blockers
+    ):
+
+        blocker_text = (
+            str(
+                blocker
+            )
+            .strip()
+            .casefold()
+        )
+
+
+        normalized_blocker = (
+            normalize_identifier_for_match(
+                blocker_text
+            )
+        )
+
+
+        if (
+            normalized_grain
+            and
+            normalized_grain
+            in
+            normalized_blocker
+            and
+            any(
+                cue
+                in
+                blocker_text
+
+                for cue
+                in absence_cues
+            )
+        ):
+
+            contradicted_grain_blocker = (
+                True
+            )
+
+            break
+
+
+    if not (
+        contradicted_grain_blocker
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    # --------------------------------------------------------
+    # Semantic objective authority.
+    #
+    # We require:
+    #   - the grain itself to be explicitly represented in the
+    #     objective;
+    #   - at least one distinctive semantic token from the
+    #     declared target measure / aliases to be represented.
+    #
+    # Generic tokens such as amount/value/mean are ignored.
+    # --------------------------------------------------------
+
+    objective_tokens = {
+        canonical_semantic_token(
+            token
+        )
+
+        for token
+        in normalized_objective_tokens(
+            objective
+        )
+
+        if token
+    }
+
+
+    generic_measure_tokens = {
+        "",
+        "amount",
+        "value",
+        "measure",
+        "metric",
+        "total",
+        "sum",
+        "mean",
+        "average",
+        "moyen",
+        "moyenne",
+        "session",
+        "id",
+    }
+
+
+    candidates: list[
+        PlannerDatasetProfile
+    ] = []
+
+
+    for dataset in (
+        catalog.datasets
+    ):
+
+        if not (
+            dataset.is_derived
+            and
+            dataset.operation
+            ==
+            "session_materialization"
+        ):
+
+            continue
+
+
+        # The raw model reference must be an exact server-owned
+        # filename. This is not fuzzy filename recovery.
+        if (
+            proposal.dataset_id
+            !=
+            dataset.filename
+        ):
+
+            continue
+
+
+        if (
+            dataset.analytical_grain
+            !=
+            proposal.analytical_grain
+        ):
+
+            continue
+
+
+        if (
+            dataset.entity_column
+            !=
+            proposal.analytical_grain
+        ):
+
+            continue
+
+
+        if (
+            dataset.target_measure_column
+            !=
+            proposal.value_column
+        ):
+
+            continue
+
+
+        grain_profile = (
+            find_column(
+                dataset,
+                proposal.analytical_grain,
+            )
+        )
+
+
+        if (
+            grain_profile
+            is None
+        ):
+
+            continue
+
+
+        measure_profile = (
+            find_column(
+                dataset,
+                proposal.value_column,
+            )
+        )
+
+
+        if (
+            measure_profile
+            is None
+            or
+            not is_quantitative(
+                measure_profile.analysis_kind
+            )
+        ):
+
+            continue
+
+
+        grain_tokens = {
+            canonical_semantic_token(
+                token
+            )
+
+            for token
+            in normalized_column_tokens(
+                dataset.analytical_grain
+                or
+                ""
+            )
+
+            if (
+                token
+                and
+                canonical_semantic_token(
+                    token
+                )
+                not in {
+                    "",
+                    "id",
+                }
+            )
+        }
+
+
+        if (
+            not grain_tokens
+            or
+            not (
+                grain_tokens
+                &
+                objective_tokens
+            )
+        ):
+
+            continue
+
+
+        semantic_names = [
+            dataset.target_measure_column,
+            *(
+                dataset.measure_semantic_aliases
+                or
+                []
+            ),
+        ]
+
+
+        measure_semantic_match = (
+            False
+        )
+
+
+        for semantic_name in (
+            semantic_names
+        ):
+
+            if not semantic_name:
+                continue
+
+
+            semantic_tokens = {
+                canonical_semantic_token(
+                    token
+                )
+
+                for token
+                in normalized_column_tokens(
+                    semantic_name
+                )
+
+                if token
+            }
+
+
+            distinctive_tokens = {
+                token
+
+                for token
+                in semantic_tokens
+
+                if (
+                    token
+                    not in
+                    generic_measure_tokens
+                )
+            }
+
+
+            if (
+                distinctive_tokens
+                and
+                (
+                    distinctive_tokens
+                    &
+                    objective_tokens
+                )
+            ):
+
+                measure_semantic_match = (
+                    True
+                )
+
+                break
+
+
+        if not (
+            measure_semantic_match
+        ):
+
+            continue
+
+
+        candidates.append(
+            dataset
+        )
+
+
+    if (
+        len(
+            candidates
+        )
+        !=
+        1
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    selected = (
+        candidates[
+            0
+        ]
+    )
+
+
+    normalized = (
+        proposal.model_copy(
+            update={
+                "decision":
+                    "propose",
+
+                "title":
+                    "Session-level mean aggregation",
+
+                "family":
+                    "aggregation",
+
+                "dataset_id":
+                    selected.dataset_id,
+
+                "analytical_grain":
+                    selected.analytical_grain,
+
+                "x_column":
+                    None,
+
+                "y_column":
+                    None,
+
+                "group_column":
+                    None,
+
+                "value_column":
+                    selected.target_measure_column,
+
+                "time_column":
+                    None,
+
+                "dimension_column":
+                    None,
+
+                "entity_column":
+                    None,
+
+                "aggregation_function":
+                    "mean",
+
+                "ranking_order":
+                    "none",
+
+                "ranking_limit":
+                    None,
+
+                "window_operation":
+                    "none",
+
+                "window_size":
+                    None,
+
+                "benchmark_reference":
+                    None,
+
+                "benchmark_operator":
+                    None,
+
+                "benchmark_selection":
+                    None,
+
+                "blockers":
+                    [],
+
+                "reasons":
+                    list(
+                        dict.fromkeys(
+                            [
+                                *proposal.reasons,
+                                (
+                                    "Python recovered a false "
+                                    "session-level abstention from "
+                                    "server-owned catalog authority: "
+                                    f"dataset_id={selected.dataset_id}, "
+                                    f"grain={selected.analytical_grain}, "
+                                    "value="
+                                    f"{selected.target_measure_column}, "
+                                    "aggregation=mean. The raw blocker "
+                                    "claiming the session grain was "
+                                    "missing was contradicted by the "
+                                    "catalog."
+                                ),
+                            ]
+                        )
+                    ),
+            }
+        )
+    )
+
+
+    return (
+        normalized,
+        [
+            (
+                "Python recovered one deterministically false "
+                "session-average abstention: "
+                f"filename={proposal.dataset_id} -> "
+                f"dataset_id={selected.dataset_id}; "
+                f"grain={selected.analytical_grain}; "
+                f"value={selected.target_measure_column}; "
+                "aggregation=mean; ranking cleared."
+            )
+        ],
+    )
+
+
+# ============================================================
+# SESSION MEAN COVERAGE-RETRY FALSE-ABSTENTION RECOVERY
+# DATALENS_SESSION_MEAN_COVERAGE_RETRY_RECOVERY_V0_1
+# ============================================================
+
+
+def canonicalize_session_mean_coverage_retry_false_abstention(
+    *,
+    objective: str,
+    proposal: AIPlannerProposal,
+    catalog: PlannerCatalog,
+) -> tuple[
+    AIPlannerProposal,
+    list[str],
+]:
+    """
+    Recover one narrowly-proven false abstention produced after
+    an Objective Coverage retry.
+
+    No business metric is hardcoded here.
+
+    Objective Coverage owns the metric concept, physical
+    candidate, allowed role and required aggregation.
+
+    Planner Catalog owns the server-created analytical view,
+    canonical dataset id, grain and target measure.
+
+    The raw model must already contain the exact requested
+    physical candidate and exact required aggregation.
+    """
+
+    if (
+        proposal.decision
+        !=
+        "blocked"
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    if (
+        proposal.family
+        !=
+        "aggregation"
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    # --------------------------------------------------------
+    # EXPLICIT USER DECISIONS ARE NEVER WIRE NOISE
+    # --------------------------------------------------------
+
+    if (
+        explicit_ranking_order_from_objective(
+            objective
+        )
+        !=
+        "none"
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    if (
+        explicit_benchmark_operator_from_objective(
+            objective
+        )
+        is not None
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    if explicit_dataset_mentions(
+        objective=
+            objective,
+
+        catalog=
+            catalog,
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    # --------------------------------------------------------
+    # OBJECTIVE COVERAGE OWNS SEMANTIC AUTHORITY
+    # --------------------------------------------------------
+
+    coverage = (
+        build_objective_coverage(
+            objective=
+                objective,
+
+            catalog=
+                catalog,
+
+            contracts=[],
+        )
+    )
+
+
+    compatible_requirements = [
+        requirement
+
+        for requirement
+        in coverage.requirements
+
+        if (
+            requirement.requirement_type
+            ==
+            "metric"
+            and
+            requirement.required_aggregation
+            ==
+            "mean"
+            and
+            "value"
+            in
+            requirement.allowed_roles
+            and
+            len(
+                requirement.candidate_columns
+            )
+            ==
+            1
+        )
+    ]
+
+
+    if (
+        len(
+            compatible_requirements
+        )
+        !=
+        1
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    requirement = (
+        compatible_requirements[
+            0
+        ]
+    )
+
+
+    candidate_column = (
+        requirement.candidate_columns[
+            0
+        ]
+    )
+
+
+    # --------------------------------------------------------
+    # OBJECTIVE AND RAW WIRE MUST ALREADY AGREE ON MEAN
+    # --------------------------------------------------------
+
+    if (
+        explicit_aggregation_from_objective(
+            objective
+        )
+        !=
+        "mean"
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    if (
+        proposal.aggregation_function
+        !=
+        "mean"
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    # --------------------------------------------------------
+    # RAW METRIC CANDIDATE MUST ALREADY BE EXACT
+    # --------------------------------------------------------
+
+    raw_metric_roles = [
+        value
+
+        for value
+        in (
+            proposal.value_column,
+            proposal.y_column,
+        )
+
+        if value is not None
+    ]
+
+
+    if (
+        len(
+            raw_metric_roles
+        )
+        !=
+        1
+        or
+        raw_metric_roles[
+            0
+        ]
+        !=
+        candidate_column
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    if any(
+        value is not None
+
+        for value
+        in (
+            proposal.x_column,
+            proposal.group_column,
+            proposal.dimension_column,
+            proposal.time_column,
+        )
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    if (
+        proposal.analytical_grain
+        is None
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    if (
+        proposal.entity_column
+        not in {
+            None,
+            proposal.analytical_grain,
+        }
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    # --------------------------------------------------------
+    # RANKING NOISE
+    # --------------------------------------------------------
+
+    if (
+        proposal.ranking_limit
+        is not None
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    if (
+        proposal.ranking_order
+        not in {
+            "none",
+            "descending",
+        }
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    # --------------------------------------------------------
+    # BENCHMARK NOISE
+    #
+    # A complete benchmark is never removed.
+    # Only absent/partial wire can be cleared here.
+    # --------------------------------------------------------
+
+    benchmark_wire = (
+        proposal.benchmark_reference,
+        proposal.benchmark_operator,
+        proposal.benchmark_selection,
+    )
+
+
+    benchmark_present = [
+        value is not None
+
+        for value
+        in benchmark_wire
+    ]
+
+
+    if all(
+        benchmark_present
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    # --------------------------------------------------------
+    # COVERAGE-RETRY BLOCKER TRIGGER
+    #
+    # Text identifies the failure class only.
+    # Semantic authority still comes from Objective Coverage.
+    # --------------------------------------------------------
+
+    blocker_concept = (
+        str(
+            requirement.concept
+        )
+        .casefold()
+    )
+
+
+    blocker_candidate = (
+        str(
+            candidate_column
+        )
+        .casefold()
+    )
+
+
+    coverage_retry_blocker = (
+        False
+    )
+
+
+    for blocker in (
+        proposal.blockers
+    ):
+
+        text = (
+            str(
+                blocker
+            )
+            .casefold()
+        )
+
+
+        if (
+            "missing required concept"
+            in
+            text
+            and
+            blocker_concept
+            in
+            text
+            and
+            blocker_candidate
+            in
+            text
+            and
+            "required aggregation=mean"
+            in
+            text
+        ):
+
+            coverage_retry_blocker = (
+                True
+            )
+
+            break
+
+
+    if not (
+        coverage_retry_blocker
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    # --------------------------------------------------------
+    # EXACT SERVER-OWNED SESSION VIEW
+    # --------------------------------------------------------
+
+    candidates: list[
+        PlannerDatasetProfile
+    ] = []
+
+
+    for dataset in (
+        catalog.datasets
+    ):
+
+        if not (
+            dataset.is_derived
+            and
+            dataset.operation
+            ==
+            "session_materialization"
+        ):
+
+            continue
+
+
+        filename = str(
+            dataset.filename
+        )
+
+
+        if not filename.endswith(
+            ".derived"
+        ):
+
+            continue
+
+
+        filename_stem = (
+            filename[
+                :-
+                len(
+                    ".derived"
+                )
+            ]
+        )
+
+
+        if (
+            proposal.dataset_id
+            !=
+            filename_stem
+        ):
+
+            continue
+
+
+        if (
+            dataset.analytical_grain
+            !=
+            proposal.analytical_grain
+        ):
+
+            continue
+
+
+        if (
+            dataset.entity_column
+            !=
+            proposal.analytical_grain
+        ):
+
+            continue
+
+
+        if (
+            dataset.target_measure_column
+            !=
+            candidate_column
+        ):
+
+            continue
+
+
+        if (
+            dataset.aggregation
+            !=
+            "sum"
+        ):
+
+            continue
+
+
+        grain_profile = (
+            find_column(
+                dataset,
+                proposal.analytical_grain,
+            )
+        )
+
+
+        if (
+            grain_profile
+            is None
+        ):
+
+            continue
+
+
+        measure_profile = (
+            find_column(
+                dataset,
+                candidate_column,
+            )
+        )
+
+
+        if (
+            measure_profile
+            is None
+            or
+            not is_quantitative(
+                measure_profile.analysis_kind
+            )
+        ):
+
+            continue
+
+
+        candidates.append(
+            dataset
+        )
+
+
+    if (
+        len(
+            candidates
+        )
+        !=
+        1
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    selected = (
+        candidates[
+            0
+        ]
+    )
+
+
+    # --------------------------------------------------------
+    # CANONICAL EXECUTABLE WIRE
+    # --------------------------------------------------------
+
+    normalized = (
+        proposal.model_copy(
+            update={
+                "decision":
+                    "propose",
+
+                "family":
+                    "aggregation",
+
+                "dataset_id":
+                    selected.dataset_id,
+
+                "analytical_grain":
+                    selected.analytical_grain,
+
+                "x_column":
+                    None,
+
+                "y_column":
+                    None,
+
+                "group_column":
+                    None,
+
+                "value_column":
+                    candidate_column,
+
+                "time_column":
+                    None,
+
+                "dimension_column":
+                    None,
+
+                "entity_column":
+                    None,
+
+                "aggregation_function":
+                    "mean",
+
+                "ranking_order":
+                    "none",
+
+                "ranking_limit":
+                    None,
+
+                "window_operation":
+                    "none",
+
+                "window_size":
+                    None,
+
+                "benchmark_reference":
+                    None,
+
+                "benchmark_operator":
+                    None,
+
+                "benchmark_selection":
+                    None,
+
+                "blockers":
+                    [],
+
+                "reasons":
+                    list(
+                        dict.fromkeys(
+                            [
+                                *proposal.reasons,
+                                (
+                                    "Python recovered a deterministic "
+                                    "Objective-Coverage retry false "
+                                    "abstention using the unique "
+                                    "compatible server-owned session "
+                                    "view and requirement: "
+                                    f"concept={requirement.concept}, "
+                                    f"dataset_id={selected.dataset_id}, "
+                                    f"value={candidate_column}, "
+                                    "aggregation=mean."
+                                ),
+                            ]
+                        )
+                    ),
+            }
+        )
+    )
+
+
+    return (
+        normalized,
+        [
+            (
+                "Python recovered one Objective-Coverage retry "
+                "session-mean false abstention: "
+                f"concept={requirement.concept}; "
+                f"filename_stem={proposal.dataset_id} -> "
+                f"dataset_id={selected.dataset_id}; "
+                f"value={candidate_column}; "
+                "role=value; aggregation=mean; "
+                "ranking noise cleared; "
+                "partial benchmark noise cleared."
+            )
+        ],
+    )
+
+
+# ============================================================
+# SESSION MEAN SOURCE-LINEAGE FALSE-ABSTENTION RECOVERY
+# DATALENS_SESSION_MEAN_SOURCE_LINEAGE_RECOVERY_V0_1
+# ============================================================
+
+
+def canonicalize_session_mean_source_lineage_false_abstention(
+    *,
+    objective: str,
+    proposal: AIPlannerProposal,
+    catalog: PlannerCatalog,
+) -> tuple[
+    AIPlannerProposal,
+    list[str],
+]:
+    """
+    Recover a narrowly proven false abstention where the model
+    selects a source/fact dataset while simultaneously naming a
+    metric that exists only in one server-owned derived session
+    view descended from that source.
+
+    Authorities:
+
+        Objective Coverage
+            -> exact requested candidate / role / aggregation
+
+        source dataset identity
+            -> exact normalized catalog identity
+
+        PlannerDatasetProfile lineage
+            -> fact_dataset_id
+            -> source_dataset_ids
+
+        derived analytical metadata
+            -> session_materialization
+            -> analytical grain
+            -> target measure
+
+    Derived dataset IDs are NEVER parsed for lineage.
+    """
+
+    # --------------------------------------------------------
+    # DECISION / FAMILY
+    # --------------------------------------------------------
+
+    if (
+        proposal.decision
+        !=
+        "blocked"
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    if (
+        proposal.family
+        !=
+        "aggregation"
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    # --------------------------------------------------------
+    # EXPLICIT USER DECISIONS
+    # --------------------------------------------------------
+
+    if (
+        explicit_ranking_order_from_objective(
+            objective
+        )
+        !=
+        "none"
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    if (
+        explicit_benchmark_operator_from_objective(
+            objective
+        )
+        is not None
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    if explicit_dataset_mentions(
+        objective=
+            objective,
+
+        catalog=
+            catalog,
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    # --------------------------------------------------------
+    # OBJECTIVE COVERAGE AUTHORITY
+    # --------------------------------------------------------
+
+    coverage = (
+        build_objective_coverage(
+            objective=
+                objective,
+
+            catalog=
+                catalog,
+
+            contracts=[],
+        )
+    )
+
+
+    compatible_requirements = [
+        requirement
+
+        for requirement
+        in coverage.requirements
+
+        if (
+            requirement.requirement_type
+            ==
+            "metric"
+            and
+            requirement.required_aggregation
+            ==
+            "mean"
+            and
+            "value"
+            in
+            requirement.allowed_roles
+            and
+            len(
+                requirement.candidate_columns
+            )
+            ==
+            1
+        )
+    ]
+
+
+    if (
+        len(
+            compatible_requirements
+        )
+        !=
+        1
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    requirement = (
+        compatible_requirements[
+            0
+        ]
+    )
+
+
+    candidate_column = (
+        requirement.candidate_columns[
+            0
+        ]
+    )
+
+
+    if (
+        explicit_aggregation_from_objective(
+            objective
+        )
+        !=
+        "mean"
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    # ========================================================
+    # MATERIALIZATION-AGGREGATION CONFUSION RECOVERY
+    # DATALENS_SESSION_SOURCE_LINEAGE_MATERIALIZATION_AGGREGATION_CONFUSION_RECOVERY_V0_1
+    #
+    # `mean` is the canonical analytical request. A raw `sum`
+    # may proceed only far enough for the server-owned lineage
+    # checks below to prove that it is the SUM used to
+    # materialize one session row before applying analytical
+    # MEAN across those rows.
+    # ========================================================
+
+    if (
+        proposal.aggregation_function
+        not in
+        {
+            "mean",
+            "sum",
+        }
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    # --------------------------------------------------------
+    # RAW CANDIDATE MUST ALREADY BE EXACT
+    # --------------------------------------------------------
+
+    raw_metric_roles = [
+        value
+
+        for value
+        in (
+            proposal.value_column,
+            proposal.y_column,
+        )
+
+        if value is not None
+    ]
+
+
+    if (
+        len(
+            raw_metric_roles
+        )
+        !=
+        1
+        or
+        raw_metric_roles[
+            0
+        ]
+        !=
+        candidate_column
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    if any(
+        value is not None
+
+        for value
+        in (
+            proposal.x_column,
+            proposal.group_column,
+            proposal.dimension_column,
+            proposal.time_column,
+        )
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    if (
+        proposal.analytical_grain
+        is None
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    if (
+        proposal.entity_column
+        not in {
+            None,
+            proposal.analytical_grain,
+        }
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    # --------------------------------------------------------
+    # DECISION WIRE NOISE
+    #
+    # This keeps the composition compatible with the live retry
+    # shape already observed. Explicit user decisions above
+    # remain fail-closed.
+    # --------------------------------------------------------
+
+    if (
+        proposal.ranking_limit
+        is not None
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    if (
+        proposal.ranking_order
+        not in {
+            "none",
+            "descending",
+        }
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    benchmark_wire = (
+        proposal.benchmark_reference,
+        proposal.benchmark_operator,
+        proposal.benchmark_selection,
+    )
+
+
+    benchmark_present = [
+        value is not None
+
+        for value
+        in benchmark_wire
+    ]
+
+
+    # Complete benchmark is never silently removed.
+    if all(
+        benchmark_present
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    # --------------------------------------------------------
+    # BLOCKER TRIGGER
+    #
+    # Blocker text only identifies the false-abstention class.
+    # It is NOT semantic authority.
+    # --------------------------------------------------------
+
+    candidate_token = (
+        str(
+            candidate_column
+        )
+        .casefold()
+    )
+
+
+    missing_measure_blocker = (
+        False
+    )
+
+
+    missing_phrases = (
+        "not present",
+        "does not contain",
+        "not available",
+        "unavailable",
+        "missing",
+    )
+
+
+    for blocker in (
+        proposal.blockers
+    ):
+
+        blocker_text = (
+            str(
+                blocker
+            )
+            .casefold()
+        )
+
+
+        if (
+            candidate_token
+            in
+            blocker_text
+            and
+            any(
+                phrase
+                in
+                blocker_text
+
+                for phrase
+                in missing_phrases
+            )
+        ):
+
+            missing_measure_blocker = (
+                True
+            )
+
+            break
+
+
+    if not (
+        missing_measure_blocker
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    # --------------------------------------------------------
+    # SOURCE DATASET IDENTITY
+    #
+    # Exact normalization only. No fuzzy matching.
+    # --------------------------------------------------------
+
+    normalized_source_reference = (
+        normalize_identifier_for_match(
+            proposal.dataset_id
+        )
+    )
+
+
+    source_matches = [
+        dataset
+
+        for dataset
+        in catalog.datasets
+
+        if (
+            not dataset.is_derived
+            and
+            normalize_identifier_for_match(
+                dataset.dataset_id
+            )
+            ==
+            normalized_source_reference
+        )
+    ]
+
+
+    if (
+        len(
+            source_matches
+        )
+        !=
+        1
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    source_dataset = (
+        source_matches[
+            0
+        ]
+    )
+
+
+    # The requested grain must genuinely exist in the selected
+    # source dataset. This prevents unrelated lineage jumps.
+    source_grain_profile = (
+        find_column(
+            source_dataset,
+            proposal.analytical_grain,
+        )
+    )
+
+
+    if (
+        source_grain_profile
+        is None
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    # --------------------------------------------------------
+    # EXPLICIT SERVER-OWNED LINEAGE TRAVERSAL
+    #
+    # Never inspect or parse the derived dataset_id string.
+    # --------------------------------------------------------
+
+    session_candidates: list[
+        PlannerDatasetProfile
+    ] = []
+
+
+    for dataset in (
+        catalog.datasets
+    ):
+
+        if not (
+            dataset.is_derived
+            and
+            dataset.operation
+            ==
+            "session_materialization"
+        ):
+
+            continue
+
+
+        if (
+            dataset.fact_dataset_id
+            !=
+            source_dataset.dataset_id
+        ):
+
+            continue
+
+
+        if (
+            source_dataset.dataset_id
+            not in
+            dataset.source_dataset_ids
+        ):
+
+            continue
+
+
+        if (
+            dataset.analytical_grain
+            !=
+            proposal.analytical_grain
+        ):
+
+            continue
+
+
+        if (
+            dataset.entity_column
+            !=
+            proposal.analytical_grain
+        ):
+
+            continue
+
+
+        if (
+            dataset.target_measure_column
+            !=
+            candidate_column
+        ):
+
+            continue
+
+
+        if (
+            dataset.aggregation
+            !=
+            "sum"
+        ):
+
+            continue
+
+
+        grain_profile = (
+            find_column(
+                dataset,
+                proposal.analytical_grain,
+            )
+        )
+
+
+        if (
+            grain_profile
+            is None
+        ):
+
+            continue
+
+
+        measure_profile = (
+            find_column(
+                dataset,
+                candidate_column,
+            )
+        )
+
+
+        if (
+            measure_profile
+            is None
+            or
+            not is_quantitative(
+                measure_profile.analysis_kind
+            )
+        ):
+
+            continue
+
+
+        session_candidates.append(
+            dataset
+        )
+
+
+    if (
+        len(
+            session_candidates
+        )
+        !=
+        1
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    selected = (
+        session_candidates[
+            0
+        ]
+    )
+
+    # A raw SUM is recoverable only when the uniquely selected
+    # server-owned session view itself proves SUM materialization.
+    if (
+        proposal.aggregation_function
+        ==
+        "sum"
+        and
+        selected.aggregation
+        !=
+        "sum"
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    # --------------------------------------------------------
+    # CANONICAL EXECUTABLE WIRE
+    # --------------------------------------------------------
+
+    normalized = (
+        proposal.model_copy(
+            update={
+                "decision":
+                    "propose",
+
+                "family":
+                    "aggregation",
+
+                "dataset_id":
+                    selected.dataset_id,
+
+                "analytical_grain":
+                    selected.analytical_grain,
+
+                "x_column":
+                    None,
+
+                "y_column":
+                    None,
+
+                "group_column":
+                    None,
+
+                "value_column":
+                    candidate_column,
+
+                "time_column":
+                    None,
+
+                "dimension_column":
+                    None,
+
+                "entity_column":
+                    None,
+
+                "aggregation_function":
+                    "mean",
+
+                "ranking_order":
+                    "none",
+
+                "ranking_limit":
+                    None,
+
+                "window_operation":
+                    "none",
+
+                "window_size":
+                    None,
+
+                "benchmark_reference":
+                    None,
+
+                "benchmark_operator":
+                    None,
+
+                "benchmark_selection":
+                    None,
+
+                "blockers":
+                    [],
+
+                "reasons":
+                    list(
+                        dict.fromkeys(
+                            [
+                                *proposal.reasons,
+                                (
+                                    "Python recovered a deterministic "
+                                    "source-dataset false abstention "
+                                    "through explicit server-owned "
+                                    "derived lineage: "
+                                    f"source_dataset_id="
+                                    f"{source_dataset.dataset_id}, "
+                                    f"dataset_id={selected.dataset_id}, "
+                                    f"value={candidate_column}, "
+                                    "aggregation=mean."
+                                ),
+                            ]
+                        )
+                    ),
+            }
+        )
+    )
+
+
+    return (
+        normalized,
+        [
+            (
+                "Python recovered one source-dataset -> "
+                "session-view false abstention using exact "
+                "normalized source identity and explicit "
+                "PlannerDatasetProfile lineage: "
+                f"source={source_dataset.dataset_id}; "
+                f"derived={selected.dataset_id}; "
+                f"value={candidate_column}; "
+                "role=value; aggregation=mean."
+            )
+        ],
+    )
+
+
+
+# ============================================================
+# QUANTITATIVE ASSOCIATION DECISION-WIRE RECOVERY
+# DATALENS_QUANTITATIVE_ASSOCIATION_DECISION_WIRE_RECOVERY_V0_1
+# ============================================================
+
+def objective_contains_explicit_benchmark_intent(
+    objective: str,
+) -> bool:
+    """
+    Protect explicit benchmark intent, including requests that
+    are too underspecified to resolve to a concrete operator.
+
+    Examples protected from silent cleanup:
+
+        "compare ... à la moyenne"
+        "compare ... with the average"
+        "par rapport à la moyenne"
+
+    The authoritative supported operator detector remains
+    `explicit_benchmark_operator_from_objective`.
+    """
+
+    if (
+        explicit_benchmark_operator_from_objective(
+            objective
+        )
+        is not None
+    ):
+        return True
+
+
+    tokens = set(
+        normalized_objective_tokens(
+            objective
+        )
+    )
+
+
+    comparison_markers = {
+        "compare",
+        "comparer",
+        "comparee",
+        "comparees",
+        "compare",
+        "compared",
+        "comparison",
+        "comparaison",
+        "versus",
+        "vs",
+    }
+
+
+    average_markers = {
+        "moyenne",
+        "moyennes",
+        "moyen",
+        "moyens",
+        "average",
+        "averages",
+        "mean",
+        "means",
+    }
+
+
+    if (
+        tokens
+        &
+        comparison_markers
+        and
+        tokens
+        &
+        average_markers
+    ):
+
+        return True
+
+
+    normalized = " ".join(
+        normalized_objective_tokens(
+            objective
+        )
+    )
+
+
+    patterns = [
+        r"\bpar rapport a (?:la )?moyenne\b",
+        r"\brelative to (?:the )?(?:average|mean)\b",
+        r"\bcompared to (?:the )?(?:average|mean)\b",
+    ]
+
+
+    return any(
+        re.search(
+            pattern,
+            normalized,
+        )
+        is not None
+
+        for pattern
+        in patterns
+    )
+
+
+def objective_contains_explicit_ranking_intent(
+    objective: str,
+) -> bool:
+    """
+    Protect both fully specified and underspecified ranking
+    requests from silent cleanup.
+    """
+
+    if (
+        explicit_ranking_order_from_objective(
+            objective
+        )
+        !=
+        "none"
+    ):
+
+        return True
+
+
+    tokens = set(
+        normalized_objective_tokens(
+            objective
+        )
+    )
+
+
+    return bool(
+        tokens
+        &
+        {
+            "classe",
+            "classer",
+            "classes",
+            "classement",
+            "classements",
+            "rank",
+            "ranking",
+            "rankings",
+            "trie",
+            "trier",
+            "tri",
+            "top",
+        }
+    )
+
+
+def canonicalize_quantitative_association_unsolicited_decision_wires(
+    *,
+    objective: str,
+    proposal: AIPlannerProposal,
+    catalog: PlannerCatalog,
+) -> tuple[
+    AIPlannerProposal,
+    list[str],
+]:
+    """
+    Remove LLM-only ranking / benchmark wire noise from a pure
+    quantitative-association request.
+
+    This recovery is deliberately narrow:
+
+    - decision must already be `propose`;
+    - family must already be `quantitative_association`;
+    - objective must explicitly contain an association concept;
+    - selected dataset must exist;
+    - x and y must both exist and be quantitative;
+    - explicit or underspecified user ranking intent is preserved;
+    - explicit or underspecified benchmark intent is preserved.
+
+    The helper never changes:
+    - family;
+    - dataset;
+    - x/y bindings;
+    - aggregation;
+    - analytical grain.
+
+    Existing canonicalizers remain authoritative for those fields.
+    """
+
+    if (
+        proposal.decision
+        !=
+        "propose"
+        or
+        proposal.family
+        !=
+        "quantitative_association"
+        or
+        proposal.dataset_id
+        is None
+        or
+        proposal.x_column
+        is None
+        or
+        proposal.y_column
+        is None
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    objective_tokens = set(
+        normalized_objective_tokens(
+            objective
+        )
+    )
+
+
+    association_markers = {
+        "relation",
+        "relations",
+        "association",
+        "associations",
+        "correlation",
+        "correlations",
+        "relationship",
+        "relationships",
+        "lien",
+        "liens",
+    }
+
+
+    if not (
+        objective_tokens
+        &
+        association_markers
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    dataset = (
+        catalog_index(
+            catalog
+        )
+        .get(
+            proposal.dataset_id
+        )
+    )
+
+
+    if dataset is None:
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    x_profile = find_column(
+        dataset,
+        proposal.x_column,
+    )
+
+
+    y_profile = find_column(
+        dataset,
+        proposal.y_column,
+    )
+
+
+    if (
+        x_profile
+        is None
+        or
+        y_profile
+        is None
+        or
+        proposal.x_column
+        ==
+        proposal.y_column
+        or
+        not is_quantitative(
+            x_profile.analysis_kind
+        )
+        or
+        not is_quantitative(
+            y_profile.analysis_kind
+        )
+    ):
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    update: dict[
+        str,
+        Any,
+    ] = {}
+
+
+    normalizations: list[
+        str
+    ] = []
+
+
+    ranking_active = bool(
+        proposal.ranking_order
+        !=
+        "none"
+        or
+        proposal.ranking_limit
+        is not None
+    )
+
+
+    benchmark_active = any(
+        value
+        is not None
+
+        for value
+        in (
+            proposal.benchmark_reference,
+            proposal.benchmark_operator,
+            proposal.benchmark_selection,
+        )
+    )
+
+
+    explicit_ranking_intent = (
+        objective_contains_explicit_ranking_intent(
+            objective
+        )
+    )
+
+
+    explicit_benchmark_intent = (
+        objective_contains_explicit_benchmark_intent(
+            objective
+        )
+    )
+
+
+    # ========================================================
+    # UNSOLICITED RANKING
+    # ========================================================
+
+    if (
+        ranking_active
+        and
+        not explicit_ranking_intent
+    ):
+
+        update[
+            "ranking_order"
+        ] = "none"
+
+        update[
+            "ranking_limit"
+        ] = None
+
+
+        normalizations.append(
+            (
+                "Python a supprimé un ranking non demandé "
+                "d'une association quantitative déjà validée "
+                "par les types analytiques déterministes : "
+                "ranking -> none."
+            )
+        )
+
+
+    # ========================================================
+    # UNSOLICITED BENCHMARK
+    # ========================================================
+
+    if (
+        benchmark_active
+        and
+        not explicit_benchmark_intent
+    ):
+
+        update[
+            "benchmark_reference"
+        ] = None
+
+        update[
+            "benchmark_operator"
+        ] = None
+
+        update[
+            "benchmark_selection"
+        ] = None
+
+
+        normalizations.append(
+            (
+                "Python a supprimé un benchmark non demandé "
+                "d'une association quantitative déjà validée "
+                "par les types analytiques déterministes : "
+                "benchmark -> none."
+            )
+        )
+
+
+    if not update:
+
+        return (
+            proposal,
+            [],
+        )
+
+
+    return (
+        proposal.model_copy(
+            update=update
+        ),
+        normalizations,
+    )
+
+
+# ============================================================
 # DETERMINISTIC PROPOSAL VALIDATION
 # ============================================================
 
@@ -9169,6 +13283,22 @@ def validate_ai_proposal(
     )
 
 
+    (
+        proposal,
+        quantitative_association_decision_wire_normalizations,
+    ) = canonicalize_quantitative_association_unsolicited_decision_wires(
+        objective=(
+            objective
+        ),
+        proposal=(
+            proposal
+        ),
+        catalog=(
+            catalog
+        ),
+    )
+
+
     normalizations = [
         *dataset_normalizations,
         *categorical_association_objective_normalizations,
@@ -9181,6 +13311,7 @@ def validate_ai_proposal(
         *analytical_view_normalizations,
         *wire_normalizations,
         *intent_normalizations,
+        *quantitative_association_decision_wire_normalizations,
     ]
 
 
@@ -9197,6 +13328,87 @@ def validate_ai_proposal(
             ),
         )
     )
+
+
+    (
+        proposal,
+        session_average_abstention_normalizations,
+    ) = (
+        canonicalize_explicit_session_average_false_abstention(
+            objective=
+                objective,
+
+            proposal=
+                proposal,
+
+            catalog=
+                catalog,
+        )
+    )
+
+
+    if (
+        session_average_abstention_normalizations
+    ):
+
+        normalizations = [
+            *normalizations,
+            *session_average_abstention_normalizations,
+        ]
+
+
+    (
+        proposal,
+        session_mean_coverage_retry_normalizations,
+    ) = (
+        canonicalize_session_mean_coverage_retry_false_abstention(
+            objective=
+                objective,
+
+            proposal=
+                proposal,
+
+            catalog=
+                catalog,
+        )
+    )
+
+
+    if (
+        session_mean_coverage_retry_normalizations
+    ):
+
+        normalizations = [
+            *normalizations,
+            *session_mean_coverage_retry_normalizations,
+        ]
+
+
+    (
+        proposal,
+        session_mean_source_lineage_normalizations,
+    ) = (
+        canonicalize_session_mean_source_lineage_false_abstention(
+            objective=
+                objective,
+
+            proposal=
+                proposal,
+
+            catalog=
+                catalog,
+        )
+    )
+
+
+    if (
+        session_mean_source_lineage_normalizations
+    ):
+
+        normalizations = [
+            *normalizations,
+            *session_mean_source_lineage_normalizations,
+        ]
 
 
     datasets = (
@@ -10269,6 +14481,18 @@ def validate_ai_proposal(
                 planner_confidence=(
                     proposal.confidence
                 ),
+            )
+        )
+
+
+
+        proposed_contract = (
+            canonicalize_explicit_share_of_total_contract(
+                objective=
+                    objective,
+
+                contract=
+                    proposed_contract,
             )
         )
 

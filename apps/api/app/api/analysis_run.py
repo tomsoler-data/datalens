@@ -40,7 +40,10 @@ from app.observability.runtime_trace import (
 
 from app.analysis.analytical_views import (
     ANALYTICAL_VIEW_RULE_VERSION,
+    CATEGORY_SIGNALS,
+    GENDER_SIGNALS,
     build_analytical_views,
+    text_tokens,
 )
 
 from app.analysis.entity_outlier_requests import (
@@ -2216,6 +2219,101 @@ def prepare_analysis_datasets(
 
 
 # ============================================================
+# DIRECT AI REQUESTED EVENT CONTEXT POLICY
+# DATALENS_DIRECT_AI_REQUESTED_EVENT_CONTEXT_POLICY_V0_1
+# ============================================================
+
+
+DIRECT_AI_REQUESTED_EVENT_CONTEXT_POLICY_RULE_VERSION = (
+    "direct_ai_requested_event_context_policy_v0.1"
+)
+
+
+def direct_ai_requires_requested_event_context(
+    objective: (
+        str
+        | None
+    ),
+) -> bool:
+    """
+    Expose server-owned requested event context to the direct
+    AI planner only for an explicit categorical-association
+    request involving both gender and category concepts.
+
+    The policy does not choose datasets or columns and does not
+    compute a statistical result.
+
+    The Analytical View Builder remains the authority for
+    whether an event-grain context can safely be materialized.
+    """
+
+    normalized_objective = (
+        normalize_objective(
+            objective
+        )
+    )
+
+
+    if (
+        normalized_objective
+        is None
+    ):
+
+        return False
+
+
+    tokens = (
+        text_tokens(
+            normalized_objective
+        )
+    )
+
+
+    association_signals = {
+        "association",
+        "associate",
+        "associated",
+        "relation",
+        "relationship",
+        "lien",
+        "dependance",
+        "dependence",
+        "independance",
+        "independence",
+    }
+
+
+    has_association = bool(
+        tokens
+        &
+        association_signals
+    )
+
+
+    has_gender = bool(
+        tokens
+        &
+        GENDER_SIGNALS
+    )
+
+
+    has_category = bool(
+        tokens
+        &
+        CATEGORY_SIGNALS
+    )
+
+
+    return bool(
+        has_association
+        and
+        has_gender
+        and
+        has_category
+    )
+
+
+# ============================================================
 # AI PLANNER ANALYTICAL DATASET UNIVERSE
 # ============================================================
 
@@ -2261,9 +2359,16 @@ def prepare_ai_planner_dataset_universe(
     Analytical views remain server-owned, deterministic internal
     derivatives of the validated Preparation output.
 
-    Requested-only document context is deliberately excluded
-    from this direct AI planning path. The contextualized
-    document workflow prepares that context separately with
+    Requested-only event context remains excluded by default.
+
+    The direct AI path exposes that context only when a narrow
+    deterministic objective policy proves an explicit
+    gender/category categorical-association request. The
+    Analytical View Builder still decides whether a safe
+    server-owned event context can actually be materialized.
+
+    The contextualized document workflow continues to prepare
+    requested context independently with
     include_requested_context=True.
 
     Returning the same analysis_datasets used to build the
@@ -2290,7 +2395,9 @@ def prepare_ai_planner_dataset_universe(
             normalized_objective,
 
         include_requested_context=
-            False,
+            direct_ai_requires_requested_event_context(
+                normalized_objective
+            ),
     )
 
 

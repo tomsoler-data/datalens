@@ -989,6 +989,100 @@ def decide_correlation_test(
     # Material outliers
     # --------------------------------------------------------
 
+    # ========================================================
+    # MATERIAL-OUTLIER MONOTONIC RANK RECOVERY
+    # DATALENS_GENERAL_ASSOCIATION_MATERIAL_OUTLIER_MONOTONIC_RECOVERY_V0_1
+    # ========================================================
+
+    if (
+        analysis_goal
+        == "general_association"
+        and analysis_mode
+        == "exploratory"
+        and x_kind
+        == "continuous"
+        and y_kind
+        == "continuous"
+        and observations_independent
+        is True
+        and material_outlier_signal
+        and diagnostics.shape_signal
+        == "monotonic_non_linear_candidate"
+    ):
+        recovery_warnings = list(
+            warnings
+        )
+
+
+        recovery_warnings.append(
+            (
+                "A material potential-outlier signal "
+                "is present. Exploratory shape "
+                "diagnostics independently identify "
+                "a monotonic non-linear candidate, "
+                "so DataLens uses the rank-based "
+                "Spearman association test while "
+                "preserving the outlier warning. "
+                "This does not imply that the "
+                "flagged observations are data "
+                "errors."
+            )
+        )
+
+
+        return build_selected_decision(
+            analysis_goal=
+                analysis_goal,
+
+            analysis_mode=
+                analysis_mode,
+
+            x_column=
+                x_column,
+
+            y_column=
+                y_column,
+
+            selected_test=
+                "spearman",
+
+            reasons=(
+                base_reasons
+                + [
+                    (
+                        "Exploratory diagnostics "
+                        "identify a monotonic "
+                        "non-linear association "
+                        "candidate."
+                    ),
+                    (
+                        "A material potential-outlier "
+                        "signal is present, but the "
+                        "rank-based Spearman test "
+                        "remains compatible with the "
+                        "diagnosed monotonic "
+                        "association target."
+                    ),
+                    (
+                        "The outlier signal remains "
+                        "reported as a limitation and "
+                        "does not by itself cause the "
+                        "test selection."
+                    ),
+                ]
+            ),
+
+            warnings=
+                recovery_warnings,
+
+            diagnostics=
+                diagnostics,
+
+            selection_is_data_driven=
+                True,
+        )
+
+
     if material_outlier_signal:
         return CorrelationTestDecision(
             status=
@@ -1269,6 +1363,97 @@ def decide_correlation_test(
     # --------------------------------------------------------
     # No clear pattern / insufficient
     # --------------------------------------------------------
+
+    # ========================================================
+    # EXPLORATORY GENERAL ASSOCIATION - NO-CLEAR FALLBACK
+    # DATALENS_GENERAL_ASSOCIATION_NO_CLEAR_PATTERN_FALLBACK_V0_1
+    # ========================================================
+
+    if (
+        analysis_goal
+        == "general_association"
+        and analysis_mode
+        == "exploratory"
+        and x_kind
+        == "continuous"
+        and y_kind
+        == "continuous"
+        and observations_independent
+        is True
+        and not material_outlier_signal
+        and diagnostics.shape_signal
+        == "no_clear_pattern"
+    ):
+        fallback_warnings = (
+            list(
+                warnings
+            )
+        )
+
+
+        fallback_warnings.append(
+            (
+                "Exploratory relationship-shape "
+                "diagnostics did not establish a "
+                "clear functional form. DataLens "
+                "uses Spearman as the conservative "
+                "general-association fallback. "
+                "This data-driven routing decision "
+                "must not be interpreted as proof "
+                "that the underlying relationship "
+                "is monotonic."
+            )
+        )
+
+
+        return build_selected_decision(
+            analysis_goal=
+                analysis_goal,
+
+            analysis_mode=
+                analysis_mode,
+
+            x_column=
+                x_column,
+
+            y_column=
+                y_column,
+
+            selected_test=
+                "spearman",
+
+            reasons=(
+                base_reasons
+                + [
+                    (
+                        "The requested goal is a "
+                        "general exploratory "
+                        "association."
+                    ),
+                    (
+                        "The exploratory diagnostics "
+                        "did not establish a clear "
+                        "linear or monotonic shape."
+                    ),
+                    (
+                        "Spearman is selected as the "
+                        "predefined conservative "
+                        "fallback for this "
+                        "no-clear-pattern branch."
+                    ),
+                ]
+            ),
+
+            warnings=
+                fallback_warnings,
+
+            diagnostics=
+                diagnostics,
+
+            selection_is_data_driven=
+                True,
+        )
+
 
     return CorrelationTestDecision(
         status=

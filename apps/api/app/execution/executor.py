@@ -57,6 +57,22 @@ MAX_GROUPS_FOR_LINE_CHART = 12
 MAX_CATEGORICAL_LEVELS = 40
 
 
+# DATALENS_CATEGORICAL_CLUSTER_PERMUTATION_V0_1
+CATEGORICAL_CLUSTER_PERMUTATION_RULE_VERSION = (
+    "categorical_cluster_permutation_v0.1"
+)
+
+
+CATEGORICAL_CLUSTER_PERMUTATION_COUNT = (
+    9999
+)
+
+
+CATEGORICAL_CLUSTER_PERMUTATION_SEED = (
+    20260904
+)
+
+
 GROUP_CHART_CONSISTENCY_RULE_VERSION = (
     "group_chart_consistency_v0.1"
 )
@@ -3017,6 +3033,702 @@ def execute_quantitative_association(
 # CATEGORICAL ASSOCIATION
 # ============================================================
 
+
+def deterministic_categorical_value_sort_key(
+    value: Any,
+) -> tuple[
+    str,
+    str,
+]:
+    """
+    Stable ordering for categorical values.
+
+    This avoids dependence on dataframe row order while also
+    supporting heterogeneous Python scalar types.
+    """
+
+    return (
+        type(
+            value
+        ).__name__,
+        repr(
+            value
+        ),
+    )
+
+
+def pearson_chi_square_from_table(
+    table: np.ndarray,
+) -> float:
+    """
+    Compute the Pearson chi-square statistic only.
+
+    This helper deliberately does NOT calculate or expose a
+    classical chi-square p-value. It is used inside the
+    cluster-level permutation null distribution.
+    """
+
+    observed = np.asarray(
+        table,
+        dtype=float,
+    )
+
+
+    if (
+        observed.ndim
+        !=
+        2
+    ):
+
+        raise ValueError(
+            "Contingency table must be two-dimensional."
+        )
+
+
+    total = float(
+        observed.sum()
+    )
+
+
+    if (
+        total
+        <=
+        0
+    ):
+
+        raise ValueError(
+            "Contingency table must contain observations."
+        )
+
+
+    row_totals = (
+        observed.sum(
+            axis=1
+        )
+    )
+
+
+    column_totals = (
+        observed.sum(
+            axis=0
+        )
+    )
+
+
+    expected = (
+        np.outer(
+            row_totals,
+            column_totals,
+        )
+        /
+        total
+    )
+
+
+    if np.any(
+        expected
+        <=
+        0
+    ):
+
+        raise ValueError(
+            (
+                "Cluster permutation produced a "
+                "zero expected contingency frequency."
+            )
+        )
+
+
+    return float(
+        np.sum(
+            (
+                (
+                    observed
+                    -
+                    expected
+                )
+                ** 2
+            )
+            /
+            expected
+        )
+    )
+
+
+def resolve_cluster_permutation_roles(
+    *,
+    dataframe: pd.DataFrame,
+    cluster_column: str,
+    x_column: str,
+    y_column: str,
+) -> tuple[
+    str,
+    str,
+] | None:
+    """
+    Identify the one categorical variable that is stable inside
+    every observed cluster.
+
+    A cluster permutation is supported only when EXACTLY one of
+    the two analytical variables is cluster-stable.
+
+    Examples:
+
+        customer_id + gender + category
+
+    where gender is stable for a customer and category varies
+    across customer events.
+
+    If neither variable is stable, DataLens keeps the existing
+    fail-closed repeated-measure guard.
+
+    If both variables are stable, this v0.1 method also remains
+    fail-closed because a different cluster-level contingency
+    design is more appropriate than event-weighted permutation.
+    """
+
+    working = (
+        dataframe[
+            [
+                cluster_column,
+                x_column,
+                y_column,
+            ]
+        ]
+        .dropna()
+    )
+
+
+    if working.empty:
+        return None
+
+
+    uniqueness = (
+        working
+        .groupby(
+            cluster_column,
+            sort=False,
+        )[
+            [
+                x_column,
+                y_column,
+            ]
+        ]
+        .nunique(
+            dropna=True
+        )
+    )
+
+
+    if uniqueness.empty:
+        return None
+
+
+    x_stable = bool(
+        (
+            uniqueness[
+                x_column
+            ]
+            ==
+            1
+        )
+        .all()
+    )
+
+
+    y_stable = bool(
+        (
+            uniqueness[
+                y_column
+            ]
+            ==
+            1
+        )
+        .all()
+    )
+
+
+    # Exactly one variable must be cluster-stable.
+    if (
+        x_stable
+        ==
+        y_stable
+    ):
+
+        return None
+
+
+    if x_stable:
+
+        return (
+            x_column,
+            y_column,
+        )
+
+
+    return (
+        y_column,
+        x_column,
+    )
+
+
+def execute_cluster_permutation_categorical_inference(
+    *,
+    dataframe: pd.DataFrame,
+    cluster_column: str,
+    cluster_label_column: str,
+    response_column: str,
+) -> dict[
+    str,
+    Any,
+] | None:
+    """
+    Execute a deterministic between-cluster permutation test.
+
+    Null hypothesis
+    ---------------
+    The cluster-stable categorical labels are exchangeable
+    between clusters.
+
+    Every cluster's complete response-count vector remains
+    intact in every permutation. Repeated observations from the
+    same entity are therefore never split across null samples.
+
+    The observed Pearson chi-square and Cramer's V remain useful
+    descriptive effect summaries, but the inferential p-value is
+    obtained exclusively from the cluster permutation.
+    """
+
+    working = (
+        dataframe[
+            [
+                cluster_column,
+                cluster_label_column,
+                response_column,
+            ]
+        ]
+        .dropna()
+        .copy()
+    )
+
+
+    if working.empty:
+        return None
+
+
+    label_nunique = (
+        working
+        .groupby(
+            cluster_column,
+            sort=False,
+        )[
+            cluster_label_column
+        ]
+        .nunique(
+            dropna=True
+        )
+    )
+
+
+    if (
+        label_nunique.empty
+        or
+        bool(
+            (
+                label_nunique
+                !=
+                1
+            )
+            .any()
+        )
+    ):
+
+        return None
+
+
+    label_by_cluster = (
+        working
+        .groupby(
+            cluster_column,
+            sort=False,
+        )[
+            cluster_label_column
+        ]
+        .first()
+    )
+
+
+    cluster_ids = sorted(
+        label_by_cluster.index.tolist(),
+        key=
+            deterministic_categorical_value_sort_key,
+    )
+
+
+    label_by_cluster = (
+        label_by_cluster
+        .reindex(
+            cluster_ids
+        )
+    )
+
+
+    label_levels = sorted(
+        label_by_cluster
+        .dropna()
+        .unique()
+        .tolist(),
+        key=
+            deterministic_categorical_value_sort_key,
+    )
+
+
+    response_levels = sorted(
+        working[
+            response_column
+        ]
+        .dropna()
+        .unique()
+        .tolist(),
+        key=
+            deterministic_categorical_value_sort_key,
+    )
+
+
+    if (
+        len(
+            cluster_ids
+        )
+        <
+        2
+        or
+        len(
+            label_levels
+        )
+        <
+        2
+        or
+        len(
+            response_levels
+        )
+        <
+        2
+    ):
+
+        return None
+
+
+    cluster_response_counts = (
+        pd.crosstab(
+            working[
+                cluster_column
+            ],
+            working[
+                response_column
+            ],
+        )
+        .reindex(
+            index=
+                cluster_ids,
+
+            columns=
+                response_levels,
+
+            fill_value=
+                0,
+        )
+    )
+
+
+    counts_matrix = (
+        cluster_response_counts
+        .to_numpy(
+            dtype=np.int64
+        )
+    )
+
+
+    cluster_labels = (
+        label_by_cluster
+        .to_numpy()
+    )
+
+
+    observed_table = np.vstack(
+        [
+            counts_matrix[
+                cluster_labels
+                ==
+                level
+            ]
+            .sum(
+                axis=0
+            )
+
+            for level
+            in label_levels
+        ]
+    )
+
+
+    if (
+        observed_table.shape[
+            0
+        ]
+        <
+        2
+        or
+        observed_table.shape[
+            1
+        ]
+        <
+        2
+    ):
+
+        return None
+
+
+    (
+        observed_chi2,
+        _,
+        observed_dof,
+        observed_expected,
+    ) = chi2_contingency(
+        observed_table
+    )
+
+
+    observed_chi2 = float(
+        observed_chi2
+    )
+
+
+    observed_n = int(
+        observed_table.sum()
+    )
+
+
+    rows, columns = (
+        observed_table.shape
+    )
+
+
+    denominator = min(
+        rows
+        -
+        1,
+        columns
+        -
+        1,
+    )
+
+
+    if (
+        observed_n
+        <=
+        0
+        or
+        denominator
+        <=
+        0
+    ):
+
+        return None
+
+
+    observed_cramers_v = math.sqrt(
+        (
+            observed_chi2
+            /
+            observed_n
+        )
+        /
+        denominator
+    )
+
+
+    expected_min = float(
+        np.min(
+            observed_expected
+        )
+    )
+
+
+    rng = np.random.default_rng(
+        CATEGORICAL_CLUSTER_PERMUTATION_SEED
+    )
+
+
+    exceedance_count = 0
+
+
+    for _ in range(
+        CATEGORICAL_CLUSTER_PERMUTATION_COUNT
+    ):
+
+        permuted_labels = (
+            rng.permutation(
+                cluster_labels
+            )
+        )
+
+
+        permuted_table = np.vstack(
+            [
+                counts_matrix[
+                    permuted_labels
+                    ==
+                    level
+                ]
+                .sum(
+                    axis=0
+                )
+
+                for level
+                in label_levels
+            ]
+        )
+
+
+        permuted_chi2 = (
+            pearson_chi_square_from_table(
+                permuted_table
+            )
+        )
+
+
+        if (
+            permuted_chi2
+            >=
+            (
+                observed_chi2
+                -
+                1e-12
+            )
+        ):
+
+            exceedance_count += 1
+
+
+    permutation_p_value = (
+        (
+            exceedance_count
+            +
+            1
+        )
+        /
+        (
+            CATEGORICAL_CLUSTER_PERMUTATION_COUNT
+            +
+            1
+        )
+    )
+
+
+    monte_carlo_standard_error = math.sqrt(
+        (
+            permutation_p_value
+            *
+            (
+                1.0
+                -
+                permutation_p_value
+            )
+        )
+        /
+        (
+            CATEGORICAL_CLUSTER_PERMUTATION_COUNT
+            +
+            1
+        )
+    )
+
+
+    alpha = 0.05
+
+
+    return {
+        "test":
+            "cluster_permutation_chi_square",
+
+        "chi2":
+            observed_chi2,
+
+        # IMPORTANT:
+        # This is the cluster-aware permutation p-value.
+        # The naive scipy chi-square p-value is deliberately
+        # not exposed as inferential authority.
+        "p_value":
+            float(
+                permutation_p_value
+            ),
+
+        "degrees_of_freedom":
+            int(
+                observed_dof
+            ),
+
+        "cramers_v":
+            float(
+                observed_cramers_v
+            ),
+
+        "n":
+            observed_n,
+
+        "expected_min":
+            expected_min,
+
+        "alpha":
+            alpha,
+
+        "statistically_significant":
+            bool(
+                permutation_p_value
+                <
+                alpha
+            ),
+
+        "inference_scope":
+            "cluster_aware",
+
+        "cluster_column":
+            cluster_column,
+
+        "cluster_count":
+            int(
+                len(
+                    cluster_ids
+                )
+            ),
+
+        "cluster_label_column":
+            cluster_label_column,
+
+        "response_column":
+            response_column,
+
+        "permutation_count":
+            CATEGORICAL_CLUSTER_PERMUTATION_COUNT,
+
+        "permutation_seed":
+            CATEGORICAL_CLUSTER_PERMUTATION_SEED,
+
+        "null_exceedance_count":
+            int(
+                exceedance_count
+            ),
+
+        "monte_carlo_standard_error":
+            float(
+                monte_carlo_standard_error
+            ),
+
+        "cluster_permutation_rule_version":
+            CATEGORICAL_CLUSTER_PERMUTATION_RULE_VERSION,
+    }
+
+
 def execute_categorical_association(
     analysis: AnalysisCandidate,
     dataframe: pd.DataFrame,
@@ -3051,10 +3763,12 @@ def execute_categorical_association(
         or
         y_column is None
     ):
+
         return build_result(
             analysis,
             execution_status=
                 "failed",
+
             warnings=[
                 (
                     "The categorical association "
@@ -3075,10 +3789,12 @@ def execute_categorical_association(
 
 
     if missing:
+
         return build_result(
             analysis,
             execution_status=
                 "failed",
+
             warnings=[
                 (
                     "One or more categorical "
@@ -3100,10 +3816,12 @@ def execute_categorical_association(
 
 
     if working.empty:
+
         return build_result(
             analysis,
             execution_status=
                 "skipped",
+
             warnings=[
                 (
                     "No complete categorical "
@@ -3119,6 +3837,7 @@ def execute_categorical_association(
         ]
         .nunique()
     )
+
 
     y_levels = int(
         working[
@@ -3137,6 +3856,7 @@ def execute_categorical_association(
         >
         MAX_CATEGORICAL_LEVELS
     ):
+
         return build_result(
             analysis,
             execution_status=
@@ -3184,10 +3904,12 @@ def execute_categorical_association(
         <
         2
     ):
+
         return build_result(
             analysis,
             execution_status=
                 "skipped",
+
             warnings=[
                 (
                     "At least two levels are "
@@ -3208,9 +3930,11 @@ def execute_categorical_association(
     for x_value in (
         contingency.index
     ):
+
         for y_value in (
             contingency.columns
         ):
+
             chart_data.append(
                 {
                     "x":
@@ -3234,6 +3958,10 @@ def execute_categorical_association(
             )
 
 
+    # ========================================================
+    # REPEATED-MEASURE / CLUSTER-AWARE PATH
+    # ========================================================
+
     panel_structure = (
         detect_repeated_measure_structure(
             dataframe
@@ -3242,6 +3970,197 @@ def execute_categorical_association(
 
 
     if panel_structure:
+
+        cluster_column = str(
+            panel_structure[
+                "entity_column"
+            ]
+        )
+
+
+        cluster_roles = (
+            resolve_cluster_permutation_roles(
+                dataframe=
+                    dataframe,
+
+                cluster_column=
+                    cluster_column,
+
+                x_column=
+                    x_column,
+
+                y_column=
+                    y_column,
+            )
+        )
+
+
+        if (
+            cluster_roles
+            is not None
+        ):
+
+            (
+                cluster_label_column,
+                response_column,
+            ) = cluster_roles
+
+
+            cluster_statistical_result = (
+                execute_cluster_permutation_categorical_inference(
+                    dataframe=
+                        dataframe,
+
+                    cluster_column=
+                        cluster_column,
+
+                    cluster_label_column=
+                        cluster_label_column,
+
+                    response_column=
+                        response_column,
+                )
+            )
+
+
+            if (
+                cluster_statistical_result
+                is not None
+            ):
+
+                warnings: list[
+                    str
+                ] = [
+                    (
+                        "Repeated observations were detected. "
+                        "DataLens therefore used a deterministic "
+                        "between-cluster permutation test instead "
+                        "of the naive independent-observation "
+                        "chi-square p-value."
+                    ),
+                    (
+                        "Each cluster's complete response-count "
+                        "vector remained intact during every "
+                        "permutation."
+                    ),
+                ]
+
+
+                if (
+                    float(
+                        cluster_statistical_result[
+                            "expected_min"
+                        ]
+                    )
+                    <
+                    5
+                ):
+
+                    warnings.append(
+                        (
+                            "At least one observed-table expected "
+                            "frequency is below 5. The Pearson "
+                            "chi-square statistic is retained as "
+                            "the permutation test statistic, but "
+                            "the inferential p-value comes from "
+                            "cluster permutation rather than its "
+                            "asymptotic distribution."
+                        )
+                    )
+
+
+                return build_result(
+                    analysis,
+                    execution_status=
+                        "complete",
+
+                    summary=[
+                        (
+                            "A repeated-observation structure "
+                            f"was detected through {cluster_column}."
+                        ),
+                        (
+                            "DataLens calculated the observed "
+                            "Pearson chi-square statistic and "
+                            "Cramer's V, then evaluated inference "
+                            "with a cluster-level permutation test."
+                        ),
+                        (
+                            "The cluster-stable categorical label "
+                            f"was {cluster_label_column}; "
+                            f"{response_column} was treated as the "
+                            "within-cluster response."
+                        ),
+                    ],
+
+                    metrics={
+                        "x_column":
+                            x_column,
+
+                        "y_column":
+                            y_column,
+
+                        "x_levels":
+                            x_levels,
+
+                        "y_levels":
+                            y_levels,
+
+                        "valid_observations":
+                            int(
+                                len(
+                                    working
+                                )
+                            ),
+
+                        "repeated_measure_structure":
+                            panel_structure,
+
+                        "inference_scope":
+                            "cluster_aware",
+
+                        "cluster_column":
+                            cluster_column,
+
+                        "cluster_label_column":
+                            cluster_label_column,
+
+                        "response_column":
+                            response_column,
+                    },
+
+                    chart_data=
+                        chart_data,
+
+                    statistical_result=
+                        cluster_statistical_result,
+
+                    warnings=
+                        warnings,
+
+                    limitations=[
+                        (
+                            "Cluster-permutation inference v0.1 "
+                            "requires exactly one of the two "
+                            "categorical variables to be stable "
+                            "within every observed cluster."
+                        ),
+                        (
+                            "The permutation p-value tests "
+                            "between-cluster exchangeability of "
+                            "the stable categorical label while "
+                            "preserving each cluster's complete "
+                            "response profile."
+                        ),
+                    ],
+                )
+
+
+        # ----------------------------------------------------
+        # Existing fail-closed behavior remains authoritative
+        # when no supported cluster-aware design is proven.
+        # ----------------------------------------------------
+
         return build_result(
             analysis,
             execution_status=
@@ -3290,10 +4209,20 @@ def execute_categorical_association(
                     "The independence assumption "
                     "required by a classical "
                     "chi-square test may not hold."
-                )
+                ),
+                (
+                    "No supported cluster-aware "
+                    "categorical design was proven "
+                    "for these two variables, so "
+                    "DataLens remains fail-closed."
+                ),
             ],
         )
 
+
+    # ========================================================
+    # INDEPENDENT-OBSERVATION CLASSICAL PATH — PRESERVED
+    # ========================================================
 
     (
         chi2,
@@ -3346,7 +4275,8 @@ def execute_categorical_association(
             >
             0
         )
-        else None
+        else
+        None
     )
 
 
@@ -3367,6 +4297,7 @@ def execute_categorical_association(
         <
         5
     ):
+
         warnings.append(
             (
                 "At least one expected "
@@ -3404,7 +4335,8 @@ def execute_categorical_association(
                 )
                 if cramers_v
                 is not None
-                else None
+                else
+                None
             ),
 
         "n":
@@ -3436,7 +4368,6 @@ def execute_categorical_association(
                 "test was executed for "
                 f"{x_column} and {y_column}."
             ),
-
             (
                 "Cramer's V was calculated "
                 "to quantify the strength "
@@ -3474,6 +4405,7 @@ def execute_categorical_association(
         warnings=
             warnings,
     )
+
 
 
 # ============================================================
