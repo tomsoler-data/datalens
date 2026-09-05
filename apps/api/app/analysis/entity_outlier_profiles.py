@@ -53,29 +53,34 @@ ENTITY_OUTLIER_PROFILE_RULE_VERSION = (
 # A priority profile must:
 #
 # - be atypical on at least two behavioural metrics;
-# - contain at least one extremely distant IQR signal.
+# - contain at least one Tukey far-out signal.
 #
-# The current extreme threshold is deliberately conservative.
+# entity_outlier_engine_v0.1 already detects observations
+# outside the Tukey inner fences:
 #
-# On the real Lapage dataset:
+#     Q1 - 1.5 * IQR
+#     Q3 + 1.5 * IQR
 #
-#     c_1609
-#     c_4958
-#     c_3454
-#     c_6714
+# distance_iqr measures the additional normalized distance
+# beyond that inner fence. A distance_iqr of 1.5 therefore
+# reaches the classical Tukey outer far-out fence:
 #
-# are hundreds of IQR units beyond at least one threshold,
-# while the fifth ranked client is only around 11 IQR units
-# beyond its strongest threshold.
+#     Q1 - 3.0 * IQR
+#     Q3 + 3.0 * IQR
+#
+# This presentation threshold is neutral and
+# dataset-independent. It must not be calibrated from a
+# benchmark dataset, protected fixture, gold entity ranking,
+# or known business example.
 #
 # ============================================================
 
 
 DEFAULT_PRIORITY_MIN_SIGNAL_COUNT = 2
 
-DEFAULT_PRIORITY_MIN_MAX_DISTANCE_IQR = 20.0
+DEFAULT_PRIORITY_MIN_MAX_DISTANCE_IQR = 1.5
 
-DEFAULT_STRONG_MIN_MAX_DISTANCE_IQR = 5.0
+DEFAULT_STRONG_MIN_MAX_DISTANCE_IQR = 1.5
 
 DEFAULT_PROFILE_TOP_LIMIT = 25
 
@@ -1002,13 +1007,13 @@ def build_entity_outlier_profiles(
 
     if (
         strong_min_max_distance_iqr
-        >=
+        >
         priority_min_max_distance_iqr
     ):
         raise ValueError(
             (
                 "strong_min_max_distance_iqr "
-                "must be lower than "
+                "must be lower than or equal to "
                 "priority_min_max_distance_iqr."
             )
         )
