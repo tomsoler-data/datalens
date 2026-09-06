@@ -15,9 +15,9 @@ from pydantic import (
 )
 
 
-from app.ml.estimator_contracts import (
-    MLEstimatorHyperparameters,
-    default_estimator_hyperparameters,
+from app.ml.training_estimator_contracts import (
+    MLTrainingEstimatorHyperparameters,
+    default_training_estimator_hyperparameters,
 )
 
 
@@ -489,7 +489,7 @@ class MLTrainingContract(
 ):
     """
     Server-validatable contract describing one deterministic
-    classical machine-learning training request.
+    machine-learning training request.
 
     The contract contains configuration and provenance only.
 
@@ -566,7 +566,7 @@ class MLTrainingContract(
 
 
     estimator_hyperparameters: (
-        MLEstimatorHyperparameters
+        MLTrainingEstimatorHyperparameters
         |
         None
     ) = None
@@ -770,7 +770,7 @@ class MLTrainingContract(
     def effective_estimator_hyperparameters(
         self,
     ) -> (
-        MLEstimatorHyperparameters
+        MLTrainingEstimatorHyperparameters
         |
         None
     ):
@@ -781,7 +781,7 @@ class MLTrainingContract(
         Unknown estimator keys return None.
 
         This property calculates configuration only. It does not
-        instantiate or execute sklearn objects.
+        instantiate or execute framework-specific models.
         """
 
         if (
@@ -794,7 +794,7 @@ class MLTrainingContract(
 
 
         return (
-            default_estimator_hyperparameters(
+            default_training_estimator_hyperparameters(
                 self.estimator_key
             )
         )
@@ -884,6 +884,27 @@ class MLTrainingContract(
                     f"{self.estimator_key}, "
                     "hyperparameters_kind="
                     f"{self.estimator_hyperparameters.kind}"
+                )
+            )
+
+
+        # ----------------------------------------------------
+        # TABULAR MLP PROBLEM TYPE
+        # ----------------------------------------------------
+
+        if (
+            self.estimator_key
+            ==
+            "tabular_mlp_regressor"
+            and
+            self.problem_type
+            !=
+            "regression"
+        ):
+            raise ValueError(
+                (
+                    "tabular_mlp_regressor requires "
+                    "problem_type='regression'."
                 )
             )
 

@@ -16,6 +16,13 @@ from typing import (
 )
 
 
+from app.ml.model_artifact_formats import (
+    MLModelSerializationFormat,
+    ml_model_serialization_suffix,
+    normalize_ml_model_serialization_format,
+)
+
+
 # ============================================================
 # VERSION
 # ============================================================
@@ -52,7 +59,7 @@ def ml_model_artifact_data_root(
 
     Filesystem data plane:
 
-        .../ml/model_artifacts/data/*.joblib
+        .../ml/model_artifacts/data/* (.joblib | .ptbundle)
 
     The logical JSON path exists only as the scope identity.
     SQLite will own metadata in the next implementation step.
@@ -169,6 +176,9 @@ def write_ml_model_binary(
     store_path: Path,
     model_id: str,
     model_bytes: bytes,
+    serialization_format: (
+        MLModelSerializationFormat
+    ) = "joblib",
 ) -> dict[
     str,
     Any,
@@ -212,6 +222,32 @@ def write_ml_model_binary(
         )
 
 
+    try:
+
+        normalized_serialization_format = (
+            normalize_ml_model_serialization_format(
+                serialization_format
+            )
+        )
+
+
+        model_suffix = (
+            ml_model_serialization_suffix(
+                normalized_serialization_format
+            )
+        )
+
+    except ValueError as error:
+
+        raise (
+            MLModelArtifactDataPlaneError(
+                str(
+                    error
+                )
+            )
+        ) from error
+
+
     model_sha256 = (
         hashlib.sha256(
             model_bytes
@@ -241,7 +277,7 @@ def write_ml_model_binary(
         +
         uuid.uuid4().hex
         +
-        ".joblib"
+        model_suffix
     )
 
 
@@ -349,6 +385,67 @@ def read_ml_model_binary(
             "",
         )
     ).strip()
+
+
+    raw_serialization_format = (
+        entry.get(
+            "serialization_format",
+            "joblib",
+        )
+    )
+
+
+    try:
+
+        normalized_serialization_format = (
+            normalize_ml_model_serialization_format(
+                raw_serialization_format
+            )
+        )
+
+
+        expected_suffix = (
+            ml_model_serialization_suffix(
+                normalized_serialization_format
+            )
+        )
+
+    except ValueError as error:
+
+        raise (
+            MLModelArtifactDataPlaneError(
+                str(
+                    error
+                )
+            )
+        ) from error
+
+
+    actual_suffix = (
+        Path(
+            model_path
+        )
+        .suffix
+        .lower()
+    )
+
+
+    if (
+        actual_suffix
+        !=
+        expected_suffix
+    ):
+        raise (
+            MLModelArtifactDataPlaneError(
+                (
+                    "Model Artifact model_path suffix "
+                    "does not match serialization format. "
+                    "serialization_format="
+                    f"{normalized_serialization_format}, "
+                    f"model_path={model_path}"
+                )
+            )
+        )
 
 
     path = (

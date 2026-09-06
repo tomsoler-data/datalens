@@ -19,8 +19,8 @@ from app.ml.contracts import (
 )
 
 
-from app.ml.estimator_contracts import (
-    estimator_problem_type,
+from app.ml.training_estimator_contracts import (
+    training_estimator_problem_type,
 )
 
 
@@ -76,7 +76,7 @@ class MLModelComparisonContract(
 ):
     """
     Server-validatable contract for deterministic comparison of
-    multiple fixed Classical ML estimators.
+    multiple fixed Model Lab estimators.
 
     v0.1 deliberately compares already-specified estimator
     configurations.
@@ -322,7 +322,7 @@ class MLModelComparisonContract(
         ):
 
             expected_problem_type = (
-                estimator_problem_type(
+                training_estimator_problem_type(
                     candidate
                     .estimator_key
                 )
