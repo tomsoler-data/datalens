@@ -125,6 +125,11 @@ BenchmarkSelection = Literal[
 ]
 
 
+ShareOfTotalReference = Literal[
+    "sum_of_group_values",
+]
+
+
 FilterOperator = Literal[
     "eq",
     "neq",
@@ -373,6 +378,41 @@ class BenchmarkSpec(
 
     selection: BenchmarkSelection = (
         "matching_only"
+    )
+
+
+# ============================================================
+# SHARE OF TOTAL
+# DATALENS_CANONICAL_SHARE_OF_TOTAL_SPEC_V0_1
+# ============================================================
+
+
+class ShareOfTotalSpec(
+    BaseModel
+):
+    """
+    Generic deterministic post-aggregation share.
+
+    `sum_of_group_values` means:
+
+    - execute the contract's grouped SUM aggregation;
+    - retain the complete same-population grouped result before
+      any ranking limit is applied;
+    - use the sum of all grouped values as the denominator;
+    - expose each selected group's value / denominator.
+
+    This is deliberately generic analytical vocabulary.
+    Business concepts such as revenue remain outside the
+    canonical core.
+    """
+
+    model_config = ConfigDict(
+        extra="forbid"
+    )
+
+
+    reference: ShareOfTotalReference = (
+        "sum_of_group_values"
     )
 
 
@@ -650,6 +690,11 @@ class AnalyticalContract(
         | None
     ) = None
 
+    share_of_total: (
+        ShareOfTotalSpec
+        | None
+    ) = None
+
     window: (
         WindowSpec
         | None
@@ -896,6 +941,65 @@ class AnalyticalContract(
             ):
                 raise ValueError(
                     "BenchmarkSpec requires at least one grouped "
+                    "aggregation role."
+                )
+
+
+        # ====================================================
+        # SHARE-OF-TOTAL INVARIANTS
+        # DATALENS_CANONICAL_SHARE_OF_TOTAL_SPEC_V0_1
+        #
+        # Share-of-total is deliberately a post-aggregation
+        # operation over a complete grouped SUM population.
+        #
+        # Execution support is added separately.
+        # ====================================================
+
+        if (
+            self.share_of_total
+            is not None
+        ):
+            if (
+                self.family
+                not in {
+                    "aggregation",
+                    "ranking",
+                }
+            ):
+                raise ValueError(
+                    "ShareOfTotalSpec v0.1 is supported only for "
+                    "aggregation or ranking contracts."
+                )
+
+
+            if (
+                self.aggregation
+                is None
+            ):
+                raise ValueError(
+                    "A share-of-total contract requires an "
+                    "AggregationSpec."
+                )
+
+
+            if (
+                self.aggregation
+                .function
+                !=
+                "sum"
+            ):
+                raise ValueError(
+                    "ShareOfTotalSpec v0.1 requires a SUM "
+                    "aggregation."
+                )
+
+
+            if not (
+                self.aggregation
+                .group_by_roles
+            ):
+                raise ValueError(
+                    "ShareOfTotalSpec requires at least one grouped "
                     "aggregation role."
                 )
 

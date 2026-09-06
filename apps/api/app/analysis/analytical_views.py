@@ -33,7 +33,7 @@ from app.relationships import (
 # ============================================================
 
 ANALYTICAL_VIEW_RULE_VERSION = (
-    "analytical_view_v0.6"
+    "analytical_view_v0.7"
 )
 
 
@@ -2341,6 +2341,104 @@ def functional_attributes(
 
 
 # ============================================================
+# SCALAR ADDITIVE MATERIALIZATION
+# ============================================================
+
+def build_scalar_measure_view(
+    dataframe: pd.DataFrame,
+    *,
+    measure_column: str,
+) -> pd.DataFrame | None:
+    """
+    Materialize one overall additive measure from the complete
+    validated fact population.
+
+    Additive eligibility is not decided here. The sole semantic
+    authority remains select_additive_measures().
+
+    No temporal, categorical, entity or session grouping is
+    introduced.
+
+    The output contains exactly one row at grain=overall.
+    """
+
+    if (
+        measure_column
+        not in
+        dataframe.columns
+    ):
+        return None
+
+
+    measure = pd.to_numeric(
+        dataframe[
+            measure_column
+        ],
+        errors="coerce",
+    )
+
+
+    measure = (
+        measure
+        .replace(
+            [
+                float("inf"),
+                float("-inf"),
+            ],
+            float("nan"),
+        )
+    )
+
+
+    valid_measure = (
+        measure
+        .dropna()
+    )
+
+
+    if valid_measure.empty:
+        return None
+
+
+    target_measure = (
+        f"sum_{measure_column}"
+    )
+
+
+    result = pd.DataFrame(
+        {
+            target_measure: [
+                valid_measure.sum()
+            ],
+
+            "event_count": [
+                int(
+                    valid_measure.size
+                )
+            ],
+        }
+    )
+
+
+    if (
+        len(
+            result
+        )
+        !=
+        1
+    ):
+        raise RuntimeError(
+            (
+                "Scalar additive materialization failed "
+                "to produce exactly one overall row."
+            )
+        )
+
+
+    return result
+
+
+# ============================================================
 # MONTHLY MATERIALIZATION
 # ============================================================
 
@@ -4039,6 +4137,126 @@ def materialize_views_for_fact(
         return (
             records,
             audits,
+        )
+
+
+    # ========================================================
+    # SCALAR ADDITIVE VIEWS
+    #
+    # Measures arrive here only after select_additive_measures()
+    # has accepted them.
+    #
+    # The scalar is calculated directly from the validated
+    # fact-grain analytical frame. Grouped derived datasets are
+    # never reused as a proxy for an overall total.
+    # ========================================================
+
+    for measure_column in measures:
+
+        scalar_view = (
+            build_scalar_measure_view(
+                analytical_frame,
+
+                measure_column=
+                    measure_column,
+            )
+        )
+
+
+        if scalar_view is None:
+            continue
+
+
+        scalar_dataset_id = (
+            "derived:"
+            f"{fact_slug}:"
+            "scalar:"
+            f"{normalize_text(measure_column)}"
+        )
+
+
+        scalar_filename = (
+            f"{Path(fact_filename).stem}"
+            "__overall_"
+            f"{normalize_text(measure_column)}"
+            ".derived"
+        )
+
+
+        scalar_provenance = {
+            "fact_dataset_id":
+                fact_dataset_id,
+
+            "operation":
+                "scalar_sum",
+
+            "group_column":
+                None,
+
+            "source_measure_column":
+                measure_column,
+
+            "target_measure_column":
+                f"sum_{measure_column}",
+
+            "aggregation":
+                "sum",
+
+            "grain":
+                "overall",
+
+            "metric_semantics":
+                measure_semantics[
+                    measure_column
+                ],
+
+            "population_semantics":
+                (
+                    "Complete validated fact-grain analytical "
+                    "population. No temporal, categorical, "
+                    "entity or session grouping is applied."
+                ),
+        }
+
+
+        attach_source_measure_derivation(
+            scalar_provenance,
+            measure_column=
+                measure_column,
+        )
+
+
+        append_derived_record(
+            records=
+                records,
+
+            audits=
+                audits,
+
+            dataset_id=
+                scalar_dataset_id,
+
+            filename=
+                scalar_filename,
+
+            dataframe=
+                scalar_view,
+
+            derivation_type=
+                "scalar_additive_measure",
+
+            source_dataset_ids=
+                source_dataset_ids,
+
+            grain_columns=[],
+
+            measure_columns=[
+                f"sum_{measure_column}",
+                "event_count",
+            ],
+
+            provenance=
+                scalar_provenance,
         )
 
 
