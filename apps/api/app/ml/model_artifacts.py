@@ -29,6 +29,12 @@ from app.ml.contracts import (
 )
 
 
+from app.ml.model_artifact_formats import (
+    MLModelSerializationFormat,
+    ml_model_serialization_suffix,
+)
+
+
 from app.ml.experiment_provenance import (
     MLExperimentProvenanceRecord,
     ml_training_contract_sha256,
@@ -43,16 +49,6 @@ from app.ml.experiment_provenance import (
 ML_MODEL_ARTIFACT_RULE_VERSION = (
     "ml_model_artifact_v0.1"
 )
-
-
-# ============================================================
-# TYPES
-# ============================================================
-
-
-MLModelSerializationFormat = Literal[
-    "joblib",
-]
 
 
 # ============================================================
@@ -136,19 +132,6 @@ def _normalize_relative_model_path(
     ):
         raise ValueError(
             "model_path is invalid"
-        )
-
-
-    if (
-        path.suffix.lower()
-        !=
-        ".joblib"
-    ):
-        raise ValueError(
-            (
-                "joblib Model Artifacts must use "
-                "a .joblib model_path"
-            )
         )
 
 
@@ -446,6 +429,53 @@ class MLModelArtifactRecord(
 
 
         return normalized
+
+
+    # ========================================================
+    # SERIALIZATION FORMAT / PATH CONSISTENCY
+    # ========================================================
+
+
+    @model_validator(
+        mode="after"
+    )
+    def validate_serialization_format_path(
+        self,
+    ) -> "MLModelArtifactRecord":
+
+        expected_suffix = (
+            ml_model_serialization_suffix(
+                self.serialization_format
+            )
+        )
+
+
+        actual_suffix = (
+            PurePosixPath(
+                self.model_path
+            )
+            .suffix
+            .lower()
+        )
+
+
+        if (
+            actual_suffix
+            !=
+            expected_suffix
+        ):
+            raise ValueError(
+                (
+                    "Model Artifact model_path suffix "
+                    "does not match serialization format. "
+                    "serialization_format="
+                    f"{self.serialization_format}, "
+                    f"model_path={self.model_path}"
+                )
+            )
+
+
+        return self
 
 
     # ========================================================

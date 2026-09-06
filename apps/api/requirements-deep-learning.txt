@@ -29,3 +29,11 @@ numpy==2.5.2
 pandas==3.0.5
 scikit-learn==1.9.0
 scipy==1.18.0
+
+# Model Lab contract-plane compatibility
+# Keep aligned with the runtime contract stack.
+annotated-types==0.8.0
+pydantic_core==2.46.4
+pydantic==2.13.4
+typing_extensions==4.16.0
+typing-inspection==0.4.4

@@ -42,10 +42,21 @@ from app.ml.model_artifacts import (
 )
 
 
+from app.ml.model_candidate_result import (
+    project_ml_model_candidate_result,
+)
+
+
 from app.ml.model_comparison_contracts import (
     MLModelComparisonContract,
     MLModelComparisonPrimaryMetric,
     MLModelComparisonRankingPolicy,
+)
+
+
+from app.ml.model_comparison_core import (
+    MLModelComparisonCoreError,
+    aggregate_ml_model_candidates,
 )
 
 
@@ -2023,8 +2034,17 @@ def execute_ml_model_comparison(
 
 
     # ========================================================
-    # SAME DETERMINISTIC HOLDOUT SHAPE
+    # LEGACY PARITY GUARDS
+    #
+    # During the framework-neutral core wiring milestone,
+    # preserve the historical validators as independent guards.
+    #
+    # The shared core below becomes the source of the public
+    # ranking/result order.
+    #
+    # If old and new authorities disagree, fail closed.
     # ========================================================
+
 
     _validate_execution_split_sizes(
         execution_results=
@@ -2038,7 +2058,7 @@ def execute_ml_model_comparison(
     )
 
 
-    shared_baseline = (
+    legacy_shared_baseline = (
         _validate_shared_baseline(
             execution_results=
                 execution_results
@@ -2046,11 +2066,7 @@ def execute_ml_model_comparison(
     )
 
 
-    # ========================================================
-    # DETERMINISTIC RANKING
-    # ========================================================
-
-    ranked_executions = sorted(
+    legacy_ranked_executions = sorted(
         execution_results,
 
         key=lambda result: (
@@ -2068,9 +2084,118 @@ def execute_ml_model_comparison(
     )
 
 
+    legacy_ranked_estimator_keys = tuple(
+        execution_result.estimator_key
+
+        for execution_result
+        in legacy_ranked_executions
+    )
+
+
+    # ========================================================
+    # FRAMEWORK-NEUTRAL CANDIDATE PROJECTION
+    # ========================================================
+
+
+    shared_candidates = [
+        project_ml_model_candidate_result(
+            execution_result
+        )
+
+        for execution_result
+        in execution_results
+    ]
+
+
+    # ========================================================
+    # FRAMEWORK-NEUTRAL AGGREGATION
+    # ========================================================
+
+
+    try:
+
+        aggregation = (
+            aggregate_ml_model_candidates(
+                comparison_contract=
+                    contract,
+
+                candidates=
+                    shared_candidates,
+
+                expected_preparation_session_revision=
+                    preparation_session_revision,
+            )
+        )
+
+    except MLModelComparisonCoreError as error:
+
+        raise (
+            MLModelComparisonExecutorError(
+                (
+                    "Shared Model Comparison core "
+                    "rejected Classical candidate "
+                    "aggregation."
+                )
+            )
+        ) from error
+
+
+    # ========================================================
+    # STRICT BEFORE / AFTER PARITY
+    # ========================================================
+
+
+    if (
+        aggregation.baseline
+        !=
+        legacy_shared_baseline
+    ):
+        raise (
+            MLModelComparisonExecutorError(
+                (
+                    "Shared Model Comparison baseline "
+                    "does not match historical "
+                    "Classical comparison authority."
+                )
+            )
+        )
+
+
+    shared_ranked_estimator_keys = tuple(
+        candidate.estimator_key
+
+        for candidate
+        in aggregation.ranked_candidates
+    )
+
+
+    if (
+        shared_ranked_estimator_keys
+        !=
+        legacy_ranked_estimator_keys
+    ):
+        raise (
+            MLModelComparisonExecutorError(
+                (
+                    "Shared Model Comparison ranking "
+                    "does not match historical "
+                    "Classical ranking authority."
+                )
+            )
+        )
+
+
+    shared_baseline = (
+        aggregation.baseline
+    )
+
+
     # ========================================================
     # PRIVACY-MINIMAL RANKED RESULT
+    #
+    # Public ordering now comes from the shared core.
     # ========================================================
+
 
     ranked_candidates: list[
         MLModelComparisonCandidateResult
@@ -2079,16 +2204,16 @@ def execute_ml_model_comparison(
 
     for (
         rank,
-        execution_result,
+        shared_candidate,
     ) in enumerate(
-        ranked_executions,
+        aggregation.ranked_candidates,
         start=1,
     ):
 
         primary_metric_value = (
             _validated_metric(
                 metrics=
-                    execution_result.metrics,
+                    shared_candidate.metrics,
 
                 metric_name=
                     contract.primary_metric,
@@ -2102,7 +2227,7 @@ def execute_ml_model_comparison(
                     rank,
 
                 estimator_key=
-                    execution_result.estimator_key,
+                    shared_candidate.estimator_key,
 
                 primary_metric=
                     contract.primary_metric,
@@ -2111,26 +2236,26 @@ def execute_ml_model_comparison(
                     primary_metric_value,
 
                 metrics=
-                    execution_result.metrics,
+                    shared_candidate.metrics,
 
                 train_rows=
-                    execution_result.train_rows,
+                    shared_candidate.train_rows,
 
                 test_rows=
-                    execution_result.test_rows,
+                    shared_candidate.test_rows,
 
                 baseline_comparison=(
-                    execution_result
+                    shared_candidate
                     .baseline_comparison
                 ),
 
                 experiment_provenance=(
-                    execution_result
+                    shared_candidate
                     .experiment_provenance
                 ),
 
                 model_artifact=
-                    execution_result
+                    shared_candidate
                     .model_artifact,
             )
         )

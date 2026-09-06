@@ -43,6 +43,12 @@ from app.ml.model_artifact_data_plane import (
 )
 
 
+from app.ml.model_artifact_formats import (
+    MLModelSerializationFormat,
+    normalize_ml_model_serialization_format,
+)
+
+
 from app.ml.model_artifact_index import (
     MLModelArtifactIndexError,
     get_ml_model_artifact_index_entry,
@@ -509,6 +515,9 @@ def register_ml_model_artifact(
     train_rows: int,
     test_rows: int,
     model_bytes: bytes,
+    serialization_format: (
+        MLModelSerializationFormat
+    ) = "joblib",
     preparation_session_revision: (
         int
         |
@@ -541,6 +550,25 @@ def register_ml_model_artifact(
             training_contract
         )
     )
+
+
+    try:
+
+        normalized_serialization_format = (
+            normalize_ml_model_serialization_format(
+                serialization_format
+            )
+        )
+
+    except ValueError as error:
+
+        raise (
+            MLModelArtifactStoreError(
+                str(
+                    error
+                )
+            )
+        ) from error
 
 
     normalized_preparation_revision = (
@@ -676,6 +704,9 @@ def register_ml_model_artifact(
 
                     model_bytes=
                         model_bytes,
+
+                    serialization_format=
+                        normalized_serialization_format,
                 )
             )
 
@@ -708,6 +739,9 @@ def register_ml_model_artifact(
 
                     created_at_utc=
                         normalized_created_at,
+
+                    serialization_format=
+                        normalized_serialization_format,
 
                     **binary_info,
                 )

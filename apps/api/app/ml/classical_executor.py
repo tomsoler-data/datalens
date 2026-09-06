@@ -36,12 +36,6 @@ from sklearn.linear_model import (
 )
 
 
-from sklearn.model_selection import (
-    GroupShuffleSplit,
-    train_test_split,
-)
-
-
 from sklearn.pipeline import (
     Pipeline,
 )
@@ -66,6 +60,23 @@ from app.ml.contracts import (
 )
 
 
+from app.ml.training_input import (
+    MLTrainingInputError,
+    load_authorized_ml_dataframe,
+    validate_and_extract_ml_xy,
+)
+
+
+from app.ml.splitting import (
+    MLSplitInputError,
+    MLSplitInvariantError,
+    chronological_holdout_positions,
+    split_ml_dataset,
+    validated_group_values,
+    validated_time_values,
+)
+
+
 from app.ml.experiment_provenance import (
     MLExperimentProvenanceRecord,
 )
@@ -84,7 +95,6 @@ from app.ml.estimator_contracts import (
 from app.ml.preprocessing import (
     MLPreprocessingRuntimeError,
     build_ml_preprocessor,
-    validate_ml_feature_frame,
 )
 
 
@@ -118,19 +128,8 @@ from app.ml.monitoring_profile_store import (
 )
 
 
-from app.profiling.types import (
-    infer_analytical_type,
-)
-
-
 from app.preparation.analysis_input_handoff import (
-    AnalysisInputHandoffError,
     load_validated_analysis_input,
-)
-
-
-from app.preparation.analysis_readiness_gate import (
-    AnalysisReadinessError,
 )
 
 
@@ -276,157 +275,27 @@ def _load_authorized_dataframe(
     pd.DataFrame,
     int,
 ]:
-    """
-    Resolve ML input through the exact same server-owned
-    Preparation -> Analysis handoff used by deterministic
-    analytical execution.
-
-    The contract dataset_id is never sufficient on its own.
-    It must also be present in the handoff-authorized final
-    dataset scope.
-    """
 
     try:
-        handoff = (
-            load_validated_analysis_input(
-                workflow_id=
-                    contract.workflow_id
+        return (
+            load_authorized_ml_dataframe(
+                contract=contract,
+                handoff_loader=
+                    load_validated_analysis_input,
+                execution_label=
+                    "Classical ML",
             )
         )
 
-    except (
-        AnalysisInputHandoffError,
-        AnalysisReadinessError,
-    ) as error:
+    except MLTrainingInputError as error:
+
         raise (
             ClassicalMLInputError(
-                (
-                    "Classical ML execution refused "
-                    "because Preparation did not "
-                    "provide a valid READY analysis "
-                    "input handoff."
+                str(
+                    error
                 )
             )
         ) from error
-
-
-    if (
-        handoff.workflow_id
-        !=
-        contract.workflow_id
-    ):
-        raise (
-            ClassicalMLInputError(
-                (
-                    "Analysis input handoff workflow "
-                    "does not match the ML Training "
-                    "Contract."
-                )
-            )
-        )
-
-
-    if (
-        contract.dataset_id
-        not in
-        handoff.dataset_ids
-    ):
-        raise (
-            ClassicalMLInputError(
-                (
-                    "ML Training Contract dataset "
-                    "is outside the server-owned "
-                    "validated analysis output scope. "
-                    f"dataset_id={contract.dataset_id}"
-                )
-            )
-        )
-
-
-    matching_records = [
-        record
-
-        for record
-        in handoff.dataset_records
-
-        if (
-            isinstance(
-                record,
-                dict,
-            )
-            and
-            str(
-                record.get(
-                    "dataset_id",
-                    "",
-                )
-            )
-            ==
-            contract.dataset_id
-        )
-    ]
-
-
-    if (
-        len(
-            matching_records
-        )
-        !=
-        1
-    ):
-        raise (
-            ClassicalMLInputError(
-                (
-                    "Validated analysis handoff "
-                    "does not contain exactly one "
-                    "record for the requested ML "
-                    "dataset."
-                )
-            )
-        )
-
-
-    dataframe = (
-        matching_records[
-            0
-        ]
-        .get(
-            "dataframe"
-        )
-    )
-
-
-    if not isinstance(
-        dataframe,
-        pd.DataFrame,
-    ):
-        raise (
-            ClassicalMLInputError(
-                (
-                    "Validated analysis handoff "
-                    "record does not contain a "
-                    "pandas DataFrame."
-                )
-            )
-        )
-
-
-    if dataframe.empty:
-        raise (
-            ClassicalMLInputError(
-                "ML input dataset cannot be empty."
-            )
-        )
-
-
-    return (
-        dataframe.copy(
-            deep=True
-        ),
-        int(
-            handoff.session_revision
-        ),
-    )
 
 
 # ============================================================
@@ -443,182 +312,18 @@ def _validate_and_extract_xy(
     pd.Series,
 ]:
 
-    required_columns = [
-        *contract.feature_columns,
-        contract.target_column,
-    ]
-
-
-    missing_columns = [
-        column
-
-        for column
-        in required_columns
-
-        if column
-        not in
-        dataframe.columns
-    ]
-
-
-    if missing_columns:
-        raise (
-            ClassicalMLInputError(
-                (
-                    "ML input dataset is missing "
-                    "required contract columns: "
-                    +
-                    ", ".join(
-                        missing_columns
-                    )
-                )
-            )
-        )
-
-
-    selected = (
-        dataframe.loc[
-            :,
-            required_columns,
-        ]
-        .copy(
-            deep=True
-        )
-    )
-
-
-    x = (
-        selected.loc[
-            :,
-            contract.feature_columns,
-        ]
-        .copy(
-            deep=True
-        )
-    )
-
-
-    y = (
-        selected.loc[
-            :,
-            contract.target_column,
-        ]
-        .copy(
-            deep=True
-        )
-    )
-
-
-    # ========================================================
-    # IDENTIFIER ROLE GUARD
-    # ========================================================
-
-
-    target_semantics = (
-        infer_analytical_type(
-            contract.target_column,
-            y,
-        )
-    )
-
-
-    if (
-        target_semantics.get(
-            "type"
-        )
-        ==
-        "identifier"
-    ):
-        raise (
-            ClassicalMLInputError(
-                (
-                    "Identifier columns cannot be "
-                    "used as ML targets. "
-                    f"target={contract.target_column}"
-                )
-            )
-        )
-
-
-    identifier_features: list[
-        str
-    ] = []
-
-
-    for feature_column in (
-        contract.feature_columns
-    ):
-
-        feature_semantics = (
-            infer_analytical_type(
-                feature_column,
-                x[
-                    feature_column
-                ],
-            )
-        )
-
-        if (
-            feature_semantics.get(
-                "type"
-            )
-            ==
-            "identifier"
-        ):
-            identifier_features.append(
-                feature_column
-            )
-
-
-    if identifier_features:
-
-        raise (
-            ClassicalMLInputError(
-                (
-                    "Identifier columns cannot be "
-                    "used as ML features: "
-                    +
-                    ", ".join(
-                        identifier_features
-                    )
-                )
-            )
-        )
-
-
-    # ========================================================
-    # TARGET MISSING VALUES
-    # ========================================================
-
-
-    if bool(
-        y.isna().any()
-    ):
-        raise (
-            ClassicalMLInputError(
-                (
-                    "ML target contains missing values. "
-                    "Target imputation is never performed "
-                    "by Classical ML."
-                )
-            )
-        )
-
-
-    # ========================================================
-    # FEATURE STRUCTURE / PREPROCESSING POLICY
-    # ========================================================
-
-
     try:
-        x = (
-            validate_ml_feature_frame(
-                features=x,
+        return (
+            validate_and_extract_ml_xy(
+                dataframe=dataframe,
                 contract=contract,
+                execution_label=
+                    "Classical ML",
             )
         )
 
-    except MLPreprocessingRuntimeError as error:
+    except MLTrainingInputError as error:
+
         raise (
             ClassicalMLInputError(
                 str(
@@ -626,182 +331,6 @@ def _validate_and_extract_xy(
                 )
             )
         ) from error
-
-
-    # ========================================================
-    # REGRESSION TARGET
-    # ========================================================
-
-
-    if (
-        contract.problem_type
-        ==
-        "regression"
-    ):
-        target_dtype = (
-            y.dtype
-        )
-
-
-        if (
-            pd.api.types
-            .is_bool_dtype(
-                target_dtype
-            )
-            or
-            not pd.api.types
-            .is_numeric_dtype(
-                target_dtype
-            )
-        ):
-            raise (
-                ClassicalMLInputError(
-                    (
-                        "Regression target must be "
-                        "numeric and non-boolean. "
-                        f"target={contract.target_column}, "
-                        f"dtype={target_dtype}"
-                    )
-                )
-            )
-
-
-        try:
-            numeric_y = (
-                y.to_numpy(
-                    dtype=np.float64,
-                    copy=True,
-                )
-            )
-
-        except Exception as error:
-            raise (
-                ClassicalMLInputError(
-                    (
-                        "Regression target could "
-                        "not be converted to "
-                        "floating-point values."
-                    )
-                )
-            ) from error
-
-
-        if not (
-            np.isfinite(
-                numeric_y
-            )
-            .all()
-        ):
-            raise (
-                ClassicalMLInputError(
-                    (
-                        "Regression target contains "
-                        "non-finite values."
-                    )
-                )
-            )
-
-
-        if (
-            int(
-                y.nunique(
-                    dropna=False
-                )
-            )
-            <
-            2
-        ):
-            raise (
-                ClassicalMLInputError(
-                    (
-                        "Regression target must "
-                        "contain at least two "
-                        "distinct values."
-                    )
-                )
-            )
-
-
-    # ========================================================
-    # CLASSIFICATION TARGET
-    # ========================================================
-
-
-    else:
-        class_count = int(
-            y.nunique(
-                dropna=False
-            )
-        )
-
-
-        if (
-            class_count
-            <
-            2
-        ):
-            raise (
-                ClassicalMLInputError(
-                    (
-                        "Classification target must "
-                        "contain at least two classes."
-                    )
-                )
-            )
-
-
-        if (
-            pd.api.types
-            .is_numeric_dtype(
-                y.dtype
-            )
-            and
-            not pd.api.types
-            .is_bool_dtype(
-                y.dtype
-            )
-        ):
-            try:
-                numeric_y = (
-                    y.to_numpy(
-                        dtype=np.float64,
-                        copy=True,
-                    )
-                )
-
-            except Exception as error:
-                raise (
-                    ClassicalMLInputError(
-                        (
-                            "Numeric classification "
-                            "target could not be "
-                            "validated."
-                        )
-                    )
-                ) from error
-
-
-            if not (
-                np.isfinite(
-                    numeric_y
-                )
-                .all()
-            ):
-                raise (
-                    ClassicalMLInputError(
-                        (
-                            "Classification target "
-                            "contains non-finite "
-                            "numeric values."
-                        )
-                    )
-                )
-
-
-    return (
-        x,
-        y,
-    )
 
 
 # ============================================================
@@ -1209,8 +738,41 @@ def _build_estimator(
 
 
 # ============================================================
-# SPLIT
+# SHARED SPLIT COMPATIBILITY WRAPPERS
 # ============================================================
+
+
+def _raise_classical_split_error(
+    error: Exception,
+) -> None:
+
+    if isinstance(
+        error,
+        MLSplitInputError,
+    ):
+        raise (
+            ClassicalMLInputError(
+                str(
+                    error
+                )
+            )
+        ) from error
+
+
+    if isinstance(
+        error,
+        MLSplitInvariantError,
+    ):
+        raise (
+            ClassicalMLExecutorError(
+                str(
+                    error
+                )
+            )
+        ) from error
+
+
+    raise error
 
 
 def _validated_group_values(
@@ -1221,237 +783,28 @@ def _validated_group_values(
     contract: MLTrainingContract,
 ) -> pd.Series:
 
-    split = (
-        contract.split
-    )
-
-
-    if not isinstance(
-        split,
-        (
-            MLGroupHoldoutSplitContract,
-            MLPurgedGroupTimeHoldoutSplitContract,
-        ),
-    ):
-
-        raise (
-            ClassicalMLInputError(
-                (
-                    "Group validation requires a "
-                    "group-aware holdout split contract."
-                )
+    try:
+        return (
+            validated_group_values(
+                dataframe=dataframe,
+                x=x,
+                y=y,
+                contract=contract,
             )
         )
 
+    except (
+        MLSplitInputError,
+        MLSplitInvariantError,
+    ) as error:
 
-    if dataframe is None:
-
-        raise (
-            ClassicalMLInputError(
-                (
-                    "group_holdout requires the "
-                    "server-owned source dataframe."
-                )
-            )
+        _raise_classical_split_error(
+            error
         )
 
-
-    if (
-        len(
-            dataframe
+        raise AssertionError(
+            "unreachable"
         )
-        !=
-        len(
-            x
-        )
-        or
-        len(
-            x
-        )
-        !=
-        len(
-            y
-        )
-        or
-        not dataframe.index.equals(
-            x.index
-        )
-        or
-        not x.index.equals(
-            y.index
-        )
-    ):
-
-        raise (
-            ClassicalMLInputError(
-                (
-                    "Entity-aware split input "
-                    "alignment is invalid."
-                )
-            )
-        )
-
-
-    group_column = (
-        split.group_column
-    )
-
-
-    if (
-        group_column
-        not in
-        dataframe.columns
-    ):
-
-        raise (
-            ClassicalMLInputError(
-                (
-                    "Group holdout column is "
-                    "missing from the validated "
-                    "dataset. "
-                    f"group_column={group_column}"
-                )
-            )
-        )
-
-
-    group_values = (
-        dataframe.loc[
-            :,
-            group_column,
-        ]
-    )
-
-
-    if not isinstance(
-        group_values,
-        pd.Series,
-    ):
-
-        raise (
-            ClassicalMLInputError(
-                (
-                    "Group holdout column must "
-                    "resolve to exactly one Series."
-                )
-            )
-        )
-
-
-    group_values = (
-        group_values.copy(
-            deep=True
-        )
-    )
-
-
-    if bool(
-        group_values
-        .isna()
-        .any()
-    ):
-
-        raise (
-            ClassicalMLInputError(
-                (
-                    "Group holdout column contains "
-                    "missing values. "
-                    f"group_column={group_column}"
-                )
-            )
-        )
-
-
-    semantics = (
-        infer_analytical_type(
-            group_column,
-            group_values,
-        )
-    )
-
-
-    analytical_type = str(
-        semantics.get(
-            "type"
-        )
-        or
-        ""
-    ).strip()
-
-
-    analytical_subtype = str(
-        semantics.get(
-            "subtype"
-        )
-        or
-        ""
-    ).strip()
-
-
-    if (
-        analytical_type
-        !=
-        "identifier"
-        or
-        analytical_subtype
-        !=
-        "reference"
-    ):
-
-        raise (
-            ClassicalMLInputError(
-                (
-                    "Group holdout requires a "
-                    "repeated reference identifier. "
-                    f"group_column={group_column}, "
-                    f"analytical_type={analytical_type}, "
-                    "analytical_subtype="
-                    f"{analytical_subtype}"
-                )
-            )
-        )
-
-
-    group_count = int(
-        group_values
-        .nunique(
-            dropna=True
-        )
-    )
-
-
-    if group_count < 2:
-
-        raise (
-            ClassicalMLInputError(
-                (
-                    "Group holdout requires at "
-                    "least two distinct entity groups."
-                )
-            )
-        )
-
-
-    if (
-        group_count
-        >=
-        len(
-            group_values
-        )
-    ):
-
-        raise (
-            ClassicalMLInputError(
-                (
-                    "A unique row identifier cannot "
-                    "be used as the entity holdout "
-                    "group."
-                )
-            )
-        )
-
-
-    return group_values
 
 
 def _validated_time_values(
@@ -1462,240 +815,28 @@ def _validated_time_values(
     contract: MLTrainingContract,
 ) -> pd.Series:
 
-    split = (
-        contract.split
-    )
-
-
-    if not isinstance(
-        split,
-        (
-            MLTimeHoldoutSplitContract,
-            MLPurgedGroupTimeHoldoutSplitContract,
-        ),
-    ):
-
-        raise (
-            ClassicalMLInputError(
-                (
-                    "Time validation requires a "
-                    "time-aware holdout split contract."
-                )
+    try:
+        return (
+            validated_time_values(
+                dataframe=dataframe,
+                x=x,
+                y=y,
+                contract=contract,
             )
         )
 
+    except (
+        MLSplitInputError,
+        MLSplitInvariantError,
+    ) as error:
 
-    if dataframe is None:
-
-        raise (
-            ClassicalMLInputError(
-                (
-                    "time_holdout requires the "
-                    "server-owned source dataframe."
-                )
-            )
+        _raise_classical_split_error(
+            error
         )
 
-
-    if (
-        len(
-            dataframe
+        raise AssertionError(
+            "unreachable"
         )
-        !=
-        len(
-            x
-        )
-        or
-        len(
-            x
-        )
-        !=
-        len(
-            y
-        )
-        or
-        not dataframe.index.equals(
-            x.index
-        )
-        or
-        not x.index.equals(
-            y.index
-        )
-    ):
-
-        raise (
-            ClassicalMLInputError(
-                (
-                    "Time-aware split input "
-                    "alignment is invalid."
-                )
-            )
-        )
-
-
-    time_column = (
-        split.time_column
-    )
-
-
-    if (
-        time_column
-        not in
-        dataframe.columns
-    ):
-
-        raise (
-            ClassicalMLInputError(
-                (
-                    "Time holdout column is "
-                    "missing from the validated "
-                    "dataset. "
-                    f"time_column={time_column}"
-                )
-            )
-        )
-
-
-    time_values = (
-        dataframe.loc[
-            :,
-            time_column,
-        ]
-    )
-
-
-    if not isinstance(
-        time_values,
-        pd.Series,
-    ):
-
-        raise (
-            ClassicalMLInputError(
-                (
-                    "Time holdout column must "
-                    "resolve to exactly one Series."
-                )
-            )
-        )
-
-
-    time_values = (
-        time_values.copy(
-            deep=True
-        )
-    )
-
-
-    if bool(
-        time_values
-        .isna()
-        .any()
-    ):
-
-        raise (
-            ClassicalMLInputError(
-                (
-                    "Time holdout column contains "
-                    "missing values. "
-                    f"time_column={time_column}"
-                )
-            )
-        )
-
-
-    if not (
-        pd.api.types
-        .is_datetime64_any_dtype(
-            time_values.dtype
-        )
-    ):
-
-        raise (
-            ClassicalMLInputError(
-                (
-                    "Time holdout requires a "
-                    "validated pandas datetime "
-                    "column. Model Lab does not "
-                    "implicitly parse string dates. "
-                    f"time_column={time_column}, "
-                    f"dtype={time_values.dtype}"
-                )
-            )
-        )
-
-
-    semantics = (
-        infer_analytical_type(
-            time_column,
-            time_values,
-        )
-    )
-
-
-    analytical_type = str(
-        semantics.get(
-            "type"
-        )
-        or
-        ""
-    ).strip()
-
-
-    analytical_subtype = str(
-        semantics.get(
-            "subtype"
-        )
-        or
-        ""
-    ).strip()
-
-
-    if (
-        analytical_type
-        !=
-        "temporal"
-        or
-        analytical_subtype
-        !=
-        "datetime"
-    ):
-
-        raise (
-            ClassicalMLInputError(
-                (
-                    "Time holdout requires "
-                    "observation-time datetime "
-                    "semantics. "
-                    f"time_column={time_column}, "
-                    f"analytical_type={analytical_type}, "
-                    "analytical_subtype="
-                    f"{analytical_subtype}"
-                )
-            )
-        )
-
-
-    distinct_timestamps = int(
-        time_values
-        .nunique(
-            dropna=True
-        )
-    )
-
-
-    if distinct_timestamps < 2:
-
-        raise (
-            ClassicalMLInputError(
-                (
-                    "Time holdout requires at "
-                    "least two distinct timestamps."
-                )
-            )
-        )
-
-
-    return time_values
 
 
 def _chronological_holdout_positions(
@@ -1706,152 +847,27 @@ def _chronological_holdout_positions(
     np.ndarray,
     np.ndarray,
 ]:
-    """
-    Resolve the deterministic chronological OUTER boundary.
 
-    Equal timestamps are never split across TRAIN and TEST.
-
-    time_holdout and purged_group_time_holdout deliberately
-    reuse this exact authority.
-    """
-
-    row_count = int(
-        len(
-            time_values
-        )
-    )
-
-
-    desired_test_rows = max(
-        2,
-        int(
-            math.ceil(
-                row_count
-                *
-                test_size
-            )
-        ),
-    )
-
-
-    initial_cut_position = (
-        row_count
-        -
-        desired_test_rows
-    )
-
-
-    if initial_cut_position < 2:
-
-        raise (
-            ClassicalMLInputError(
-                (
-                    "Time holdout cannot preserve "
-                    "at least two training rows "
-                    "with the configured test_size."
-                )
+    try:
+        return (
+            chronological_holdout_positions(
+                time_values=time_values,
+                test_size=test_size,
             )
         )
 
+    except (
+        MLSplitInputError,
+        MLSplitInvariantError,
+    ) as error:
 
-    ordered_positions = (
-        np.argsort(
-            time_values.to_numpy(),
-            kind="stable",
-        )
-    )
-
-
-    ordered_times = (
-        time_values.iloc[
-            ordered_positions
-        ]
-        .reset_index(
-            drop=True
-        )
-    )
-
-
-    cut_position = (
-        initial_cut_position
-    )
-
-
-    boundary_timestamp = (
-        ordered_times.iloc[
-            cut_position
-        ]
-    )
-
-
-    while (
-        cut_position
-        >
-        0
-        and
-        ordered_times.iloc[
-            cut_position
-            -
-            1
-        ]
-        ==
-        boundary_timestamp
-    ):
-
-        cut_position -= 1
-
-
-    if cut_position < 2:
-
-        raise (
-            ClassicalMLInputError(
-                (
-                    "Time holdout timestamp "
-                    "boundary would leave fewer "
-                    "than two training rows. "
-                    "Equal timestamps are never "
-                    "split across train and test."
-                )
-            )
+        _raise_classical_split_error(
+            error
         )
 
-
-    train_positions = (
-        ordered_positions[
-            :cut_position
-        ]
-    )
-
-
-    test_positions = (
-        ordered_positions[
-            cut_position:
-        ]
-    )
-
-
-    if (
-        len(
-            test_positions
+        raise AssertionError(
+            "unreachable"
         )
-        <
-        2
-    ):
-
-        raise (
-            ClassicalMLInputError(
-                (
-                    "Time holdout produced "
-                    "fewer than two test rows."
-                )
-            )
-        )
-
-
-    return (
-        train_positions,
-        test_positions,
-    )
 
 
 def _split_dataset(
@@ -1862,980 +878,34 @@ def _split_dataset(
     dataframe: pd.DataFrame | None = None,
     return_group_partitions: bool = False,
     return_time_partitions: bool = False,
-) -> (
-    tuple[
-        pd.DataFrame,
-        pd.DataFrame,
-        pd.Series,
-        pd.Series,
-    ]
-    |
-    tuple[
-        pd.DataFrame,
-        pd.DataFrame,
-        pd.Series,
-        pd.Series,
-        pd.Series | None,
-        pd.Series | None,
-    ]
-    |
-    tuple[
-        pd.DataFrame,
-        pd.DataFrame,
-        pd.Series,
-        pd.Series,
-        pd.Series | None,
-        pd.Series | None,
-        pd.Series | None,
-        pd.Series | None,
-    ]
 ):
 
-    split = (
-        contract.split
-    )
-
-
-    train_groups: pd.Series | None = None
-
-    test_groups: pd.Series | None = None
-
-
-    train_times: pd.Series | None = None
-
-    test_times: pd.Series | None = None
-
-
-    if (
-        return_group_partitions
-        and
-        return_time_partitions
-        and
-        not isinstance(
-            split,
-            MLPurgedGroupTimeHoldoutSplitContract,
-        )
-    ):
-
-        raise (
-            ClassicalMLInputError(
-                (
-                    "Group and time split metadata "
-                    "cannot be requested together "
-                    "outside purged_group_time_holdout."
-                )
-            )
-        )
-
-
-    # ========================================================
-    # PURGED GROUP + TEMPORAL HOLDOUT
-    #
-    # 1. Create future TEST from the chronological boundary.
-    # 2. Identify every entity present in future TEST.
-    # 3. Purge historical observations belonging to those
-    #    entities from TRAIN.
-    #
-    # TEST remains unchanged.
-    # ========================================================
-
-
-    if isinstance(
-        split,
-        MLPurgedGroupTimeHoldoutSplitContract,
-    ):
-
-        groups = (
-            _validated_group_values(
-                dataframe=
-                    dataframe,
-
-                x=
-                    x,
-
-                y=
-                    y,
-
-                contract=
-                    contract,
-            )
-        )
-
-
-        time_values = (
-            _validated_time_values(
-                dataframe=
-                    dataframe,
-
-                x=
-                    x,
-
-                y=
-                    y,
-
-                contract=
-                    contract,
-            )
-        )
-
-
-        (
-            candidate_train_positions,
-            test_positions,
-        ) = (
-            _chronological_holdout_positions(
-                time_values=
-                    time_values,
-
-                test_size=
-                    split.test_size,
-            )
-        )
-
-
-        candidate_train_groups = (
-            groups.iloc[
-                candidate_train_positions
-            ]
-            .copy(
-                deep=True
-            )
-        )
-
-
-        test_groups = (
-            groups.iloc[
-                test_positions
-            ]
-            .copy(
-                deep=True
-            )
-        )
-
-
-        test_group_values = set(
-            test_groups.tolist()
-        )
-
-
-        if not test_group_values:
-
-            raise (
-                ClassicalMLInputError(
-                    (
-                        "Purged group + temporal "
-                        "holdout produced no future "
-                        "test entity groups."
-                    )
-                )
-            )
-
-
-        keep_train_mask = (
-            ~candidate_train_groups
-            .isin(
-                test_group_values
-            )
-        ).to_numpy(
-            dtype=bool
-        )
-
-
-        train_positions = (
-            candidate_train_positions[
-                keep_train_mask
-            ]
-        )
-
-
-        if (
-            len(
-                train_positions
-            )
-            <
-            2
-        ):
-
-            raise (
-                ClassicalMLInputError(
-                    (
-                        "Purging future-test entity "
-                        "groups from the historical "
-                        "training candidate left fewer "
-                        "than two training rows."
-                    )
-                )
-            )
-
-
-        x_train = (
-            x.iloc[
-                train_positions
-            ]
-            .copy(
-                deep=True
-            )
-        )
-
-
-        x_test = (
-            x.iloc[
-                test_positions
-            ]
-            .copy(
-                deep=True
-            )
-        )
-
-
-        y_train = (
-            y.iloc[
-                train_positions
-            ]
-            .copy(
-                deep=True
-            )
-        )
-
-
-        y_test = (
-            y.iloc[
-                test_positions
-            ]
-            .copy(
-                deep=True
-            )
-        )
-
-
-        train_groups = (
-            groups.iloc[
-                train_positions
-            ]
-            .copy(
-                deep=True
-            )
-        )
-
-
-        test_groups = (
-            groups.iloc[
-                test_positions
-            ]
-            .copy(
-                deep=True
-            )
-        )
-
-
-        train_times = (
-            time_values.iloc[
-                train_positions
-            ]
-            .copy(
-                deep=True
-            )
-        )
-
-
-        test_times = (
-            time_values.iloc[
-                test_positions
-            ]
-            .copy(
-                deep=True
-            )
-        )
-
-
-        train_group_values = set(
-            train_groups.tolist()
-        )
-
-
-        test_group_values = set(
-            test_groups.tolist()
-        )
-
-
-        if not train_group_values:
-
-            raise (
-                ClassicalMLInputError(
-                    (
-                        "Purged group + temporal "
-                        "holdout produced no training "
-                        "entity groups."
-                    )
-                )
-            )
-
-
-        if (
-            train_group_values
-            &
-            test_group_values
-        ):
-
-            raise (
-                ClassicalMLExecutorError(
-                    (
-                        "Purged group + temporal "
-                        "holdout produced overlapping "
-                        "train/test entity groups."
-                    )
-                )
-            )
-
-
-        if not (
-            train_times.max()
-            <
-            test_times.min()
-        ):
-
-            raise (
-                ClassicalMLExecutorError(
-                    (
-                        "Purged group + temporal "
-                        "holdout violated the strict "
-                        "chronological boundary."
-                    )
-                )
-            )
-
-
-        if (
-            set(
-                train_times.tolist()
-            )
-            &
-            set(
-                test_times.tolist()
-            )
-        ):
-
-            raise (
-                ClassicalMLExecutorError(
-                    (
-                        "Purged group + temporal "
-                        "holdout produced overlapping "
-                        "train/test timestamps."
-                    )
-                )
-            )
-
-
-    # ========================================================
-    # ENTITY-AWARE HOLDOUT
-    # ========================================================
-
-
-    elif isinstance(
-        split,
-        MLGroupHoldoutSplitContract,
-    ):
-
-        groups = (
-            _validated_group_values(
-                dataframe=
-                    dataframe,
-
-                x=
-                    x,
-
-                y=
-                    y,
-
-                contract=
-                    contract,
-            )
-        )
-
-
-        splitter = (
-            GroupShuffleSplit(
-                n_splits=
-                    1,
-
-                test_size=
-                    split.test_size,
-
-                random_state=
-                    split.random_seed,
-            )
-        )
-
-
-        try:
-
-            (
-                train_indices,
-                test_indices,
-            ) = next(
-                splitter.split(
-                    x,
-                    y,
-                    groups=
-                        groups,
-                )
-            )
-
-
-        except ValueError as error:
-
-            raise (
-                ClassicalMLInputError(
-                    (
-                        "Deterministic entity-aware "
-                        "train/test split could not "
-                        "be created from the ML "
-                        "Training Contract."
-                    )
-                )
-            ) from error
-
-
-        x_train = (
-            x.iloc[
-                train_indices
-            ]
-            .copy(
-                deep=True
-            )
-        )
-
-
-        x_test = (
-            x.iloc[
-                test_indices
-            ]
-            .copy(
-                deep=True
-            )
-        )
-
-
-        y_train = (
-            y.iloc[
-                train_indices
-            ]
-            .copy(
-                deep=True
-            )
-        )
-
-
-        y_test = (
-            y.iloc[
-                test_indices
-            ]
-            .copy(
-                deep=True
-            )
-        )
-
-
-        train_groups = (
-            groups.iloc[
-                train_indices
-            ]
-        )
-
-
-        test_groups = (
-            groups.iloc[
-                test_indices
-            ]
-        )
-
-
-        train_group_values = set(
-            train_groups.tolist()
-        )
-
-
-        test_group_values = set(
-            test_groups.tolist()
-        )
-
-
-        if not train_group_values:
-
-            raise (
-                ClassicalMLInputError(
-                    (
-                        "Entity-aware split produced "
-                        "no training entity groups."
-                    )
-                )
-            )
-
-
-        if not test_group_values:
-
-            raise (
-                ClassicalMLInputError(
-                    (
-                        "Entity-aware split produced "
-                        "no test entity groups."
-                    )
-                )
-            )
-
-
-        overlap = (
-            train_group_values
-            &
-            test_group_values
-        )
-
-
-        if overlap:
-
-            raise (
-                ClassicalMLExecutorError(
-                    (
-                        "Entity-aware split produced "
-                        "overlapping train/test groups."
-                    )
-                )
-            )
-
-
-    # ========================================================
-    # TEMPORAL HOLDOUT
-    # ========================================================
-
-
-    elif isinstance(
-        split,
-        MLTimeHoldoutSplitContract,
-    ):
-
-        time_values = (
-            _validated_time_values(
-                dataframe=
-                    dataframe,
-
-                x=
-                    x,
-
-                y=
-                    y,
-
-                contract=
-                    contract,
-            )
-        )
-
-
-        (
-            train_positions,
-            test_positions,
-        ) = (
-            _chronological_holdout_positions(
-                time_values=
-                    time_values,
-
-                test_size=
-                    split.test_size,
-            )
-        )
-
-
-        x_train = (
-            x.iloc[
-                train_positions
-            ]
-            .copy(
-                deep=True
-            )
-        )
-
-
-        x_test = (
-            x.iloc[
-                test_positions
-            ]
-            .copy(
-                deep=True
-            )
-        )
-
-
-        y_train = (
-            y.iloc[
-                train_positions
-            ]
-            .copy(
-                deep=True
-            )
-        )
-
-
-        y_test = (
-            y.iloc[
-                test_positions
-            ]
-            .copy(
-                deep=True
-            )
-        )
-
-
-        train_times = (
-            time_values.iloc[
-                train_positions
-            ]
-            .copy(
-                deep=True
-            )
-        )
-
-
-        test_times = (
-            time_values.iloc[
-                test_positions
-            ]
-            .copy(
-                deep=True
-            )
-        )
-
-
-        train_max_time = (
-            train_times.max()
-        )
-
-
-        test_min_time = (
-            test_times.min()
-        )
-
-
-        if not (
-            train_max_time
-            <
-            test_min_time
-        ):
-
-            raise (
-                ClassicalMLExecutorError(
-                    (
-                        "Time holdout violated the "
-                        "strict chronological boundary. "
-                        "Every training timestamp must "
-                        "be earlier than every test "
-                        "timestamp."
-                    )
-                )
-            )
-
-
-        timestamp_overlap = (
-            set(
-                train_times.tolist()
-            )
-            &
-            set(
-                test_times.tolist()
-            )
-        )
-
-
-        if timestamp_overlap:
-
-            raise (
-                ClassicalMLExecutorError(
-                    (
-                        "Time holdout produced "
-                        "overlapping timestamps across "
-                        "train and test."
-                    )
-                )
-            )
-
-
-    # ========================================================
-    # HISTORICAL ROW HOLDOUT
-    # ========================================================
-
-
-    elif isinstance(
-        split,
-        MLSplitContract,
-    ):
-
-        if (
-            split.stratify
-            and
-            not split.shuffle
-        ):
-
-            raise (
-                ClassicalMLInputError(
-                    (
-                        "stratify=True requires "
-                        "shuffle=True for the "
-                        "Classical ML holdout split."
-                    )
-                )
-            )
-
-
-        stratify_values = (
-            y
-
-            if (
-                contract.problem_type
-                ==
-                "classification"
-                and
-                split.stratify
-            )
-
-            else None
-        )
-
-
-        random_state = (
-            split.random_seed
-
-            if split.shuffle
-
-            else None
-        )
-
-
-        try:
-
-            (
-                x_train,
-                x_test,
-                y_train,
-                y_test,
-            ) = (
-                train_test_split(
-                    x,
-                    y,
-
-                    test_size=
-                        split.test_size,
-
-                    random_state=
-                        random_state,
-
-                    shuffle=
-                        split.shuffle,
-
-                    stratify=
-                        stratify_values,
-                )
-            )
-
-
-        except ValueError as error:
-
-            raise (
-                ClassicalMLInputError(
-                    (
-                        "Deterministic train/test "
-                        "split could not be created "
-                        "from the ML Training Contract."
-                    )
-                )
-            ) from error
-
-
-    else:
-
-        raise (
-            ClassicalMLInputError(
-                "Unsupported ML split contract."
-            )
-        )
-
-
-    # ========================================================
-    # COMMON HOLDOUT INVARIANTS
-    # ========================================================
-
-
-    if (
-        len(
-            x_train
-        )
-        <
-        2
-        or
-        len(
-            x_test
-        )
-        <
-        2
-    ):
-
-        raise (
-            ClassicalMLInputError(
-                (
-                    "Classical ML v0.1 requires "
-                    "at least two training rows "
-                    "and two test rows after "
-                    "the holdout split."
-                )
-            )
-        )
-
-
-    if (
-        contract.problem_type
-        ==
-        "classification"
-        and
-        int(
-            y_train.nunique(
-                dropna=False
-            )
-        )
-        <
-        2
-    ):
-
-        raise (
-            ClassicalMLInputError(
-                (
-                    "Classification training split "
-                    "contains fewer than two "
-                    "classes."
-                )
-            )
-        )
-
-
-    if (
-        return_group_partitions
-        and
-        return_time_partitions
-    ):
-
-        if (
-            train_groups
-            is None
-            or
-            test_groups
-            is None
-            or
-            train_times
-            is None
-            or
-            test_times
-            is None
-        ):
-
-            raise (
-                ClassicalMLInputError(
-                    (
-                        "Combined split metadata was "
-                        "requested but the validated "
-                        "group/time partitions are "
-                        "incomplete."
-                    )
-                )
-            )
-
-
+    try:
         return (
-            x_train,
-            x_test,
-            y_train,
-            y_test,
-            train_groups.copy(
-                deep=True
-            ),
-            test_groups.copy(
-                deep=True
-            ),
-            train_times.copy(
-                deep=True
-            ),
-            test_times.copy(
-                deep=True
-            ),
-        )
-
-
-    if return_time_partitions:
-
-        if (
-            train_times
-            is None
-            or
-            test_times
-            is None
-        ):
-
-            raise (
-                ClassicalMLInputError(
-                    (
-                        "Temporal split metadata was "
-                        "requested for a non-temporal "
-                        "holdout."
-                    )
-                )
+            split_ml_dataset(
+                x=x,
+                y=y,
+                contract=contract,
+                dataframe=dataframe,
+                return_group_partitions=
+                    return_group_partitions,
+                return_time_partitions=
+                    return_time_partitions,
             )
-
-
-        return (
-            x_train,
-            x_test,
-            y_train,
-            y_test,
-            train_times.copy(
-                deep=True
-            ),
-            test_times.copy(
-                deep=True
-            ),
         )
 
+    except (
+        MLSplitInputError,
+        MLSplitInvariantError,
+    ) as error:
 
-    if return_group_partitions:
-
-        return (
-            x_train,
-            x_test,
-            y_train,
-            y_test,
-            (
-                train_groups.copy(
-                    deep=True
-                )
-
-                if train_groups
-                is not None
-
-                else None
-            ),
-            (
-                test_groups.copy(
-                    deep=True
-                )
-
-                if test_groups
-                is not None
-
-                else None
-            ),
+        _raise_classical_split_error(
+            error
         )
 
-
-    return (
-        x_train,
-        x_test,
-        y_train,
-        y_test,
-    )
+        raise AssertionError(
+            "unreachable"
+        )
 
 
 # ============================================================
