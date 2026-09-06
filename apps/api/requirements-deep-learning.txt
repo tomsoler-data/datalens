@@ -1,0 +1,31 @@
+# DataLens Deep Learning Lab
+#
+# Dedicated environment for general PyTorch deep learning.
+#
+# Scope:
+# - tensor foundations
+# - Dataset / DataLoader
+# - neural network modules
+# - tabular MLP
+# - autoencoders
+# - recurrent neural networks
+#
+# Keep this dependency surface separate from:
+# - requirements.txt
+# - requirements-adaptation.txt
+#
+# Validated local environment:
+# - Windows 11
+# - Python 3.13.12
+# - NVIDIA GeForce RTX 4060
+# - CUDA 12.8
+# - compute capability 8.9
+
+--extra-index-url https://download.pytorch.org/whl/cu128
+
+torch==2.11.0+cu128
+
+numpy==2.5.2
+pandas==3.0.5
+scikit-learn==1.9.0
+scipy==1.18.0
