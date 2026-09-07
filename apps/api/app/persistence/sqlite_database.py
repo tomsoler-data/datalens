@@ -36,7 +36,7 @@ SQLITE_DATABASE_RULE_VERSION = (
 )
 
 SQLITE_SCHEMA_VERSION = (
-    14
+    15
 )
 
 DATALENS_SQLITE_PATH_ENV = (
@@ -2566,6 +2566,348 @@ def _apply_schema_migrations(
                         "SQLite foreign-key enforcement "
                         "was not restored after the "
                         "v14 Model Artifact migration."
+                    )
+                )
+
+
+        # ====================================================
+        # SQLITE_SCHEMA_V15_ML_MODEL_ARTIFACT_ANOMALY
+        # ML_MODEL_ARTIFACT_ANOMALY_V0_1
+        # ====================================================
+
+
+        if (
+            current_version
+            <
+            15
+        ):
+
+            connection.execute(
+                "PRAGMA foreign_keys = OFF"
+            )
+
+
+            try:
+
+                connection.execute(
+                    "BEGIN IMMEDIATE"
+                )
+
+
+                connection.execute(
+                    """
+                    CREATE TABLE
+                    ml_model_artifacts_v15 (
+                        store_root TEXT NOT NULL,
+
+                        model_id TEXT NOT NULL,
+
+                        workflow_id TEXT NOT NULL,
+
+                        dataset_id TEXT NOT NULL,
+
+                        problem_type TEXT NOT NULL
+                            CHECK (
+                                problem_type
+                                IN (
+                                    'regression',
+                                    'classification',
+                                    'anomaly_detection'
+                                )
+                            ),
+
+                        target_column TEXT,
+
+                        estimator_key TEXT NOT NULL,
+
+                        training_contract_json TEXT NOT NULL,
+
+                        metrics_json TEXT NOT NULL,
+
+                        train_rows INTEGER NOT NULL
+                            CHECK (
+                                train_rows > 0
+                            ),
+
+                        test_rows INTEGER NOT NULL
+                            CHECK (
+                                test_rows > 0
+                            ),
+
+                        created_at_utc TEXT NOT NULL,
+
+                        serialization_format TEXT NOT NULL
+                            CHECK (
+                                serialization_format
+                                IN (
+                                    'joblib',
+                                    'pytorch_bundle'
+                                )
+                            ),
+
+                        rule_version TEXT NOT NULL,
+
+                        model_path TEXT NOT NULL,
+
+                        model_file_bytes INTEGER NOT NULL
+                            CHECK (
+                                model_file_bytes > 0
+                            ),
+
+                        model_sha256 TEXT NOT NULL
+                            CHECK (
+                                length(
+                                    model_sha256
+                                )
+                                =
+                                64
+                            ),
+
+                        experiment_id TEXT,
+
+                        experiment_provenance_json TEXT,
+
+                        CHECK (
+                            (
+                                problem_type
+                                IN (
+                                    'regression',
+                                    'classification'
+                                )
+                                AND
+                                target_column IS NOT NULL
+                                AND
+                                length(
+                                    trim(
+                                        target_column
+                                    )
+                                ) > 0
+                            )
+                            OR
+                            (
+                                problem_type
+                                =
+                                'anomaly_detection'
+                                AND
+                                target_column IS NULL
+                            )
+                        ),
+
+                        PRIMARY KEY (
+                            store_root,
+                            model_id
+                        )
+                    )
+                    """
+                )
+
+
+                connection.execute(
+                    """
+                    INSERT INTO
+                    ml_model_artifacts_v15 (
+                        store_root,
+                        model_id,
+                        workflow_id,
+                        dataset_id,
+                        problem_type,
+                        target_column,
+                        estimator_key,
+                        training_contract_json,
+                        metrics_json,
+                        train_rows,
+                        test_rows,
+                        created_at_utc,
+                        serialization_format,
+                        rule_version,
+                        model_path,
+                        model_file_bytes,
+                        model_sha256,
+                        experiment_id,
+                        experiment_provenance_json
+                    )
+
+                    SELECT
+                        store_root,
+                        model_id,
+                        workflow_id,
+                        dataset_id,
+                        problem_type,
+                        target_column,
+                        estimator_key,
+                        training_contract_json,
+                        metrics_json,
+                        train_rows,
+                        test_rows,
+                        created_at_utc,
+                        serialization_format,
+                        rule_version,
+                        model_path,
+                        model_file_bytes,
+                        model_sha256,
+                        experiment_id,
+                        experiment_provenance_json
+
+                    FROM
+                        ml_model_artifacts
+                    """
+                )
+
+
+                old_count = int(
+                    connection.execute(
+                        """
+                        SELECT COUNT(*)
+                        FROM ml_model_artifacts
+                        """
+                    ).fetchone()[0]
+                )
+
+                new_count = int(
+                    connection.execute(
+                        """
+                        SELECT COUNT(*)
+                        FROM ml_model_artifacts_v15
+                        """
+                    ).fetchone()[0]
+                )
+
+                if old_count != new_count:
+                    raise RuntimeError(
+                        (
+                            "SQLite v15 Model Artifact "
+                            "migration row-count mismatch. "
+                            f"old={old_count}, "
+                            f"new={new_count}"
+                        )
+                    )
+
+
+                connection.execute(
+                    """
+                    DROP TABLE
+                    ml_model_artifacts
+                    """
+                )
+
+                connection.execute(
+                    """
+                    ALTER TABLE
+                        ml_model_artifacts_v15
+                    RENAME TO
+                        ml_model_artifacts
+                    """
+                )
+
+
+                connection.execute(
+                    """
+                    CREATE INDEX
+                    idx_ml_model_artifacts_scope_workflow
+                    ON ml_model_artifacts (
+                        store_root,
+                        workflow_id,
+                        created_at_utc,
+                        model_id
+                    )
+                    """
+                )
+
+                connection.execute(
+                    """
+                    CREATE INDEX
+                    idx_ml_model_artifacts_scope_dataset
+                    ON ml_model_artifacts (
+                        store_root,
+                        workflow_id,
+                        dataset_id,
+                        created_at_utc,
+                        model_id
+                    )
+                    """
+                )
+
+                connection.execute(
+                    """
+                    CREATE UNIQUE INDEX
+                    idx_ml_model_artifacts_scope_experiment
+                    ON ml_model_artifacts (
+                        store_root,
+                        experiment_id
+                    )
+                    WHERE
+                        experiment_id IS NOT NULL
+                    """
+                )
+
+
+                violations = (
+                    connection.execute(
+                        "PRAGMA foreign_key_check"
+                    )
+                    .fetchall()
+                )
+
+                if violations:
+                    raise RuntimeError(
+                        (
+                            "SQLite v15 Model Artifact "
+                            "migration produced foreign-key "
+                            "violations."
+                        )
+                    )
+
+
+                connection.execute(
+                    """
+                    INSERT INTO schema_migrations (
+                        version,
+                        name,
+                        applied_at
+                    )
+                    VALUES (?, ?, ?)
+                    """,
+                    (
+                        15,
+                        "ml_model_artifact_anomaly_detection",
+                        utc_now_iso(),
+                    ),
+                )
+
+
+                connection.execute(
+                    "COMMIT"
+                )
+
+
+            except Exception:
+
+                if connection.in_transaction:
+                    connection.execute(
+                        "ROLLBACK"
+                    )
+
+                raise
+
+
+            finally:
+
+                connection.execute(
+                    "PRAGMA foreign_keys = ON"
+                )
+
+
+            foreign_keys_enabled = int(
+                connection.execute(
+                    "PRAGMA foreign_keys"
+                ).fetchone()[0]
+            )
+
+            if foreign_keys_enabled != 1:
+                raise RuntimeError(
+                    (
+                        "SQLite v15 migration did not "
+                        "restore foreign-key enforcement."
                     )
                 )
 

@@ -249,7 +249,11 @@ def validate_ml_model_artifact_index_entry(
             record.training_contract.problem_type,
 
         "target_column":
-            record.training_contract.target_column,
+            getattr(
+                record.training_contract,
+                "target_column",
+                None,
+            ),
 
         "estimator_key":
             record.training_contract.estimator_key,
@@ -487,16 +491,28 @@ def _row_to_entry(
         )
 
 
-    if (
-        validated[
-            "target_column"
-        ]
-        !=
+    stored_target_column = (
         str(
             row[
                 "target_column"
             ]
         )
+
+        if row[
+            "target_column"
+        ]
+        is not None
+
+        else None
+    )
+
+
+    if (
+        validated[
+            "target_column"
+        ]
+        !=
+        stored_target_column
     ):
         raise (
             MLModelArtifactIndexError(

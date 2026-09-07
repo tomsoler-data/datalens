@@ -462,11 +462,11 @@ def build_legacy_v13_database(
 
 
 # ============================================================
-# V13 -> V14 REAL MIGRATION
+# V13 -> CURRENT / V14 MULTI-FORMAT PRESERVATION
 # ============================================================
 
 
-def test_real_v13_to_v14_migration(
+def test_real_v13_to_current_migration_preserves_v14_multiformat(
 ) -> None:
 
     with isolated_environment() as (
@@ -483,7 +483,7 @@ def test_real_v13_to_v14_migration(
         assert (
             sqlite_schema_version()
             ==
-            14
+            15
         )
 
 
@@ -1145,7 +1145,7 @@ def test_schema_version(
     assert (
         SQLITE_SCHEMA_VERSION
         ==
-        14
+        15
     )
 
 
@@ -1164,10 +1164,10 @@ def main(
     print()
 
 
-    test_real_v13_to_v14_migration()
+    test_real_v13_to_current_migration_preserves_v14_multiformat()
 
     print(
-        "Real v13 -> v14 migration: PASS"
+        "Real v13 -> current migration preserves v14 multi-format: PASS"
     )
 
 
@@ -1195,7 +1195,7 @@ def main(
     test_schema_version()
 
     print(
-        "SQLite schema version 14: PASS"
+        "SQLite current schema version 15: PASS"
     )
 
 

@@ -25,13 +25,14 @@ from uuid import (
 )
 
 
-from app.ml.contracts import (
-    MLTrainingContract,
+from app.ml.model_training_contracts import (
+    MLModelTrainingContract,
+    validate_ml_model_training_contract,
 )
 
 
 from app.ml.experiment_provenance import (
-    build_ml_experiment_provenance,
+    build_ml_model_experiment_provenance,
 )
 
 
@@ -248,7 +249,7 @@ def _new_server_model_id(
 
 def _assert_preparation_authority(
     *,
-    contract: MLTrainingContract,
+    contract: MLModelTrainingContract,
     preparation_session_revision: (
         int
         |
@@ -507,7 +508,7 @@ def _record_from_index_entry(
 
 def register_ml_model_artifact(
     *,
-    training_contract: MLTrainingContract,
+    training_contract: MLModelTrainingContract,
     metrics: dict[
         str,
         float,
@@ -545,8 +546,7 @@ def register_ml_model_artifact(
     """
 
     contract = (
-        MLTrainingContract
-        .model_validate(
+        validate_ml_model_training_contract(
             training_contract
         )
     )
@@ -660,7 +660,7 @@ def register_ml_model_artifact(
 
 
     experiment_provenance = (
-        build_ml_experiment_provenance(
+        build_ml_model_experiment_provenance(
             training_contract=
                 contract,
 

@@ -30,6 +30,12 @@ from app.ml.contracts import (
 )
 
 
+from app.ml.model_training_contracts import (
+    MLModelTrainingContract,
+    validate_ml_model_training_contract,
+)
+
+
 # ============================================================
 # VERSION
 # ============================================================
@@ -172,6 +178,83 @@ def _normalized_metrics(
 
 
     return normalized
+
+
+# ============================================================
+# MODEL CONTRACT FAMILY CANONICALIZATION
+# ============================================================
+
+
+def canonical_ml_model_training_contract_json(
+    training_contract: MLModelTrainingContract,
+) -> str:
+    """
+    Produce deterministic canonical JSON for any supported
+    Model Lab training-contract family.
+
+    This generic authority does not replace the historical
+    supervised-only API below.
+    """
+
+    contract = (
+        validate_ml_model_training_contract(
+            training_contract
+        )
+    )
+
+
+    payload = (
+        contract.model_dump(
+            mode="json"
+        )
+    )
+
+
+    try:
+
+        return json.dumps(
+            payload,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(
+                ",",
+                ":",
+            ),
+        )
+
+    except Exception as error:
+
+        raise ValueError(
+            (
+                "Model Lab training contract could "
+                "not be canonically serialized."
+            )
+        ) from error
+
+
+def ml_model_training_contract_sha256(
+    training_contract: MLModelTrainingContract,
+) -> str:
+    """
+    Return the deterministic SHA-256 fingerprint of one
+    supported Model Lab training-contract family.
+    """
+
+    canonical_json = (
+        canonical_ml_model_training_contract_json(
+            training_contract
+        )
+    )
+
+
+    return (
+        hashlib.sha256(
+            canonical_json.encode(
+                "utf-8"
+            )
+        )
+        .hexdigest()
+    )
 
 
 # ============================================================
@@ -462,6 +545,80 @@ class MLExperimentProvenanceRecord(
                 value
             )
         )
+
+
+# ============================================================
+# MODEL CONTRACT FAMILY PROVENANCE BUILDER
+# ============================================================
+
+
+def build_ml_model_experiment_provenance(
+    *,
+    training_contract: MLModelTrainingContract,
+    preparation_session_revision: int,
+    model_id: str,
+    train_rows: int,
+    test_rows: int,
+    metrics: dict[
+        str,
+        float,
+    ],
+) -> MLExperimentProvenanceRecord:
+    """
+    Build privacy-minimal provenance for any supported Model Lab
+    training-contract family.
+
+    The existing build_ml_experiment_provenance function remains
+    supervised-only for backward compatibility.
+    """
+
+    contract = (
+        validate_ml_model_training_contract(
+            training_contract
+        )
+    )
+
+
+    return (
+        MLExperimentProvenanceRecord(
+            experiment_id=(
+                "experiment:"
+                +
+                uuid4().hex
+            ),
+
+            workflow_id=
+                contract.workflow_id,
+
+            dataset_id=
+                contract.dataset_id,
+
+            preparation_session_revision=
+                preparation_session_revision,
+
+            training_contract_sha256=(
+                ml_model_training_contract_sha256(
+                    contract
+                )
+            ),
+
+            model_id=
+                model_id,
+
+            train_rows=
+                train_rows,
+
+            test_rows=
+                test_rows,
+
+            metrics=
+                metrics,
+
+            rule_version=(
+                ML_EXPERIMENT_PROVENANCE_RULE_VERSION
+            ),
+        )
+    )
 
 
 # ============================================================
