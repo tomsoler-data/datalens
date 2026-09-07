@@ -9,6 +9,11 @@ from dataclasses import (
 )
 
 
+from typing import (
+    Protocol,
+)
+
+
 import numpy as np
 import pandas as pd
 
@@ -25,6 +30,7 @@ from app.ml.contracts import (
     MLSplitContract,
     MLTimeHoldoutSplitContract,
     MLTrainingContract,
+    MLTrainingSplitContract,
 )
 
 
@@ -45,6 +51,11 @@ ML_SPLITTING_RULE_VERSION = (
 
 ML_HOLDOUT_PARTITION_RULE_VERSION = (
     "ml_holdout_partition_v0.1"
+)
+
+
+ML_FEATURE_HOLDOUT_PARTITION_RULE_VERSION = (
+    "ml_feature_holdout_partition_v0.1"
 )
 
 
@@ -71,6 +82,19 @@ class MLSplitInvariantError(
     pass
 
 
+class MLHoldoutContract(
+    Protocol
+):
+    """
+    Structural contract required by shared holdout-position
+    resolution.
+
+    Both supervised and anomaly contracts provide this split
+    surface without coupling the resolver to model semantics.
+    """
+
+    split: MLTrainingSplitContract
+
 # ============================================================
 # SHARED MODEL LAB SPLIT AUTHORITY
 # ============================================================
@@ -80,8 +104,8 @@ def validated_group_values(
     *,
     dataframe: pd.DataFrame | None,
     x: pd.DataFrame,
-    y: pd.Series,
-    contract: MLTrainingContract,
+    y: pd.Series | None,
+    contract: MLHoldoutContract,
 ) -> pd.Series:
 
     split = (
@@ -119,6 +143,30 @@ def validated_group_values(
         )
 
 
+    target_alignment_invalid = (
+        y is not None
+        and
+        (
+            not isinstance(
+                y,
+                pd.Series,
+            )
+            or
+            len(
+                x
+            )
+            !=
+            len(
+                y
+            )
+            or
+            not x.index.equals(
+                y.index
+            )
+        )
+    )
+
+
     if (
         len(
             dataframe
@@ -128,21 +176,11 @@ def validated_group_values(
             x
         )
         or
-        len(
-            x
-        )
-        !=
-        len(
-            y
-        )
-        or
         not dataframe.index.equals(
             x.index
         )
         or
-        not x.index.equals(
-            y.index
-        )
+        target_alignment_invalid
     ):
 
         raise (
@@ -317,12 +355,13 @@ def validated_group_values(
     return group_values
 
 
+
 def validated_time_values(
     *,
     dataframe: pd.DataFrame | None,
     x: pd.DataFrame,
-    y: pd.Series,
-    contract: MLTrainingContract,
+    y: pd.Series | None,
+    contract: MLHoldoutContract,
 ) -> pd.Series:
 
     split = (
@@ -360,6 +399,30 @@ def validated_time_values(
         )
 
 
+    target_alignment_invalid = (
+        y is not None
+        and
+        (
+            not isinstance(
+                y,
+                pd.Series,
+            )
+            or
+            len(
+                x
+            )
+            !=
+            len(
+                y
+            )
+            or
+            not x.index.equals(
+                y.index
+            )
+        )
+    )
+
+
     if (
         len(
             dataframe
@@ -369,21 +432,11 @@ def validated_time_values(
             x
         )
         or
-        len(
-            x
-        )
-        !=
-        len(
-            y
-        )
-        or
         not dataframe.index.equals(
             x.index
         )
         or
-        not x.index.equals(
-            y.index
-        )
+        target_alignment_invalid
     ):
 
         raise (
@@ -559,6 +612,7 @@ def validated_time_values(
 
 
     return time_values
+
 
 
 def chronological_holdout_positions(
@@ -1765,25 +1819,21 @@ class MLHoldoutPartition:
         )
 
 
-def resolve_ml_holdout_partition(
+def resolve_ml_feature_holdout_partition(
     *,
     x: pd.DataFrame,
-    y: pd.Series,
-    contract: MLTrainingContract,
+    contract: MLHoldoutContract,
     dataframe: pd.DataFrame | None = None,
+    stratify_values: pd.Series | None = None,
 ) -> MLHoldoutPartition:
     """
-    Resolve the exact positional population of the shared
-    Model Lab outer holdout.
+    Resolve exact outer-holdout row positions from features
+    and server-owned split metadata.
 
-    The already-authoritative split_ml_dataset() remains the
-    single split algorithm.
+    No target is required.
 
-    This function resets temporary copies to RangeIndex before
-    delegating to that authority. Therefore the returned pandas
-    index labels are the original source row positions.
-
-    No model framework is involved here.
+    Supervised callers may explicitly provide stratify_values
+    when classification stratification is requested.
     """
 
     if not isinstance(
@@ -1797,17 +1847,6 @@ def resolve_ml_holdout_partition(
         )
 
 
-    if not isinstance(
-        y,
-        pd.Series,
-    ):
-        raise (
-            MLSplitInputError(
-                "ML holdout target must be a pandas Series."
-            )
-        )
-
-
     source_row_count = int(
         len(
             x
@@ -1815,49 +1854,8 @@ def resolve_ml_holdout_partition(
     )
 
 
-    if (
-        source_row_count
-        !=
-        len(
-            y
-        )
-    ):
-        raise (
-            MLSplitInputError(
-                (
-                    "ML holdout feature/target row counts "
-                    "must match."
-                )
-            )
-        )
-
-
-    if not x.index.equals(
-        y.index
-    ):
-        raise (
-            MLSplitInputError(
-                (
-                    "ML holdout feature/target indexes "
-                    "must be aligned before positional "
-                    "partition resolution."
-                )
-            )
-        )
-
-
     positional_x = (
         x.copy(
-            deep=True
-        )
-        .reset_index(
-            drop=True
-        )
-    )
-
-
-    positional_y = (
-        y.copy(
             deep=True
         )
         .reset_index(
@@ -1904,8 +1902,7 @@ def resolve_ml_holdout_partition(
                 MLSplitInputError(
                     (
                         "ML holdout source dataframe must "
-                        "be row-aligned with features and "
-                        "target."
+                        "be row-aligned with features."
                     )
                 )
             )
@@ -1921,85 +1918,618 @@ def resolve_ml_holdout_partition(
         )
 
 
-    split_result = (
-        split_ml_dataset(
-            x=
-                positional_x,
+    positional_stratify: (
+        pd.Series
+        |
+        None
+    ) = None
 
-            y=
-                positional_y,
 
-            contract=
-                contract,
+    if stratify_values is not None:
 
-            dataframe=
-                positional_dataframe,
+        if (
+            not isinstance(
+                stratify_values,
+                pd.Series,
+            )
+            or
+            len(
+                stratify_values
+            )
+            !=
+            source_row_count
+            or
+            not stratify_values.index.equals(
+                x.index
+            )
+        ):
+            raise (
+                MLSplitInputError(
+                    (
+                        "ML holdout stratification values "
+                        "must be row-aligned with features."
+                    )
+                )
+            )
+
+
+        positional_stratify = (
+            stratify_values.copy(
+                deep=True
+            )
+            .reset_index(
+                drop=True
+            )
         )
+
+
+    split = (
+        contract.split
     )
 
 
-    x_train = split_result[
-        0
-    ]
-
-    x_test = split_result[
-        1
-    ]
-
-    y_train = split_result[
-        2
-    ]
-
-    y_test = split_result[
-        3
-    ]
-
-
     if (
-        not x_train.index.equals(
-            y_train.index
-        )
-        or
-        not x_test.index.equals(
-            y_test.index
+        positional_stratify
+        is not None
+        and
+        not isinstance(
+            split,
+            MLSplitContract,
         )
     ):
         raise (
-            MLSplitInvariantError(
+            MLSplitInputError(
                 (
-                    "Shared holdout returned misaligned "
-                    "feature/target partitions."
+                    "Target stratification values are "
+                    "only valid for regular holdout."
                 )
             )
         )
 
 
-    train_positions = tuple(
-        int(
-            position
+    train_positions = None
+    test_positions = None
+
+
+    if isinstance(
+        split,
+        MLPurgedGroupTimeHoldoutSplitContract,
+    ):
+
+        groups = (
+            validated_group_values(
+                dataframe=
+                    positional_dataframe,
+                x=
+                    positional_x,
+                y=
+                    None,
+                contract=
+                    contract,
+            )
         )
 
-        for position
-        in x_train.index.tolist()
+
+        time_values = (
+            validated_time_values(
+                dataframe=
+                    positional_dataframe,
+                x=
+                    positional_x,
+                y=
+                    None,
+                contract=
+                    contract,
+            )
+        )
+
+
+        (
+            candidate_train_positions,
+            test_positions,
+        ) = (
+            chronological_holdout_positions(
+                time_values=
+                    time_values,
+                test_size=
+                    split.test_size,
+            )
+        )
+
+
+        candidate_train_groups = (
+            groups.iloc[
+                candidate_train_positions
+            ]
+            .copy(
+                deep=True
+            )
+        )
+
+
+        test_groups = (
+            groups.iloc[
+                test_positions
+            ]
+            .copy(
+                deep=True
+            )
+        )
+
+
+        test_group_values = set(
+            test_groups.tolist()
+        )
+
+
+        if not test_group_values:
+            raise (
+                MLSplitInputError(
+                    (
+                        "Purged group + temporal "
+                        "holdout produced no future "
+                        "test entity groups."
+                    )
+                )
+            )
+
+
+        keep_train_mask = (
+            ~candidate_train_groups
+            .isin(
+                test_group_values
+            )
+        ).to_numpy(
+            dtype=bool
+        )
+
+
+        train_positions = (
+            candidate_train_positions[
+                keep_train_mask
+            ]
+        )
+
+
+        if (
+            len(
+                train_positions
+            )
+            <
+            2
+        ):
+            raise (
+                MLSplitInputError(
+                    (
+                        "Purging future-test entity "
+                        "groups from the historical "
+                        "training candidate left fewer "
+                        "than two training rows."
+                    )
+                )
+            )
+
+
+        train_groups = (
+            groups.iloc[
+                train_positions
+            ]
+        )
+
+
+        train_times = (
+            time_values.iloc[
+                train_positions
+            ]
+        )
+
+
+        test_times = (
+            time_values.iloc[
+                test_positions
+            ]
+        )
+
+
+        if (
+            set(
+                train_groups.tolist()
+            )
+            &
+            set(
+                test_groups.tolist()
+            )
+        ):
+            raise (
+                MLSplitInvariantError(
+                    (
+                        "Purged group + temporal "
+                        "holdout produced overlapping "
+                        "train/test entity groups."
+                    )
+                )
+            )
+
+
+        if not (
+            train_times.max()
+            <
+            test_times.min()
+        ):
+            raise (
+                MLSplitInvariantError(
+                    (
+                        "Purged group + temporal "
+                        "holdout violated the strict "
+                        "chronological boundary."
+                    )
+                )
+            )
+
+
+        if (
+            set(
+                train_times.tolist()
+            )
+            &
+            set(
+                test_times.tolist()
+            )
+        ):
+            raise (
+                MLSplitInvariantError(
+                    (
+                        "Purged group + temporal "
+                        "holdout produced overlapping "
+                        "train/test timestamps."
+                    )
+                )
+            )
+
+
+    elif isinstance(
+        split,
+        MLGroupHoldoutSplitContract,
+    ):
+
+        groups = (
+            validated_group_values(
+                dataframe=
+                    positional_dataframe,
+                x=
+                    positional_x,
+                y=
+                    None,
+                contract=
+                    contract,
+            )
+        )
+
+
+        splitter = (
+            GroupShuffleSplit(
+                n_splits=
+                    1,
+                test_size=
+                    split.test_size,
+                random_state=
+                    split.random_seed,
+            )
+        )
+
+
+        try:
+            (
+                train_positions,
+                test_positions,
+            ) = next(
+                splitter.split(
+                    positional_x,
+                    groups=
+                        groups,
+                )
+            )
+
+        except ValueError as error:
+            raise (
+                MLSplitInputError(
+                    (
+                        "Deterministic entity-aware "
+                        "train/test split could not "
+                        "be created from the ML "
+                        "Training Contract."
+                    )
+                )
+            ) from error
+
+
+        train_group_values = set(
+            groups.iloc[
+                train_positions
+            ]
+            .tolist()
+        )
+
+
+        test_group_values = set(
+            groups.iloc[
+                test_positions
+            ]
+            .tolist()
+        )
+
+
+        if not train_group_values:
+            raise (
+                MLSplitInputError(
+                    (
+                        "Entity-aware split produced "
+                        "no training entity groups."
+                    )
+                )
+            )
+
+
+        if not test_group_values:
+            raise (
+                MLSplitInputError(
+                    (
+                        "Entity-aware split produced "
+                        "no test entity groups."
+                    )
+                )
+            )
+
+
+        if (
+            train_group_values
+            &
+            test_group_values
+        ):
+            raise (
+                MLSplitInvariantError(
+                    (
+                        "Entity-aware split produced "
+                        "overlapping train/test groups."
+                    )
+                )
+            )
+
+
+    elif isinstance(
+        split,
+        MLTimeHoldoutSplitContract,
+    ):
+
+        time_values = (
+            validated_time_values(
+                dataframe=
+                    positional_dataframe,
+                x=
+                    positional_x,
+                y=
+                    None,
+                contract=
+                    contract,
+            )
+        )
+
+
+        (
+            train_positions,
+            test_positions,
+        ) = (
+            chronological_holdout_positions(
+                time_values=
+                    time_values,
+                test_size=
+                    split.test_size,
+            )
+        )
+
+
+        train_times = (
+            time_values.iloc[
+                train_positions
+            ]
+        )
+
+
+        test_times = (
+            time_values.iloc[
+                test_positions
+            ]
+        )
+
+
+        if not (
+            train_times.max()
+            <
+            test_times.min()
+        ):
+            raise (
+                MLSplitInvariantError(
+                    (
+                        "Time holdout violated the "
+                        "strict chronological boundary. "
+                        "Every training timestamp must "
+                        "be earlier than every test "
+                        "timestamp."
+                    )
+                )
+            )
+
+
+        if (
+            set(
+                train_times.tolist()
+            )
+            &
+            set(
+                test_times.tolist()
+            )
+        ):
+            raise (
+                MLSplitInvariantError(
+                    (
+                        "Time holdout produced "
+                        "overlapping timestamps across "
+                        "train and test."
+                    )
+                )
+            )
+
+
+    elif isinstance(
+        split,
+        MLSplitContract,
+    ):
+
+        if (
+            split.stratify
+            and
+            not split.shuffle
+        ):
+            raise (
+                MLSplitInputError(
+                    (
+                        "stratify=True requires "
+                        "shuffle=True for the "
+                        "Classical ML holdout split."
+                    )
+                )
+            )
+
+
+        if (
+            positional_stratify
+            is not None
+            and
+            not split.stratify
+        ):
+            raise (
+                MLSplitInputError(
+                    (
+                        "Stratification values were "
+                        "provided for a non-stratified "
+                        "holdout."
+                    )
+                )
+            )
+
+
+        random_state = (
+            split.random_seed
+            if split.shuffle
+            else None
+        )
+
+
+        source_positions = (
+            np.arange(
+                source_row_count,
+                dtype=np.int64,
+            )
+        )
+
+
+        try:
+            (
+                train_positions,
+                test_positions,
+            ) = (
+                train_test_split(
+                    source_positions,
+                    test_size=
+                        split.test_size,
+                    random_state=
+                        random_state,
+                    shuffle=
+                        split.shuffle,
+                    stratify=
+                        positional_stratify,
+                )
+            )
+
+        except ValueError as error:
+            raise (
+                MLSplitInputError(
+                    (
+                        "Deterministic train/test "
+                        "split could not be created "
+                        "from the ML Training Contract."
+                    )
+                )
+            ) from error
+
+
+    else:
+        raise (
+            MLSplitInputError(
+                "Unsupported ML split contract."
+            )
+        )
+
+
+    assert (
+        train_positions
+        is not None
+    )
+
+    assert (
+        test_positions
+        is not None
     )
 
 
-    test_positions = tuple(
+    train_positions_tuple = tuple(
         int(
             position
         )
-
         for position
-        in x_test.index.tolist()
+        in train_positions
     )
+
+
+    test_positions_tuple = tuple(
+        int(
+            position
+        )
+        for position
+        in test_positions
+    )
+
+
+    if (
+        len(
+            train_positions_tuple
+        )
+        <
+        2
+        or
+        len(
+            test_positions_tuple
+        )
+        <
+        2
+    ):
+        raise (
+            MLSplitInputError(
+                (
+                    "Model Lab v0.1 requires at least "
+                    "two training rows and two test "
+                    "rows after the holdout split."
+                )
+            )
+        )
 
 
     train_set = set(
-        train_positions
+        train_positions_tuple
     )
 
     test_set = set(
-        test_positions
+        test_positions_tuple
     )
 
 
@@ -2009,7 +2539,7 @@ def resolve_ml_holdout_partition(
         )
         !=
         len(
-            train_positions
+            train_positions_tuple
         )
         or
         len(
@@ -2017,7 +2547,7 @@ def resolve_ml_holdout_partition(
         )
         !=
         len(
-            test_positions
+            test_positions_tuple
         )
     ):
         raise (
@@ -2031,14 +2561,11 @@ def resolve_ml_holdout_partition(
         )
 
 
-    overlap = (
+    if (
         train_set
         &
         test_set
-    )
-
-
-    if overlap:
+    ):
         raise (
             MLSplitInvariantError(
                 (
@@ -2088,7 +2615,7 @@ def resolve_ml_holdout_partition(
 
     if (
         not isinstance(
-            contract.split,
+            split,
             MLPurgedGroupTimeHoldoutSplitContract,
         )
         and
@@ -2109,14 +2636,153 @@ def resolve_ml_holdout_partition(
         MLHoldoutPartition(
             source_row_count=
                 source_row_count,
-
             train_positions=
-                train_positions,
-
+                train_positions_tuple,
             test_positions=
-                test_positions,
-
+                test_positions_tuple,
             purged_positions=
                 purged_positions,
         )
     )
+
+
+def resolve_ml_holdout_partition(
+    *,
+    x: pd.DataFrame,
+    y: pd.Series,
+    contract: MLTrainingContract,
+    dataframe: pd.DataFrame | None = None,
+) -> MLHoldoutPartition:
+    """
+    Supervised wrapper around the target-free positional
+    holdout authority.
+    """
+
+    if not isinstance(
+        x,
+        pd.DataFrame,
+    ):
+        raise (
+            MLSplitInputError(
+                "ML holdout features must be a pandas DataFrame."
+            )
+        )
+
+
+    if not isinstance(
+        y,
+        pd.Series,
+    ):
+        raise (
+            MLSplitInputError(
+                "ML holdout target must be a pandas Series."
+            )
+        )
+
+
+    if (
+        len(
+            x
+        )
+        !=
+        len(
+            y
+        )
+    ):
+        raise (
+            MLSplitInputError(
+                (
+                    "ML holdout feature/target row counts "
+                    "must match."
+                )
+            )
+        )
+
+
+    if not x.index.equals(
+        y.index
+    ):
+        raise (
+            MLSplitInputError(
+                (
+                    "ML holdout feature/target indexes "
+                    "must be aligned before positional "
+                    "partition resolution."
+                )
+            )
+        )
+
+
+    split = (
+        contract.split
+    )
+
+
+    stratify_values = (
+        y
+        if (
+            isinstance(
+                split,
+                MLSplitContract,
+            )
+            and
+            contract.problem_type
+            ==
+            "classification"
+            and
+            split.stratify
+        )
+        else None
+    )
+
+
+    partition = (
+        resolve_ml_feature_holdout_partition(
+            x=
+                x,
+            contract=
+                contract,
+            dataframe=
+                dataframe,
+            stratify_values=
+                stratify_values,
+        )
+    )
+
+
+    if (
+        contract.problem_type
+        ==
+        "classification"
+    ):
+
+        y_train = (
+            y.iloc[
+                list(
+                    partition.train_positions
+                )
+            ]
+        )
+
+
+        if (
+            int(
+                y_train.nunique(
+                    dropna=False
+                )
+            )
+            <
+            2
+        ):
+            raise (
+                MLSplitInputError(
+                    (
+                        "Classification training split "
+                        "contains fewer than two "
+                        "classes."
+                    )
+                )
+            )
+
+
+    return partition

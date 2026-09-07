@@ -24,8 +24,9 @@ from pydantic import (
 )
 
 
-from app.ml.contracts import (
-    MLTrainingContract,
+from app.ml.model_training_contracts import (
+    MLModelTrainingContract,
+    validate_ml_model_training_contract,
 )
 
 
@@ -37,7 +38,7 @@ from app.ml.model_artifact_formats import (
 
 from app.ml.experiment_provenance import (
     MLExperimentProvenanceRecord,
-    ml_training_contract_sha256,
+    ml_model_training_contract_sha256,
 )
 
 
@@ -180,7 +181,7 @@ class MLModelArtifactRecord(
     )
 
 
-    training_contract: MLTrainingContract
+    training_contract: MLModelTrainingContract
 
 
     experiment_provenance: (
@@ -235,6 +236,28 @@ class MLModelArtifactRecord(
     rule_version: Literal[
         "ml_model_artifact_v0.1"
     ] = ML_MODEL_ARTIFACT_RULE_VERSION
+
+
+    # ========================================================
+    # TRAINING CONTRACT FAMILY
+    # ========================================================
+
+
+    @field_validator(
+        "training_contract",
+        mode="before",
+    )
+    @classmethod
+    def validate_training_contract_family(
+        cls,
+        value: object,
+    ) -> MLModelTrainingContract:
+
+        return (
+            validate_ml_model_training_contract(
+                value
+            )
+        )
 
 
     # ========================================================
@@ -595,7 +618,7 @@ class MLModelArtifactRecord(
 
 
             expected_contract_sha256 = (
-                ml_training_contract_sha256(
+                ml_model_training_contract_sha256(
                     self.training_contract
                 )
             )
