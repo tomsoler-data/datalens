@@ -31,6 +31,10 @@ from app.preparation.analysis_readiness_gate import (
     AnalysisReadinessError,
 )
 
+from app.preparation.preparation_session import (
+    PreparationSessionNotFoundError,
+)
+
 
 # ============================================================
 # VERSION
@@ -88,6 +92,7 @@ def load_authorized_ml_dataframe(
     except (
         AnalysisInputHandoffError,
         AnalysisReadinessError,
+        PreparationSessionNotFoundError,
     ) as error:
         raise (
             MLTrainingInputError(

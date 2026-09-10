@@ -14,6 +14,7 @@ from app.api.model_training_contracts import (
     ModelTrainingColumn,
     ModelTrainingContextResponse,
     ModelTrainingDataset,
+    ModelTrainingForecastDetail,
     ModelTrainingRequest,
 )
 
@@ -23,6 +24,25 @@ from app.ml.classical_executor import (
     ClassicalMLInputError,
     ClassicalMLEstimatorError,
     execute_classical_ml,
+)
+
+
+from app.ml.time_series_model_training_contracts import (
+    MLTimeSeriesModelTrainingContract,
+)
+
+
+from app.ml.time_series_worker_bridge import (
+    MLTimeSeriesWorkerExecutionError,
+    MLTimeSeriesWorkerProtocolError,
+    MLTimeSeriesWorkerUnavailableError,
+    execute_time_series_worker,
+)
+
+
+from app.ml.time_series_worker_contracts import (
+    MLTimeSeriesWorkerRequest,
+    MLTimeSeriesWorkerResult,
 )
 
 
@@ -637,6 +657,105 @@ def get_model_training_context(
 
 
 # ============================================================
+# FORECAST RESULT PROJECTION
+# ============================================================
+
+
+def _forecast_detail_from_worker_result(
+    *,
+    training_contract: MLTimeSeriesModelTrainingContract,
+    result: MLTimeSeriesWorkerResult,
+) -> ModelTrainingForecastDetail:
+
+    task = (
+        training_contract
+        .task_contract
+    )
+
+    artifact = (
+        result
+        .model_artifact
+    )
+
+    provenance = (
+        result
+        .experiment_provenance
+    )
+
+    return (
+        ModelTrainingForecastDetail(
+            model_id=
+                artifact.model_id,
+
+            workflow_id=
+                result.workflow_id,
+
+            dataset_id=
+                result.dataset_id,
+
+            target_column=
+                task.target_column,
+
+            time_column=
+                task.split.time_column,
+
+            lookback=
+                task.lookback,
+
+            forecast_horizon=
+                task.forecast_horizon,
+
+            estimator_key=
+                result.estimator_key,
+
+            train_rows=
+                result.train_rows,
+
+            test_rows=
+                result.test_rows,
+
+            metrics=
+                result.metrics.model_dump(
+                    mode="python"
+                ),
+
+            naive_baseline_metrics=
+                result
+                .naive_baseline_metrics
+                .model_dump(
+                    mode="python"
+                ),
+
+            beats_naive_baseline=
+                result
+                .beats_naive_baseline,
+
+            rmse_delta_vs_naive=
+                result
+                .rmse_delta_vs_naive,
+
+            model_created_at_utc=
+                artifact.created_at_utc,
+
+            experiment_id=
+                provenance.experiment_id,
+
+            preparation_session_revision=
+                result
+                .preparation_session_revision,
+
+            training_contract_sha256=
+                provenance
+                .training_contract_sha256,
+
+            serialization_format=
+                artifact
+                .serialization_format,
+        )
+    )
+
+
+# ============================================================
 # TRAIN
 # ============================================================
 
@@ -659,6 +778,99 @@ def train_model(
                 "is invalid."
             )
         ) from error
+
+    if isinstance(
+        config.training,
+        MLTimeSeriesModelTrainingContract,
+    ):
+
+        worker_request = (
+            MLTimeSeriesWorkerRequest(
+                training_contract=
+                    config.training,
+
+                expected_preparation_session_revision=(
+                    config
+                    .expected_preparation_session_revision
+                ),
+
+                execution_device=
+                    config.execution_device,
+            )
+        )
+
+
+        try:
+
+            worker_result = (
+                execute_time_series_worker(
+                    request=
+                        worker_request
+                )
+            )
+
+        except MLTimeSeriesWorkerExecutionError as error:
+
+            if (
+                error.error_code
+                ==
+                "forecast_input_invalid"
+            ):
+
+                raise ModelTrainingInputError(
+                    (
+                        "Model Training input is not "
+                        "compatible with the validated "
+                        "Preparation output."
+                    )
+                ) from error
+
+
+            if (
+                error.error_code
+                ==
+                "forecast_estimator_failed"
+            ):
+
+                raise ModelTrainingEstimatorError(
+                    (
+                        "Model Training estimator "
+                        "configuration is invalid."
+                    )
+                ) from error
+
+
+            raise ModelTrainingExecutionError(
+                (
+                    "Time-series forecasting training "
+                    "could not be completed."
+                )
+            ) from error
+
+
+        except (
+            MLTimeSeriesWorkerUnavailableError,
+            MLTimeSeriesWorkerProtocolError,
+        ) as error:
+
+            raise ModelTrainingExecutionError(
+                (
+                    "Time-series forecasting worker "
+                    "could not be completed safely."
+                )
+            ) from error
+
+
+        return (
+            _forecast_detail_from_worker_result(
+                training_contract=
+                    config.training,
+
+                result=
+                    worker_result,
+            )
+        )
+
 
     try:
         result = (

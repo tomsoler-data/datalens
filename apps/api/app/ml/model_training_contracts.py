@@ -16,6 +16,11 @@ from app.ml.contracts import (
 )
 
 
+from app.ml.time_series_model_training_contracts import (
+    MLTimeSeriesModelTrainingContract,
+)
+
+
 # ============================================================
 # VERSION
 # ============================================================
@@ -34,6 +39,7 @@ ML_MODEL_TRAINING_CONTRACT_FAMILY_RULE_VERSION = (
 MLModelTrainingContract = Union[
     MLTrainingContract,
     MLAnomalyTrainingContract,
+    MLTimeSeriesModelTrainingContract,
 ]
 
 
@@ -48,8 +54,10 @@ def validate_ml_model_training_contract(
     arbitrary Pydantic model.
 
     Supported problem families:
+
     - supervised regression/classification;
-    - target-free anomaly detection.
+    - target-free anomaly detection;
+    - one-step univariate time-series forecasting.
     """
 
     if isinstance(
@@ -78,6 +86,19 @@ def validate_ml_model_training_contract(
         )
 
 
+    if isinstance(
+        value,
+        MLTimeSeriesModelTrainingContract,
+    ):
+
+        return (
+            MLTimeSeriesModelTrainingContract
+            .model_validate(
+                value
+            )
+        )
+
+
     if not isinstance(
         value,
         dict,
@@ -90,6 +111,38 @@ def validate_ml_model_training_contract(
                 "or JSON-style object."
             )
         )
+
+
+    task_contract = value.get(
+        "task_contract"
+    )
+
+
+    if isinstance(
+        task_contract,
+        dict,
+    ):
+
+        task_family = str(
+            task_contract.get(
+                "task_family",
+                "",
+            )
+        ).strip()
+
+
+        if (
+            task_family
+            ==
+            "time_series_forecasting"
+        ):
+
+            return (
+                MLTimeSeriesModelTrainingContract
+                .model_validate(
+                    value
+                )
+            )
 
 
     problem_type = str(
@@ -130,7 +183,7 @@ def validate_ml_model_training_contract(
     raise ValueError(
         (
             "Unsupported Model Lab training "
-            "contract problem_type. "
+            "contract family. "
             f"problem_type={problem_type!r}"
         )
     )
