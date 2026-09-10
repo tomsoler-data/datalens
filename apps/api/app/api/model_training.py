@@ -1,6 +1,11 @@
 from __future__ import annotations
 
 
+from typing import (
+    Union,
+)
+
+
 from fastapi import (
     APIRouter,
     HTTPException,
@@ -17,6 +22,7 @@ from app.api.model_lab_contracts import (
 from app.api.model_training_contracts import (
     ModelTrainingAPIErrorDetail,
     ModelTrainingContextResponse,
+    ModelTrainingForecastDetail,
     ModelTrainingRequest,
 )
 
@@ -30,6 +36,17 @@ from app.api.model_training_service import (
     get_model_training_context,
     train_model,
 )
+
+
+# ============================================================
+# TRAIN RESPONSE FAMILY
+# ============================================================
+
+
+ModelTrainingResponse = Union[
+    ModelTrainingForecastDetail,
+    ModelLabModelDetail,
+]
 
 
 # ============================================================
@@ -259,11 +276,11 @@ def training_context(
 @router.post(
     "/train",
     response_model=
-        ModelLabModelDetail,
+        ModelTrainingResponse,
 )
 def train(
     request: ModelTrainingRequest,
-) -> ModelLabModelDetail:
+) -> ModelTrainingResponse:
 
     workflow_id = (
         request

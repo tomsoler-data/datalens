@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from typing import (
     Literal,
+    Union,
 )
 
 
@@ -17,6 +18,11 @@ from pydantic import (
 
 from app.ml.contracts import (
     MLTrainingContract,
+)
+
+
+from app.ml.time_series_model_training_contracts import (
+    MLTimeSeriesModelTrainingContract,
 )
 
 
@@ -360,6 +366,17 @@ class ModelTrainingContextResponse(
 
 
 # ============================================================
+# TRAIN REQUEST CONTRACT FAMILY
+# ============================================================
+
+
+ModelTrainingRequestContract = Union[
+    MLTimeSeriesModelTrainingContract,
+    MLTrainingContract,
+]
+
+
+# ============================================================
 # TRAIN REQUEST
 # ============================================================
 
@@ -373,16 +390,137 @@ class ModelTrainingRequest(
         frozen=True,
     )
 
-    training: MLTrainingContract
+    training: ModelTrainingRequestContract
 
     expected_preparation_session_revision: int = Field(
         ge=0,
         strict=True,
     )
 
+    execution_device: Literal[
+        "cpu",
+        "cuda",
+    ] = "cpu"
+
     rule_version: Literal[
         "model_training_request_v0.1"
     ] = MODEL_TRAINING_REQUEST_RULE_VERSION
+
+
+# ============================================================
+# FORECAST TRAINING RESULT
+# ============================================================
+
+
+class ModelTrainingForecastDetail(
+    BaseModel
+):
+    """
+    Privacy-minimal API representation of one persisted
+    time-series forecasting model.
+    """
+
+    model_config = ConfigDict(
+        extra="forbid",
+        frozen=True,
+        allow_inf_nan=False,
+    )
+
+    model_id: str = Field(
+        min_length=1,
+    )
+
+    workflow_id: str = Field(
+        min_length=1,
+    )
+
+    dataset_id: str = Field(
+        min_length=1,
+    )
+
+    task_family: Literal[
+        "time_series_forecasting"
+    ] = "time_series_forecasting"
+
+    problem_type: Literal[
+        "regression"
+    ] = "regression"
+
+    target_column: str = Field(
+        min_length=1,
+    )
+
+    time_column: str = Field(
+        min_length=1,
+    )
+
+    lookback: int = Field(
+        gt=0,
+        strict=True,
+    )
+
+    forecast_horizon: Literal[
+        1
+    ] = 1
+
+    estimator_key: Literal[
+        "time_series_mlp_regressor",
+        "time_series_rnn_regressor",
+        "time_series_lstm_regressor",
+    ]
+
+    train_rows: int = Field(
+        gt=0,
+        strict=True,
+    )
+
+    test_rows: int = Field(
+        gt=0,
+        strict=True,
+    )
+
+    metrics: dict[
+        str,
+        float,
+    ]
+
+    naive_baseline_metrics: dict[
+        str,
+        float,
+    ]
+
+    beats_naive_baseline: bool
+
+    rmse_delta_vs_naive: float
+
+    model_created_at_utc: str = Field(
+        min_length=1,
+    )
+
+    experiment_id: str = Field(
+        min_length=1,
+    )
+
+    preparation_session_revision: int = Field(
+        ge=0,
+        strict=True,
+    )
+
+    training_contract_sha256: str = Field(
+        pattern=r"^[0-9a-f]{64}$",
+    )
+
+    serialization_format: Literal[
+        "pytorch_bundle"
+    ] = "pytorch_bundle"
+
+    has_experiment_provenance: Literal[
+        True
+    ] = True
+
+    rule_version: Literal[
+        "model_training_forecast_detail_v0.1"
+    ] = "model_training_forecast_detail_v0.1"
 
 
 # ============================================================
