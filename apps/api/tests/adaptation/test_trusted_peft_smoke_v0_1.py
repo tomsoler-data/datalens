@@ -7,7 +7,7 @@ import inspect
 from pydantic import ValidationError
 
 
-from app.model_lifecycle.trusted_peft_smoke import (
+from app.adaptation.trusted_peft_smoke import (
     SMOKE_EOS_TOKEN_IDS,
     SMOKE_MAX_NEW_TOKENS,
     SMOKE_PAD_TOKEN_ID,
@@ -152,7 +152,7 @@ def main(
         inspect.getsource(
             __import__(
                 (
-                    "app.model_lifecycle."
+                    "app.adaptation."
                     "trusted_peft_smoke"
                 ),
                 fromlist=[
@@ -219,7 +219,7 @@ def main(
         inspect.getsource(
             __import__(
                 (
-                    "app.model_lifecycle."
+                    "app.adaptation."
                     "trusted_peft_smoke"
                 ),
                 fromlist=[
