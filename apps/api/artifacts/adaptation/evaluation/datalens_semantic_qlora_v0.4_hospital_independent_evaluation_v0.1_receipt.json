@@ -1,0 +1,22 @@
+{
+  "case_count": 30,
+  "claimed_at_utc": "2026-09-12T15:21:30Z",
+  "completed_at_utc": "2026-09-12T15:26:45Z",
+  "consumption_marker_sha256": "a104941c9ed837fcbd88d4f89f59785b0a7434c35776e87a16f8e3261554a0ec",
+  "execution_authority_commit": "d38b703972493964e56da5b6d50e5511c99eaba6",
+  "predictions_sha256": "0bbbfe62f2604fd77d63e69471cee66824f17eaf80628e5fb3b07f24ebff942e",
+  "promotion_eligible": false,
+  "protocol_sha256": "0e958d67a6294f8666485a6274b1eee21b9f06fe2e300ba93241a7ffaba3127d",
+  "report_sha256": "6129dd58c818d59ff888daf06592ba13be90b8a40a2acf9aadbab5de5c8f07b1",
+  "rule_version": "qlora_v0.4_hospital_independent_evaluation_receipt_v0.1",
+  "scorer_sha256": "9b9d648716f96f4a062ecb01e1e18b73a74aa0ff5e346a78048d0d7e77c8ab13",
+  "source_authorities": {
+    "apps/api/app/adaptation/hospital_independent_evaluation_execution_v0_1.py": "28566b79ad34e2587ced709f68ca19b1dfaa5d4074c07ba769db3a11306ee1c1",
+    "apps/api/app/adaptation/hospital_independent_evaluation_launch_core_v0_1.py": "db387980ef930232c91f705bc683af073c3ac19def95d0ea363619e26e39c20c",
+    "apps/api/app/adaptation/hospital_independent_evaluation_preflight_v0_1.py": "bd9b55863b001e921c0cc398e2c9f7d7882eb111aa0fec07b231dfdcc5aca2a5",
+    "apps/api/app/adaptation/hospital_independent_evaluation_runner_v0_4_v0_1.py": "4f1f69ff01b9a9c096dd42fc694a6f9f11f0ba30a23f6fc2a8dddc92deff900d",
+    "apps/api/app/adaptation/hospital_independent_evaluation_scoring_v0_1.py": "9b9d648716f96f4a062ecb01e1e18b73a74aa0ff5e346a78048d0d7e77c8ab13",
+    "apps/api/tests/adaptation/test_hospital_independent_evaluation_scoring_v0_1.py": "55851a2fe2a51e7f9e18fe60768fb8681286adc03955f5131a82b9690541cc4d"
+  },
+  "status": "completed"
+}

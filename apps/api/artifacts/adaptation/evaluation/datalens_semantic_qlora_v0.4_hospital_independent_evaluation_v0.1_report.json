@@ -1,0 +1,108 @@
+{
+  "case_count": 30,
+  "claimed_at_utc": "2026-09-12T15:21:30Z",
+  "execution_authority_commit": "d38b703972493964e56da5b6d50e5511c99eaba6",
+  "promotion_eligible": false,
+  "protocol_sha256": "0e958d67a6294f8666485a6274b1eee21b9f06fe2e300ba93241a7ffaba3127d",
+  "rule_version": "qlora_v0.4_hospital_independent_evaluation_report_v0.1",
+  "scorer_sha256": "9b9d648716f96f4a062ecb01e1e18b73a74aa0ff5e346a78048d0d7e77c8ab13",
+  "scoring": {
+    "adapted": {
+      "accuracy": 0.566667,
+      "case_count": 30,
+      "correct_count": 17,
+      "macro_accuracy": 0.566667,
+      "model_label": "adapted",
+      "per_relation_accuracy": {
+        "related_distinct_metric": 0.5,
+        "same_metric_different_state": 0.333333,
+        "same_process_different_stage": 1.0,
+        "uncertain": 0.0,
+        "unrelated": 1.0
+      },
+      "per_relation_correct_count": {
+        "related_distinct_metric": 3,
+        "same_metric_different_state": 2,
+        "same_process_different_stage": 6,
+        "uncertain": 0,
+        "unrelated": 6
+      },
+      "per_relation_total_count": {
+        "related_distinct_metric": 6,
+        "same_metric_different_state": 6,
+        "same_process_different_stage": 6,
+        "uncertain": 6,
+        "unrelated": 6
+      },
+      "strict_json_valid_count": 30,
+      "strict_json_validity_rate": 1.0,
+      "uncertain_accuracy": 0.0
+    },
+    "base": {
+      "accuracy": 0.0,
+      "case_count": 30,
+      "correct_count": 0,
+      "macro_accuracy": 0.0,
+      "model_label": "base",
+      "per_relation_accuracy": {
+        "related_distinct_metric": 0.0,
+        "same_metric_different_state": 0.0,
+        "same_process_different_stage": 0.0,
+        "uncertain": 0.0,
+        "unrelated": 0.0
+      },
+      "per_relation_correct_count": {
+        "related_distinct_metric": 0,
+        "same_metric_different_state": 0,
+        "same_process_different_stage": 0,
+        "uncertain": 0,
+        "unrelated": 0
+      },
+      "per_relation_total_count": {
+        "related_distinct_metric": 6,
+        "same_metric_different_state": 6,
+        "same_process_different_stage": 6,
+        "uncertain": 6,
+        "unrelated": 6
+      },
+      "strict_json_valid_count": 0,
+      "strict_json_validity_rate": 0.0,
+      "uncertain_accuracy": 0.0
+    },
+    "case_count": 30,
+    "comparison": {
+      "accuracy_delta": 0.566667,
+      "correct_case_count_delta": 17,
+      "macro_accuracy_delta": 0.566667
+    },
+    "decimal_places": 6,
+    "gates": {
+      "adapted_absolute": {
+        "accuracy": false,
+        "macro_accuracy": false,
+        "per_relation_accuracy": {
+          "related_distinct_metric": true,
+          "same_metric_different_state": false,
+          "same_process_different_stage": true,
+          "uncertain": false,
+          "unrelated": true
+        },
+        "strict_json_validity_rate": true,
+        "uncertain_accuracy": false
+      },
+      "all_absolute_gates_pass": false,
+      "all_non_regression_gates_pass": true,
+      "non_regression": {
+        "accuracy_delta": true,
+        "macro_accuracy_delta": true
+      },
+      "promotion_signal": {
+        "correct_case_count_delta": true,
+        "equivalent_accuracy_delta": true
+      },
+      "promotion_signal_pass": true
+    },
+    "promotion_eligible": false,
+    "rule_version": "qlora_v0.4_hospital_independent_evaluation_scoring_v0.1"
+  }
+}
