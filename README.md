@@ -563,6 +563,7 @@ The capstone documentation is split by concern:
 - [AI Engineering Case Study](AI_ENGINEERING_CASE_STUDY.md) — recruiter-facing explanation of the engineering problem, decisions, evidence, and capstone outcomes.
 - [Demo Walkthrough](DEMO_WALKTHROUGH.md) — repeatable 3-minute, 10-minute, and technical demo paths.
 - [Backend README](apps/api/README.md) — FastAPI backend domains, runtime, local development, testing, Model Lab, observability, and lifecycle notes.
+- [Frontend README](apps/web/README.md) — Next.js workspace, preparation, analysis, Model Lab, monitoring, observability, and frontend development notes.
 - [Environment reference](.env.example) — documented runtime configuration without secrets.
 
 ---
@@ -573,7 +574,7 @@ DataLens is an actively developed capstone project.
 
 The core analytical, AI, ML, deep-learning, evaluation, observability, lifecycle, security, frontend, container, and CI/CD foundations are implemented.
 
-The capstone documentation set now includes:
+The capstone documentation set includes:
 
 - project-level documentation;
 - architecture documentation;
@@ -581,8 +582,11 @@ The capstone documentation set now includes:
 - a documented security threat model;
 - a recruiter-facing AI Engineering case study;
 - a repeatable demonstration walkthrough;
-- backend-specific runtime and development documentation.
+- backend-specific runtime and development documentation;
+- frontend-specific workspace and development documentation.
 
-The remaining consolidation work is final documentation coherence validation, repository staging, CI validation, and integration of this documentation branch.
+The capstone documentation consolidation, coherence audit, CI validation, and repository integration are complete for this baseline.
 
-No protected benchmark is replayed as part of this documentation phase.
+Future work can focus on product evolution, optional security hardening, portfolio presentation, and new independently governed experiments rather than missing documentation foundations.
+
+No protected benchmark is replayed as part of documentation maintenance.
