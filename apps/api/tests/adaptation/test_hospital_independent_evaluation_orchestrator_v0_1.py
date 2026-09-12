@@ -283,6 +283,9 @@ def test_official_sequence_with_synthetic_bindings(
         "score_official_comparison":
             orchestrator.score_official_comparison,
 
+        "_utc_now":
+            orchestrator._utc_now,
+
         "write_official_artifact_chain":
             orchestrator.write_official_artifact_chain,
     }
@@ -533,6 +536,16 @@ def test_official_sequence_with_synthetic_bindings(
             }
 
 
+        def fake_completed_at_utc(
+        ):
+
+            events.append(
+                "completed_at"
+            )
+
+            return COMPLETED_AT
+
+
         def fake_writer(
             *,
             artifact_dir,
@@ -551,6 +564,12 @@ def test_official_sequence_with_synthetic_bindings(
             assert artifact_dir == Path(
                 temporary
             ).resolve()
+
+            assert (
+                completed_at_utc
+                ==
+                COMPLETED_AT
+            )
 
             assert (
                 scoring_result[
@@ -617,6 +636,10 @@ def test_official_sequence_with_synthetic_bindings(
                 fake_score
             )
 
+            orchestrator._utc_now = (
+                fake_completed_at_utc
+            )
+
             orchestrator.write_official_artifact_chain = (
                 fake_writer
             )
@@ -629,9 +652,6 @@ def test_official_sequence_with_synthetic_bindings(
 
                     claimed_at_utc=
                         CLAIMED_AT,
-
-                    completed_at_utc=
-                        COMPLETED_AT,
 
                     artifact_dir=
                         artifact_dir,
@@ -653,6 +673,7 @@ def test_official_sequence_with_synthetic_bindings(
                 "attach",
                 "adapted",
                 "score",
+                "completed_at",
                 "writer",
             ]
 
@@ -814,6 +835,18 @@ def test_runtime_authority_is_exact_v0_4(
     assert (
         "greenhouse_final_acceptance_runner_v0_4_v0_3 import"
         not in
+        source
+    )
+
+    assert (
+        "completed_at_utc: str,"
+        not in
+        source
+    )
+
+    assert (
+        "_utc_now()"
+        in
         source
     )
 

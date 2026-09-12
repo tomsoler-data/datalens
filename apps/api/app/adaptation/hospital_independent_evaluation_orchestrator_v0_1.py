@@ -2,6 +2,7 @@ from __future__ import annotations
 
 
 from collections import Counter
+from datetime import datetime, timezone
 from collections.abc import (
     Mapping,
     Sequence,
@@ -258,6 +259,23 @@ class _GoldProjectionCapture:
             for record
             in self._records
         )
+
+
+def _utc_now(
+) -> str:
+
+    return (
+        datetime.now(
+            timezone.utc
+        )
+        .isoformat(
+            timespec="seconds"
+        )
+        .replace(
+            "+00:00",
+            "Z",
+        )
+    )
 
 
 def _require_artifact_dir(
@@ -552,7 +570,6 @@ def run_official_evaluation(
     *,
     execution_authority_commit: str,
     claimed_at_utc: str,
-    completed_at_utc: str,
     artifact_dir: Path,
     torch_module: Any,
 ) -> dict[
@@ -625,6 +642,13 @@ def run_official_evaluation(
                     "adapted_results"
                 ],
         )
+    )
+
+    # Evaluation completion time is owned by the
+    # orchestrator and is created only AFTER both model
+    # passes and deterministic scoring have completed.
+    completed_at_utc = (
+        _utc_now()
     )
 
     artifact_result = (
