@@ -1347,29 +1347,31 @@ The current architecture demonstrates:
 
 ---
 
-## 32. Current architectural gaps
+## 32. Current hardening opportunities
 
-The main remaining gaps are documentation and explicit hardening rather than missing core architecture.
+The core architecture and its capstone documentation are implemented. Remaining items are deliberate hardening or product-visibility opportunities rather than missing foundations.
 
 ### Configuration documentation
 
-The repository needs a versioned `.env.example` or equivalent configuration reference.
+The repository includes a versioned `.env.example` configuration reference. Future configuration work is limited to extending that reference when new runtime options are introduced.
 
-### Security documentation
+### Security hardening
 
-Existing privacy and egress controls should be consolidated into a documented threat model.
+Existing privacy and egress controls are consolidated in `SECURITY.md`.
 
-Prompt-injection and jailbreak terminology is not currently a strong explicit part of the codebase and should be documented or hardened deliberately rather than assumed to exist.
+Prompt-injection and jailbreak-specific defenses are not represented as a dedicated subsystem today. They remain explicit future hardening opportunities and should not be claimed as implemented until corresponding controls and evaluations exist.
 
 ### Product visibility for deep learning
 
-Deep-learning workflows are implemented in the backend, but the frontend primarily presents them through the broader Model Lab abstraction.
+Deep-learning workflows are implemented in the backend, while the frontend primarily presents them through the broader Model Lab abstraction.
 
-A recruiter or engineer reading only the UI code would not immediately see the full RNN/LSTM/autoencoder capability set without architecture documentation.
+A recruiter or engineer reading only the UI code may not immediately see the full RNN/LSTM/autoencoder capability set without the architecture and case-study documentation. Improving that visibility is a product-presentation opportunity, not a missing backend capability.
 
 ### Capstone narrative
 
-The repository needs a concise case study showing how the components combine into an AI Engineering system.
+The repository includes `AI_ENGINEERING_CASE_STUDY.md`, `DEMO_WALKTHROUGH.md`, backend documentation, frontend documentation, the security threat model, and the environment reference.
+
+Future narrative work can therefore focus on portfolio presentation, screenshots, video, and concise recruiter-facing summaries.
 
 ---
 
@@ -1387,7 +1389,7 @@ Deep Learning                  IMPLEMENTED
 Model Lab                      IMPLEMENTED
 Monitoring                     IMPLEMENTED
 Observability                  IMPLEMENTED
-Security boundaries            IMPLEMENTED / DOCUMENTATION HARDENING REMAINS
+Security boundaries            IMPLEMENTED / HARDENING OPPORTUNITIES DOCUMENTED
 Model lifecycle governance     IMPLEMENTED
 QLoRA adaptation               IMPLEMENTED
 Independent evaluation         IMPLEMENTED
@@ -1397,9 +1399,10 @@ Architecture documentation     THIS DOCUMENT
 Environment reference          IMPLEMENTED
 Security threat model          IMPLEMENTED
 Capstone case study            IMPLEMENTED
-Demo walkthrough                IMPLEMENTED
-Backend documentation           IMPLEMENTED
-Final documentation audit       IN PROGRESS
+Demo walkthrough               IMPLEMENTED
+Backend documentation          IMPLEMENTED
+Frontend documentation         IMPLEMENTED
+Final documentation audit      COMPLETE
 ```
 
 The protected Hospital benchmark remains:
@@ -1408,4 +1411,4 @@ The protected Hospital benchmark remains:
 CONSUMED / NEVER REPLAY
 ```
 
-No protected evaluation is rerun as part of architecture documentation work.
+No protected evaluation is rerun as part of architecture documentation or maintenance.
