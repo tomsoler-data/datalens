@@ -1,0 +1,20 @@
+{
+  "adapter_bundle_sha256": "0351980df6d86096195c0971deb30c725e155c71aa5de8054b2b37fa42090716",
+  "base_model_repository": "google/gemma-3-4b-it",
+  "base_model_revision": "093f9f388b31de276ce2de164bdc2081324b9767",
+  "case_count": 30,
+  "chat_template_sha256": "7de1c58e208eda46e9c7f86397df37ec49883aeece39fb961e0a6b24088dd3c4",
+  "claimed_at_utc": "2026-09-12T15:21:30Z",
+  "execution_authority_commit": "d38b703972493964e56da5b6d50e5511c99eaba6",
+  "foundation_commit": "67bf0bccaabf63afc42a832e56ebea47ca559acd",
+  "gold_opened_before_claim": false,
+  "holdout_cases_sha256": "92e4f21e7323cd053fd5f53b51e1493297fdd28cfb717be56f7be963f298d9fc",
+  "holdout_freeze_sha256": "67baedb38d7807348d7ee6436f7f1a3730c5eeb3f1bd68bc1e2556a030411bed",
+  "holdout_opened_before_claim": false,
+  "protocol_sha256": "0e958d67a6294f8666485a6274b1eee21b9f06fe2e300ba93241a7ffaba3127d",
+  "results_observed_before_claim": false,
+  "rule_version": "qlora_v0.4_hospital_independent_evaluation_consumption_v0.1",
+  "single_use": true,
+  "status": "claimed_before_holdout_open",
+  "tokenizer_revision": "093f9f388b31de276ce2de164bdc2081324b9767"
+}

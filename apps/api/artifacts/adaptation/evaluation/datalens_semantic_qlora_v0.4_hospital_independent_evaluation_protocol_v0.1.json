@@ -1,0 +1,198 @@
+{
+  "acceptance_gates": {
+    "adapted_absolute_gates": {
+      "accuracy_minimum": 0.7,
+      "macro_accuracy_minimum": 0.7,
+      "per_relation_accuracy_minimum": 0.5,
+      "strict_json_validity_rate": 1.0,
+      "training_loss_is_acceptance_evidence": false,
+      "uncertain_accuracy_minimum": 0.666667
+    },
+    "all_absolute_gates_required": true,
+    "non_regression_gates": {
+      "accuracy_delta_minimum": 0.0,
+      "macro_accuracy_delta_minimum": 0.0
+    },
+    "promotion_eligible_only_if": "all_absolute_gates_and_all_non_regression_gates_and_promotion_signal_pass",
+    "promotion_signal_gate": {
+      "adapted_correct_case_count_delta_minimum": 1,
+      "equivalent_accuracy_delta_minimum": 0.033333,
+      "rationale": "The adapted candidate must correctly classify at least one additional case out of 30; a tie does not demonstrate adaptation benefit."
+    }
+  },
+  "benchmark_design": {
+    "balanced": true,
+    "balanced_cases_per_relation": 6,
+    "case_authoring_constraints": {
+      "all_cases_unique": true,
+      "base_or_adapter_execution_before_freeze_permitted": false,
+      "definitions_must_be_sufficient_for_classification": true,
+      "exact_training_example_reuse_permitted": false,
+      "external_medical_knowledge_required": false,
+      "historical_holdout_case_reuse_permitted": false,
+      "metric_pair_duplicates_permitted": false,
+      "model_outputs_visible_during_case_authoring": false,
+      "training_metric_pair_reuse_permitted": false
+    },
+    "case_authoring_domain": "hospital_emergency_department_operations",
+    "planned_case_count": 30,
+    "relation_count": 5
+  },
+  "candidate_authority": {
+    "artifact_family": "adapter",
+    "artifact_format": "peft_adapter_bundle",
+    "artifact_id": "artifact:adapter:0351980df6d86096195c0971deb30c72",
+    "base_model": {
+      "repository": "google/gemma-3-4b-it",
+      "revision": "093f9f388b31de276ce2de164bdc2081324b9767"
+    },
+    "bundle_sha256": "0351980df6d86096195c0971deb30c725e155c71aa5de8054b2b37fa42090716",
+    "candidate_frozen_before_r8_protocol": true,
+    "provenance_id": "provenance:llm_adaptation:9fd6ec28f4c2953010e43e2a3414d9af",
+    "training_dataset": {
+      "example_count": 230,
+      "sha256": "4fd00586f2d53d6de57f5cbc5f1d7bfb2e512960e60b30c28596aaefbac322b7"
+    }
+  },
+  "experiment_id": "datalens-semantic-qlora-v0.4",
+  "generated_output_processing": {
+    "decode_scope": "new_tokens_only",
+    "entire_decoded_output_must_be_one_json_value": true,
+    "exact_key_set_required": true,
+    "invalid_json_behavior": {
+      "counts_as_correct": false,
+      "predicted_relation": null,
+      "strict_json_valid": false
+    },
+    "json_value_must_be_object": true,
+    "llm_judge_used": false,
+    "parser": "json.loads",
+    "validity_checks": [
+      "json_parse_success",
+      "object_type",
+      "exact_relation_reason_keys",
+      "relation_is_allowed",
+      "reason_is_string",
+      "reason_word_count_between_6_and_45"
+    ],
+    "whitespace_normalization": "strip_outer_whitespace_only"
+  },
+  "generation": {
+    "do_sample": false,
+    "evaluation_order": [
+      "pinned_base",
+      "same_base_plus_frozen_candidate_adapter"
+    ],
+    "generation_budget_exhaustion": "fail_closed",
+    "input_truncation_permitted": false,
+    "max_new_tokens": 64,
+    "mode": "deterministic_greedy",
+    "num_beams": 1,
+    "same_generation_config_for_base_and_adapted": true,
+    "same_prompt_for_base_and_adapted": true,
+    "same_tokenizer_for_base_and_adapted": true
+  },
+  "methodology": {
+    "benchmark_cases_existed_during_training": false,
+    "benchmark_gold_existed_during_training": false,
+    "benchmark_results_observed_before_protocol": false,
+    "candidate_training_completed_before_protocol": true,
+    "candidate_tuned_on_this_benchmark": false,
+    "cases_must_be_frozen_before_first_model_execution": true,
+    "claim_pretraining_frozen_benchmark": false,
+    "protocol_must_be_committed_before_case_construction": true,
+    "thresholds_must_be_committed_before_gold_creation": true
+  },
+  "metric_contract": {
+    "balanced_cases_per_relation": 6,
+    "case_count": 30,
+    "decimal_places": 6,
+    "invalid_output_counts_as_incorrect": true,
+    "macro_accuracy_relation_set": [
+      "same_metric_different_state",
+      "same_process_different_stage",
+      "related_distinct_metric",
+      "unrelated",
+      "uncertain"
+    ],
+    "metrics": [
+      "strict_json_validity_rate",
+      "accuracy",
+      "macro_accuracy",
+      "per_relation_accuracy",
+      "uncertain_accuracy",
+      "base_adapted_accuracy_delta",
+      "base_adapted_macro_accuracy_delta",
+      "base_adapted_correct_case_count_delta"
+    ],
+    "round_before_gate_comparison": true
+  },
+  "next_authorized_step": "commit_and_freeze_public_protocol_before_holdout_construction",
+  "protected_boundaries": {
+    "airport_holdout_content_read": false,
+    "greenhouse_holdout_content_read": false,
+    "greenhouse_reexecution_permitted": false,
+    "hotel_holdout_content_read": false,
+    "r8_cases_created": false,
+    "r8_cases_read": false,
+    "r8_gold_created": false,
+    "r8_results_observed": false
+  },
+  "protocol_parent_git_commit": "c3794df356c6bb4373e01e10c6b37eaad4d2ad18",
+  "record_rule_version": "qlora_v0.4_hospital_independent_evaluation_protocol_v0.1",
+  "role": "independent_post_training_holdout_for_candidate_comparison_and_promotion",
+  "single_use_policy": {
+    "failure_requires_new_candidate_or_new_independent_benchmark": true,
+    "hyperparameter_tuning_from_results": false,
+    "model_selection_from_results": false,
+    "one_official_consumption_for_v0_4": true,
+    "reexecution_after_results_observed": false,
+    "retraining_then_retesting_same_holdout": false,
+    "same_holdout_used_for_base_and_adapted_in_one_official_run": true
+  },
+  "status": "draft_preregistered_before_holdout_construction",
+  "task": {
+    "description": "Classify the semantic relation between two operational metrics.",
+    "domain": "hospital_emergency_department_operations",
+    "output_contract": {
+      "additional_properties": false,
+      "format": "strict_json_object",
+      "reason_type": "string",
+      "reason_word_count_maximum": 45,
+      "reason_word_count_minimum": 6,
+      "relation_allowed_values": [
+        "same_metric_different_state",
+        "same_process_different_stage",
+        "related_distinct_metric",
+        "unrelated",
+        "uncertain"
+      ],
+      "required_keys": [
+        "relation",
+        "reason"
+      ],
+      "word_count_rule": "len(reason.split())"
+    },
+    "prompt_contract": {
+      "builder": "build_user_message",
+      "builder_module": "app.adaptation.training_dataset_canonicalizer_v0_4",
+      "fields_supplied": [
+        "domain",
+        "left_metric",
+        "left_description",
+        "right_metric",
+        "right_description"
+      ],
+      "gold_reason_supplied_to_model": false,
+      "gold_relation_supplied_to_model": false,
+      "same_builder_as_v0_4_training": true
+    },
+    "relations": [
+      "same_metric_different_state",
+      "same_process_different_stage",
+      "related_distinct_metric",
+      "unrelated",
+      "uncertain"
+    ]
+  }
+}

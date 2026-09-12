@@ -1,0 +1,80 @@
+{
+  "authoring_boundary": {
+    "adapter_executed_during_authoring": false,
+    "base_model_executed_during_authoring": false,
+    "external_medical_knowledge_required": false,
+    "inference_executed_before_freeze": false,
+    "model_outputs_observed_during_authoring": false,
+    "training_executed_during_r8_holdout_authoring": false
+  },
+  "domain": "hospital_emergency_department_operations",
+  "gold_policy": {
+    "case_changes_after_model_output_observation_permitted": false,
+    "gold_changes_after_model_output_observation_permitted": false,
+    "gold_reasons_frozen": true,
+    "gold_relations_frozen": true
+  },
+  "holdout_id": "adaptation:datalens-semantic-qlora-v0.4:hospital-emergency-department-operations:holdout:v0.1",
+  "independence_evidence": {
+    "exact_complete_metric_pair_reuse_count": 0,
+    "exact_training_example_reuse_count": 0,
+    "exact_training_metric_name_pair_reuse_count": 0,
+    "hospital_domain_absent_from_training": true,
+    "individual_definition_overlap_count": 0,
+    "individual_metric_name_overlap_count": 0,
+    "prompt_relation_label_leakage_count": 0,
+    "reverse_pair_duplicate_count": 0,
+    "uncertain_cases": 6,
+    "uncertain_cases_with_structural_ambiguity_cues": 6
+  },
+  "next_authorized_step": "stage_and_commit_frozen_holdout_authorities_before_any_model_execution",
+  "protected_holdout": {
+    "balanced_cases_per_relation": 6,
+    "case_count": 30,
+    "cases_file_bytes": 18410,
+    "cases_path": "apps/api/artifacts/adaptation/holdouts/datalens_semantic_qlora_v0.4_hospital_emergency_department_operations_holdout_v0.1_cases.json",
+    "cases_sha256": "92e4f21e7323cd053fd5f53b51e1493297fdd28cfb717be56f7be963f298d9fc",
+    "relation_count": 5,
+    "relation_counts": {
+      "related_distinct_metric": 6,
+      "same_metric_different_state": 6,
+      "same_process_different_stage": 6,
+      "uncertain": 6,
+      "unrelated": 6
+    },
+    "relations": [
+      "same_metric_different_state",
+      "same_process_different_stage",
+      "related_distinct_metric",
+      "unrelated",
+      "uncertain"
+    ]
+  },
+  "protocol_authority": {
+    "aggregate_freeze_sha256": "e00f9f2d6ef4a8eea47da58b2b200536dc8337c48282f301153a63a3dc215ce6",
+    "commit": "98e73521d633406c8de728aa667dc2525f6787a3",
+    "remote_preregistered_before_holdout_construction": true
+  },
+  "record_rule_version": "qlora_v0.4_hospital_independent_holdout_freeze_v0.1",
+  "role": "protected_independent_post_training_holdout",
+  "single_use_policy": {
+    "hyperparameter_tuning_from_results": false,
+    "model_selection_from_results": false,
+    "official_consumption_count_maximum": 1,
+    "reexecution_after_results_observed": false,
+    "retraining_then_retesting_same_holdout": false,
+    "same_holdout_for_base_and_adapted": true
+  },
+  "status": "frozen_before_first_model_execution",
+  "structural_contract": {
+    "passed_before_freeze": true,
+    "test_file_bytes": 4833,
+    "test_path": "apps/api/tests/adaptation/test_hospital_independent_holdout_v0_1.py",
+    "test_sha256": "bd5580b0ca5123d9c8e37644eaa191a08cce822d36df513709903c56cd3e1ceb"
+  },
+  "training_authority": {
+    "dataset_example_count": 230,
+    "dataset_sha256": "4fd00586f2d53d6de57f5cbc5f1d7bfb2e512960e60b30c28596aaefbac322b7",
+    "selected_domain_present_in_training": false
+  }
+}

@@ -1,0 +1,321 @@
+{
+  "balanced_cases_per_relation": 6,
+  "base_or_adapter_execution_during_authoring": false,
+  "case_count": 30,
+  "cases": [
+    {
+      "case_id": "hospital-001",
+      "domain": "hospital_emergency_department_operations",
+      "gold_reason": "Both metrics count the same patient flow, distinguished by whether triage is pending or completed.",
+      "gold_relation": "same_metric_different_state",
+      "left_description": "Number of arrived patients currently waiting to begin triage.",
+      "left_metric": "patients_waiting_for_triage",
+      "right_description": "Number of arrived patients whose triage assessment has already been completed.",
+      "right_metric": "patients_triage_completed"
+    },
+    {
+      "case_id": "hospital-002",
+      "domain": "hospital_emergency_department_operations",
+      "gold_reason": "The metrics describe the same patient population before versus after first provider assessment.",
+      "gold_relation": "same_metric_different_state",
+      "left_description": "Number of triaged patients still waiting for their first provider assessment.",
+      "left_metric": "patients_awaiting_provider",
+      "right_description": "Number of triaged patients whose first provider assessment has already occurred.",
+      "right_metric": "patients_provider_seen"
+    },
+    {
+      "case_id": "hospital-003",
+      "domain": "hospital_emergency_department_operations",
+      "gold_reason": "Both metrics track treated patients, separated only by whether disposition has been decided.",
+      "gold_relation": "same_metric_different_state",
+      "left_description": "Number of treated patients for whom an admit-or-discharge decision is still pending.",
+      "left_metric": "patients_pending_disposition",
+      "right_description": "Number of treated patients for whom an admit-or-discharge decision has been recorded.",
+      "right_metric": "patients_disposition_decided"
+    },
+    {
+      "case_id": "hospital-004",
+      "domain": "hospital_emergency_department_operations",
+      "gold_reason": "Both count admitted emergency patients, differing only by whether the bed assignment is pending or complete.",
+      "gold_relation": "same_metric_different_state",
+      "left_description": "Number of admitted emergency patients still waiting for an inpatient bed assignment.",
+      "left_metric": "admitted_patients_waiting_for_bed",
+      "right_description": "Number of admitted emergency patients whose inpatient bed assignment has been completed.",
+      "right_metric": "admitted_patients_bed_assigned"
+    },
+    {
+      "case_id": "hospital-005",
+      "domain": "hospital_emergency_department_operations",
+      "gold_reason": "The metrics count the same class of diagnostic orders in pending versus completed states.",
+      "gold_relation": "same_metric_different_state",
+      "left_description": "Number of emergency diagnostic orders that have been requested but not yet completed.",
+      "left_metric": "diagnostic_orders_pending",
+      "right_description": "Number of emergency diagnostic orders that have finished processing.",
+      "right_metric": "diagnostic_orders_completed"
+    },
+    {
+      "case_id": "hospital-006",
+      "domain": "hospital_emergency_department_operations",
+      "gold_reason": "Both describe discharge-ready patients, separated only by whether instructions remain pending or are completed.",
+      "gold_relation": "same_metric_different_state",
+      "left_description": "Number of discharge-ready patients still waiting for discharge instructions.",
+      "left_metric": "discharge_instructions_pending",
+      "right_description": "Number of discharge-ready patients whose discharge instructions have been completed.",
+      "right_metric": "discharge_instructions_completed"
+    },
+    {
+      "case_id": "hospital-007",
+      "domain": "hospital_emergency_department_operations",
+      "gold_reason": "Both metrics belong to the emergency intake process but measure different sequential stages.",
+      "gold_relation": "same_process_different_stage",
+      "left_description": "Number of patients arriving at the emergency department during the measurement period.",
+      "left_metric": "arrivals_count",
+      "right_description": "Number of patients completing triage during the measurement period.",
+      "right_metric": "triage_completed_count"
+    },
+    {
+      "case_id": "hospital-008",
+      "domain": "hospital_emergency_department_operations",
+      "gold_reason": "Triage and first provider assessment are separate stages within the same emergency care workflow.",
+      "gold_relation": "same_process_different_stage",
+      "left_description": "Number of patients completing triage during the measurement period.",
+      "left_metric": "triage_completed_count",
+      "right_description": "Number of patients receiving their first provider assessment during the measurement period.",
+      "right_metric": "first_provider_assessment_count"
+    },
+    {
+      "case_id": "hospital-009",
+      "domain": "hospital_emergency_department_operations",
+      "gold_reason": "The metrics measure different stages of the same emergency patient care process.",
+      "gold_relation": "same_process_different_stage",
+      "left_description": "Number of patients receiving their first provider assessment.",
+      "left_metric": "first_provider_assessment_count",
+      "right_description": "Number of patients receiving an admit-or-discharge disposition decision.",
+      "right_metric": "disposition_decision_count"
+    },
+    {
+      "case_id": "hospital-010",
+      "domain": "hospital_emergency_department_operations",
+      "gold_reason": "Disposition decision and department exit are different sequential stages of the same patient flow.",
+      "gold_relation": "same_process_different_stage",
+      "left_description": "Number of patients receiving an admit-or-discharge decision.",
+      "left_metric": "disposition_decision_count",
+      "right_description": "Number of patients physically leaving the emergency department.",
+      "right_metric": "department_exit_count"
+    },
+    {
+      "case_id": "hospital-011",
+      "domain": "hospital_emergency_department_operations",
+      "gold_reason": "Ordering and result availability are distinct stages of the same diagnostic workflow.",
+      "gold_relation": "same_process_different_stage",
+      "left_description": "Number of diagnostic orders initiated for emergency patients.",
+      "left_metric": "diagnostic_order_count",
+      "right_description": "Number of diagnostic results becoming available for emergency patients.",
+      "right_metric": "diagnostic_result_available_count"
+    },
+    {
+      "case_id": "hospital-012",
+      "domain": "hospital_emergency_department_operations",
+      "gold_reason": "Admission approval and inpatient transfer are different stages of the same admission process.",
+      "gold_relation": "same_process_different_stage",
+      "left_description": "Number of emergency patients approved for inpatient admission.",
+      "left_metric": "admission_decision_count",
+      "right_description": "Number of admitted emergency patients transferred to an inpatient unit.",
+      "right_metric": "inpatient_transfer_count"
+    },
+    {
+      "case_id": "hospital-013",
+      "domain": "hospital_emergency_department_operations",
+      "gold_reason": "Waiting-room volume and provider wait time are related operational measures but represent different quantities.",
+      "gold_relation": "related_distinct_metric",
+      "left_description": "Number of patients currently waiting in the emergency department waiting area.",
+      "left_metric": "waiting_room_census",
+      "right_description": "Median elapsed minutes from patient arrival to first provider assessment.",
+      "right_metric": "median_wait_to_provider_minutes"
+    },
+    {
+      "case_id": "hospital-014",
+      "domain": "hospital_emergency_department_operations",
+      "gold_reason": "Occupancy and boarding both reflect capacity pressure but measure distinct operational quantities.",
+      "gold_relation": "related_distinct_metric",
+      "left_description": "Share of available emergency treatment spaces currently occupied by patients.",
+      "left_metric": "bed_occupancy_rate",
+      "right_description": "Number of admitted patients remaining in the emergency department while awaiting inpatient transfer.",
+      "right_metric": "patients_boarding_count"
+    },
+    {
+      "case_id": "hospital-015",
+      "domain": "hospital_emergency_department_operations",
+      "gold_reason": "Arrival rate can affect waiting-room volume, but one is a flow rate and the other a census.",
+      "gold_relation": "related_distinct_metric",
+      "left_description": "Average number of new emergency patient arrivals per hour.",
+      "left_metric": "arrival_rate_per_hour",
+      "right_description": "Number of patients currently waiting in the emergency department waiting area.",
+      "right_metric": "waiting_room_census"
+    },
+    {
+      "case_id": "hospital-016",
+      "domain": "hospital_emergency_department_operations",
+      "gold_reason": "Provider staffing and patient throughput are operationally related but represent different measured quantities.",
+      "gold_relation": "related_distinct_metric",
+      "left_description": "Total provider labor hours scheduled for the emergency department during the period.",
+      "left_metric": "provider_staffing_hours",
+      "right_description": "Number of emergency patients assessed by a provider during the period.",
+      "right_metric": "patients_seen_count"
+    },
+    {
+      "case_id": "hospital-017",
+      "domain": "hospital_emergency_department_operations",
+      "gold_reason": "Diagnostic turnaround can contribute to total stay duration, but the two metrics measure different intervals.",
+      "gold_relation": "related_distinct_metric",
+      "left_description": "Median elapsed minutes from diagnostic order placement to result availability.",
+      "left_metric": "diagnostic_turnaround_minutes",
+      "right_description": "Median elapsed minutes from emergency arrival to department exit.",
+      "right_metric": "length_of_stay_minutes"
+    },
+    {
+      "case_id": "hospital-018",
+      "domain": "hospital_emergency_department_operations",
+      "gold_reason": "Long provider waits may relate to early departures, but one metric counts events and the other measures time.",
+      "gold_relation": "related_distinct_metric",
+      "left_description": "Number of patients leaving the emergency department before receiving a provider assessment.",
+      "left_metric": "left_before_provider_count",
+      "right_description": "Median elapsed minutes from patient arrival to first provider assessment.",
+      "right_metric": "median_wait_to_provider_minutes"
+    },
+    {
+      "case_id": "hospital-019",
+      "domain": "hospital_emergency_department_operations",
+      "gold_reason": "Waiting-room patient volume and optional training module completion describe separate operational activities.",
+      "gold_relation": "unrelated",
+      "left_description": "Number of patients currently waiting in the emergency department waiting area.",
+      "left_metric": "waiting_room_census",
+      "right_description": "Number of optional staff training modules completed during the month.",
+      "right_metric": "staff_training_modules_completed"
+    },
+    {
+      "case_id": "hospital-020",
+      "domain": "hospital_emergency_department_operations",
+      "gold_reason": "Diagnostic result availability and visitor badge issuance belong to separate processes without a shared metric meaning.",
+      "gold_relation": "unrelated",
+      "left_description": "Number of diagnostic results becoming available for emergency patients.",
+      "left_metric": "diagnostic_result_available_count",
+      "right_description": "Number of visitor identification badges issued at the hospital entrance.",
+      "right_metric": "visitor_badges_issued"
+    },
+    {
+      "case_id": "hospital-021",
+      "domain": "hospital_emergency_department_operations",
+      "gold_reason": "Emergency admission decisions and cafeteria purchases measure independent hospital activities.",
+      "gold_relation": "unrelated",
+      "left_description": "Number of emergency patients approved for inpatient admission.",
+      "left_metric": "admission_decision_count",
+      "right_description": "Number of purchases recorded at the hospital cafeteria.",
+      "right_metric": "cafeteria_transactions_count"
+    },
+    {
+      "case_id": "hospital-022",
+      "domain": "hospital_emergency_department_operations",
+      "gold_reason": "Provider waiting time and employee parking permit issuance describe distinct processes with different operational meanings.",
+      "gold_relation": "unrelated",
+      "left_description": "Median elapsed minutes from patient arrival to first provider assessment.",
+      "left_metric": "median_wait_to_provider_minutes",
+      "right_description": "Number of employee parking permits issued during the reporting period.",
+      "right_metric": "parking_permits_issued"
+    },
+    {
+      "case_id": "hospital-023",
+      "domain": "hospital_emergency_department_operations",
+      "gold_reason": "Patient transfers and facility light replacement are separate processes with no shared metric semantics.",
+      "gold_relation": "unrelated",
+      "left_description": "Number of admitted emergency patients transferred to an inpatient unit.",
+      "left_metric": "inpatient_transfer_count",
+      "right_description": "Number of building light fixtures replaced by facilities staff.",
+      "right_metric": "facility_light_replacements"
+    },
+    {
+      "case_id": "hospital-024",
+      "domain": "hospital_emergency_department_operations",
+      "gold_reason": "Emergency arrival rate and payroll correction volume measure unrelated operational processes.",
+      "gold_relation": "unrelated",
+      "left_description": "Average number of new emergency patient arrivals per hour.",
+      "left_metric": "arrival_rate_per_hour",
+      "right_description": "Number of payroll records corrected during the accounting period.",
+      "right_metric": "payroll_corrections_count"
+    },
+    {
+      "case_id": "hospital-025",
+      "domain": "hospital_emergency_department_operations",
+      "gold_reason": "Both are composite operational indicators, but their definitions do not reveal whether they measure the same construct.",
+      "gold_relation": "uncertain",
+      "left_description": "Composite indicator describing overall emergency department flow pressure.",
+      "left_metric": "flow_pressure_index",
+      "right_description": "Composite indicator describing current emergency department service load.",
+      "right_metric": "service_load_index"
+    },
+    {
+      "case_id": "hospital-026",
+      "domain": "hospital_emergency_department_operations",
+      "gold_reason": "The scores appear related, but the definitions lack enough detail to determine their exact semantic relationship.",
+      "gold_relation": "uncertain",
+      "left_description": "Score summarizing how far patients have progressed through emergency care.",
+      "left_metric": "care_progress_score",
+      "right_description": "Score summarizing completion of emergency department workflow activities.",
+      "right_metric": "workflow_completion_score"
+    },
+    {
+      "case_id": "hospital-027",
+      "domain": "hospital_emergency_department_operations",
+      "gold_reason": "Both summarize operational pressure, but their components are unspecified so the precise relationship cannot be determined.",
+      "gold_relation": "uncertain",
+      "left_description": "Index summarizing current emergency department capacity status.",
+      "left_metric": "capacity_status_index",
+      "right_description": "Index summarizing pressure on emergency department resources.",
+      "right_metric": "resource_pressure_index"
+    },
+    {
+      "case_id": "hospital-028",
+      "domain": "hospital_emergency_department_operations",
+      "gold_reason": "The names suggest overlap, but the score definitions are too broad to establish whether they measure the same concept.",
+      "gold_relation": "uncertain",
+      "left_description": "Score representing overall patient flow performance in the emergency department.",
+      "left_metric": "patient_flow_score",
+      "right_description": "Score representing overall emergency department throughput performance.",
+      "right_metric": "throughput_performance_score"
+    },
+    {
+      "case_id": "hospital-029",
+      "domain": "hospital_emergency_department_operations",
+      "gold_reason": "The indicators may overlap, but the descriptions do not specify stages or formulas clearly enough for classification.",
+      "gold_relation": "uncertain",
+      "left_description": "Indicator representing delays within emergency department service delivery.",
+      "left_metric": "service_delay_indicator",
+      "right_description": "Indicator representing delays within emergency department care delivery.",
+      "right_metric": "care_delay_indicator"
+    },
+    {
+      "case_id": "hospital-030",
+      "domain": "hospital_emergency_department_operations",
+      "gold_reason": "Efficiency and overall performance may overlap, but the unspecified index definitions make their relationship ambiguous.",
+      "gold_relation": "uncertain",
+      "left_description": "Composite index representing emergency department operational efficiency.",
+      "left_metric": "operational_efficiency_index",
+      "right_description": "Composite index representing overall emergency department performance.",
+      "right_metric": "department_performance_index"
+    }
+  ],
+  "domain": "hospital_emergency_department_operations",
+  "external_medical_knowledge_required": false,
+  "holdout_id": "adaptation:datalens-semantic-qlora-v0.4:hospital-emergency-department-operations:holdout:v0.1",
+  "model_outputs_observed_during_authoring": false,
+  "protocol_aggregate_freeze_sha256": "e00f9f2d6ef4a8eea47da58b2b200536dc8337c48282f301153a63a3dc215ce6",
+  "protocol_commit": "98e73521d633406c8de728aa667dc2525f6787a3",
+  "relations": [
+    "same_metric_different_state",
+    "same_process_different_stage",
+    "related_distinct_metric",
+    "unrelated",
+    "uncertain"
+  ],
+  "role": "protected_independent_post_training_holdout"
+}
