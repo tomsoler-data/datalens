@@ -17,6 +17,11 @@ from app.adaptation import (
     as scoring
 )
 
+from app.adaptation import (
+    hospital_independent_evaluation_execution_v0_1
+    as execution
+)
+
 
 ROOT = (
     Path(__file__)
@@ -176,7 +181,7 @@ def synthetic_results(
                 "strict_json_valid":
                     strict_json_valid,
 
-                "relation":
+                "predicted_relation":
                     predicted_relation,
 
                 "reason":
@@ -248,6 +253,143 @@ def test_frozen_scoring_authorities(
         ==
         6
     )
+
+    assert (
+        scoring.EXECUTION_RESULT_RELATION_FIELD
+        ==
+        "predicted_relation"
+    )
+
+
+def test_execution_parser_and_scorer_field_contract(
+) -> None:
+
+    parsed = execution.parse_generated_output(
+        decoded_output=(
+            '{"relation":"unrelated",'
+            '"reason":"Synthetic integration reason with exactly enough words."}'
+        ),
+        terminal_stop_token_id=1,
+        generation_budget_exhausted=False,
+    )
+
+    assert (
+        parsed[
+            "strict_json_valid"
+        ]
+        is True
+    )
+
+    assert (
+        parsed[
+            "predicted_relation"
+        ]
+        ==
+        "unrelated"
+    )
+
+    assert (
+        "relation"
+        not in
+        parsed
+    )
+
+    synthetic = synthetic_results(
+        model_label=
+            "base",
+
+        correct_counts=
+            counts(
+                default=4
+            ),
+    )
+
+    assert all(
+        "predicted_relation"
+        in
+        record
+
+        for record
+        in synthetic
+    )
+
+    assert all(
+        "relation"
+        not in
+        record
+
+        for record
+        in synthetic
+    )
+
+
+def test_legacy_relation_field_is_rejected(
+) -> None:
+
+    gold = synthetic_gold()
+
+    base = list(
+        synthetic_results(
+            model_label=
+                "base",
+
+            correct_counts=
+                counts(
+                    default=4
+                ),
+        )
+    )
+
+    first = dict(
+        base[
+            0
+        ]
+    )
+
+    legacy_relation = first.pop(
+        "predicted_relation"
+    )
+
+    first[
+        "relation"
+    ] = legacy_relation
+
+    base[
+        0
+    ] = first
+
+    adapted = synthetic_results(
+        model_label=
+            "adapted",
+
+        correct_counts=
+            counts(
+                default=4
+            ),
+    )
+
+    try:
+
+        scoring.score_official_comparison(
+            gold_records=
+                gold,
+
+            base_results=
+                base,
+
+            adapted_results=
+                adapted,
+        )
+
+    except RuntimeError:
+
+        pass
+
+    else:
+
+        raise AssertionError(
+            "Legacy relation execution field was accepted."
+        )
 
 
 def test_exact_thresholds_pass_with_plus_one_correct_case(
@@ -1024,6 +1166,8 @@ def test_real_evaluation_directory_remains_unconsumed(
 
 TESTS = (
     test_frozen_scoring_authorities,
+    test_execution_parser_and_scorer_field_contract,
+    test_legacy_relation_field_is_rejected,
     test_exact_thresholds_pass_with_plus_one_correct_case,
     test_four_of_six_uncertain_rounds_to_gate,
     test_strict_invalid_output_counts_incorrect_and_fails_gate,

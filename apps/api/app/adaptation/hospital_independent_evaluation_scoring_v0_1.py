@@ -42,6 +42,11 @@ EXPECTED_CASES_PER_RELATION = 6
 DECIMAL_PLACES = 6
 
 
+EXECUTION_RESULT_RELATION_FIELD = (
+    "predicted_relation"
+)
+
+
 ADAPTED_ACCURACY_MINIMUM = 0.700000
 ADAPTED_MACRO_ACCURACY_MINIMUM = 0.700000
 PER_RELATION_ACCURACY_MINIMUM = 0.500000
@@ -368,7 +373,7 @@ def _normalize_model_results(
         "model_label",
         "prompt_sha256",
         "strict_json_valid",
-        "relation",
+        EXECUTION_RESULT_RELATION_FIELD,
     }
 
     by_case_id = {}
@@ -462,7 +467,7 @@ def _normalize_model_results(
             )
 
         relation = record[
-            "relation"
+            EXECUTION_RESULT_RELATION_FIELD
         ]
 
         if strict_json_valid:
