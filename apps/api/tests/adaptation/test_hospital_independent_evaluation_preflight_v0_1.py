@@ -81,6 +81,122 @@ def test_frozen_authority_constants(
     )
 
 
+def test_committed_source_authority_is_platform_independent(
+) -> None:
+
+    qlora_path = (
+        "apps/api/app/adaptation/"
+        "qlora_runtime_v0_4.py"
+    )
+
+    expected = (
+        "20e41ab00606296893276a84e53746c0"
+        "6618b8cabca74fef77cb743c5e80ab7c"
+    )
+
+    assert (
+        preflight.SOURCE_AUTHORITIES[
+            qlora_path
+        ]
+        ==
+        expected
+    )
+
+    assert (
+        preflight.git_committed_sha256(
+            repo_relative_path=
+                qlora_path,
+        )
+        ==
+        expected
+    )
+
+
+def test_source_eol_normalization(
+) -> None:
+
+    lf = (
+        b"alpha\n"
+        b"beta\n"
+        b"gamma\n"
+    )
+
+    crlf = (
+        b"alpha\r\n"
+        b"beta\r\n"
+        b"gamma\r\n"
+    )
+
+    cr = (
+        b"alpha\r"
+        b"beta\r"
+        b"gamma\r"
+    )
+
+    assert (
+        preflight.normalize_source_eol(
+            lf
+        )
+        ==
+        lf
+    )
+
+    assert (
+        preflight.normalize_source_eol(
+            crlf
+        )
+        ==
+        lf
+    )
+
+    assert (
+        preflight.normalize_source_eol(
+            cr
+        )
+        ==
+        lf
+    )
+
+
+def test_source_authority_rejects_non_eol_drift_contract(
+) -> None:
+
+    committed = (
+        b"alpha\n"
+        b"beta\n"
+    )
+
+    eol_only_working = (
+        b"alpha\r\n"
+        b"beta\r\n"
+    )
+
+    changed_working = (
+        b"alpha\r\n"
+        b"CHANGED\r\n"
+    )
+
+    assert (
+        preflight.normalize_source_eol(
+            eol_only_working
+        )
+        ==
+        preflight.normalize_source_eol(
+            committed
+        )
+    )
+
+    assert (
+        preflight.normalize_source_eol(
+            changed_working
+        )
+        !=
+        preflight.normalize_source_eol(
+            committed
+        )
+    )
+
+
 def test_real_preflight_snapshot_without_consumption(
 ) -> None:
 
@@ -534,6 +650,9 @@ def test_real_evaluation_directory_remains_unconsumed(
 
 TESTS = (
     test_frozen_authority_constants,
+    test_committed_source_authority_is_platform_independent,
+    test_source_eol_normalization,
+    test_source_authority_rejects_non_eol_drift_contract,
     test_real_preflight_snapshot_without_consumption,
     test_single_use_availability_blocks_every_terminal_artifact,
     test_atomic_single_use_claim,

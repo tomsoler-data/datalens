@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 import re
+import subprocess
 
 
 from pathlib import Path
@@ -104,8 +105,8 @@ SOURCE_AUTHORITIES = {
         "qlora_runtime_v0_4.py"
     ):
         (
-            "a9a415ab13bea217b442b2d262ecb81a"
-            "7ff99c380b0b43d489763dafe0f62bb7"
+            "20e41ab00606296893276a84e53746c0"
+            "6618b8cabca74fef77cb743c5e80ab7c"
         ),
 
     (
@@ -295,6 +296,113 @@ def require_exact_sha(
         )
 
 
+def normalize_source_eol(
+    payload: bytes,
+) -> bytes:
+
+    return (
+        payload
+        .replace(
+            b"\r\n",
+            b"\n",
+        )
+        .replace(
+            b"\r",
+            b"\n",
+        )
+    )
+
+
+def git_committed_bytes(
+    *,
+    repo_relative_path: str,
+    revision: str = "HEAD",
+) -> bytes:
+
+    if (
+        not isinstance(
+            repo_relative_path,
+            str,
+        )
+        or
+        not repo_relative_path.strip()
+    ):
+
+        raise TypeError(
+            "repo_relative_path must be a non-empty string."
+        )
+
+    if (
+        not isinstance(
+            revision,
+            str,
+        )
+        or
+        not revision.strip()
+    ):
+
+        raise TypeError(
+            "revision must be a non-empty string."
+        )
+
+    result = subprocess.run(
+        [
+            "git",
+            "show",
+            (
+                f"{revision}:"
+                f"{repo_relative_path}"
+            ),
+        ],
+        cwd=
+            REPO_ROOT,
+        stdout=
+            subprocess.PIPE,
+        stderr=
+            subprocess.PIPE,
+        check=
+            False,
+    )
+
+    if result.returncode != 0:
+
+        error = (
+            result.stderr.decode(
+                "utf-8",
+                errors="replace",
+            )
+            .strip()
+        )
+
+        raise RuntimeError(
+            (
+                "Unable to resolve committed source authority.\n"
+                f"Revision: {revision}\n"
+                f"Path: {repo_relative_path}\n"
+                f"Git: {error}"
+            )
+        )
+
+    return result.stdout
+
+
+def git_committed_sha256(
+    *,
+    repo_relative_path: str,
+    revision: str = "HEAD",
+) -> str:
+
+    return hashlib.sha256(
+        git_committed_bytes(
+            repo_relative_path=
+                repo_relative_path,
+
+            revision=
+                revision,
+        )
+    ).hexdigest()
+
+
 def validate_source_authorities(
 ) -> None:
 
@@ -303,18 +411,64 @@ def validate_source_authorities(
         expected_sha,
     ) in SOURCE_AUTHORITIES.items():
 
-        require_exact_sha(
-            path=
-                REPO_ROOT
-                /
-                relative_path,
-
-            expected_sha256=
-                expected_sha,
-
-            label=
-                relative_path,
+        working_path = (
+            REPO_ROOT
+            /
+            relative_path
         )
+
+        if not working_path.is_file():
+
+            raise RuntimeError(
+                (
+                    "Source authority missing from working tree: "
+                    f"{relative_path}"
+                )
+            )
+
+        committed_bytes = (
+            git_committed_bytes(
+                repo_relative_path=
+                    relative_path,
+            )
+        )
+
+        committed_sha = hashlib.sha256(
+            committed_bytes
+        ).hexdigest()
+
+        if committed_sha != expected_sha:
+
+            raise RuntimeError(
+                (
+                    "Committed source authority SHA changed.\n"
+                    f"Path:     {relative_path}\n"
+                    f"Expected: {expected_sha}\n"
+                    f"Actual:   {committed_sha}"
+                )
+            )
+
+        working_bytes = (
+            working_path.read_bytes()
+        )
+
+        if (
+            normalize_source_eol(
+                working_bytes
+            )
+            !=
+            normalize_source_eol(
+                committed_bytes
+            )
+        ):
+
+            raise RuntimeError(
+                (
+                    "Working source differs from committed "
+                    "authority beyond EOL normalization.\n"
+                    f"Path: {relative_path}"
+                )
+            )
 
 
 def validate_candidate_authorities(
