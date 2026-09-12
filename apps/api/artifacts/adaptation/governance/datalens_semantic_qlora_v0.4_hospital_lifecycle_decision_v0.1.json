@@ -1,0 +1,32 @@
+{
+  "artifact_id": "artifact:adapter:0351980df6d86096195c0971deb30c72",
+  "decision_contract_rule_version": "model_lifecycle_evaluation_decision_v0.1",
+  "decision_id": "decision:evaluation:a84d46c046a5ee2f11b60c4e95f10c5c",
+  "decision_registry_bytes": 16384,
+  "decision_registry_rule_version": "model_lifecycle_evaluation_decision_registry_v0.1",
+  "decision_registry_sha256": "fd518c6806f57e8ef475c8e8f16c582e5b717230bf6410bdac7dfb0876fc5a90",
+  "evaluated_at_utc": "2026-09-12T15:26:45Z",
+  "evaluation_id": "hospital-independent-evaluation-v0.1",
+  "evaluation_status": "completed",
+  "evidence": [
+    {
+      "authority_id": "datalens-semantic-qlora-v0.4:hospital-independent-evaluation-v0.1:report",
+      "authority_sha256": "6129dd58c818d59ff888daf06592ba13be90b8a40a2acf9aadbab5de5c8f07b1",
+      "evidence_kind": "evaluation_report"
+    },
+    {
+      "authority_id": "datalens-semantic-qlora-v0.4:hospital-independent-evaluation-v0.1:receipt",
+      "authority_sha256": "4e23a1df35298750429f39363b7cf119a6ad057b29b7bb4fbe83decbe92923cc",
+      "evidence_kind": "evaluation_receipt"
+    }
+  ],
+  "experiment_id": "datalens-semantic-qlora-v0.4",
+  "identity_registry_sha256": "f3487b8963420aa647f6785f5f94413c6807888f1cef80c4a1e6df3798f17928",
+  "lifecycle_authority_commit": "3374a99b8fd69b1f87649d2a7ca0bfe03f625f58",
+  "promotion_decision": "not_promoted",
+  "promotion_eligible": false,
+  "provenance_id": "provenance:llm_adaptation:9fd6ec28f4c2953010e43e2a3414d9af",
+  "rule_version": "model_lifecycle_official_decision_receipt_v0.1",
+  "source_receipt_sha256": "4e23a1df35298750429f39363b7cf119a6ad057b29b7bb4fbe83decbe92923cc",
+  "status": "recorded"
+}
