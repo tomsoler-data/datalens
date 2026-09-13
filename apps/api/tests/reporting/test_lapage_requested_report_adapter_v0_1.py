@@ -217,9 +217,9 @@ def test_reportable_statuses_only(
         counts[
             "complete"
         ],
-        9,
+        10,
         (
-            "Expected 9 complete requested "
+            "Expected 10 complete requested "
             "findings."
         ),
     )
@@ -229,10 +229,10 @@ def test_reportable_statuses_only(
         counts[
             "descriptive_only"
         ],
-        2,
+        1,
         (
-            "Expected 2 descriptive-only "
-            "requested findings."
+            "Expected 1 descriptive-only "
+            "requested finding."
         ),
     )
 
@@ -240,7 +240,7 @@ def test_reportable_statuses_only(
     pass_test(
         (
             "requested findings preserve "
-            "9 complete + 2 descriptive_only"
+            "10 complete + 1 descriptive_only"
         )
     )
 
