@@ -203,7 +203,7 @@ WORKFLOW_ROOT_DATASET_ID = (
 
 
 OBJECTIVE = (
-    "CA par catégorie"
+    "Somme de gross_amount par catégorie"
 )
 
 
