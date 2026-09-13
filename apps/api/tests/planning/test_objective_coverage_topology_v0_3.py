@@ -501,7 +501,7 @@ def main() -> None:
     assert (
         OBJECTIVE_COVERAGE_RULE_VERSION
         ==
-        "objective_coverage_v0.3"
+        "objective_coverage_v0.4"
     )
 
 
