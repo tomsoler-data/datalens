@@ -886,6 +886,28 @@ export type PreparationCombineExecutionResponse = {
 };
 
 
+
+export type PreparationCombineSequenceResponse = {
+  workflow_id:
+    string;
+
+  executions:
+    PreparationCombineExecutionResponse[];
+
+  final_discovery:
+    PreparationCombineDiscoveryView;
+
+  session:
+    PreparationSessionView;
+
+  service_version:
+    string;
+
+  api_version:
+    string;
+};
+
+
 export type PreparationIssueSeverity =
   | "important"
   | "moderate"
