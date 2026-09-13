@@ -21,6 +21,8 @@ from app.preparation.preparation_combine_service import (
     PREPARATION_COMBINE_SERVICE_VERSION,
     CombineDiscovery,
     CombineExecution,
+    CombineSequenceExecution,
+    approve_and_execute_combine_sequence,
     approve_and_execute_next_combine,
     discover_next_combine,
 )
@@ -178,6 +180,27 @@ class PreparationCombineExecutionResponse(
     )
 
 
+
+class PreparationCombineSequenceResponse(
+    BaseModel,
+):
+    workflow_id: str
+
+    executions: list[
+        PreparationCombineExecutionResponse
+    ]
+
+    final_discovery: PreparationCombineDiscoveryView
+
+    session: PreparationSessionView
+
+    service_version: str
+
+    api_version: str = (
+        PREPARATION_COMBINE_API_VERSION
+    )
+
+
 # ============================================================
 # SERIALIZATION
 # ============================================================
@@ -280,6 +303,40 @@ def _execution_response(
                     execution.next_discovery
                 )
             ),
+
+            session=
+                execution.session,
+
+            service_version=
+                execution.rule_version,
+
+            api_version=
+                PREPARATION_COMBINE_API_VERSION,
+        )
+    )
+
+
+
+def _sequence_response(
+    execution: CombineSequenceExecution,
+) -> PreparationCombineSequenceResponse:
+    return (
+        PreparationCombineSequenceResponse(
+            workflow_id=
+                execution.workflow_id,
+
+            executions=[
+                _execution_response(
+                    item
+                )
+                for item
+                in execution.executions
+            ],
+
+            final_discovery=
+                _discovery_view(
+                    execution.final_discovery
+                ),
 
             session=
                 execution.session,
@@ -572,6 +629,121 @@ def approve_preparation_combine(
                 _error_detail(
                     code=
                         "preparation_combine_execution_failed",
+
+                    error=
+                        error,
+
+                    workflow_id=
+                        request.workflow_id,
+                )
+            ),
+        ) from error
+
+# ============================================================
+# APPROVE + EXECUTE BOUNDED SEQUENCE
+# ============================================================
+
+
+@router.post(
+    "/sequence",
+    response_model=
+        PreparationCombineSequenceResponse,
+)
+def approve_preparation_combine_sequence(
+    request: PreparationCombineApprovalRequest,
+) -> PreparationCombineSequenceResponse:
+    """
+    Authorize one bounded server-derived COMBINE sequence.
+
+    The browser supplies only:
+
+        workflow_id
+        first server-issued request_id
+        optional analyst comment
+
+    Every subsequent relationship remains server-derived and
+    passes through the existing deterministic COMBINE safety
+    chain before materialization.
+    """
+
+    try:
+        execution = (
+            approve_and_execute_combine_sequence(
+                workflow_id=
+                    request.workflow_id,
+
+                request_id=
+                    request.request_id,
+
+                actor=
+                    "user",
+
+                comment=(
+                    request.comment.strip()
+                    if (
+                        request.comment
+                        is not None
+                        and
+                        request.comment.strip()
+                    )
+                    else None
+                ),
+            )
+        )
+
+        return (
+            _sequence_response(
+                execution
+            )
+        )
+
+    except PreparationSessionNotFoundError as error:
+        raise HTTPException(
+            status_code=
+                status.HTTP_404_NOT_FOUND,
+
+            detail=(
+                _error_detail(
+                    code=
+                        "preparation_session_not_found",
+
+                    error=
+                        error,
+
+                    workflow_id=
+                        request.workflow_id,
+                )
+            ),
+        ) from error
+
+    except ValueError as error:
+        raise HTTPException(
+            status_code=
+                status.HTTP_409_CONFLICT,
+
+            detail=(
+                _error_detail(
+                    code=
+                        "preparation_combine_sequence_rejected",
+
+                    error=
+                        error,
+
+                    workflow_id=
+                        request.workflow_id,
+                )
+            ),
+        ) from error
+
+    except RuntimeError as error:
+        raise HTTPException(
+            status_code=
+                status.HTTP_409_CONFLICT,
+
+            detail=(
+                _error_detail(
+                    code=
+                        "preparation_combine_sequence_failed",
 
                     error=
                         error,

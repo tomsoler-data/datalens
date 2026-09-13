@@ -45,6 +45,9 @@ type AnalysisExecutionPanelProps = {
   aiPlanReport:
     AIPlannerReportView | null;
 
+  hasSpecializedAnalysisResult:
+    boolean;
+
   objective:
     string;
 
@@ -60,6 +63,7 @@ export default function AnalysisExecutionPanel({
   aiNativeReport,
   aiPlanError,
   aiPlanReport,
+  hasSpecializedAnalysisResult,
   objective,
   preparationReadyForAnalysis,
 }: AnalysisExecutionPanelProps) {
@@ -257,13 +261,17 @@ export default function AnalysisExecutionPanel({
                       aiNativeReport
                     )
                     ? "Plan et analyse générés"
-                    : aiNativeReport
-                      ? "Analyse non exécutée"
-                      : aiNativeError
-                        ? "Analyse ciblée à vérifier"
-                        : objective.trim()
-                          ? "Intégré au lancement de l’analyse"
-                          : "Aucune demande ciblée"
+                    : hasSpecializedAnalysisResult
+                      ? aiNativeError
+                        ? "Analyse partiellement exécutée"
+                        : "Analyse spécialisée générée"
+                      : aiNativeReport
+                        ? "Analyse non exécutée"
+                        : aiNativeError
+                          ? "Analyse ciblée à vérifier"
+                          : objective.trim()
+                            ? "Intégré au lancement de l’analyse"
+                            : "Aucune demande ciblée"
               }
             </div>
           </div>
@@ -436,7 +444,11 @@ export default function AnalysisExecutionPanel({
             aiNativeError
               ? (
                   <div
-                    role="alert"
+                    role={
+                      hasSpecializedAnalysisResult
+                        ? "status"
+                        : "alert"
+                    }
                     style={{
                       marginTop:
                         "16px",
@@ -445,29 +457,79 @@ export default function AnalysisExecutionPanel({
                         "13px 14px",
 
                       border:
-                        "1px solid rgba(255, 132, 132, 0.22)",
+                        hasSpecializedAnalysisResult
+                          ? "1px solid rgba(216, 183, 121, 0.24)"
+                          : "1px solid rgba(255, 132, 132, 0.22)",
 
                       borderRadius:
                         "12px",
 
                       background:
-                        "rgba(154, 50, 50, 0.10)",
+                        hasSpecializedAnalysisResult
+                          ? "rgba(216, 183, 121, 0.07)"
+                          : "rgba(154, 50, 50, 0.10)",
                     }}
                   >
                     <strong>
-                      Analyse non exécutée
+                      {
+                        hasSpecializedAnalysisResult
+                          ? "Analyse partiellement exécutée"
+                          : "Analyse non exécutée"
+                      }
                     </strong>
 
-                    <p
-                      style={{
-                        margin:
-                          "6px 0 0",
-                      }}
-                    >
-                      {
-                        aiNativeError
-                      }
-                    </p>
+                    {
+                      hasSpecializedAnalysisResult
+                        ? (
+                            <>
+                              <p
+                                style={{
+                                  margin:
+                                    "6px 0 0",
+                                }}
+                              >
+                                Une étape du traitement IA local
+                                n’a pas abouti. Les résultats
+                                analytiques validés restent
+                                disponibles ci-dessous.
+                              </p>
+
+                              <details
+                                style={{
+                                  marginTop:
+                                    "8px",
+                                }}
+                              >
+                                <summary>
+                                  Détail du traitement local
+                                </summary>
+
+                                <p
+                                  style={{
+                                    margin:
+                                      "6px 0 0",
+                                  }}
+                                >
+                                  {
+                                    aiNativeError
+                                  }
+                                </p>
+                              </details>
+                            </>
+                          )
+                        : (
+                            <p
+                              style={{
+                                margin:
+                                  "6px 0 0",
+                              }}
+                            >
+                              {
+                                aiNativeError
+                              }
+                            </p>
+                          )
+                    }
                   </div>
                 )
               : null

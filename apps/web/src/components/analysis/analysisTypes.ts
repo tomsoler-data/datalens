@@ -458,6 +458,10 @@ export type AINativePipelineReportView = {
     ReportRequestedFinding |
     null;
 
+  entity_outlier_finding?:
+    EntityOutlierFindingView |
+    null;
+
   status:
     string;
 

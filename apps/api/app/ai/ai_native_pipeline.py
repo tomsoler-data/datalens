@@ -155,6 +155,14 @@ class AINativePipelineReport(
         | None
     ) = None
 
+    entity_outlier_finding: (
+        dict[
+            str,
+            Any,
+        ]
+        | None
+    ) = None
+
     planner: AIPlannerReport
 
     planner_model: str
@@ -215,6 +223,14 @@ def execute_native_ai_pipeline(
     ),
     trace_id: (
         str
+        | None
+    ) = None,
+
+    entity_outlier_finding: (
+        dict[
+            str,
+            Any,
+        ]
         | None
     ) = None,
 ) -> AINativePipelineReport:
@@ -447,6 +463,9 @@ def execute_native_ai_pipeline(
         AINativePipelineReport(
             trace_id=(
                 trace_id
+            ),
+            entity_outlier_finding=(
+                entity_outlier_finding
             ),
             planner=(
                 planner_report
