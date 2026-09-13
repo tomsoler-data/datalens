@@ -37,6 +37,11 @@ from app.analysis.entity_outlier_profiles import (
     build_entity_outlier_profiles,
 )
 
+from app.planning.semantic_outlier_scope import (
+    DEFAULT_SEMANTIC_OUTLIER_SCOPE_MODEL,
+    resolve_semantic_outlier_scope,
+)
+
 
 # ============================================================
 # VERSION
@@ -71,6 +76,12 @@ EntityKind = Literal[
 IntentResolutionStatus = Literal[
     "matched",
     "not_matched",
+]
+
+
+IntentResolutionSource = Literal[
+    "deterministic",
+    "semantic",
 ]
 
 
@@ -112,6 +123,15 @@ class EntityOutlierIntentResolution(
 
     reason: str
 
+    resolution_source: IntentResolutionSource = (
+        "deterministic"
+    )
+
+    resolution_model: (
+        str
+        | None
+    ) = None
+
     rule_version: str = (
         ENTITY_OUTLIER_REQUEST_RULE_VERSION
     )
@@ -141,6 +161,15 @@ class EntityOutlierRequestReport(
 
     entity_kind: (
         EntityKind
+        | None
+    ) = None
+
+    intent_resolution_source: IntentResolutionSource = (
+        "deterministic"
+    )
+
+    intent_resolution_model: (
+        str
         | None
     ) = None
 
@@ -496,6 +525,145 @@ def resolve_entity_outlier_intent(
     )
 
 
+def resolve_entity_outlier_intent_with_semantic_fallback(
+    objective: str,
+    *,
+    model: str = (
+        DEFAULT_SEMANTIC_OUTLIER_SCOPE_MODEL
+    ),
+) -> EntityOutlierIntentResolution:
+    """
+    Resolve customer entity-outlier intent with one guarded
+    semantic fallback.
+
+    Resolution order:
+
+        1. Existing deterministic lexical resolver.
+        2. If already matched, return immediately.
+        3. Semantic fallback is considered only when the
+           objective explicitly targets customers/entities.
+        4. Qwen classifies analytical concept + grain.
+        5. Only customer_entity_outlier_detection may promote
+           the request to the customer entity-outlier branch.
+
+    Python never infers anomaly semantics from new synonyms.
+
+    Non-customer anomaly requests remain outside this branch.
+    Model failures and unexpected outputs fail closed.
+    """
+
+    deterministic = (
+        resolve_entity_outlier_intent(
+            objective
+        )
+    )
+
+    if (
+        deterministic.status
+        ==
+        "matched"
+    ):
+        return deterministic
+
+    normalized = (
+        deterministic
+        .normalized_objective
+    )
+
+    if not normalized:
+        return deterministic
+
+    # Cheap deterministic eligibility gate only.
+    #
+    # This does NOT decide whether the request is an anomaly
+    # request. It only avoids invoking a customer-specific
+    # semantic resolver when no customer/entity target appears
+    # in the objective at all.
+    has_customer_target = bool(
+        CUSTOMER_PATTERN.search(
+            normalized
+        )
+    )
+
+    if not has_customer_target:
+        return deterministic
+
+    semantic_scope = (
+        resolve_semantic_outlier_scope(
+            objective,
+            model=model,
+        )
+    )
+
+    if (
+        semantic_scope
+        ==
+        "customer_entity_outlier_detection"
+    ):
+        return (
+            EntityOutlierIntentResolution(
+                status=
+                    "matched",
+
+                objective=
+                    deterministic.objective,
+
+                normalized_objective=
+                    normalized,
+
+                intent=
+                    "customer_entity_outlier_detection",
+
+                entity_kind=
+                    "customer",
+
+                reason=
+                    (
+                        "The local semantic resolver "
+                        "classified the objective as a "
+                        "customer-level entity-outlier "
+                        "request."
+                    ),
+
+                resolution_source=
+                    "semantic",
+
+                resolution_model=
+                    model,
+            )
+        )
+
+    if semantic_scope is None:
+        return deterministic
+
+    return (
+        EntityOutlierIntentResolution(
+            status=
+                "not_matched",
+
+            objective=
+                deterministic.objective,
+
+            normalized_objective=
+                normalized,
+
+            reason=
+                (
+                    "The local semantic resolver classified "
+                    "the objective as "
+                    f"{semantic_scope!r}; the customer "
+                    "entity-outlier branch was not selected."
+                ),
+
+            resolution_source=
+                "semantic",
+
+            resolution_model=
+                model,
+        )
+    )
+
+
 # ============================================================
 # CUSTOMER VIEW IDENTIFICATION
 # ============================================================
@@ -720,6 +888,12 @@ def _blocked_report(
             entity_kind=
                 resolution.entity_kind,
 
+            intent_resolution_source=
+                resolution.resolution_source,
+
+            intent_resolution_model=
+                resolution.resolution_model,
+
             blockers=[
                 blocker
             ],
@@ -751,6 +925,11 @@ def run_entity_outlier_request(
     ],
 
     top_profile_limit: int = 50,
+
+    resolution: (
+        EntityOutlierIntentResolution
+        | None
+    ) = None,
 ) -> EntityOutlierRequestReport:
     """
     Execute a specific customer entity-outlier request.
@@ -789,11 +968,12 @@ def run_entity_outlier_request(
         )
 
 
-    resolution = (
-        resolve_entity_outlier_intent(
-            objective
+    if resolution is None:
+        resolution = (
+            resolve_entity_outlier_intent_with_semantic_fallback(
+                objective
+            )
         )
-    )
 
 
     if (
@@ -812,6 +992,12 @@ def run_entity_outlier_request(
                         or
                         ""
                     ).strip(),
+
+                intent_resolution_source=
+                    resolution.resolution_source,
+
+                intent_resolution_model=
+                    resolution.resolution_model,
 
                 notes=[
                     resolution.reason
@@ -1076,12 +1262,27 @@ def run_entity_outlier_request(
     # 5. USER-FACING STRUCTURED RESULT
     # ========================================================
 
+    if (
+        resolution.resolution_source
+        ==
+        "semantic"
+    ):
+        resolution_note = (
+            "The request intent was resolved semantically "
+            "by the local analytical model before the "
+            "deterministic customer entity-outlier "
+            "execution."
+        )
+
+    else:
+        resolution_note = (
+            "The request was resolved deterministically "
+            "as a customer entity-outlier analysis."
+        )
+
+
     notes = [
-        (
-            "The request was resolved "
-            "deterministically as a customer "
-            "entity-outlier analysis."
-        ),
+        resolution_note,
 
         (
             "The customer grain was materialized "
@@ -1132,6 +1333,12 @@ def run_entity_outlier_request(
 
             entity_kind=
                 resolution.entity_kind,
+
+            intent_resolution_source=
+                resolution.resolution_source,
+
+            intent_resolution_model=
+                resolution.resolution_model,
 
             dataset_id=
                 str(
