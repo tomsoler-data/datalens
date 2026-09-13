@@ -55,6 +55,24 @@ ObjectiveRequirementType = Literal[
 
 
 # ============================================================
+# ANALYTICAL INTENT COVERAGE
+# DATALENS_OBJECTIVE_INTENT_COVERAGE_V0_1
+# ============================================================
+
+OBJECTIVE_INTENT_COVERAGE_RULE_VERSION = (
+    "objective_intent_coverage_v0.1"
+)
+
+
+ObjectiveIntentKind = Literal[
+    "scalar_total",
+    "monthly_time_series",
+    "categorical_breakdown",
+    "entity_ranking",
+]
+
+
+# ============================================================
 # REPORT
 # ============================================================
 
@@ -149,6 +167,81 @@ class ObjectiveCoverageTopologyRequirement(
     )
 
 
+class ObjectiveCoverageIntentRequirement(
+    BaseModel
+):
+    model_config = ConfigDict(
+        extra="forbid"
+    )
+
+    intent_id: str
+
+    intent_kind: ObjectiveIntentKind
+
+    metric_concept: str
+
+    candidate_metric_columns: list[
+        str
+    ] = Field(
+        default_factory=list
+    )
+
+    requested_phrases: list[
+        str
+    ] = Field(
+        default_factory=list
+    )
+
+    required_family: (
+        str
+        | None
+    ) = None
+
+    required_grain: (
+        str
+        | None
+    ) = None
+
+    required_dimension_concepts: list[
+        str
+    ] = Field(
+        default_factory=list
+    )
+
+    required_aggregation: (
+        str
+        | None
+    ) = None
+
+    ranking_order: (
+        str
+        | None
+    ) = None
+
+    ranking_limit: (
+        int
+        | None
+    ) = None
+
+    covered: bool = False
+
+    covered_by_contract_ids: list[
+        str
+    ] = Field(
+        default_factory=list
+    )
+
+    notes: list[
+        str
+    ] = Field(
+        default_factory=list
+    )
+
+    rule_version: str = (
+        OBJECTIVE_INTENT_COVERAGE_RULE_VERSION
+    )
+
+
 class ObjectiveCoverageReport(
     BaseModel
 ):
@@ -178,6 +271,18 @@ class ObjectiveCoverageReport(
 
     topology_requirements: list[
         ObjectiveCoverageTopologyRequirement
+    ] = Field(
+        default_factory=list
+    )
+
+    intent_requirement_count: int = 0
+
+    intent_covered_count: int = 0
+
+    intent_missing_count: int = 0
+
+    intent_requirements: list[
+        ObjectiveCoverageIntentRequirement
     ] = Field(
         default_factory=list
     )
@@ -1752,6 +1857,681 @@ def contract_groups_by_single_requirement(
     )
 
 
+# ============================================================
+# ANALYTICAL INTENT COVERAGE
+# DATALENS_OBJECTIVE_INTENT_COVERAGE_V0_1
+# ============================================================
+
+def _intent_binding_matches_metric(
+    *,
+    contract: AnalyticalContract,
+    intent: ObjectiveCoverageIntentRequirement,
+) -> bool:
+    aggregation = (
+        contract.aggregation
+    )
+
+    if aggregation is None:
+        return False
+
+    if (
+        intent.required_aggregation
+        is not None
+        and
+        aggregation.function
+        !=
+        intent.required_aggregation
+    ):
+        return False
+
+    source_role = (
+        aggregation.source_role
+    )
+
+    if source_role is None:
+        return False
+
+    candidates = {
+        normalize_text(
+            column
+        )
+
+        for column
+        in intent.candidate_metric_columns
+    }
+
+    metric_concept = (
+        normalize_text(
+            intent.metric_concept
+        )
+    )
+
+    for binding in contract.bindings:
+        if (
+            binding.role
+            !=
+            source_role
+        ):
+            continue
+
+        if (
+            normalize_text(
+                binding.column
+            )
+            in candidates
+        ):
+            return True
+
+        semantic_concept = (
+            normalize_text(
+                str(
+                    binding.semantic_concept
+                    or
+                    ""
+                )
+            )
+        )
+
+        if (
+            semantic_concept
+            and
+            semantic_concept
+            ==
+            metric_concept
+        ):
+            return True
+
+    return False
+
+
+def _intent_group_matches(
+    *,
+    contract: AnalyticalContract,
+    concepts: set[str],
+) -> bool:
+    aggregation = (
+        contract.aggregation
+    )
+
+    if aggregation is None:
+        return False
+
+    grouped_roles = set(
+        aggregation.group_by_roles
+    )
+
+    if not grouped_roles:
+        return False
+
+    for binding in contract.bindings:
+        if (
+            binding.role
+            not in
+            grouped_roles
+        ):
+            continue
+
+        binding_text = normalize_text(
+            binding.column
+        )
+
+        semantic_text = normalize_text(
+            str(
+                binding.semantic_concept
+                or
+                ""
+            )
+        )
+
+        tokens = {
+            *binding_text.split(),
+            *semantic_text.split(),
+        }
+
+        if (
+            tokens
+            &
+            concepts
+        ):
+            return True
+
+    return False
+
+
+def contract_covers_intent(
+    *,
+    contract: AnalyticalContract,
+    intent: ObjectiveCoverageIntentRequirement,
+) -> bool:
+    if (
+        contract.status
+        !=
+        "validated"
+    ):
+        return False
+
+    if not _intent_binding_matches_metric(
+        contract=contract,
+        intent=intent,
+    ):
+        return False
+
+    if (
+        intent.intent_kind
+        ==
+        "scalar_total"
+    ):
+        if (
+            contract.family
+            not in {
+                "aggregation",
+                "descriptive_metric",
+            }
+        ):
+            return False
+
+        aggregation = (
+            contract.aggregation
+        )
+
+        if aggregation is None:
+            return False
+
+        return (
+            len(
+                aggregation.group_by_roles
+            )
+            ==
+            0
+        )
+
+    if (
+        intent.intent_kind
+        ==
+        "monthly_time_series"
+    ):
+        if (
+            contract.family
+            !=
+            "time_series"
+        ):
+            return False
+
+        grain = normalize_text(
+            str(
+                contract.analytical_grain
+                or
+                ""
+            )
+        )
+
+        time_bindings = [
+            binding
+            for binding
+            in contract.bindings
+            if binding.role == "time"
+        ]
+
+        monthly_tokens = {
+            "month",
+            "monthly",
+            "mois",
+            "mensuel",
+            "mensuelle",
+        }
+
+        return (
+            grain
+            in monthly_tokens
+            or
+            any(
+                bool(
+                    set(
+                        normalize_text(
+                            binding.column
+                        ).split()
+                    )
+                    &
+                    monthly_tokens
+                )
+                for binding
+                in time_bindings
+            )
+        )
+
+    if (
+        intent.intent_kind
+        ==
+        "categorical_breakdown"
+    ):
+        if (
+            contract.family
+            not in {
+                "aggregation",
+                "group_comparison",
+            }
+        ):
+            return False
+
+        return _intent_group_matches(
+            contract=contract,
+            concepts={
+                "category",
+                "categorie",
+                "categories",
+                "categ",
+            },
+        )
+
+    if (
+        intent.intent_kind
+        ==
+        "entity_ranking"
+    ):
+        if (
+            contract.family
+            !=
+            "ranking"
+        ):
+            return False
+
+        ranking = (
+            contract.ranking
+        )
+
+        if ranking is None:
+            return False
+
+        if (
+            intent.ranking_order
+            is not None
+            and
+            ranking.order
+            !=
+            intent.ranking_order
+        ):
+            return False
+
+        if (
+            intent.ranking_limit
+            is not None
+            and
+            ranking.limit
+            !=
+            intent.ranking_limit
+        ):
+            return False
+
+        return _intent_group_matches(
+            contract=contract,
+            concepts={
+                "client",
+                "clients",
+                "customer",
+                "customers",
+                "buyer",
+                "buyers",
+                "acheteur",
+                "acheteurs",
+                "user",
+                "users",
+            },
+        )
+
+    return False
+
+
+def _explicit_entity_ranking_limit(
+    objective: str,
+) -> int | None:
+    normalized = (
+        normalize_text(
+            objective
+        )
+    )
+
+    patterns = (
+        r"\btop\s+(\d{1,3})\b",
+        (
+            r"\b(\d{1,3})\s+"
+            r"(?:clients?|customers?|buyers?|acheteurs?|users?)\b"
+        ),
+    )
+
+    for pattern in patterns:
+        match = re.search(
+            pattern,
+            normalized,
+        )
+
+        if match is None:
+            continue
+
+        value = int(
+            match.group(
+                1
+            )
+        )
+
+        if (
+            1
+            <=
+            value
+            <=
+            100
+        ):
+            return value
+
+    return None
+
+
+def build_intent_requirements(
+    *,
+    objective: str,
+    requirements: list[
+        ObjectiveCoverageRequirement
+    ],
+    contracts: list[
+        AnalyticalContract
+    ],
+) -> list[
+    ObjectiveCoverageIntentRequirement
+]:
+    metric_requirements = [
+        requirement
+
+        for requirement
+        in requirements
+
+        if (
+            requirement.requirement_type
+            ==
+            "metric"
+        )
+    ]
+
+    # Fail closed to the existing Objective Coverage logic for
+    # zero-metric and multi-metric objectives. v0.1 deliberately
+    # addresses the same-metric / multi-intent gap only.
+    if (
+        len(
+            metric_requirements
+        )
+        !=
+        1
+    ):
+        return []
+
+    metric = (
+        metric_requirements[
+            0
+        ]
+    )
+
+    if not metric.candidate_columns:
+        return []
+
+    normalized = (
+        normalize_text(
+            objective
+        )
+    )
+
+    detected: list[
+        ObjectiveCoverageIntentRequirement
+    ] = []
+
+    metric_kwargs = {
+        "metric_concept":
+            metric.concept,
+
+        "candidate_metric_columns":
+            list(
+                metric.candidate_columns
+            ),
+
+        "required_aggregation":
+            metric.required_aggregation,
+    }
+
+    # --------------------------------------------------------
+    # EXPLICIT SCALAR TOTAL
+    # --------------------------------------------------------
+
+    if re.search(
+        r"\btotal(?:e|es|s)?\b",
+        normalized,
+    ):
+        detected.append(
+            ObjectiveCoverageIntentRequirement(
+                intent_id=(
+                    "intent:"
+                    + metric.concept
+                    + ":scalar_total"
+                ),
+                intent_kind=
+                    "scalar_total",
+                requested_phrases=[
+                    "total"
+                ],
+                required_family=
+                    "aggregation",
+                notes=[
+                    (
+                        "An explicit total requires an "
+                        "ungrouped scalar aggregation."
+                    )
+                ],
+                **metric_kwargs,
+            )
+        )
+
+    # --------------------------------------------------------
+    # EXPLICIT MONTHLY SERIES
+    # --------------------------------------------------------
+
+    monthly_requested = bool(
+        re.search(
+            (
+                r"\b(?:mensuel|mensuelle|mensuels|mensuelles|monthly)\b"
+                r"|\bpar\s+mois\b"
+                r"|\bchaque\s+mois\b"
+            ),
+            normalized,
+        )
+    )
+
+    if monthly_requested:
+        detected.append(
+            ObjectiveCoverageIntentRequirement(
+                intent_id=(
+                    "intent:"
+                    + metric.concept
+                    + ":monthly_time_series"
+                ),
+                intent_kind=
+                    "monthly_time_series",
+                requested_phrases=[
+                    "monthly"
+                ],
+                required_family=
+                    "time_series",
+                required_grain=
+                    "month",
+                notes=[
+                    (
+                        "An explicit monthly request requires "
+                        "a validated monthly time-series contract."
+                    )
+                ],
+                **metric_kwargs,
+            )
+        )
+
+    # --------------------------------------------------------
+    # EXPLICIT CATEGORY BREAKDOWN
+    # --------------------------------------------------------
+
+    category_requested = (
+        bool(
+            re.search(
+                r"\b(?:categorie|categories|category|categ)\b",
+                normalized,
+            )
+        )
+        and
+        bool(
+            re.search(
+                r"\b(?:par|by|selon)\b",
+                normalized,
+            )
+        )
+    )
+
+    if category_requested:
+        detected.append(
+            ObjectiveCoverageIntentRequirement(
+                intent_id=(
+                    "intent:"
+                    + metric.concept
+                    + ":category_breakdown"
+                ),
+                intent_kind=
+                    "categorical_breakdown",
+                requested_phrases=[
+                    "category breakdown"
+                ],
+                required_family=
+                    "aggregation",
+                required_dimension_concepts=[
+                    "category"
+                ],
+                notes=[
+                    (
+                        "An explicit category breakdown requires "
+                        "a validated grouped metric contract."
+                    )
+                ],
+                **metric_kwargs,
+            )
+        )
+
+    # --------------------------------------------------------
+    # EXPLICIT ENTITY TOP-N
+    # --------------------------------------------------------
+
+    ranking_limit = (
+        _explicit_entity_ranking_limit(
+            objective
+        )
+    )
+
+    entity_requested = bool(
+        re.search(
+            (
+                r"\b(?:client|clients|customer|customers|"
+                r"buyer|buyers|acheteur|acheteurs|user|users)\b"
+            ),
+            normalized,
+        )
+    )
+
+    descending_requested = bool(
+        re.search(
+            (
+                r"\btop\b"
+                r"|\ble\s+plus\b"
+                r"|\bplus\s+de\b"
+                r"|\bhighest\b"
+                r"|\bmost\b"
+                r"|\bmeilleur(?:s)?\b"
+            ),
+            normalized,
+        )
+    )
+
+    if (
+        ranking_limit
+        is not None
+        and
+        entity_requested
+        and
+        descending_requested
+    ):
+        detected.append(
+            ObjectiveCoverageIntentRequirement(
+                intent_id=(
+                    "intent:"
+                    + metric.concept
+                    + ":entity_ranking:"
+                    + str(
+                        ranking_limit
+                    )
+                ),
+                intent_kind=
+                    "entity_ranking",
+                requested_phrases=[
+                    (
+                        "top "
+                        + str(
+                            ranking_limit
+                        )
+                    )
+                ],
+                required_family=
+                    "ranking",
+                required_dimension_concepts=[
+                    "customer"
+                ],
+                ranking_order=
+                    "descending",
+                ranking_limit=
+                    ranking_limit,
+                notes=[
+                    (
+                        "An explicit Top-N entity request requires "
+                        "a validated descending ranking with the "
+                        "same limit."
+                    )
+                ],
+                **metric_kwargs,
+            )
+        )
+
+    evaluated: list[
+        ObjectiveCoverageIntentRequirement
+    ] = []
+
+    for intent in detected:
+        covering_contract_ids = [
+            contract.contract_id
+
+            for contract
+            in contracts
+
+            if contract_covers_intent(
+                contract=contract,
+                intent=intent,
+            )
+        ]
+
+        evaluated.append(
+            intent.model_copy(
+                update={
+                    "covered":
+                        bool(
+                            covering_contract_ids
+                        ),
+
+                    "covered_by_contract_ids":
+                        covering_contract_ids,
+                }
+            )
+        )
+
+    return evaluated
+
+
 def build_topology_requirements(
     *,
     objective: str,
@@ -2064,6 +2844,39 @@ def build_objective_coverage(
     )
 
 
+    intent_requirements = (
+        build_intent_requirements(
+            objective=
+                objective,
+
+            requirements=
+                evaluated,
+
+            contracts=
+                contracts,
+        )
+    )
+
+
+    intent_covered_count = sum(
+        1
+
+        for intent
+        in intent_requirements
+
+        if intent.covered
+    )
+
+
+    intent_missing_count = (
+        len(
+            intent_requirements
+        )
+        -
+        intent_covered_count
+    )
+
+
     status: ObjectiveCoverageStatus = (
         "complete"
 
@@ -2073,6 +2886,10 @@ def build_objective_coverage(
             0
             and
             topology_missing_count
+            ==
+            0
+            and
+            intent_missing_count
             ==
             0
         )
@@ -2127,6 +2944,20 @@ def build_objective_coverage(
 
             topology_requirements=
                 topology_requirements,
+
+            intent_requirement_count=
+                len(
+                    intent_requirements
+                ),
+
+            intent_covered_count=
+                intent_covered_count,
+
+            intent_missing_count=
+                intent_missing_count,
+
+            intent_requirements=
+                intent_requirements,
 
             notes=
                 notes,

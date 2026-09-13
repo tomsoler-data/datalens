@@ -66,7 +66,7 @@ MAX_AI_PLANNER_ATTEMPTS = 2
 
 
 DEFAULT_AI_PLANNER_MODEL = (
-    "gemma3:4b"
+    "qwen3.5:4b"
 )
 
 
@@ -424,7 +424,11 @@ class AIPlannerProposal(
         str
     ]
 
-    confidence: float = Field(
+    confidence: (
+        float
+        | None
+    ) = Field(
+        default=None,
         ge=0.0,
         le=1.0,
     )
@@ -1106,6 +1110,33 @@ FAMILLES :
     INTERDIT avec decision="propose".
     Utilise seulement avec decision="blocked" ou "ambiguous".
 
+DÉCOMPOSITION MULTI-INTENT
+
+Quand l'objectif utilisateur demande plusieurs résultats analytiques
+indépendants, produis une proposition distincte par intention analytique.
+
+Une même métrique métier peut légitimement être réutilisée dans plusieurs
+propositions lorsque l'utilisateur demande plusieurs opérations ou grains
+sur cette même métrique.
+
+Exemples génériques d'intentions distinctes :
+- total scalaire d'une métrique ;
+- évolution temporelle de cette métrique ;
+- ventilation de cette métrique par catégorie ;
+- classement d'entités selon cette métrique.
+
+Ne fusionne pas plusieurs familles analytiques indépendantes dans une seule
+proposition. Une proposition possède une seule famille analytique.
+
+Ainsi, si un objectif demande simultanément un total, une série temporelle,
+une ventilation par catégorie et un Top-N, ces résultats doivent être
+représentés par plusieurs propositions distinctes lorsque le catalogue
+permet de les résoudre.
+
+Le nombre de propositions doit correspondre au plus petit ensemble qui
+préserve TOUTES les intentions explicitement demandées, pas au plus petit
+nombre de propositions possible au prix d'une perte d'intention.
+
 RÈGLES DE SÉCURITÉ :
 
 - Copie EXACTEMENT dataset_id et les noms de colonnes du catalogue.
@@ -1150,6 +1181,14 @@ Sans benchmark demandé :
 benchmark_reference = null
 benchmark_operator = null
 benchmark_selection = null
+
+N'infère jamais un benchmark à partir d'une demande de total,
+d'évolution temporelle, de ventilation, de comparaison descriptive,
+de Top-N ou de classement.
+
+Un benchmark ne doit être activé que si l'objectif exprime explicitement
+une comparaison à une référence analytique compatible, par exemple
+"supérieur à la moyenne globale".
 
 Un benchmark actif est autorisé UNIQUEMENT avec :
 family = aggregation
@@ -1647,7 +1686,15 @@ def build_user_prompt(
         "categorical_additive_measure avec operation=groupby_sum est "
         "une agrégation, jamais une quantitative_association.\n\n"
         "Construis uniquement le ou les plans nécessaires pour "
-        "répondre directement à l'objectif."
+        "répondre directement à l'objectif.\n"
+        "Si plusieurs intentions analytiques indépendantes sont "
+        "explicitement demandées, produis une proposition distincte "
+        "par intention analytique, même lorsqu'elles utilisent la "
+        "même métrique. Ne fusionne pas plusieurs familles analytiques "
+        "dans une seule proposition.\n"
+        "N'infère jamais un benchmark s'il n'est pas explicitement "
+        "demandé ; dans ce cas benchmark_reference, "
+        "benchmark_operator et benchmark_selection doivent rester null."
     )
 
 
@@ -3910,6 +3957,7 @@ def canonicalize_wire_roles(
             "group_comparison",
             "distribution",
             "time_series",
+            "ranking",
         }
     ):
         return (
@@ -3959,7 +4007,7 @@ def canonicalize_wire_roles(
     # ========================================================
     # ASSOCIATION FAMILY
     #
-    # If Gemma selected the wrong association family but copied
+    # If the local model selected the wrong association family but copied
     # the exact x/y columns correctly, Python can determine the
     # valid family from the deterministic column types.
     #
@@ -4126,6 +4174,82 @@ def canonicalize_wire_roles(
             )
 
 
+        return (
+            proposal,
+            normalizations,
+        )
+
+
+    # ========================================================
+    # RANKING
+    #
+    # The compact LLM wire may express the thing being ranked
+    # through entity_column. The canonical AnalyticalContract
+    # represents that same role as dimension.
+    #
+    # This is only a protocol normalization. Python may perform
+    # it only when the selected server-owned dataset explicitly
+    # declares the exact same entity column.
+    # ========================================================
+
+    if (
+        proposal.family
+        ==
+        "ranking"
+        and
+        proposal.dimension_column
+        is None
+        and
+        proposal.entity_column
+        is not None
+        and
+        dataset.entity_column
+        is not None
+        and
+        proposal.entity_column
+        ==
+        dataset.entity_column
+    ):
+        entity_column = (
+            proposal.entity_column
+        )
+
+
+        proposal = (
+            proposal.model_copy(
+                update={
+                    "dimension_column":
+                        entity_column,
+
+                    "entity_column":
+                        None,
+                }
+            )
+        )
+
+
+        normalizations.append(
+            (
+                "Python a normalisé le protocole du planner "
+                "pour `ranking` : l\'entity_column validée par "
+                "le catalogue server-owned a été remappée vers "
+                "le rôle canonique dimension_column. "
+                f"dimension={entity_column}."
+            )
+        )
+
+
+        return (
+            proposal,
+            normalizations,
+        )
+
+
+    if (
+        proposal.family
+        ==
+        "ranking"
+    ):
         return (
             proposal,
             normalizations,
@@ -10513,7 +10637,7 @@ def canonicalize_explicit_share_of_total_contract(
     - aggregation is grouped SUM.
 
     The LLM wire remains share-blind.
-    Gemma never chooses the denominator semantics.
+    The local LLM never chooses the denominator semantics.
     """
 
     if not (
@@ -13104,6 +13228,7 @@ def validate_ai_proposal(
     proposal: AIPlannerProposal,
     proposal_index: int,
     catalog: PlannerCatalog,
+    allow_monthly_objective_repair: bool = True,
 ) -> AIPlannerValidatedItem:
     raw_proposal = (
         proposal
@@ -13142,20 +13267,24 @@ def validate_ai_proposal(
     )
 
 
-    (
-        proposal,
-        monthly_view_normalizations,
-    ) = canonicalize_monthly_analytical_view_intent(
-        objective=(
-            objective
-        ),
-        proposal=(
-            proposal
-        ),
-        catalog=(
-            catalog
-        ),
-    )
+    if allow_monthly_objective_repair:
+        (
+            proposal,
+            monthly_view_normalizations,
+        ) = canonicalize_monthly_analytical_view_intent(
+            objective=(
+                objective
+            ),
+            proposal=(
+                proposal
+            ),
+            catalog=(
+                catalog
+            ),
+        )
+
+    else:
+        monthly_view_normalizations = []
 
 
     (
@@ -14602,6 +14731,17 @@ def validate_ai_planner_output(
             catalog=(
                 catalog
             ),
+            allow_monthly_objective_repair=(
+                len(
+                    raw_output.proposals
+                )
+                ==
+                1
+                or
+                proposal.family
+                ==
+                "time_series"
+            ),
         )
 
         for (
@@ -14696,8 +14836,257 @@ def validate_ai_planner_output(
 
 
 # ============================================================
-# LOCAL GEMMA CALL
+# LOCAL STRUCTURED PLANNER CALL
 # ============================================================
+
+
+# ============================================================
+# LLM WIRE TRANSPORT NORMALIZATION
+# DATALENS_AI_PLANNER_WIRE_NORMALIZATION_V0_1
+#
+# This boundary is deliberately transport-only.
+#
+# It may:
+# - remove Markdown JSON fences;
+# - wrap a root proposal list in {"proposals": ...};
+# - translate JSON null to the explicit wire sentinel "none"
+#   where the canonical wire requires that sentinel;
+# - restore server-owned analytical_grain metadata from the
+#   dataset selected by the model;
+# - supply non-analytical metadata required by the wire.
+#
+# It MUST NOT choose or alter:
+# - family;
+# - dataset_id;
+# - analytical variable bindings;
+# - aggregation;
+# - ranking limit/direction when explicitly supplied;
+# - benchmark semantics.
+# ============================================================
+
+def normalize_ai_planner_wire_content(
+    *,
+    content: str,
+    catalog: PlannerCatalog,
+) -> str:
+    normalized = (
+        content
+        .strip()
+    )
+
+
+    normalized = re.sub(
+        r"^```(?:json)?\s*",
+        "",
+        normalized,
+        flags=re.IGNORECASE,
+    )
+
+    normalized = re.sub(
+        r"\s*```$",
+        "",
+        normalized,
+    )
+
+
+    decoded = json.loads(
+        normalized
+    )
+
+
+    if isinstance(
+        decoded,
+        list,
+    ):
+        decoded = {
+            "proposals":
+                decoded
+        }
+
+
+    if not isinstance(
+        decoded,
+        dict,
+    ):
+        return json.dumps(
+            decoded,
+            ensure_ascii=False,
+        )
+
+
+    proposals = decoded.get(
+        "proposals"
+    )
+
+
+    if not isinstance(
+        proposals,
+        list,
+    ):
+        return json.dumps(
+            decoded,
+            ensure_ascii=False,
+        )
+
+
+    datasets_by_id = {
+        dataset.dataset_id:
+            dataset
+        for dataset
+        in catalog.datasets
+    }
+
+
+    normalized_proposals: list[
+        object
+    ] = []
+
+
+    for index, raw_proposal in enumerate(
+        proposals,
+        start=1,
+    ):
+        if not isinstance(
+            raw_proposal,
+            dict,
+        ):
+            normalized_proposals.append(
+                raw_proposal
+            )
+            continue
+
+
+        proposal = dict(
+            raw_proposal
+        )
+
+
+        # ----------------------------------------------------
+        # Explicit wire sentinels.
+        # No analytical decision is introduced.
+        # ----------------------------------------------------
+
+        if (
+            proposal.get(
+                "ranking_order"
+            )
+            is None
+        ):
+            proposal[
+                "ranking_order"
+            ] = "none"
+
+
+        if (
+            proposal.get(
+                "window_operation"
+            )
+            is None
+        ):
+            proposal[
+                "window_operation"
+            ] = "none"
+
+
+        # ----------------------------------------------------
+        # Server-owned dataset metadata.
+        #
+        # Qwen already chose dataset_id. We only restore the
+        # authoritative grain attached to that chosen dataset.
+        # ----------------------------------------------------
+
+        if (
+            proposal.get(
+                "analytical_grain"
+            )
+            is None
+        ):
+            dataset_id = (
+                proposal.get(
+                    "dataset_id"
+                )
+            )
+
+            dataset = (
+                datasets_by_id.get(
+                    dataset_id
+                )
+                if isinstance(
+                    dataset_id,
+                    str,
+                )
+                else None
+            )
+
+            proposal[
+                "analytical_grain"
+            ] = (
+                dataset.analytical_grain
+                if dataset is not None
+                else None
+            )
+
+
+        # ----------------------------------------------------
+        # Non-analytical protocol metadata.
+        # ----------------------------------------------------
+
+        if not proposal.get(
+            "title"
+        ):
+            family = (
+                proposal.get(
+                    "family"
+                )
+                or
+                "analysis"
+            )
+
+            proposal[
+                "title"
+            ] = (
+                f"AI planner proposal "
+                f"{index}: {family}"
+            )
+
+
+        if (
+            proposal.get(
+                "reasons"
+            )
+            is None
+        ):
+            proposal[
+                "reasons"
+            ] = []
+
+
+        # Do not invent model confidence.
+        if (
+            "confidence"
+            not in
+            proposal
+        ):
+            proposal[
+                "confidence"
+            ] = None
+
+
+        normalized_proposals.append(
+            proposal
+        )
+
+
+    decoded[
+        "proposals"
+    ] = normalized_proposals
+
+
+    return json.dumps(
+        decoded,
+        ensure_ascii=False,
+    )
+
 
 def _generate_raw_ai_plan_with_timing(
     *,
@@ -14802,6 +15191,7 @@ def _generate_raw_ai_plan_with_timing(
                 RawAIPlannerOutput
                 .model_json_schema()
             ),
+            think=False,
             options={
                 "temperature":
                     0,
@@ -14848,10 +15238,22 @@ def _generate_raw_ai_plan_with_timing(
 
 
     try:
+        normalized_content = (
+            normalize_ai_planner_wire_content(
+                content=(
+                    content
+                ),
+                catalog=(
+                    catalog
+                ),
+            )
+        )
+
+
         raw_output = (
             RawAIPlannerOutput
             .model_validate_json(
-                content
+                normalized_content
             )
         )
 
@@ -14859,9 +15261,9 @@ def _generate_raw_ai_plan_with_timing(
     except Exception as error:
         raise RuntimeError(
             (
-                "Gemma a retourné un plan qui ne "
-                "respecte pas le protocole structuré "
-                "du AI Planner v0.31."
+                f"Le modele local {model!r} a retourne "
+                "un plan qui ne respecte pas le "
+                "protocole structure du AI Planner."
             )
         ) from error
 
@@ -14918,6 +15320,13 @@ def generate_raw_ai_plan(
 
 
     return raw_output
+
+
+# ============================================================
+# DETERMINISTIC OBJECTIVE GENERATION TARGETS
+# DATALENS_OBJECTIVE_GENERATION_TARGETS_V0_1
+# ============================================================
+
 
 
 # ============================================================
@@ -15107,14 +15516,155 @@ def objective_coverage_retry_feedback(
         )
 
 
+    # --------------------------------------------------------
+    # MISSING ANALYTICAL INTENTS
+    # DATALENS_OBJECTIVE_INTENT_RETRY_FEEDBACK_V0_1
+    # --------------------------------------------------------
+    #
+    # Objective Coverage can now distinguish several explicit
+    # analytical operations around the same business metric.
+    #
+    # Example:
+    #
+    #     revenue total
+    #     revenue monthly
+    #     revenue by category
+    #     Top-10 customers by revenue
+    #
+    # A retry must therefore preserve the missing analytical
+    # intent itself, not merely the underlying metric concept.
+    # --------------------------------------------------------
+
+    for intent in (
+        report.intent_requirements
+    ):
+        if intent.covered:
+            continue
+
+
+        details = [
+            (
+                "Missing analytical intent="
+                f"{intent.intent_kind}"
+            ),
+            (
+                "metric="
+                f"{intent.metric_concept}"
+            ),
+        ]
+
+
+        if intent.candidate_metric_columns:
+            details.append(
+                (
+                    "compatible metric column(s)="
+                    +
+                    ", ".join(
+                        intent
+                        .candidate_metric_columns
+                    )
+                )
+            )
+
+
+        if (
+            intent.required_family
+            is not None
+        ):
+            details.append(
+                (
+                    "required family="
+                    +
+                    intent.required_family
+                )
+            )
+
+
+        if (
+            intent.required_grain
+            is not None
+        ):
+            details.append(
+                (
+                    "required grain="
+                    +
+                    intent.required_grain
+                )
+            )
+
+
+        if intent.required_dimension_concepts:
+            details.append(
+                (
+                    "required dimension(s)="
+                    +
+                    ", ".join(
+                        intent
+                        .required_dimension_concepts
+                    )
+                )
+            )
+
+
+        if (
+            intent.required_aggregation
+            is not None
+        ):
+            details.append(
+                (
+                    "required aggregation="
+                    +
+                    intent.required_aggregation
+                )
+            )
+
+
+        if (
+            intent.ranking_order
+            is not None
+        ):
+            details.append(
+                (
+                    "ranking order="
+                    +
+                    intent.ranking_order
+                )
+            )
+
+
+        if (
+            intent.ranking_limit
+            is not None
+        ):
+            details.append(
+                (
+                    "ranking limit="
+                    +
+                    str(
+                        intent.ranking_limit
+                    )
+                )
+            )
+
+
+        feedback.append(
+            "; ".join(
+                details
+            )
+            +
+            "."
+        )
+
+
     feedback.append(
         (
             "Regenerate the analytical plan so the UNION of "
-            "validated proposals covers every missing concept "
-            "and every required metric/dimension topology. "
-            "Do not substitute an unrelated column. Multiple "
-            "proposals are allowed when the request contains "
-            "multiple metrics."
+            "validated proposals covers every missing concept, "
+            "every required metric/dimension topology, and every "
+            "missing analytical intent. Do not substitute an "
+            "unrelated column. Use multiple proposals when the "
+            "request contains multiple analytical intents, even "
+            "when those intents share the same metric."
         )
     )
 
