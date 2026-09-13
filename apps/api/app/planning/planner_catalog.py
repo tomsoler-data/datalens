@@ -409,7 +409,141 @@ def _analytical_measure_aliases(
     )
 
 
-    if trusted_unit_price_event:
+    # --------------------------------------------------------
+    # TRUSTED CUSTOMER TOTAL-SPEND -> REVENUE SEMANTICS
+    #
+    # Customer aggregates remain fail-closed by default.
+    #
+    # Revenue aliases are inherited only when the server-owned
+    # customer behavior view proves that:
+    #
+    # - the original source measure is price / prix;
+    # - the target is DataLens' standardized total_spend;
+    # - the source was accepted as one validated monetary event;
+    # - total_spend is explicitly defined as a sum of
+    #   basket_amount across observed sessions.
+    #
+    # This preserves the validated monetary lineage:
+    #
+    #   fact monetary event
+    #       -> basket_amount
+    #       -> total_spend
+    #
+    # No arbitrary customer numeric measure is promoted.
+    # --------------------------------------------------------
+
+    metric_definitions = (
+        provenance.get(
+            "metric_definitions"
+        )
+    )
+
+
+    if not isinstance(
+        metric_definitions,
+        dict,
+    ):
+        metric_definitions = {}
+
+
+    total_spend_definition = (
+        _normalized_optional_text(
+            metric_definitions.get(
+                "total_spend"
+            )
+        )
+    )
+
+
+    trusted_customer_revenue_lineage = (
+        analytical_operation
+        ==
+        "customer_behavior_materialization"
+
+        and
+
+        source_measure
+        in {
+            "price",
+            "prix",
+        }
+
+        and
+
+        target_measure
+        ==
+        "total_spend"
+
+        and
+
+        bool(
+            _normalized_optional_text(
+                provenance.get(
+                    "source_session_column"
+                )
+            )
+        )
+
+        and
+
+        bool(
+            _normalized_optional_text(
+                provenance.get(
+                    "entity_column"
+                )
+            )
+        )
+
+        and
+
+        "no explicit quantity"
+        in
+        normalized_metric_semantics
+
+        and
+
+        "monetary event"
+        in
+        normalized_metric_semantics
+
+        and
+
+        (
+            "validated dimension"
+            in
+            normalized_metric_semantics
+
+            or
+
+            "server-owned validated preparation output"
+            in
+            normalized_metric_semantics
+        )
+
+        and
+
+        total_spend_definition
+        is not None
+
+        and
+
+        "basket_amount"
+        in
+        total_spend_definition.casefold()
+
+        and
+
+        "sum"
+        in
+        total_spend_definition.casefold()
+    )
+
+
+    if (
+        trusted_unit_price_event
+        or
+        trusted_customer_revenue_lineage
+    ):
         aliases.extend(
             [
                 "revenue",

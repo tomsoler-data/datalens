@@ -14,8 +14,9 @@ from pydantic import (
 
 
 from app.analysis.entity_outlier_requests import (
+    EntityOutlierIntentResolution,
     EntityOutlierRequestReport,
-    resolve_entity_outlier_intent,
+    resolve_entity_outlier_intent_with_semantic_fallback,
     run_entity_outlier_request,
 )
 
@@ -153,6 +154,11 @@ def _try_entity_outlier_route(
     ],
 
     top_profile_limit: int,
+
+    resolution: (
+        EntityOutlierIntentResolution
+        | None
+    ) = None,
 ) -> (
     EntityOutlierRequestReport
     | None
@@ -173,11 +179,12 @@ def _try_entity_outlier_route(
     The explicit entity grain therefore has priority.
     """
 
-    resolution = (
-        resolve_entity_outlier_intent(
-            objective
+    if resolution is None:
+        resolution = (
+            resolve_entity_outlier_intent_with_semantic_fallback(
+                objective
+            )
         )
-    )
 
 
     if (
@@ -198,6 +205,9 @@ def _try_entity_outlier_route(
 
             top_profile_limit=
                 top_profile_limit,
+
+            resolution=
+                resolution,
         )
     )
 
@@ -225,6 +235,11 @@ def route_analytical_request(
     ),
 
     entity_top_profile_limit: int = 50,
+
+    entity_outlier_resolution: (
+        EntityOutlierIntentResolution
+        | None
+    ) = None,
 ) -> AnalyticalRequestRoutingReport:
     """
     Route a DataLens analytical request through the highest
@@ -294,6 +309,9 @@ def route_analytical_request(
 
             top_profile_limit=
                 entity_top_profile_limit,
+
+            resolution=
+                entity_outlier_resolution,
         )
     )
 
