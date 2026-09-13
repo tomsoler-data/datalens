@@ -70,6 +70,9 @@ DEFAULT_AI_PLANNER_MODEL = (
 )
 
 
+AI_PLANNER_NUM_CTX = 8192
+
+
 MAX_AI_PROPOSALS = 8
 
 
@@ -15200,7 +15203,7 @@ def _generate_raw_ai_plan_with_timing(
                     42,
 
                 "num_ctx":
-                    4096,
+                    AI_PLANNER_NUM_CTX,
             },
         )
 
