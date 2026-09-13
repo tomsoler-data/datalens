@@ -6241,79 +6241,219 @@ function handleStartNewWorkflow() {
                       ? (
                           <>
                             {
-                              report.entity_outlier_finding
+                              aiNativeReport
                                 ? (
-                                    <EntityOutlierRequestedAnswer
-                                      finding={
-                                        report.entity_outlier_finding
+                                    <SelectableNativeAnalysisResult
+                                      report={
+                                        aiNativeReport
                                       }
                                       objective={
-                                        objective
+                                        aiNativeReport
+                                            .planner
+                                            .objective ||
+                                          objective
+                                      }
+                                      includedInReport={
+                                        initialPromptIncludedInReport
+                                      }
+                                      reportSelectionLoading={
+                                        reportSelectionLoading
+                                      }
+                                      selectionCopy={{
+                                        sourceLabel: "Demande initiale",
+                                        includedMessage: "Cette analyse sera reprise dans le rapport.",
+                                        excludedMessage: "Cette analyse restera dans l\u2019espace d\u2019exploration.",
+                                        addLabel: "Ajouter au rapport",
+                                        removeLabel: "Retirer du rapport",
+                                      }}
+                                      onToggleReportSelection={
+                                        () => {
+                                          if (
+                                            !aiNativeReport
+                                          ) {
+                                            return;
+                                          }
+
+
+                                          void setPromptAnalysisReportSelection(
+                                            {
+                                              report:
+                                                aiNativeReport,
+
+                                              included:
+                                                !initialPromptIncludedInReport,
+                                            }
+                                          );
+                                        }
                                       }
                                     />
                                   )
-                                : aiNativeReport
+                                : aiPlanReport
                                   ? (
-                                      <SelectableNativeAnalysisResult
-                                        report={
-                                          aiNativeReport
+                                      <PlannerBlockedAnalysisCard
+                                        planner={
+                                          aiPlanReport
                                         }
                                         objective={
-                                          aiNativeReport
-                                              .planner
-                                              .objective ||
-                                            objective
-                                        }
-                                        includedInReport={
-                                          initialPromptIncludedInReport
-                                        }
-                                        reportSelectionLoading={
-                                          reportSelectionLoading
-                                        }
-                                        selectionCopy={{
-                                          sourceLabel: "Demande initiale",
-                                          includedMessage: "Cette analyse sera reprise dans le rapport.",
-                                          excludedMessage: "Cette analyse restera dans l’espace d’exploration.",
-                                          addLabel: "Ajouter au rapport",
-                                          removeLabel: "Retirer du rapport",
-                                        }}
-                                        onToggleReportSelection={
-                                          () => {
-                                                        if (
-                                                          !aiNativeReport
-                                                        ) {
-                                                          return;
-                                                        }
-
-
-                                                        void setPromptAnalysisReportSelection(
-                                                          {
-                                                            report:
-                                                              aiNativeReport,
-
-                                                            included:
-                                                              !initialPromptIncludedInReport,
-                                                          }
-                                                        );
-                                                      }
+                                          objective
                                         }
                                       />
                                     )
-                                  : aiPlanReport
-                                    ? (
-                                        <PlannerBlockedAnalysisCard
-                                          planner={
-                                            aiPlanReport
-                                          }
-                                          objective={
-                                            objective
-                                          }
-                                        />
-                                      )
-                                    : null
+                                  : null
                             }
 
 
+                            {
+                              aiNativeReport
+                                ?.entity_outlier_finding
+                                ? (
+                                    <EntityOutlierRequestedAnswer
+                                      finding={
+                                        aiNativeReport
+                                          .entity_outlier_finding
+                                      }
+                                      objective={
+                                        aiNativeReport
+                                            .planner
+                                            .objective ||
+                                          objective
+                                      }
+                                    />
+                                  )
+                                : report.entity_outlier_finding
+                                  ? (
+                                      <EntityOutlierRequestedAnswer
+                                        finding={
+                                          report.entity_outlier_finding
+                                        }
+                                        objective={
+                                          objective
+                                        }
+                                      />
+                                    )
+                                  : null
+                            }
+
+
+                            <SelectedPromptAnalysesSection
+  selectedPromptAnalyses={selectedPromptAnalyses}
+  removePromptAnalysisFromReport={removePromptAnalysisFromReport}
+  reportSelectionError={reportSelectionError}
+  reportSelectionLoading={reportSelectionLoading}
+/>
+
+
+                            {
+                              (
+                                documentSummary !==
+                                  null ||
+                                requestedPlan !==
+                                  null ||
+                                report.requested_findings.length >
+                                  0
+                              )
+                                ? (
+                                    <RequestedFindingsSection
+                                      documentSummary={documentSummary}
+                                      requestedPlan={requestedPlan}
+                                      requestedFindings={report.requested_findings}
+                                      reportAvailableAnalysisById={reportAvailableAnalysisById}
+                                      ragContextByAnalysisId={ragContextByAnalysisId}
+                                      requestedResolutionErrors={requestedResolutionErrors}
+                                      requestedResolutionLoadingId={requestedResolutionLoadingId}
+                                      handleReconfigureRequestedTimeSeries={handleReconfigureRequestedTimeSeries}
+                                    />
+                                  )
+                                : null
+                            }
+
+
+                            {
+                              report.main_findings.length >
+                              0
+                                ? (
+                                    <MainFindingsSection
+                                      findings={
+                                        report.main_findings
+                                      }
+                                      ragContextByAnalysisId={
+                                        ragContextByAnalysisId
+                                      }
+                                    />
+                                  )
+                                : null
+                            }
+
+
+                            <AnalysisAuditDisclosure
+  report={report}
+  ragReport={ragReport}
+/>
+                          </>
+                        )
+                      : null
+                  }
+
+
+                  {
+                    activeStep ===
+                      "report"
+                      ? (
+                          <ReportSynthesisActions
+  reportSelectionDetails={reportSelectionDetails}
+  pdfExportLoading={pdfExportLoading}
+  handlePdfExport={handlePdfExport}
+  setActiveStep={setActiveStep}
+/>
+                        )
+                      : (
+                          <div
+                            className={
+                              styles.submitArea
+                            }
+                          >
+                            <div
+                              className={
+                                styles.submitInfo
+                              }
+                            >
+                              <strong>
+                                Analyse complète
+                              </strong>
+
+                              <span>
+                                Passez au rapport pour une lecture
+                                plus courte orientée décision.
+                              </span>
+                            </div>
+
+                            <button
+                              className={
+                                styles.submitButton
+                              }
+                              type="button"
+                              onClick={
+                                () =>
+                                  setActiveStep(
+                                    "report"
+                                  )
+                              }
+                            >
+                              Voir le rapport
+                            </button>
+                          </div>
+                        )
+                  }
+                </section>
+              )
+            : null
+        }
+
+
+        {
+          activeStep ===
+            "analyses"
+            ? (
                             <section
                               className={
                                 styles.analysisFollowUpPanel
@@ -6594,38 +6734,60 @@ function handleStartNewWorkflow() {
                                             </div>
                                           )
                                         : (
-                                            <SelectableNativeAnalysisResult
-                                              report={
-                                                latestAnalysisFollowUp.report
-                                              }
-                                              objective={
-                                                latestAnalysisFollowUp.objective
-                                              }
-                                              includedInReport={
+                                            <>
+                                              <SelectableNativeAnalysisResult
+                                                report={
+                                                  latestAnalysisFollowUp.report
+                                                }
+                                                objective={
+                                                  latestAnalysisFollowUp.objective
+                                                }
+                                                includedInReport={
+                                                  latestAnalysisFollowUp
+                                                    .included_in_report
+                                                }
+                                                reportSelectionLoading={
+                                                  reportSelectionLoading
+                                                }
+                                                selectionCopy={{
+                                                  sourceLabel: "Question de suivi",
+                                                  includedMessage: "Cette analyse sera reprise dans le rapport.",
+                                                  excludedMessage: "Cette analyse n\u2019est pas ajout\u00e9e au rapport.",
+                                                  addLabel: "Ajouter au rapport",
+                                                  removeLabel: "Retirer du rapport",
+                                                }}
+                                                onToggleReportSelection={
+                                                  () =>
+                                                    toggleFollowUpReportSelection(
+                                                      latestAnalysisFollowUp.id
+                                                    )
+                                                }
+                                                className={
+                                                  styles.analysisFollowUpResult
+                                                }
+                                                ariaLive="polite"
+                                              />
+
+                                              {
                                                 latestAnalysisFollowUp
-                                                  .included_in_report
+                                                  .report
+                                                  .entity_outlier_finding
+                                                  ? (
+                                                      <EntityOutlierRequestedAnswer
+                                                        finding={
+                                                          latestAnalysisFollowUp
+                                                            .report
+                                                            .entity_outlier_finding
+                                                        }
+                                                        objective={
+                                                          latestAnalysisFollowUp
+                                                            .objective
+                                                        }
+                                                      />
+                                                    )
+                                                  : null
                                               }
-                                              reportSelectionLoading={
-                                                reportSelectionLoading
-                                              }
-                                              selectionCopy={{
-                                                sourceLabel: "Question de suivi",
-                                                includedMessage: "Cette analyse sera reprise dans le rapport.",
-                                                excludedMessage: "Cette analyse n?est pas ajout?e au rapport.",
-                                                addLabel: "Ajouter au rapport",
-                                                removeLabel: "Retirer du rapport",
-                                              }}
-                                              onToggleReportSelection={
-                                                () =>
-                                                  toggleFollowUpReportSelection(
-                                                    latestAnalysisFollowUp.id
-                                                  )
-                                              }
-                                              className={
-                                                styles.analysisFollowUpResult
-                                              }
-                                              ariaLive="polite"
-                                            />
+                                            </>
                                           )
                                     )
                                   : null
@@ -6633,116 +6795,6 @@ function handleStartNewWorkflow() {
                             </section>
 
 
-                            <SelectedPromptAnalysesSection
-  selectedPromptAnalyses={selectedPromptAnalyses}
-  removePromptAnalysisFromReport={removePromptAnalysisFromReport}
-  reportSelectionError={reportSelectionError}
-  reportSelectionLoading={reportSelectionLoading}
-/>
-
-
-                            {
-                              (
-                                documentSummary !==
-                                  null ||
-                                requestedPlan !==
-                                  null ||
-                                report.requested_findings.length >
-                                  0
-                              )
-                                ? (
-                                    <RequestedFindingsSection
-                                      documentSummary={documentSummary}
-                                      requestedPlan={requestedPlan}
-                                      requestedFindings={report.requested_findings}
-                                      reportAvailableAnalysisById={reportAvailableAnalysisById}
-                                      ragContextByAnalysisId={ragContextByAnalysisId}
-                                      requestedResolutionErrors={requestedResolutionErrors}
-                                      requestedResolutionLoadingId={requestedResolutionLoadingId}
-                                      handleReconfigureRequestedTimeSeries={handleReconfigureRequestedTimeSeries}
-                                    />
-                                  )
-                                : null
-                            }
-
-
-                            {
-                              report.main_findings.length >
-                              0
-                                ? (
-                                    <MainFindingsSection
-                                      findings={
-                                        report.main_findings
-                                      }
-                                      ragContextByAnalysisId={
-                                        ragContextByAnalysisId
-                                      }
-                                    />
-                                  )
-                                : null
-                            }
-
-
-                            <AnalysisAuditDisclosure
-  report={report}
-  ragReport={ragReport}
-/>
-                          </>
-                        )
-                      : null
-                  }
-
-
-                  {
-                    activeStep ===
-                      "report"
-                      ? (
-                          <ReportSynthesisActions
-  reportSelectionDetails={reportSelectionDetails}
-  pdfExportLoading={pdfExportLoading}
-  handlePdfExport={handlePdfExport}
-  setActiveStep={setActiveStep}
-/>
-                        )
-                      : (
-                          <div
-                            className={
-                              styles.submitArea
-                            }
-                          >
-                            <div
-                              className={
-                                styles.submitInfo
-                              }
-                            >
-                              <strong>
-                                Analyse complète
-                              </strong>
-
-                              <span>
-                                Passez au rapport pour une lecture
-                                plus courte orientée décision.
-                              </span>
-                            </div>
-
-                            <button
-                              className={
-                                styles.submitButton
-                              }
-                              type="button"
-                              onClick={
-                                () =>
-                                  setActiveStep(
-                                    "report"
-                                  )
-                              }
-                            >
-                              Voir le rapport
-                            </button>
-                          </div>
-                        )
-                  }
-                </section>
               )
             : null
         }
