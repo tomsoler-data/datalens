@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+
 import type {
   EntityOutlierFindingEvidenceView,
   EntityOutlierFindingView,
@@ -73,6 +77,19 @@ export default function EntityOutlierRequestedAnswer({
       /[^a-zA-Z0-9_-]/g,
       "-"
     )}`;
+
+
+  const profileLimitSelectId =
+    `${titleId}-profile-limit`;
+
+
+  const [
+    profileLimit,
+    setProfileLimit,
+  ] =
+    useState(
+      8
+    );
 
 
   if (
@@ -180,11 +197,58 @@ export default function EntityOutlierRequestedAnswer({
   }
 
 
+  const availableProfileCount =
+    finding.priority_profiles.length;
+
+
+  const profileLimitOptions =
+    Array.from(
+      new Set(
+        [
+          8,
+          16,
+          24,
+          50,
+          availableProfileCount,
+        ].filter(
+          (
+            option
+          ) =>
+            option >
+              0 &&
+            option <=
+              availableProfileCount
+        )
+      )
+    ).sort(
+      (
+        left,
+        right
+      ) =>
+        left -
+        right
+    );
+
+
+  const effectiveProfileLimit =
+    profileLimitOptions.includes(
+      profileLimit
+    )
+      ? profileLimit
+      : (
+          profileLimitOptions[
+            profileLimitOptions.length -
+            1
+          ] ??
+          0
+        );
+
+
   const priorityProfiles =
     finding.priority_profiles
       .slice(
         0,
-        8
+        effectiveProfileLimit
       );
 
 
@@ -286,13 +350,13 @@ export default function EntityOutlierRequestedAnswer({
               {
                 finding.priority_profile_count ===
                   0
-                  ? "Aucun profil extrêmement atypique détecté"
+                  ? "Aucun profil client prioritaire détecté"
                   : finding.priority_profile_count ===
                       1
-                    ? "1 profil client nécessite une revue prioritaire"
+                    ? "1 profil client prioritaire détecté"
                     : `${formatNumber(
                         finding.priority_profile_count
-                      )} profils clients nécessitent une revue prioritaire`
+                      )} profils clients prioritaires détectés`
               }
             </h3>
 
@@ -310,6 +374,17 @@ export default function EntityOutlierRequestedAnswer({
               {
                 finding.dataset_filename ??
                 "vue analytique client"
+              }
+            </p>
+
+
+            <p
+              className={
+                styles.entityAnswerDescription
+              }
+            >
+              {
+                "Un profil statistiquement atypique ne constitue pas \u00e0 lui seul une preuve de fraude."
               }
             </p>
           </div>
@@ -363,6 +438,145 @@ export default function EntityOutlierRequestedAnswer({
             </article>
           </div>
         </div>
+
+
+        {
+          availableProfileCount >
+          0
+            ? (
+                <div
+                  className={
+                    styles.entityProfileControls
+                  }
+                >
+                  <div
+                    className={
+                      styles.entityProfileControlCopy
+                    }
+                  >
+                    <strong>
+                      {"Profils détaillés"}
+                    </strong>
+
+                    <span>
+                      {
+                        formatNumber(
+                          priorityProfiles.length
+                        )
+                      }
+                      {" profil"}
+                      {
+                        priorityProfiles.length >
+                        1
+                          ? "s"
+                          : ""
+                      }
+                      {" affiché"}
+                      {
+                        priorityProfiles.length >
+                        1
+                          ? "s"
+                          : ""
+                      }
+                      {" parmi "}
+                      {
+                        formatNumber(
+                          availableProfileCount
+                        )
+                      }
+                      {" profil"}
+                      {
+                        availableProfileCount >
+                        1
+                          ? "s"
+                          : ""
+                      }
+                      {" détaillé"}
+                      {
+                        availableProfileCount >
+                        1
+                          ? "s"
+                          : ""
+                      }
+                      {" disponible"}
+                      {
+                        availableProfileCount >
+                        1
+                          ? "s"
+                          : ""
+                      }
+                      {"."}
+                    </span>
+                  </div>
+
+
+                  {
+                    profileLimitOptions.length >
+                    1
+                      ? (
+                          <label
+                            className={
+                              styles.entityProfileLimitControl
+                            }
+                            htmlFor={
+                              profileLimitSelectId
+                            }
+                          >
+                            <span>
+                              {"Profils affichés"}
+                            </span>
+
+                            <select
+                              id={
+                                profileLimitSelectId
+                              }
+                              className={
+                                styles.entityProfileLimitSelect
+                              }
+                              value={
+                                effectiveProfileLimit
+                              }
+                              onChange={
+                                (
+                                  event
+                                ) => {
+                                  setProfileLimit(
+                                    Number(
+                                      event.target.value
+                                    )
+                                  );
+                                }
+                              }
+                            >
+                              {
+                                profileLimitOptions.map(
+                                  (
+                                    option
+                                  ) => (
+                                    <option
+                                      key={
+                                        option
+                                      }
+                                      value={
+                                        option
+                                      }
+                                    >
+                                      {
+                                        option
+                                      }
+                                    </option>
+                                  )
+                                )
+                              }
+                            </select>
+                          </label>
+                        )
+                      : null
+                  }
+                </div>
+              )
+            : null
+        }
 
 
         {

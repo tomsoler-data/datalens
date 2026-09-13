@@ -3321,7 +3321,7 @@ function handleStartNewWorkflow() {
             normalizedObjective,
 
           plannerModel:
-            "gemma3:4b",
+            "qwen3.5:4b",
 
           toolModel:
             "qwen2.5:1.5b-instruct",
@@ -3528,7 +3528,7 @@ function handleStartNewWorkflow() {
             normalizedPrompt,
 
           plannerModel:
-            "gemma3:4b",
+            "qwen3.5:4b",
 
           toolModel:
             "qwen2.5:1.5b-instruct",
