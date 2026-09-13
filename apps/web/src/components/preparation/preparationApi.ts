@@ -3,6 +3,7 @@ import type {
   PreparationAnalysisOutputCandidatesResponse,
   PreparationCombineDiscoveryResponse,
   PreparationCombineExecutionResponse,
+  PreparationCombineSequenceResponse,
   PreparationIdentityContinueResponse,
   PreparationIdentityCreateSurrogateResponse,
   PreparationIdentityInspectResponse,
@@ -1296,6 +1297,85 @@ export async function approvePreparationCombine(
     )
   );
 }
+
+
+export async function approvePreparationCombineSequence(
+  workflowId:
+    string,
+
+  requestId:
+    string,
+
+  comment?:
+    string,
+
+  signal?:
+    AbortSignal
+): Promise<
+  PreparationCombineSequenceResponse
+> {
+  const normalizedWorkflowId =
+    normalizeWorkflowId(
+      workflowId
+    );
+
+  const normalizedRequestId =
+    normalizeCombineRequestId(
+      requestId
+    );
+
+  const normalizedComment =
+    comment
+      ?.trim() ??
+    "";
+
+
+  const response =
+    await fetch(
+      `${API_URL}/preparation/combine/sequence`,
+      {
+        method:
+          "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+
+        body:
+          JSON.stringify(
+            {
+              workflow_id:
+                normalizedWorkflowId,
+
+              request_id:
+                normalizedRequestId,
+
+              ...(
+                normalizedComment
+                  ? {
+                      comment:
+                        normalizedComment,
+                    }
+                  : {}
+              ),
+            }
+          ),
+
+        signal,
+      }
+    );
+
+
+  return (
+    requireSuccessfulJson<
+      PreparationCombineSequenceResponse
+    >(
+      response
+    )
+  );
+}
+
 
 /* ============================================================
    PERMANENT WORKFLOW DELETE

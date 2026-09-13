@@ -47,7 +47,7 @@ from app.analysis.analytical_views import (
 )
 
 from app.analysis.entity_outlier_requests import (
-    resolve_entity_outlier_intent,
+    resolve_entity_outlier_intent_with_semantic_fallback,
 )
 
 from app.analysis.derived_policy import (
@@ -445,7 +445,7 @@ def build_entity_outlier_finding_if_requested(
 
 
     resolution = (
-        resolve_entity_outlier_intent(
+        resolve_entity_outlier_intent_with_semantic_fallback(
             normalized_objective
         )
     )
@@ -476,6 +476,9 @@ def build_entity_outlier_finding_if_requested(
 
             catalog=
                 catalog,
+
+            entity_outlier_resolution=
+                resolution,
         )
     )
 
@@ -503,6 +506,264 @@ def build_entity_outlier_finding_if_requested(
     return (
         adapt_entity_outlier_request_to_finding(
             routed.entity_outlier_report
+        )
+    )
+
+
+def objective_explicitly_requests_distribution_analysis(
+    objective: (
+        str
+        | None
+    ),
+) -> bool:
+    """
+    Preserve a real distribution/value-outlier request.
+
+    This is deliberately narrow: it is not a general semantic
+    planner. It only prevents the specialized entity-outlier
+    result from suppressing a distribution the user actually
+    requested.
+    """
+
+    normalized = (
+        normalize_objective(
+            objective
+        )
+    )
+
+
+    if (
+        normalized
+        is None
+    ):
+        return False
+
+
+    text = (
+        normalized
+        .casefold()
+    )
+
+
+    explicit_distribution_cues = (
+        "distribution",
+        "répartition",
+        "repartition",
+        "histogram",
+        "dispersion",
+        "valeur atypique",
+        "valeurs atypiques",
+        "valeur extrême",
+        "valeurs extrêmes",
+        "valeur extreme",
+        "valeurs extremes",
+        "outlier",
+        "outliers",
+    )
+
+
+    return any(
+        cue
+        in text
+
+        for cue
+        in explicit_distribution_cues
+    )
+
+
+def remove_specialized_entity_outlier_duplicate(
+    *,
+    planner_report: Any,
+
+    objective: (
+        str
+        | None
+    ),
+
+    entity_outlier_finding: (
+        EntityOutlierFinding
+        | None
+    ),
+) -> Any:
+    """
+    Remove only a generic distribution that duplicates an
+    already-resolved customer entity-outlier finding.
+
+    A genuine explicit distribution/value-outlier request is
+    always preserved.
+    """
+
+    if (
+        entity_outlier_finding
+        is None
+    ):
+        return planner_report
+
+
+    if (
+        entity_outlier_finding.status
+        !=
+        "ready"
+    ):
+        return planner_report
+
+
+    if (
+        entity_outlier_finding.kind
+        !=
+        "customer_entity_outlier_detection"
+    ):
+        return planner_report
+
+
+    finding_dataset_id = str(
+        entity_outlier_finding.dataset_id
+        or
+        ""
+    ).strip()
+
+
+    if not finding_dataset_id:
+        return planner_report
+
+
+    if (
+        objective_explicitly_requests_distribution_analysis(
+            objective
+        )
+    ):
+        return planner_report
+
+
+    filtered_items = []
+
+    removed_count = 0
+
+
+    for item in planner_report.items:
+        proposal = (
+            item.proposal
+        )
+
+
+        is_duplicate = (
+            item.validation_status
+            ==
+            "validated"
+
+            and
+
+            proposal.family
+            ==
+            "distribution"
+
+            and
+
+            str(
+                proposal.dataset_id
+                or
+                ""
+            ).strip()
+            ==
+            finding_dataset_id
+        )
+
+
+        if is_duplicate:
+            removed_count += 1
+            continue
+
+
+        filtered_items.append(
+            item
+        )
+
+
+    if (
+        removed_count
+        ==
+        0
+    ):
+        return planner_report
+
+
+    return (
+        planner_report.model_copy(
+            update={
+                "proposal_count":
+                    len(
+                        filtered_items
+                    ),
+
+                "validated_count":
+                    sum(
+                        1
+                        for item
+                        in filtered_items
+                        if (
+                            item.validation_status
+                            ==
+                            "validated"
+                        )
+                    ),
+
+                "blocked_count":
+                    sum(
+                        1
+                        for item
+                        in filtered_items
+                        if (
+                            item.validation_status
+                            ==
+                            "blocked"
+                        )
+                    ),
+
+                "ambiguous_count":
+                    sum(
+                        1
+                        for item
+                        in filtered_items
+                        if (
+                            item.validation_status
+                            ==
+                            "ambiguous"
+                        )
+                    ),
+
+                "rejected_count":
+                    sum(
+                        1
+                        for item
+                        in filtered_items
+                        if (
+                            item.validation_status
+                            ==
+                            "rejected"
+                        )
+                    ),
+
+                "items":
+                    filtered_items,
+
+                "normalization_count":
+                    sum(
+                        len(
+                            item.normalizations
+                        )
+                        for item
+                        in filtered_items
+                    ),
+
+                "normalization_applied":
+                    any(
+                        bool(
+                            item.normalizations
+                        )
+                        for item
+                        in filtered_items
+                    ),
+            }
         )
     )
 
@@ -4028,10 +4289,35 @@ def run_ai_native_pipeline(
         )
 
 
+        entity_outlier_finding = (
+            build_entity_outlier_finding_if_requested(
+                objective=
+                    normalized_objective,
+
+                source_dataset_records=
+                    source_dataset_records,
+            )
+        )
+
+
+        execution_planner_report = (
+            remove_specialized_entity_outlier_duplicate(
+                planner_report=
+                    planner_report,
+
+                objective=
+                    normalized_objective,
+
+                entity_outlier_finding=
+                    entity_outlier_finding,
+            )
+        )
+
+
         pipeline_report = (
             execute_native_ai_pipeline(
                 planner_report=
-                    planner_report,
+                    execution_planner_report,
 
                 datasets=
                     analysis_datasets,
@@ -4041,6 +4327,17 @@ def run_ai_native_pipeline(
 
                 trace_id=
                     trace_id,
+
+                entity_outlier_finding=(
+                    entity_outlier_finding.model_dump(
+                        mode="python"
+                    )
+                    if (
+                        entity_outlier_finding
+                        is not None
+                    )
+                    else None
+                ),
             )
         )
 

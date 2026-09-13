@@ -5508,6 +5508,22 @@ function handleStartNewWorkflow() {
           aiPlanReport={
             aiPlanReport
           }
+          hasSpecializedAnalysisResult={
+            Boolean(
+              (
+                aiNativeReport
+                  ?.entity_outlier_finding
+                  ?.status ===
+                "ready"
+              ) ||
+              (
+                report
+                  ?.entity_outlier_finding
+                  ?.status ===
+                "ready"
+              )
+            )
+          }
           objective={
             objective
           }

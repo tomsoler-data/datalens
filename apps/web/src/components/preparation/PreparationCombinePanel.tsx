@@ -7,7 +7,7 @@ import {
 } from "react";
 
 import {
-  approvePreparationCombine,
+  approvePreparationCombineSequence,
   continuePreparationWithoutSurrogate,
   createPreparationSurrogateKey,
   discoverPreparationCombine,
@@ -1764,7 +1764,7 @@ export default function PreparationCombinePanel({
 
     try {
       const response =
-        await approvePreparationCombine(
+        await approvePreparationCombineSequence(
           effectiveSession
             .workflow_id,
 
@@ -1776,12 +1776,15 @@ export default function PreparationCombinePanel({
 
 
       setLastExecution(
-        response
+        response.executions[
+          response.executions.length - 1
+        ] ??
+        null
       );
 
 
       setDiscovery(
-        response.next_discovery
+        response.final_discovery
       );
 
 
@@ -1826,7 +1829,7 @@ export default function PreparationCombinePanel({
           true
         ? discovery
             .ready_for_approval
-          ? "Une relation sûre attend votre approbation"
+          ? "Assemblage prêt"
           : "Une relation a été détectée mais reste bloquée"
         : discovery
             ?.has_candidate ===
@@ -1870,9 +1873,7 @@ export default function PreparationCombinePanel({
           </h3>
 
           <p>
-            Lorsque plusieurs tables sont nécessaires, DataLens vérifie comment
-            les relier sans dupliquer, perdre ou modifier silencieusement des lignes.
-            Vous examinez la relation proposée avant de poursuivre.
+            DataLens vérifie les relations entre les tables avant de les assembler.
           </p>
         </div>
 
@@ -2274,11 +2275,16 @@ export default function PreparationCombinePanel({
                             </div>
 
 
-                            <div
+                            <details
                               className={
                                 styles.identityNarrative
                               }
                             >
+                              <summary>
+                                {
+                                  "Voir l\u2019explication de l\u2019IA"
+                                }
+                              </summary>
                               <div
                                 className={
                                   styles.identityNarrativeHead
@@ -2391,7 +2397,7 @@ export default function PreparationCombinePanel({
                                     )
                                   : null
                               }
-                            </div>
+                            </details>
 
 
                             {
@@ -2925,11 +2931,16 @@ export default function PreparationCombinePanel({
                     warnings.length >
                     0
                       ? (
-                          <div
+                          <details
                             className={
                               styles.planEvidence
                             }
                           >
+                            <summary>
+                              {
+                                "Voir les contr\u00f4les techniques"
+                              }
+                            </summary>
                             <strong>
                               Points de contrôle
                             </strong>
@@ -2952,7 +2963,7 @@ export default function PreparationCombinePanel({
                                 )
                               )
                             }
-                          </div>
+                          </details>
                         )
                       : null
                   }
@@ -2964,9 +2975,7 @@ export default function PreparationCombinePanel({
                     }
                   >
                     <p>
-                      DataLens exécutera uniquement la relation affichée ici.
-                      Si les données ou la relation proposée changent entre-temps,
-                      une nouvelle validation sera demandée avant l’assemblage.
+                      Les relations restent contrôlées côté serveur à chaque étape.
                     </p>
 
                     <button
@@ -2983,11 +2992,11 @@ export default function PreparationCombinePanel({
                     >
                       {
                         approving
-                          ? "Méthode d’assemblage en cours…"
+                          ? "Assemblage en cours…"
                           : discovery
                               ?.ready_for_approval
-                            ? "Approuver l’assemblage"
-                            : "Méthode d’assemblage non approuvable"
+                            ? "Assembler les tables"
+                            : "Assemblage non disponible"
                       }
                     </button>
                   </div>
