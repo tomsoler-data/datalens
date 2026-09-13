@@ -97,6 +97,15 @@ class CombineExecution:
 
 
 @dataclass(frozen=True)
+class CombineSequenceExecution:
+    workflow_id: str
+    executions: tuple[CombineExecution, ...]
+    final_discovery: CombineDiscovery
+    session: PreparationSessionView
+    rule_version: str = PREPARATION_COMBINE_SERVICE_VERSION
+
+
+@dataclass(frozen=True)
 class _CandidateSeed:
     left_dataset_id: str
     right_dataset_id: str
@@ -960,4 +969,223 @@ def approve_and_execute_next_combine(
         validation=validation,
         next_discovery=next_discovery,
         session=session,
+    )
+
+def approve_and_execute_combine_sequence(
+    *,
+    workflow_id: str,
+    request_id: str,
+    actor: str = "user",
+    comment: str | None = None,
+) -> CombineSequenceExecution:
+    """
+    Execute a bounded sequence of server-derived safe joins.
+
+    One explicit analyst authorization starts the sequence.
+
+    Every individual join still passes through the existing
+    server-owned authority chain:
+
+        discovery
+        -> request-id verification
+        -> Join Planner
+        -> Join Approval
+        -> Join Executor
+        -> Post-Join Validation
+        -> artifact materialization
+        -> rediscovery
+
+    The browser never supplies join keys, cardinality, join type,
+    lineage, or the request ids of subsequent joins.
+
+    The maximum number of executions is derived from the initial
+    active frontier. Each successful join must reduce that frontier
+    by exactly consuming source artifacts into a new materialized
+    COMBINE artifact.
+
+    A blocked subsequent candidate stops the sequence fail-closed.
+    """
+
+    initial = _discover_without_stage_write(
+        workflow_id
+    )
+
+    if not initial.has_candidate:
+        _sync_discovery_stage(
+            initial
+        )
+
+        raise ValueError(
+            "No join candidate is currently available for approval."
+        )
+
+    assert initial.intent is not None
+    assert initial.plan is not None
+
+    normalized_request_id = (
+        request_id.strip()
+    )
+
+    if (
+        initial.intent.request_id
+        !=
+        normalized_request_id
+    ):
+        raise ValueError(
+            "Join approval request_id does not match the current "
+            "server-derived candidate. Refresh the Preparation plan."
+        )
+
+    if not initial.ready_for_approval:
+        _sync_discovery_stage(
+            initial
+        )
+
+        raise ValueError(
+            "The current join candidate is blocked and cannot be approved."
+        )
+
+    initial_active_count = len(
+        initial.active_dataset_ids
+    )
+
+    max_executions = max(
+        0,
+        initial_active_count - 1,
+    )
+
+    if max_executions < 1:
+        raise RuntimeError(
+            "Combine sequence cannot start from fewer than two "
+            "active datasets."
+        )
+
+    executions: list[
+        CombineExecution
+    ] = []
+
+    current = initial
+    current_request_id = (
+        normalized_request_id
+    )
+
+    previous_active_count = (
+        initial_active_count
+    )
+
+    for _ in range(
+        max_executions
+    ):
+        if not current.has_candidate:
+            break
+
+        if not current.ready_for_approval:
+            _sync_discovery_stage(
+                current
+            )
+            break
+
+        assert current.intent is not None
+
+        if (
+            current.intent.request_id
+            !=
+            current_request_id
+        ):
+            raise RuntimeError(
+                "Server-derived combine sequence request changed "
+                "before execution."
+            )
+
+        execution = (
+            approve_and_execute_next_combine(
+                workflow_id=
+                    workflow_id,
+
+                request_id=
+                    current_request_id,
+
+                actor=
+                    actor,
+
+                comment=
+                    comment,
+            )
+        )
+
+        executions.append(
+            execution
+        )
+
+        next_discovery = (
+            execution.next_discovery
+        )
+
+        next_active_count = len(
+            next_discovery.active_dataset_ids
+        )
+
+        if (
+            next_discovery.has_candidate
+            and
+            next_active_count
+            >=
+            previous_active_count
+        ):
+            raise RuntimeError(
+                "Combine sequence failed closed because the active "
+                "dataset frontier did not shrink after execution."
+            )
+
+        current = (
+            next_discovery
+        )
+
+        previous_active_count = (
+            next_active_count
+        )
+
+        if not current.has_candidate:
+            break
+
+        if not current.ready_for_approval:
+            break
+
+        assert current.intent is not None
+
+        current_request_id = (
+            current.intent.request_id
+        )
+
+    if (
+        current.has_candidate
+        and
+        current.ready_for_approval
+        and
+        len(executions)
+        >=
+        max_executions
+    ):
+        raise RuntimeError(
+            "Combine sequence exceeded its server-derived execution bound."
+        )
+
+    session = get_preparation_session(
+        workflow_id
+    )
+
+    return CombineSequenceExecution(
+        workflow_id=
+            workflow_id,
+
+        executions=
+            tuple(
+                executions
+            ),
+
+        final_discovery=
+            current,
+
+        session=
+            session,
     )
