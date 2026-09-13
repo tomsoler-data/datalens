@@ -14907,6 +14907,47 @@ def normalize_ai_planner_wire_content(
         }
 
 
+    # --------------------------------------------------------
+    # SINGLE ROOT PROPOSAL
+    #
+    # Some local models may return one valid planner proposal
+    # directly as the JSON root instead of wrapping it in the
+    # canonical {"proposals": [...]} envelope.
+    #
+    # This normalization is transport-only:
+    #
+    # - the model already chose decision;
+    # - the model already chose family;
+    # - the model already chose dataset_id;
+    # - no analytical binding or operation is invented here.
+    # --------------------------------------------------------
+
+    if (
+        isinstance(
+            decoded,
+            dict,
+        )
+        and
+        "proposals"
+        not in
+        decoded
+        and
+        {
+            "decision",
+            "family",
+            "dataset_id",
+        }
+        .issubset(
+            decoded
+        )
+    ):
+        decoded = {
+            "proposals": [
+                decoded
+            ]
+        }
+
+
     if not isinstance(
         decoded,
         dict,

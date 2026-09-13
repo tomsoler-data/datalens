@@ -31,7 +31,7 @@ from app.planning.analytical_contract import (
 # ============================================================
 
 OBJECTIVE_COVERAGE_RULE_VERSION = (
-    "objective_coverage_v0.3"
+    "objective_coverage_v0.4"
 )
 
 
@@ -363,6 +363,7 @@ SEMANTIC_REQUIREMENT_SPECS = (
             "chiffre d affaires",
             "revenue",
             "turnover",
+            "ca",
         ),
 
         candidate_column_names=(
