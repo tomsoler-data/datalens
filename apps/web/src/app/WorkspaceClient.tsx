@@ -105,7 +105,7 @@ import {
 } from "../components/preparation/preparationSubstepStorage";
 import { formatNumber } from "../components/analysis/analysisPresentation";
 import { plannerUiCopy } from "../components/analysis/analysisPlanningPresentation";
-import { nativePipelineHasExecutedResult } from "../components/analysis/analysisExecutionPresentation";
+import { nativePipelineHasExecutedFamilyResult } from "../components/analysis/analysisExecutionPresentation";
 import type {
   AIPlannerReportView,
   AINativePipelineReportView,
@@ -6322,7 +6322,11 @@ function handleStartNewWorkflow() {
 
                             {
                               aiNativeReport
-                                ?.entity_outlier_finding
+                                ?.entity_outlier_finding &&
+                              !nativePipelineHasExecutedFamilyResult(
+                                aiNativeReport,
+                                "entity_outlier"
+                              )
                                 ? (
                                     <EntityOutlierRequestedAnswer
                                       finding={
@@ -6337,7 +6341,13 @@ function handleStartNewWorkflow() {
                                       }
                                     />
                                   )
-                                : report.entity_outlier_finding
+                                : (
+                                    report.entity_outlier_finding &&
+                                    !nativePipelineHasExecutedFamilyResult(
+                                      aiNativeReport,
+                                      "entity_outlier"
+                                    )
+                                  )
                                   ? (
                                       <EntityOutlierRequestedAnswer
                                         finding={
@@ -6788,7 +6798,12 @@ function handleStartNewWorkflow() {
                                               {
                                                 latestAnalysisFollowUp
                                                   .report
-                                                  .entity_outlier_finding
+                                                  .entity_outlier_finding &&
+                                                !nativePipelineHasExecutedFamilyResult(
+                                                  latestAnalysisFollowUp
+                                                    .report,
+                                                  "entity_outlier"
+                                                )
                                                   ? (
                                                       <EntityOutlierRequestedAnswer
                                                         finding={

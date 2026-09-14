@@ -1,4 +1,4 @@
-﻿from pathlib import Path
+from pathlib import Path
 import ast
 
 
@@ -16,7 +16,7 @@ print()
 print("=" * 80)
 print(
     "DATALENS AI-NATIVE ENTITY OUTLIER "
-    "AI-FIRST AUTHORITY v0.1"
+    "AI-FIRST AUTHORITY v0.2"
 )
 print("=" * 80)
 print()
@@ -32,7 +32,7 @@ tree = ast.parse(
 
 
 # ============================================================
-# 1. LEGACY HELPER MAY REMAIN, BUT IS NOT AUTHORITATIVE
+# 1. LEGACY HELPER MAY REMAIN OUTSIDE NATIVE AUTHORITY
 # ============================================================
 
 helper = next(
@@ -59,18 +59,17 @@ helper = next(
     None,
 )
 
-
 assert (
     helper
     is not None
 ), (
-    "The historical dedup helper may remain during migration "
-    "for backward compatibility."
+    "Historical helper may remain while non-native legacy "
+    "paths still exist."
 )
 
 print(
-    "[PASS] legacy dedup helper remains available "
-    "outside native authority"
+    "[PASS] historical helper remains isolated outside "
+    "native authority"
 )
 
 
@@ -104,7 +103,6 @@ assert (
     "/planning/ai-native-run must use the direct AI planner."
 )
 
-
 assert (
     "plan_analyses_with_intent_routing("
     not in route_segment
@@ -113,14 +111,13 @@ assert (
     "generic resolver before Qwen."
 )
 
-
 print(
     "[PASS] Qwen planner is the native route semantic authority"
 )
 
 
 # ============================================================
-# 4. NO SPECIALIZED DEDUP IN EXECUTION AUTHORITY
+# 4. NO SPECIALIZED DEDUP IN NATIVE EXECUTION AUTHORITY
 # ============================================================
 
 assert (
@@ -128,10 +125,8 @@ assert (
     not in route_segment
 ), (
     "The native route must not delete a validated generic "
-    "entity_outlier contract because a historical specialized "
-    "finding exists."
+    "entity_outlier contract because of a historical finding."
 )
-
 
 assert (
     "execution_planner_report"
@@ -140,7 +135,6 @@ assert (
     "The native route must execute the original validated "
     "Qwen planner report directly."
 )
-
 
 print(
     "[PASS] generic entity_outlier contract is not removed "
@@ -165,14 +159,38 @@ for forbidden in (
         f"planner fails. Legacy bypass found: {forbidden}"
     )
 
-
 print(
     "[PASS] native route contains no Python planner bypass"
 )
 
 
 # ============================================================
-# 6. COMPATIBILITY FINDING IS AFTER QWEN PLANNING
+# 6. NO LEGACY ENTITY-OUTLIER PRODUCER
+# ============================================================
+
+assert (
+    "build_entity_outlier_finding_if_requested("
+    not in route_segment
+), (
+    "The native route must no longer calculate the historical "
+    "customer-oriented entity_outlier_finding."
+)
+
+assert (
+    "entity_outlier_finding="
+    not in route_segment
+), (
+    "The native route must no longer inject the historical "
+    "entity_outlier_finding into the native pipeline."
+)
+
+print(
+    "[PASS] native route contains no legacy entity-outlier producer"
+)
+
+
+# ============================================================
+# 7. ORDER: QWEN -> COVERAGE -> NATIVE PIPELINE
 # ============================================================
 
 planner_pos = route_segment.index(
@@ -183,42 +201,33 @@ coverage_pos = route_segment.index(
     "require_objective_coverage("
 )
 
-compatibility_pos = route_segment.index(
-    "build_entity_outlier_finding_if_requested("
-)
-
 pipeline_pos = route_segment.index(
     "execute_native_ai_pipeline("
 )
-
 
 assert (
     planner_pos
     <
     coverage_pos
     <
-    compatibility_pos
-    <
     pipeline_pos
 ), (
     "Required order: Qwen planning -> objective coverage -> "
-    "legacy compatibility finding -> native execution."
+    "native execution."
 )
 
-
 print(
-    "[PASS] compatibility finding is resolved after Qwen planning"
+    "[PASS] native route order is Qwen -> coverage -> execution"
 )
 
 
 # ============================================================
-# 7. ORIGINAL QWEN REPORT ENTERS NATIVE PIPELINE
+# 8. ORIGINAL QWEN REPORT ENTERS NATIVE PIPELINE
 # ============================================================
 
 native_call_segment = route_segment[
     pipeline_pos:
 ]
-
 
 assert (
     "planner_report=\n                    planner_report,"
@@ -227,7 +236,6 @@ assert (
     "execute_native_ai_pipeline() must receive the original "
     "validated Qwen planner report."
 )
-
 
 print(
     "[PASS] native pipeline receives original Qwen planner report"
@@ -240,5 +248,5 @@ print(
 
 print()
 print(
-    "PASS - AI-native entity outlier AI-first authority v0.1"
+    "PASS - AI-native entity outlier AI-first authority v0.2"
 )
