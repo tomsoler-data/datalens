@@ -121,6 +121,7 @@ from app.planning.ai_analytical_planner import (
     AIPlannerReport,
     DEFAULT_AI_PLANNER_MODEL,
     PlannerCatalog,
+    plan_analyses_with_ai,
 )
 
 from app.planning.analytical_request_router import (
@@ -3856,7 +3857,7 @@ def run_ai_analytical_tool(
 
 
 # ============================================================
-# AI NATIVE PIPELINE — INTENT ROUTER → QWEN TOOL CALL → PYTHON
+# AI NATIVE PIPELINE - QWEN PLANNER -> QWEN TOOL CALL -> PYTHON
 # ============================================================
 
 @router.post(
@@ -3929,8 +3930,8 @@ def run_ai_native_pipeline(
        artifact(s).
     2. DataLens builds a centrally typed planner catalog from
        the exact DataFrames that will be analyzed.
-    3. Generic supported intents are expanded by Python;
-       other requests fall back to the local LLM planner.
+    3. Qwen performs semantic analytical planning from the
+       typed server-owned catalog.
     4. Python validates the resulting analytical contracts.
     5. Qwen requests the whitelisted function through
        Ollama native function calling.
@@ -4302,57 +4303,21 @@ def run_ai_native_pipeline(
 
 
         # ====================================================
-        # SPECIALIZED ENTITY-OUTLIER AUTHORITY
+        # AI-FIRST SEMANTIC PLANNING AUTHORITY
         # ====================================================
         #
-        # Resolve a deterministic/specialized entity-outlier
-        # request before invoking the general LLM planner.
+        # Qwen is the first semantic authority for the native
+        # analytical route.
         #
-        # The general planner is still attempted so mixed
-        # analytical requests keep their normal capabilities.
+        # Python does not pre-select the analytical family,
+        # dataset, entity or metric before this planner call.
         #
-        # If the general planner is unavailable, the specialized
-        # result may survive only when Objective Coverage detects
-        # no additional explicit analytical requirement.
+        # Python remains authoritative for:
+        # - canonical contract validation;
+        # - objective coverage;
+        # - exact native tool arguments;
+        # - deterministic statistical execution.
         # ====================================================
-
-        entity_outlier_finding = (
-            build_entity_outlier_finding_if_requested(
-                objective=
-                    normalized_objective,
-
-                source_dataset_records=
-                    source_dataset_records,
-            )
-        )
-
-
-        specialized_entity_outlier_fallback_allowed = (
-            entity_outlier_finding
-            is not None
-
-            and
-
-            not extract_objective_requirements(
-                objective=
-                    normalized_objective,
-
-                catalog=
-                    catalog,
-            )
-
-            and
-
-            not objective_explicitly_requests_entity_ranking_analysis(
-                normalized_objective
-            )
-        )
-
-
-        specialized_entity_outlier_planner_bypass = (
-            False
-        )
-
 
         planner_started_at = (
             perf_counter()
@@ -4364,101 +4329,38 @@ def run_ai_native_pipeline(
         )
 
 
-        try:
-            planner_report = (
-                plan_analyses_with_intent_routing(
-                    objective=
-                        normalized_objective,
-
-                    catalog=
-                        catalog,
-
-                    model=
-                        planner_model,
-                )
-            )
-
-
-            # ================================================
-            # OBJECTIVE COVERAGE EXECUTION GATE
-            # DATALENS_OBJECTIVE_COVERAGE_EXECUTION_GATE_V0_1
-            #
-            # Qwen tool calling must never receive an
-            # incomplete analytical plan.
-            # ================================================
-
-            require_objective_coverage(
+        planner_report = (
+            plan_analyses_with_ai(
                 objective=
                     normalized_objective,
 
                 catalog=
                     catalog,
 
-                planner_report=
-                    planner_report,
+                model=
+                    planner_model,
             )
+        )
 
 
-        except RuntimeError:
-            if (
-                not
-                specialized_entity_outlier_fallback_allowed
-            ):
-                raise
+        # ====================================================
+        # OBJECTIVE COVERAGE EXECUTION GATE
+        # DATALENS_OBJECTIVE_COVERAGE_EXECUTION_GATE_V0_1
+        #
+        # Qwen tool calling must never receive an incomplete
+        # analytical plan.
+        # ====================================================
 
+        require_objective_coverage(
+            objective=
+                normalized_objective,
 
-            specialized_entity_outlier_planner_bypass = (
-                True
-            )
+            catalog=
+                catalog,
 
-
-            planner_report = (
-                AIPlannerReport(
-                    objective=
-                        normalized_objective,
-
-                    model=(
-                        "python:"
-                        "entity_outlier_planner_bypass_v0.1"
-                    ),
-
-                    proposal_count=
-                        0,
-
-                    validated_count=
-                        0,
-
-                    blocked_count=
-                        0,
-
-                    ambiguous_count=
-                        0,
-
-                    rejected_count=
-                        0,
-
-                    items=
-                        [],
-
-                    attempt_count=
-                        1,
-
-                    retry_count=
-                        0,
-
-                    retry_triggered=
-                        False,
-
-                    retry_feedback=
-                        [],
-
-                    normalization_count=
-                        0,
-
-                    normalization_applied=
-                        False,
-                )
-            )
+            planner_report=
+                planner_report,
+        )
 
 
         planner_ms = (
@@ -4472,6 +4374,32 @@ def run_ai_native_pipeline(
         )
 
 
+        # ====================================================
+        # LEGACY ENTITY-OUTLIER COMPATIBILITY PAYLOAD
+        # ====================================================
+        #
+        # This historical customer-oriented finding is retained
+        # temporarily for response/UI compatibility only.
+        #
+        # It is resolved AFTER Qwen planning and does not:
+        # - choose the analytical contract;
+        # - replace a planner failure;
+        # - remove a validated generic entity_outlier contract;
+        # - choose the native tool;
+        # - participate in deterministic execution authority.
+        # ====================================================
+
+        entity_outlier_finding = (
+            build_entity_outlier_finding_if_requested(
+                objective=
+                    normalized_objective,
+
+                source_dataset_records=
+                    source_dataset_records,
+            )
+        )
+
+
         native_started_at = (
             perf_counter()
         )
@@ -4482,24 +4410,10 @@ def run_ai_native_pipeline(
         )
 
 
-        execution_planner_report = (
-            remove_specialized_entity_outlier_duplicate(
-                planner_report=
-                    planner_report,
-
-                objective=
-                    normalized_objective,
-
-                entity_outlier_finding=
-                    entity_outlier_finding,
-            )
-        )
-
-
         pipeline_report = (
             execute_native_ai_pipeline(
                 planner_report=
-                    execution_planner_report,
+                    planner_report,
 
                 datasets=
                     analysis_datasets,
@@ -4522,21 +4436,6 @@ def run_ai_native_pipeline(
                 ),
             )
         )
-
-
-        if (
-            specialized_entity_outlier_planner_bypass
-        ):
-            pipeline_report.notes.append(
-                (
-                    "The general local AI planner was unavailable "
-                    "or returned an invalid response. DataLens "
-                    "preserved the independently resolved "
-                    "specialized entity-outlier result because "
-                    "no additional explicit analytical requirement "
-                    "was detected."
-                )
-            )
 
 
         native_pipeline_ms = (

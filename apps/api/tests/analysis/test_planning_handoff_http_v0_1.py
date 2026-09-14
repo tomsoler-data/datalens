@@ -635,9 +635,16 @@ def assert_browser_upload_not_loaded_for_route(
     )
 
 
-    original_planner = (
-        analysis_run_module
-        .plan_analyses_with_intent_routing
+    planner_attribute = (
+        "plan_analyses_with_ai"
+        if path == "/planning/ai-native-run"
+        else "plan_analyses_with_intent_routing"
+    )
+
+
+    original_planner = getattr(
+        analysis_run_module,
+        planner_attribute,
     )
 
 
@@ -684,8 +691,10 @@ def assert_browser_upload_not_loaded_for_route(
     )
 
 
-    analysis_run_module.plan_analyses_with_intent_routing = (
-        stop_at_planner
+    setattr(
+        analysis_run_module,
+        planner_attribute,
+        stop_at_planner,
     )
 
 
@@ -724,8 +733,10 @@ def assert_browser_upload_not_loaded_for_route(
         )
 
 
-        analysis_run_module.plan_analyses_with_intent_routing = (
-            original_planner
+        setattr(
+            analysis_run_module,
+            planner_attribute,
+            original_planner,
         )
 
 

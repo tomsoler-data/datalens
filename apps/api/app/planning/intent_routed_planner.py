@@ -819,7 +819,7 @@ def plan_analyses_with_intent_routing(
     whose proposal is still validated by Python.
 
     Unsupported requests also continue through the existing
-    Gemma -> Python validation path.
+    local AI planner -> Python validation path.
     """
 
     started_at = (
