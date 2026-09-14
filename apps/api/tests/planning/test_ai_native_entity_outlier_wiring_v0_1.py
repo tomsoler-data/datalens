@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import ast
 import inspect
@@ -29,30 +29,49 @@ API_PATH = (
 
 print()
 print("=" * 80)
-print("DATALENS AI-NATIVE ENTITY OUTLIER WIRING v0.1")
+print(
+    "DATALENS AI-NATIVE ENTITY OUTLIER "
+    "LEGACY PRODUCER REMOVAL v0.1"
+)
 print("=" * 80)
 print()
 
 
 # ============================================================
-# 1. RESPONSE CONTRACT
+# 1. HISTORICAL RESPONSE CONTRACT REMAINS READABLE
 # ============================================================
 
 assert (
     "entity_outlier_finding"
     in AINativePipelineReport.model_fields
 ), (
-    "AINativePipelineReport must expose an optional "
-    "entity_outlier_finding field."
+    "AINativePipelineReport must keep the optional historical "
+    "entity_outlier_finding field while old artifacts exist."
+)
+
+field = (
+    AINativePipelineReport
+    .model_fields[
+        "entity_outlier_finding"
+    ]
+)
+
+assert (
+    field.default
+    is None
+), (
+    "Historical entity_outlier_finding compatibility must "
+    "default to None for new native reports."
 )
 
 print(
-    "[PASS] AI-native response contract carries entity-outlier finding"
+    "[PASS] historical response field remains readable "
+    "and defaults to None"
 )
 
 
 # ============================================================
-# 2. PIPELINE INPUT CONTRACT
+# 2. NATIVE PIPELINE NO LONGER ACCEPTS LEGACY FINDING
 # ============================================================
 
 pipeline_signature = (
@@ -63,19 +82,19 @@ pipeline_signature = (
 
 assert (
     "entity_outlier_finding"
-    in pipeline_signature.parameters
+    not in pipeline_signature.parameters
 ), (
-    "execute_native_ai_pipeline() must receive the already "
-    "resolved entity_outlier_finding before persistence."
+    "execute_native_ai_pipeline() must no longer accept "
+    "the historical specialized finding as an input."
 )
 
 print(
-    "[PASS] native pipeline accepts entity-outlier finding before persistence"
+    "[PASS] native pipeline has no legacy finding input"
 )
 
 
 # ============================================================
-# 3. PIPELINE REPORT CONSTRUCTION
+# 3. NATIVE PIPELINE DOES NOT PRODUCE LEGACY FINDING
 # ============================================================
 
 pipeline_source = (
@@ -90,7 +109,8 @@ pipeline_tree = ast.parse(
 
 pipeline_function = next(
     node
-    for node in ast.walk(
+    for node
+    in ast.walk(
         pipeline_tree
     )
     if (
@@ -119,34 +139,20 @@ assert (
 )
 
 assert (
-    "entity_outlier_finding="
-    in pipeline_segment
+    "entity_outlier_finding"
+    not in pipeline_segment
 ), (
-    "execute_native_ai_pipeline() must inject the finding "
-    "into AINativePipelineReport before "
-    "register_native_pipeline_result() serializes it."
-)
-
-assert (
-    pipeline_segment.index(
-        "entity_outlier_finding="
-    )
-    <
-    pipeline_segment.index(
-        "register_native_pipeline_result("
-    )
-), (
-    "entity_outlier_finding must be attached before "
-    "server-owned persistence."
+    "New native pipeline execution must not construct "
+    "or inject the historical specialized finding."
 )
 
 print(
-    "[PASS] entity-outlier finding is attached before artifact persistence"
+    "[PASS] native pipeline does not produce legacy finding"
 )
 
 
 # ============================================================
-# 4. LIVE AI-NATIVE ROUTE
+# 4. LIVE AI-NATIVE ROUTE HAS NO LEGACY PRODUCER
 # ============================================================
 
 api_source = (
@@ -176,37 +182,30 @@ route_segment = (
 )
 
 assert (
-    "build_entity_outlier_finding_if_requested("
+    "execute_native_ai_pipeline("
     in route_segment
-), (
-    "/planning/ai-native-run must resolve the explicit "
-    "entity-outlier branch in addition to the normal "
-    "multi-intent analytical planner."
 )
 
 assert (
-    route_segment.index(
-        "build_entity_outlier_finding_if_requested("
-    )
-    <
-    route_segment.index(
-        "execute_native_ai_pipeline("
-    )
+    "build_entity_outlier_finding_if_requested("
+    not in route_segment
 ), (
-    "The specialized finding must be resolved before "
-    "the native pipeline is executed."
+    "/planning/ai-native-run must not execute the "
+    "historical customer-oriented entity-outlier producer."
 )
 
 assert (
     "entity_outlier_finding="
-    in route_segment
+    not in route_segment
 ), (
-    "/planning/ai-native-run must pass the specialized "
-    "finding into execute_native_ai_pipeline()."
+    "/planning/ai-native-run must not pass a historical "
+    "entity-outlier compatibility payload into the native "
+    "pipeline."
 )
 
 print(
-    "[PASS] live AI-native route preserves generic analyses plus entity outlier"
+    "[PASS] live AI-native route produces only native "
+    "AI-first analytical results"
 )
 
 
@@ -216,5 +215,5 @@ print(
 
 print()
 print(
-    "PASS - AI-native entity outlier wiring v0.1"
+    "PASS - AI-native entity outlier legacy producer removal v0.1"
 )

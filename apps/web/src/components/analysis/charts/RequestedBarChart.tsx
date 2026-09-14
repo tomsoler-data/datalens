@@ -40,6 +40,10 @@ export default function RequestedBarChart({
             ) ??
             datumLabel(
               datum,
+              "entity"
+            ) ??
+            datumLabel(
+              datum,
               "group"
             ) ??
             datumLabel(

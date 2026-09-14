@@ -490,6 +490,11 @@ function NativeRequestedAnalysisSingleCard({
     null;
 
 
+  const entityColumn =
+    variables.entity ??
+    null;
+
+
   const timeColumn =
     variables.time ??
     null;
@@ -682,6 +687,10 @@ function NativeRequestedAnalysisSingleCard({
     metricNumber(
       result.metrics,
       "outlier_count_iqr"
+    ) ??
+    metricNumber(
+      result.metrics,
+      "flagged_entity_count"
     );
 
 
@@ -689,14 +698,26 @@ function NativeRequestedAnalysisSingleCard({
     metricNumber(
       result.metrics,
       "outlier_ratio_iqr"
+    ) ??
+    metricNumber(
+      result.metrics,
+      "flagged_ratio"
     );
 
 
-  const isOutlierRequest =
+  const isEntityOutlierRequest =
     result.family ===
-      "distribution" &&
-    /outlier|atypiqu|aberrant/i.test(
-      objective
+      "entity_outlier";
+
+
+  const isOutlierRequest =
+    isEntityOutlierRequest ||
+    (
+      result.family ===
+        "distribution" &&
+      /outlier|atypiqu|aberrant/i.test(
+        objective
+      )
     );
 
 
@@ -733,10 +754,23 @@ function NativeRequestedAnalysisSingleCard({
     );
 
 
+  const requestedEntityLabel =
+    friendlyVariableLabel(
+      entityColumn ??
+      metricString(
+        result.metrics,
+        "entity_column"
+      ) ??
+      "Entité"
+    );
+
+
   const requestedResultTitle =
-    isOutlierRequest
-      ? `Valeurs atypiques · ${requestedVariableLabel}`
-      : (
+    isEntityOutlierRequest
+      ? `Entités atypiques · ${requestedEntityLabel}`
+      : isOutlierRequest
+        ? `Valeurs atypiques · ${requestedVariableLabel}`
+        : (
           objective.trim() ||
           report.planner.objective.trim() ||
           result.title
@@ -770,7 +804,9 @@ function NativeRequestedAnalysisSingleCard({
       kpis.push(
         {
           label:
-            "Valeurs analysées",
+            isEntityOutlierRequest
+              ? "Entités analysées"
+              : "Valeurs analysées",
 
           value:
             formatNumber(
@@ -788,7 +824,9 @@ function NativeRequestedAnalysisSingleCard({
       kpis.push(
         {
           label:
-            "Outliers détectés",
+            isEntityOutlierRequest
+              ? "Entités atypiques"
+              : "Outliers détectés",
 
           value:
             formatNumber(
@@ -806,7 +844,9 @@ function NativeRequestedAnalysisSingleCard({
       kpis.push(
         {
           label:
-            "Part des observations",
+            isEntityOutlierRequest
+              ? "Part des entités"
+              : "Part des observations",
 
           value:
             formatPercent(
@@ -1536,37 +1576,74 @@ function NativeRequestedAnalysisSingleCard({
 
                 <strong>
                   {
-                    outlierCountIqr ===
-                      null
-                      ? "Le calcul des valeurs atypiques est disponible dans les preuves."
+                    isEntityOutlierRequest
+                      ? (
+                          outlierCountIqr ===
+                            null
+                            ? "Le calcul des entités atypiques est disponible dans les preuves."
+                            : outlierCountIqr ===
+                                0
+                              ? "Aucune entité atypique détectée avec la règle IQR 1,5×."
+                              : `${formatNumber(
+                                  outlierCountIqr
+                                )} entité${
+                                  outlierCountIqr >
+                                  1
+                                    ? "s"
+                                    : ""
+                                } atypique${
+                                  outlierCountIqr >
+                                  1
+                                    ? "s"
+                                    : ""
+                                } détectée${
+                                  outlierCountIqr >
+                                  1
+                                    ? "s"
+                                    : ""
+                                } selon ${requestedVariableLabel.toLowerCase()}.`
+                        )
                       : outlierCountIqr ===
-                          0
-                        ? "Aucune valeur atypique détectée avec la règle IQR 1,5×."
-                        : `${formatNumber(
-                            outlierCountIqr
-                          )} valeur${
-                            outlierCountIqr >
-                            1
-                              ? "s"
-                              : ""
-                          } atypique${
-                            outlierCountIqr >
-                            1
-                              ? "s"
-                              : ""
-                          } détectée${
-                            outlierCountIqr >
-                            1
-                              ? "s"
-                              : ""
-                          } sur ${requestedVariableLabel.toLowerCase()}.`
+                          null
+                        ? "Le calcul des valeurs atypiques est disponible dans les preuves."
+                        : outlierCountIqr ===
+                            0
+                          ? "Aucune valeur atypique détectée avec la règle IQR 1,5×."
+                          : `${formatNumber(
+                              outlierCountIqr
+                            )} valeur${
+                              outlierCountIqr >
+                              1
+                                ? "s"
+                                : ""
+                            } atypique${
+                              outlierCountIqr >
+                              1
+                                ? "s"
+                                : ""
+                            } détectée${
+                              outlierCountIqr >
+                              1
+                                ? "s"
+                                : ""
+                            } sur ${requestedVariableLabel.toLowerCase()}.`
                   }
                 </strong>
 
                 <p>
-                  Les valeurs sont signalées, pas supprimées.
-                  DataLens conserve les données et laisse la décision
-                  de traitement à l’analyste.
+                  {
+                    isEntityOutlierRequest
+                      ? (
+                          "Les entités sont signalées à partir de la " +
+                          "métrique choisie dans le contrat analytique. " +
+                          "Aucune conclusion métier automatique n’est produite."
+                        )
+                      : (
+                          "Les valeurs sont signalées, pas supprimées. " +
+                          "DataLens conserve les données et laisse la décision " +
+                          "de traitement à l’analyste."
+                        )
+                  }
                 </p>
               </section>
             )
@@ -2009,24 +2086,33 @@ function NativeRequestedAnalysisSingleCard({
                     <h3>
                       {
                         result.family ===
-                          "ranking"
-                          ? "Classement demandé"
-                          : "Agrégation demandée"
+                          "entity_outlier"
+                          ? "Entités atypiques"
+                          : result.family ===
+                              "ranking"
+                            ? "Classement demandé"
+                            : "Agrégation demandée"
                       }
                     </h3>
 
                     <p>
                       {
                         result.family ===
-                          "ranking"
+                          "entity_outlier"
                           ? (
-                              "Agrégation, tri et limite calculés " +
-                              "par le moteur Python déterministe."
+                              "Entités signalées par la règle IQR 1,5× " +
+                              "sur la métrique validée."
                             )
-                          : (
-                              "Valeurs agrégées calculées par le " +
-                              "moteur Python déterministe."
-                            )
+                          : result.family ===
+                              "ranking"
+                            ? (
+                                "Agrégation, tri et limite calculés " +
+                                "par le moteur Python déterministe."
+                              )
+                            : (
+                                "Valeurs agrégées calculées par le " +
+                                "moteur Python déterministe."
+                              )
                       }
                     </p>
                   </div>
@@ -2042,12 +2128,14 @@ function NativeRequestedAnalysisSingleCard({
                       chartData
                     }
                     categoryLabel={
-                      productColumn
-                        ? "Produit"
-                        : friendlyVariableLabel(
-                            dimensionColumn ??
-                            "Catégorie"
-                          )
+                      isEntityOutlierRequest
+                        ? requestedEntityLabel
+                        : productColumn
+                          ? "Produit"
+                          : friendlyVariableLabel(
+                              dimensionColumn ??
+                              "Catégorie"
+                            )
                     }
                     valueLabel={
                       friendlyVariableLabel(

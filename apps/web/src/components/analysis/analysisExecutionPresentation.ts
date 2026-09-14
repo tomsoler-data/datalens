@@ -35,6 +35,42 @@ export function nativePipelineHasExecutedResult(
 }
 
 
+export function nativePipelineHasExecutedFamilyResult(
+  report:
+    AINativePipelineReportView |
+    null |
+    undefined,
+  family:
+    string,
+): boolean {
+  if (
+    !report
+  ) {
+    return false;
+  }
+
+
+  return report.items.some(
+    (
+      item
+    ) =>
+      item.family ===
+        family &&
+      item.pipeline_status ===
+        "executed" &&
+      item.native_tool
+        ?.execution
+        ?.execution_status ===
+          "executed" &&
+      item.native_tool
+        ?.execution
+        ?.result
+        ?.family ===
+          family
+  );
+}
+
+
 export function toolEngineLabel(
   model:
     string |

@@ -4374,32 +4374,6 @@ def run_ai_native_pipeline(
         )
 
 
-        # ====================================================
-        # LEGACY ENTITY-OUTLIER COMPATIBILITY PAYLOAD
-        # ====================================================
-        #
-        # This historical customer-oriented finding is retained
-        # temporarily for response/UI compatibility only.
-        #
-        # It is resolved AFTER Qwen planning and does not:
-        # - choose the analytical contract;
-        # - replace a planner failure;
-        # - remove a validated generic entity_outlier contract;
-        # - choose the native tool;
-        # - participate in deterministic execution authority.
-        # ====================================================
-
-        entity_outlier_finding = (
-            build_entity_outlier_finding_if_requested(
-                objective=
-                    normalized_objective,
-
-                source_dataset_records=
-                    source_dataset_records,
-            )
-        )
-
-
         native_started_at = (
             perf_counter()
         )
@@ -4423,17 +4397,6 @@ def run_ai_native_pipeline(
 
                 trace_id=
                     trace_id,
-
-                entity_outlier_finding=(
-                    entity_outlier_finding.model_dump(
-                        mode="python"
-                    )
-                    if (
-                        entity_outlier_finding
-                        is not None
-                    )
-                    else None
-                ),
             )
         )
 

@@ -46,6 +46,9 @@ export function familyLabel(
     case "distribution":
       return "Distribution";
 
+    case "entity_outlier":
+      return "Entités atypiques";
+
     case "geographic_comparison":
       return "Comparaison géographique";
 

@@ -40,7 +40,7 @@ from app.reporting.analysis_artifact_store import (
 # ============================================================
 
 AI_NATIVE_PIPELINE_RULE_VERSION = (
-    "ai_native_pipeline_v0.6"
+    "ai_native_pipeline_v0.7"
 )
 
 
@@ -223,14 +223,6 @@ def execute_native_ai_pipeline(
     ),
     trace_id: (
         str
-        | None
-    ) = None,
-
-    entity_outlier_finding: (
-        dict[
-            str,
-            Any,
-        ]
         | None
     ) = None,
 ) -> AINativePipelineReport:
@@ -463,9 +455,6 @@ def execute_native_ai_pipeline(
         AINativePipelineReport(
             trace_id=(
                 trace_id
-            ),
-            entity_outlier_finding=(
-                entity_outlier_finding
             ),
             planner=(
                 planner_report
