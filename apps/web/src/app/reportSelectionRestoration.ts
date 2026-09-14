@@ -41,7 +41,14 @@ export function deriveReportSelectionRestoration(
     availableAnalyses
       .filter(
         analysis =>
-          analysis.executed &&
+          (
+            analysis.executed ||
+            analysis
+              .pipeline_payload
+              .entity_outlier_finding
+              ?.status ===
+                "ready"
+          ) &&
           (
             analysis.source_type ===
               "initial_request" ||
