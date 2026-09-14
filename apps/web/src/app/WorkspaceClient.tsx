@@ -3551,30 +3551,47 @@ function handleStartNewWorkflow() {
         );
 
 
-      setAnalysisFollowUpTurns(
-        (
-          currentTurns
-        ) => [
-          ...currentTurns,
-          {
-            id:
-              turnId,
-
-            objective:
-              normalizedPrompt,
-
-            report:
-              typedPayload,
-
-            included_in_report:
-              false,
-          },
-        ]
+      await refreshReportSelection(
+        workflowId
       );
 
 
-      await refreshReportSelection(
-        workflowId
+      setAnalysisFollowUpTurns(
+        (
+          currentTurns
+        ) => {
+          const alreadyRestored =
+            currentTurns.some(
+              turn =>
+                turn.id ===
+                turnId
+            );
+
+
+          if (
+            alreadyRestored
+          ) {
+            return currentTurns;
+          }
+
+
+          return [
+            ...currentTurns,
+            {
+              id:
+                turnId,
+
+              objective:
+                normalizedPrompt,
+
+              report:
+                typedPayload,
+
+              included_in_report:
+                false,
+            },
+          ];
+        }
       );
 
 

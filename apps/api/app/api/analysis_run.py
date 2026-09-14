@@ -113,6 +113,7 @@ from app.planning.request_coverage import (
 )
 
 from app.planning.objective_coverage import (
+    extract_objective_requirements,
     require_objective_coverage,
 )
 
@@ -569,6 +570,83 @@ def objective_explicitly_requests_distribution_analysis(
         for cue
         in explicit_distribution_cues
     )
+
+
+def objective_explicitly_requests_entity_ranking_analysis(
+    objective: (
+        str
+        | None
+    ),
+) -> bool:
+    """
+    Detect only an explicit entity-ranking request.
+
+    This is a fail-closed fallback guard, not a semantic planner.
+
+    It does not select a dataset, metric, column, order or limit.
+    It only prevents an already-resolved entity-outlier result
+    from hiding a second ranking request when the general
+    analytical planner fails.
+    """
+
+    normalized = (
+        normalize_objective(
+            objective
+        )
+    )
+
+
+    if (
+        normalized
+        is None
+    ):
+        return False
+
+
+    tokens = (
+        text_tokens(
+            normalized
+        )
+    )
+
+
+    entity_cues = {
+        "client",
+        "clients",
+        "customer",
+        "customers",
+        "acheteur",
+        "acheteurs",
+        "buyer",
+        "buyers",
+    }
+
+
+    ranking_cues = {
+        "top",
+        "meilleur",
+        "meilleurs",
+        "meilleure",
+        "meilleures",
+        "pire",
+        "pires",
+        "best",
+        "worst",
+    }
+
+
+    return bool(
+        tokens
+        &
+        entity_cues
+
+        and
+
+        tokens
+        &
+        ranking_cues
+    )
+
 
 
 def remove_specialized_entity_outlier_duplicate(
@@ -4223,6 +4301,59 @@ def run_ai_native_pipeline(
         )
 
 
+        # ====================================================
+        # SPECIALIZED ENTITY-OUTLIER AUTHORITY
+        # ====================================================
+        #
+        # Resolve a deterministic/specialized entity-outlier
+        # request before invoking the general LLM planner.
+        #
+        # The general planner is still attempted so mixed
+        # analytical requests keep their normal capabilities.
+        #
+        # If the general planner is unavailable, the specialized
+        # result may survive only when Objective Coverage detects
+        # no additional explicit analytical requirement.
+        # ====================================================
+
+        entity_outlier_finding = (
+            build_entity_outlier_finding_if_requested(
+                objective=
+                    normalized_objective,
+
+                source_dataset_records=
+                    source_dataset_records,
+            )
+        )
+
+
+        specialized_entity_outlier_fallback_allowed = (
+            entity_outlier_finding
+            is not None
+
+            and
+
+            not extract_objective_requirements(
+                objective=
+                    normalized_objective,
+
+                catalog=
+                    catalog,
+            )
+
+            and
+
+            not objective_explicitly_requests_entity_ranking_analysis(
+                normalized_objective
+            )
+        )
+
+
+        specialized_entity_outlier_planner_bypass = (
+            False
+        )
+
+
         planner_started_at = (
             perf_counter()
         )
@@ -4233,39 +4364,101 @@ def run_ai_native_pipeline(
         )
 
 
-        planner_report = (
-            plan_analyses_with_intent_routing(
+        try:
+            planner_report = (
+                plan_analyses_with_intent_routing(
+                    objective=
+                        normalized_objective,
+
+                    catalog=
+                        catalog,
+
+                    model=
+                        planner_model,
+                )
+            )
+
+
+            # ================================================
+            # OBJECTIVE COVERAGE EXECUTION GATE
+            # DATALENS_OBJECTIVE_COVERAGE_EXECUTION_GATE_V0_1
+            #
+            # Qwen tool calling must never receive an
+            # incomplete analytical plan.
+            # ================================================
+
+            require_objective_coverage(
                 objective=
                     normalized_objective,
 
                 catalog=
                     catalog,
 
-                model=
-                    planner_model,
+                planner_report=
+                    planner_report,
             )
-        )
 
 
-        # ====================================================
-        # OBJECTIVE COVERAGE EXECUTION GATE
-        # DATALENS_OBJECTIVE_COVERAGE_EXECUTION_GATE_V0_1
-        #
-        # Keep the failure stage as "planner" until semantic
-        # objective coverage has also passed. Qwen tool calling
-        # must never receive an incomplete analytical plan.
-        # ====================================================
+        except RuntimeError:
+            if (
+                not
+                specialized_entity_outlier_fallback_allowed
+            ):
+                raise
 
-        require_objective_coverage(
-            objective=
-                normalized_objective,
 
-            catalog=
-                catalog,
+            specialized_entity_outlier_planner_bypass = (
+                True
+            )
 
-            planner_report=
-                planner_report,
-        )
+
+            planner_report = (
+                AIPlannerReport(
+                    objective=
+                        normalized_objective,
+
+                    model=(
+                        "python:"
+                        "entity_outlier_planner_bypass_v0.1"
+                    ),
+
+                    proposal_count=
+                        0,
+
+                    validated_count=
+                        0,
+
+                    blocked_count=
+                        0,
+
+                    ambiguous_count=
+                        0,
+
+                    rejected_count=
+                        0,
+
+                    items=
+                        [],
+
+                    attempt_count=
+                        1,
+
+                    retry_count=
+                        0,
+
+                    retry_triggered=
+                        False,
+
+                    retry_feedback=
+                        [],
+
+                    normalization_count=
+                        0,
+
+                    normalization_applied=
+                        False,
+                )
+            )
 
 
         planner_ms = (
@@ -4286,17 +4479,6 @@ def run_ai_native_pipeline(
 
         failure_stage = (
             "native_pipeline"
-        )
-
-
-        entity_outlier_finding = (
-            build_entity_outlier_finding_if_requested(
-                objective=
-                    normalized_objective,
-
-                source_dataset_records=
-                    source_dataset_records,
-            )
         )
 
 
@@ -4340,6 +4522,21 @@ def run_ai_native_pipeline(
                 ),
             )
         )
+
+
+        if (
+            specialized_entity_outlier_planner_bypass
+        ):
+            pipeline_report.notes.append(
+                (
+                    "The general local AI planner was unavailable "
+                    "or returned an invalid response. DataLens "
+                    "preserved the independently resolved "
+                    "specialized entity-outlier result because "
+                    "no additional explicit analytical requirement "
+                    "was detected."
+                )
+            )
 
 
         native_pipeline_ms = (
