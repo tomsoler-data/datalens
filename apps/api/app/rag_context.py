@@ -55,7 +55,7 @@ from app.reporting.unified_schemas import (
 # ============================================================
 
 RAG_CONTEXT_RULE_VERSION = (
-    "rag_contextualization_v0.6"
+    "rag_contextualization_v0.7"
 )
 
 
@@ -101,6 +101,16 @@ class AnalyticalContract(
     ) = None
 
     time_column: (
+        str
+        | None
+    ) = None
+
+    left_column: (
+        str
+        | None
+    ) = None
+
+    right_column: (
         str
         | None
     ) = None
@@ -540,6 +550,24 @@ def build_analytical_contract(
     )
 
 
+    left_column = (
+        normalize_metric_name(
+            metrics.get(
+                "left_column"
+            )
+        )
+    )
+
+
+    right_column = (
+        normalize_metric_name(
+            metrics.get(
+                "right_column"
+            )
+        )
+    )
+
+
     measure_semantics = (
         build_measure_semantics(
             measure_column=
@@ -623,6 +651,26 @@ def build_analytical_contract(
         analytical_relationship = (
             f"Comparer la mesure `{measure_column}` entre "
             f"les groupes définis par `{group_column}`."
+        )
+
+
+    # --------------------------------------------------------
+    # Derived gap
+    # --------------------------------------------------------
+
+    elif (
+        family
+        ==
+        "derived_gap"
+        and
+        left_column
+        and
+        right_column
+    ):
+        analytical_relationship = (
+            f"Étudier l'écart entre la mesure "
+            f"`{left_column}` et la mesure "
+            f"`{right_column}`."
         )
 
 
@@ -717,6 +765,12 @@ def build_analytical_contract(
             time_column=
                 time_column,
 
+            left_column=
+                left_column,
+
+            right_column=
+                right_column,
+
             measure_semantics=
                 measure_semantics,
 
@@ -786,6 +840,24 @@ def build_analytical_contract_text(
             (
                 "Dimension temporelle : "
                 f"{contract.time_column}"
+            )
+        )
+
+
+    if contract.left_column:
+        parts.append(
+            (
+                "Mesure gauche : "
+                f"{contract.left_column}"
+            )
+        )
+
+
+    if contract.right_column:
+        parts.append(
+            (
+                "Mesure droite : "
+                f"{contract.right_column}"
             )
         )
 

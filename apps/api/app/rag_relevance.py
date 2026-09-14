@@ -31,7 +31,7 @@ from app.security.llm_payload import (
 # ============================================================
 
 RELEVANCE_RULE_VERSION = (
-    "rag_relevance_v0.8"
+    "rag_relevance_v0.9"
 )
 
 
@@ -99,6 +99,16 @@ class AnalyticalSignature(
     ) = None
 
     time_column: (
+        str
+        | None
+    ) = None
+
+    left_column: (
+        str
+        | None
+    ) = None
+
+    right_column: (
         str
         | None
     ) = None
@@ -511,6 +521,24 @@ def build_analytical_signature(
 
                     label=
                         "Dimension temporelle",
+                ),
+
+            left_column=
+                extract_contract_field(
+                    finding=
+                        finding,
+
+                    label=
+                        "Mesure gauche",
+                ),
+
+            right_column=
+                extract_contract_field(
+                    finding=
+                        finding,
+
+                    label=
+                        "Mesure droite",
                 ),
         )
     )
@@ -1303,6 +1331,37 @@ def is_heading_like_unit(
 # DETERMINISTIC CONTRACT MATCHING
 # ============================================================
 
+def required_variables_are_supported(
+    *,
+    evidence: str,
+    variables: list[
+        str
+        | None
+    ],
+) -> bool:
+    if any(
+        variable is None
+
+        for variable
+        in variables
+    ):
+        return False
+
+
+    return all(
+        evidence_supports_variable(
+            evidence=
+                evidence,
+
+            variable=
+                variable,
+        )
+
+        for variable
+        in variables
+    )
+
+
 def evidence_unit_matches_contract(
     *,
     finding: str,
@@ -1331,72 +1390,58 @@ def evidence_unit_matches_contract(
 
     if (
         family
-        ==
-        "aggregate_breakdown"
+        in {
+            "aggregate_breakdown",
+            "group_comparison",
+        }
     ):
         return (
-            evidence_supports_variable(
+            required_variables_are_supported(
                 evidence=
                     evidence,
 
-                variable=
+                variables=[
                     signature.measure_column,
-            )
-            and
-            evidence_supports_variable(
-                evidence=
-                    evidence,
-
-                variable=
                     signature.group_column,
+                ],
             )
         )
 
 
     if (
         family
-        ==
-        "group_comparison"
+        in {
+            "quantitative_association",
+            "categorical_association",
+        }
     ):
         return (
-            evidence_supports_variable(
+            required_variables_are_supported(
                 evidence=
                     evidence,
 
-                variable=
-                    signature.measure_column,
-            )
-            and
-            evidence_supports_variable(
-                evidence=
-                    evidence,
-
-                variable=
-                    signature.group_column,
-            )
-        )
-
-
-    if (
-        family
-        ==
-        "quantitative_association"
-    ):
-        return (
-            evidence_supports_variable(
-                evidence=
-                    evidence,
-
-                variable=
+                variables=[
                     signature.x_column,
+                    signature.y_column,
+                ],
             )
-            and
-            evidence_supports_variable(
+        )
+
+
+    if (
+        family
+        ==
+        "derived_gap"
+    ):
+        return (
+            required_variables_are_supported(
                 evidence=
                     evidence,
 
-                variable=
-                    signature.y_column,
+                variables=[
+                    signature.left_column,
+                    signature.right_column,
+                ],
             )
         )
 
@@ -1405,6 +1450,104 @@ def evidence_unit_matches_contract(
         family
         ==
         "time_series"
+    ):
+        return (
+            signature.measure_column
+            is not None
+            and
+            signature.time_column
+            is not None
+            and
+            evidence_supports_variable(
+                evidence=
+                    evidence,
+
+                variable=
+                    signature.measure_column,
+            )
+            and
+            evidence_has_temporal_signal(
+                evidence
+            )
+        )
+
+
+    # --------------------------------------------------------
+    # Generic structured fallback
+    #
+    # A family that is not explicitly known may still expose
+    # one of the deterministic structures supported by the
+    # RAG contract.
+    #
+    # Incomplete structures never pass.
+    # --------------------------------------------------------
+
+    if (
+        signature.left_column
+        is not None
+        and
+        signature.right_column
+        is not None
+    ):
+        return (
+            required_variables_are_supported(
+                evidence=
+                    evidence,
+
+                variables=[
+                    signature.left_column,
+                    signature.right_column,
+                ],
+            )
+        )
+
+
+    if (
+        signature.x_column
+        is not None
+        and
+        signature.y_column
+        is not None
+    ):
+        return (
+            required_variables_are_supported(
+                evidence=
+                    evidence,
+
+                variables=[
+                    signature.x_column,
+                    signature.y_column,
+                ],
+            )
+        )
+
+
+    if (
+        signature.measure_column
+        is not None
+        and
+        signature.group_column
+        is not None
+    ):
+        return (
+            required_variables_are_supported(
+                evidence=
+                    evidence,
+
+                variables=[
+                    signature.measure_column,
+                    signature.group_column,
+                ],
+            )
+        )
+
+
+    if (
+        signature.measure_column
+        is not None
+        and
+        signature.time_column
+        is not None
     ):
         return (
             evidence_supports_variable(
@@ -1421,7 +1564,14 @@ def evidence_unit_matches_contract(
         )
 
 
-    return True
+    # --------------------------------------------------------
+    # FAIL CLOSED
+    #
+    # A title-only or structurally incomplete contract must
+    # not send arbitrary documentary units to the LLM.
+    # --------------------------------------------------------
+
+    return False
 
 
 # ============================================================
