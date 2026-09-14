@@ -13,7 +13,7 @@ from app.planning.ai_analytical_planner import (
 
 
 EXPECTED_VERSION = (
-    "ai_analytical_planner_v0.35"
+    "ai_analytical_planner_v0.36"
 )
 
 

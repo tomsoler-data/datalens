@@ -24,6 +24,11 @@ from app.execution.executor import (
     execute_analysis_candidate,
 )
 
+from app.execution.entity_outlier import (
+    execute_entity_outlier_contract,
+)
+
+
 from app.execution.schemas import (
     ExecutedAnalysis,
 )
@@ -47,7 +52,7 @@ from app.planning.schemas import (
 # ============================================================
 
 AI_TOOL_ORCHESTRATOR_RULE_VERSION = (
-    "ai_tool_orchestrator_v0.4"
+    "ai_tool_orchestrator_v0.5"
 )
 
 
@@ -76,6 +81,7 @@ AIToolName = Literal[
     "run_group_comparison",
     "run_time_series",
     "run_distribution",
+    "run_entity_outlier",
     "run_aggregation",
     "run_ranking",
 ]
@@ -383,6 +389,26 @@ TOOL_CAPABILITIES: dict[
                 "The canonical ranking contract is executed "
                 "directly by Python from AggregationSpec and "
                 "RankingSpec."
+            ),
+        ),
+
+    "entity_outlier":
+        AIToolCapability(
+            tool_name=(
+                "run_entity_outlier"
+            ),
+            family=(
+                "entity_outlier"
+            ),
+            enabled=True,
+            chart_type="bar",
+            statistical_strategy=(
+                "deterministic_iqr_entity_outlier"
+            ),
+            reason=(
+                "The canonical entity_outlier contract is "
+                "executed directly from the exact validated "
+                "entity and value bindings."
             ),
         ),
 
@@ -772,7 +798,7 @@ def contract_to_analysis_candidate(
             ],
             limitations=[
                 (
-                    "AI tool orchestration v0.4 supports only "
+                    "AI tool orchestration v0.5 supports only "
                     "single-dataset contracts and does not "
                     "allow LLM-generated joins, derived "
                     "variables or arbitrary Python code."
@@ -3176,7 +3202,7 @@ def execute_validated_contract(
             ),
             errors=[
                 (
-                    "AI tool orchestration v0.4 refuses "
+                    "AI tool orchestration v0.5 refuses "
                     "contracts containing joins or derived "
                     "variables."
                 ),
@@ -3309,6 +3335,29 @@ def execute_validated_contract(
 
     try:
         if (
+            contract.family
+            ==
+            "entity_outlier"
+        ):
+            executed = (
+                execute_entity_outlier_contract(
+                    contract=(
+                        contract
+                    ),
+                    dataframe=(
+                        dataframe
+                    ),
+                    dataset_id=(
+                        dataset_id
+                    ),
+                    dataset_filename=(
+                        dataset_filename
+                    ),
+                )
+            )
+
+
+        elif (
             contract.family
             ==
             "time_series"

@@ -20,7 +20,7 @@ from pydantic import (
 # ============================================================
 
 ANALYTICAL_CONTRACT_RULE_VERSION = (
-    "analytical_contract_v0.3"
+    "analytical_contract_v0.4"
 )
 
 
@@ -37,6 +37,7 @@ AnalysisFamily = Literal[
     "categorical_association",
     "group_comparison",
     "distribution",
+    "entity_outlier",
     "inequality",
     "data_quality",
     "unresolved",
@@ -1050,6 +1051,19 @@ class AnalyticalContract(
                     "A distribution contract requires at least one "
                     "analytical variable."
                 )
+
+
+        elif (
+            self.family ==
+            "entity_outlier"
+        ):
+            self._require_roles(
+                roles,
+                {
+                    "entity",
+                    "value",
+                },
+            )
 
 
         elif (
