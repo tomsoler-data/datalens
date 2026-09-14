@@ -42,7 +42,7 @@ from app.planning.analytical_contract import (
 # ============================================================
 
 NATIVE_TOOL_CALLING_RULE_VERSION = (
-    "native_tool_calling_v0.9"
+    "native_tool_calling_v0.10"
 )
 
 
@@ -109,6 +109,27 @@ class DistributionToolArgs(
 
 
     dataset_id: str = Field(
+        min_length=1
+    )
+
+    value_column: str = Field(
+        min_length=1
+    )
+
+
+class EntityOutlierToolArgs(
+    BaseModel
+):
+    model_config = ConfigDict(
+        extra="forbid"
+    )
+
+
+    dataset_id: str = Field(
+        min_length=1
+    )
+
+    entity_column: str = Field(
         min_length=1
     )
 
@@ -255,6 +276,7 @@ class NativeToolSpec(
         "x_y",
         "group_value",
         "value",
+        "entity_value",
         "time_value",
         "aggregation",
         "ranking",
@@ -340,6 +362,25 @@ NATIVE_TOOL_SPECS: dict[
                 "distribution analysis for exactly one "
                 "quantitative value column from one "
                 "DataLens dataset."
+            ),
+        ),
+
+    "entity_outlier":
+        NativeToolSpec(
+            family=(
+                "entity_outlier"
+            ),
+            tool_name=(
+                "run_entity_outlier"
+            ),
+            argument_shape=(
+                "entity_value"
+            ),
+            description=(
+                "Execute deterministic entity-level outlier "
+                "detection for exactly one validated entity "
+                "column and one quantitative value column "
+                "from one DataLens dataset."
             ),
         ),
 
@@ -903,6 +944,94 @@ def build_distribution_tool_schema(
     }
 
 
+def build_entity_outlier_tool_schema(
+    spec: NativeToolSpec,
+) -> dict[
+    str,
+    Any,
+]:
+    return {
+        "type":
+            "function",
+
+        "function":
+            {
+                "name":
+                    spec.tool_name,
+
+                "description":
+                    (
+                        spec.description
+                        +
+                        " Copy dataset_id, entity_column and "
+                        "value_column exactly from the validated "
+                        "analytical contract."
+                    ),
+
+                "parameters":
+                    {
+                        "type":
+                            "object",
+
+                        "required":
+                            [
+                                "dataset_id",
+                                "entity_column",
+                                "value_column",
+                            ],
+
+                        "properties":
+                            {
+                                "dataset_id":
+                                    {
+                                        "type":
+                                            "string",
+
+                                        "description":
+                                            (
+                                                "Exact dataset_id "
+                                                "from the validated "
+                                                "DataLens contract."
+                                            ),
+                                    },
+
+                                "entity_column":
+                                    {
+                                        "type":
+                                            "string",
+
+                                        "description":
+                                            (
+                                                "Exact entity column "
+                                                "from the validated "
+                                                "entity_outlier "
+                                                "contract."
+                                            ),
+                                    },
+
+                                "value_column":
+                                    {
+                                        "type":
+                                            "string",
+
+                                        "description":
+                                            (
+                                                "Exact quantitative "
+                                                "value column from "
+                                                "the validated "
+                                                "entity_outlier "
+                                                "contract."
+                                            ),
+                                    },
+                            },
+
+                        "additionalProperties":
+                            False,
+                    },
+            },
+    }
+
+
 def build_time_series_tool_schema(
     spec: NativeToolSpec,
 ) -> dict[
@@ -1177,6 +1306,17 @@ def build_native_tool_schema(
     ):
         return (
             build_distribution_tool_schema(
+                spec
+            )
+        )
+
+
+    if (
+        spec.argument_shape ==
+        "entity_value"
+    ):
+        return (
+            build_entity_outlier_tool_schema(
                 spec
             )
         )
@@ -1568,6 +1708,104 @@ def expected_distribution_tool_args(
     )
 
 
+def expected_entity_outlier_tool_args(
+    contract: AnalyticalContract,
+) -> EntityOutlierToolArgs:
+    if (
+        contract.status
+        !=
+        "validated"
+    ):
+        raise ValueError(
+            (
+                "Native tool calling requires a contract "
+                "already promoted to `validated` by Python."
+            )
+        )
+
+
+    if (
+        contract.family
+        !=
+        "entity_outlier"
+    ):
+        raise ValueError(
+            "Expected an entity_outlier contract."
+        )
+
+
+    native_tool_spec_for_contract(
+        contract
+    )
+
+
+    if (
+        len(
+            contract
+            .required_dataset_ids
+        )
+        !=
+        1
+    ):
+        raise ValueError(
+            (
+                "Native tool calling v0.10 requires "
+                "exactly one dataset."
+            )
+        )
+
+
+    bindings = (
+        contract_binding_map(
+            contract
+        )
+    )
+
+
+    entity_column = (
+        bindings.get(
+            "entity"
+        )
+    )
+
+    value_column = (
+        bindings.get(
+            "value"
+        )
+    )
+
+
+    if (
+        entity_column is None
+        or
+        value_column is None
+    ):
+        raise ValueError(
+            (
+                "The validated entity_outlier contract "
+                "must contain entity and value bindings."
+            )
+        )
+
+
+    return (
+        EntityOutlierToolArgs(
+            dataset_id=(
+                contract
+                .required_dataset_ids[
+                    0
+                ]
+            ),
+            entity_column=(
+                entity_column
+            ),
+            value_column=(
+                value_column
+            ),
+        )
+    )
+
+
 def expected_time_series_tool_args(
     contract: AnalyticalContract,
 ) -> TimeSeriesToolArgs:
@@ -1908,6 +2146,7 @@ def expected_tool_arguments(
     TwoVariableToolArgs
     | GroupComparisonToolArgs
     | DistributionToolArgs
+    | EntityOutlierToolArgs
     | TimeSeriesToolArgs
     | AggregationToolArgs
     | RankingToolArgs
@@ -1947,6 +2186,17 @@ def expected_tool_arguments(
     ):
         return (
             expected_distribution_tool_args(
+                contract
+            )
+        )
+
+
+    if (
+        spec.argument_shape ==
+        "entity_value"
+    ):
+        return (
+            expected_entity_outlier_tool_args(
                 contract
             )
         )
@@ -2707,6 +2957,31 @@ def validate_native_tool_call(
                 (
                     "Native group-comparison arguments "
                     "do not match the required schema: "
+                    f"{error}"
+                )
+            )
+
+            return errors
+
+
+    elif isinstance(
+        expected,
+        EntityOutlierToolArgs,
+    ):
+        try:
+            received = (
+                EntityOutlierToolArgs
+                .model_validate(
+                    proposal.arguments
+                )
+            )
+
+
+        except Exception as error:
+            errors.append(
+                (
+                    "Native entity-outlier arguments do not "
+                    "match the required schema: "
                     f"{error}"
                 )
             )

@@ -58,7 +58,7 @@ from app.planning.objective_coverage import (
 # ============================================================
 
 AI_ANALYTICAL_PLANNER_RULE_VERSION = (
-    "ai_analytical_planner_v0.35"
+    "ai_analytical_planner_v0.36"
 )
 
 
@@ -1099,17 +1099,37 @@ FAMILLES :
    x_column, y_column, group_column, time_column,
    dimension_column et entity_column doivent être null.
 
-9. inequality
+9. entity_outlier
+   OBLIGATOIRE :
+   - dataset_id
+   - entity_column
+   - value_column quantitative
+   Utilise cette famille lorsque l'objectif demande d'identifier
+   des entites ou profils atypiques, anormaux ou outliers selon
+   une mesure quantitative.
+   Le choix de entity_column et value_column doit provenir
+   EXCLUSIVEMENT du catalogue et de l'objectif utilisateur.
+   N'invente aucune colonne et ne substitue pas une autre
+   colonne lorsque le choix est ambigu.
+   x_column, y_column, group_column, time_column et
+   dimension_column doivent etre null.
+   aggregation_function = "none"
+   ranking_order = "none"
+   ranking_limit = null
+   window_operation = "none"
+   window_size = null
+
+10. inequality
    OBLIGATOIRE :
    - dataset_id
    - entity_column
    - value_column quantitative
 
-10. data_quality
+11. data_quality
     OBLIGATOIRE :
     - dataset_id
 
-11. unresolved
+12. unresolved
     INTERDIT avec decision="propose".
     Utilise seulement avec decision="blocked" ou "ambiguous".
 
@@ -3902,8 +3922,10 @@ def expected_roles_for_family(
 
 
     if (
-        family ==
-        "inequality"
+        family in {
+            "entity_outlier",
+            "inequality",
+        }
     ):
         return {
             "entity",
@@ -5312,6 +5334,24 @@ def validate_role_type(
             f"`{column.name}` est {column.analysis_kind} "
             "mais `value` doit être quantitative pour "
             "la série temporelle numérique."
+        )
+
+
+    if (
+        family ==
+        "entity_outlier"
+        and
+        role ==
+        "value"
+        and
+        not is_quantitative(
+            column.analysis_kind
+        )
+    ):
+        return (
+            f"`{column.name}` est {column.analysis_kind} "
+            "mais la mesure d'une analyse entity_outlier "
+            "doit ?tre quantitative."
         )
 
 
@@ -13906,6 +13946,26 @@ def validate_ai_proposal(
             (
                 f"{proposal.family} exige "
                 "aggregation_function."
+            )
+        )
+
+
+    if (
+        proposal.family ==
+        "entity_outlier"
+        and
+        (
+            proposal.entity_column
+            is None
+            or
+            proposal.value_column
+            is None
+        )
+    ):
+        errors.append(
+            (
+                "Une analyse entity_outlier exige "
+                "entity_column et value_column."
             )
         )
 

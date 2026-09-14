@@ -427,19 +427,19 @@ def main() -> None:
     assert (
         ANALYTICAL_CONTRACT_RULE_VERSION
         ==
-        "analytical_contract_v0.3"
+        "analytical_contract_v0.4"
     )
 
 
     assert (
         contract.contract_version
         ==
-        "analytical_contract_v0.3"
+        "analytical_contract_v0.4"
     )
 
 
     print(
-        "[PASS] Analytical Contract rule version v0.3"
+        "[PASS] Analytical Contract rule version v0.4"
     )
 
 

@@ -501,13 +501,13 @@ def main() -> None:
     assert (
         NATIVE_TOOL_CALLING_RULE_VERSION
         ==
-        "native_tool_calling_v0.9"
+        "native_tool_calling_v0.10"
     )
 
     assert (
         AI_TOOL_ORCHESTRATOR_RULE_VERSION
         ==
-        "ai_tool_orchestrator_v0.4"
+        "ai_tool_orchestrator_v0.5"
     )
 
     assert (
