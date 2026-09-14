@@ -1,7 +1,5 @@
-﻿from __future__ import annotations
-
+﻿from pathlib import Path
 import ast
-from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -16,7 +14,10 @@ API_PATH = (
 
 print()
 print("=" * 80)
-print("DATALENS AI-NATIVE ENTITY OUTLIER DEDUP v0.1")
+print(
+    "DATALENS AI-NATIVE ENTITY OUTLIER "
+    "AI-FIRST AUTHORITY v0.1"
+)
 print("=" * 80)
 print()
 
@@ -31,13 +32,16 @@ tree = ast.parse(
 
 
 # ============================================================
-# 1. DEDUP HELPER MUST EXIST
+# 1. LEGACY HELPER MAY REMAIN, BUT IS NOT AUTHORITATIVE
 # ============================================================
 
 helper = next(
     (
         node
-        for node in ast.walk(tree)
+        for node
+        in ast.walk(
+            tree
+        )
         if (
             isinstance(
                 node,
@@ -57,65 +61,21 @@ helper = next(
 
 
 assert (
-    helper is not None
-), (
-    "A deterministic helper must remove only the generic "
-    "distribution proposal that duplicates an already-resolved "
-    "specialized entity-outlier finding."
-)
-
-print(
-    "[PASS] specialized entity-outlier dedup helper exists"
-)
-
-
-# ============================================================
-# 2. HELPER MUST BE NARROWLY SCOPED
-# ============================================================
-
-helper_segment = ast.get_source_segment(
-    source,
-    helper,
-)
-
-assert (
-    helper_segment
+    helper
     is not None
-)
-
-assert (
-    '"distribution"'
-    in helper_segment
-    or
-    "'distribution'"
-    in helper_segment
 ), (
-    "Dedup must explicitly target the generic distribution family."
-)
-
-assert (
-    "entity_outlier_finding"
-    in helper_segment
-), (
-    "Dedup must depend on an already-resolved specialized finding."
-)
-
-assert (
-    "dataset_id"
-    in helper_segment
-), (
-    "Dedup must compare the specialized entity dataset with "
-    "the generic proposal dataset instead of removing arbitrary "
-    "distribution analyses."
+    "The historical dedup helper may remain during migration "
+    "for backward compatibility."
 )
 
 print(
-    "[PASS] dedup is scoped to matching distribution/entity dataset"
+    "[PASS] legacy dedup helper remains available "
+    "outside native authority"
 )
 
 
 # ============================================================
-# 3. LIVE ROUTE MUST APPLY DEDUP BEFORE NATIVE EXECUTION
+# 2. EXTRACT LIVE AI-NATIVE ROUTE
 # ============================================================
 
 route_start = source.index(
@@ -133,58 +93,152 @@ route_segment = source[
 ]
 
 
+# ============================================================
+# 3. QWEN PLANNER IS FIRST SEMANTIC AUTHORITY
+# ============================================================
+
 assert (
-    "remove_specialized_entity_outlier_duplicate("
+    "plan_analyses_with_ai("
     in route_segment
 ), (
-    "/planning/ai-native-run must remove the generic duplicate "
-    "after resolving the specialized entity-outlier finding."
+    "/planning/ai-native-run must use the direct AI planner."
 )
+
 
 assert (
-    route_segment.index(
-        "build_entity_outlier_finding_if_requested("
-    )
-    <
-    route_segment.index(
-        "remove_specialized_entity_outlier_duplicate("
-    )
-    <
-    route_segment.index(
-        "execute_native_ai_pipeline("
-    )
+    "plan_analyses_with_intent_routing("
+    not in route_segment
 ), (
-    "Required order: specialized finding resolution -> "
-    "deduplication -> native execution."
+    "/planning/ai-native-run must not run the deterministic "
+    "generic resolver before Qwen."
 )
 
+
 print(
-    "[PASS] live route deduplicates before native execution"
+    "[PASS] Qwen planner is the native route semantic authority"
 )
 
 
 # ============================================================
-# 4. OBJECTIVE COVERAGE MUST REMAIN BEFORE DEDUP
+# 4. NO SPECIALIZED DEDUP IN EXECUTION AUTHORITY
 # ============================================================
 
 assert (
-    route_segment.index(
-        "require_objective_coverage("
-    )
-    <
-    route_segment.index(
-        "remove_specialized_entity_outlier_duplicate("
-    )
+    "remove_specialized_entity_outlier_duplicate("
+    not in route_segment
 ), (
-    "Dedup must not weaken the existing objective-coverage gate."
+    "The native route must not delete a validated generic "
+    "entity_outlier contract because a historical specialized "
+    "finding exists."
 )
+
+
+assert (
+    "execution_planner_report"
+    not in route_segment
+), (
+    "The native route must execute the original validated "
+    "Qwen planner report directly."
+)
+
 
 print(
-    "[PASS] objective coverage gate remains intact before dedup"
+    "[PASS] generic entity_outlier contract is not removed "
+    "by specialized dedup"
 )
 
+
+# ============================================================
+# 5. NO PLANNER FAILURE BYPASS
+# ============================================================
+
+for forbidden in (
+    "entity_outlier_planner_bypass_v0.1",
+    "specialized_entity_outlier_planner_bypass",
+    "specialized_entity_outlier_fallback_allowed",
+):
+    assert (
+        forbidden
+        not in route_segment
+    ), (
+        "The AI-native route must fail closed when the Qwen "
+        f"planner fails. Legacy bypass found: {forbidden}"
+    )
+
+
+print(
+    "[PASS] native route contains no Python planner bypass"
+)
+
+
+# ============================================================
+# 6. COMPATIBILITY FINDING IS AFTER QWEN PLANNING
+# ============================================================
+
+planner_pos = route_segment.index(
+    "plan_analyses_with_ai("
+)
+
+coverage_pos = route_segment.index(
+    "require_objective_coverage("
+)
+
+compatibility_pos = route_segment.index(
+    "build_entity_outlier_finding_if_requested("
+)
+
+pipeline_pos = route_segment.index(
+    "execute_native_ai_pipeline("
+)
+
+
+assert (
+    planner_pos
+    <
+    coverage_pos
+    <
+    compatibility_pos
+    <
+    pipeline_pos
+), (
+    "Required order: Qwen planning -> objective coverage -> "
+    "legacy compatibility finding -> native execution."
+)
+
+
+print(
+    "[PASS] compatibility finding is resolved after Qwen planning"
+)
+
+
+# ============================================================
+# 7. ORIGINAL QWEN REPORT ENTERS NATIVE PIPELINE
+# ============================================================
+
+native_call_segment = route_segment[
+    pipeline_pos:
+]
+
+
+assert (
+    "planner_report=\n                    planner_report,"
+    in native_call_segment
+), (
+    "execute_native_ai_pipeline() must receive the original "
+    "validated Qwen planner report."
+)
+
+
+print(
+    "[PASS] native pipeline receives original Qwen planner report"
+)
+
+
+# ============================================================
+# FINAL VERDICT
+# ============================================================
 
 print()
 print(
-    "PASS - AI-native entity outlier dedup v0.1"
+    "PASS - AI-native entity outlier AI-first authority v0.1"
 )

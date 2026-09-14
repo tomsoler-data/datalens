@@ -527,9 +527,9 @@ def execute_native_ai_pipeline(
             ),
             notes=[
                 (
-                    "Stage 1: Gemma proposes a structured "
-                    "analytical contract from the user "
-                    "objective and dataset catalog."
+                    f"Stage 1: {planner_report.model} proposes "
+                    "a structured analytical contract from the "
+                    "user objective and dataset catalog."
                 ),
                 (
                     "Stage 2: Python validates dataset ids, "
@@ -537,7 +537,7 @@ def execute_native_ai_pipeline(
                     "contract invariants."
                 ),
                 (
-                    "Stage 3: Qwen selects one matching "
+                    f"Stage 3: {tool_model} selects one matching "
                     "function from the native DataLens "
                     "tool catalog."
                 ),

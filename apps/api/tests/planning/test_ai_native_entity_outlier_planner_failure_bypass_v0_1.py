@@ -2,21 +2,28 @@
 
 from types import SimpleNamespace
 
+import pytest
+
+from fastapi import HTTPException
+
 import app.api.analysis_run as analysis_run
 
 
-WORKFLOW_ID = (
-    "prep:test-entity-outlier-planner-failure"
-)
-
-OBJECTIVE = (
-    "quels sont les clients atypiques ?"
-)
-
-
-def test_entity_outlier_survives_general_planner_failure(
+def run_ai_first_planner_failure_case(
     monkeypatch,
-):
+    *,
+    workflow_id: str,
+    objective: str,
+) -> None:
+    """
+    The AI-native route is AI-first.
+
+    If the semantic planner fails:
+    - no specialized entity-outlier fallback may run;
+    - no native tool pipeline may run;
+    - the endpoint must fail closed with HTTP 503.
+    """
+
     events: list[str] = []
 
     source_dataset_records = [
@@ -26,77 +33,38 @@ def test_entity_outlier_survives_general_planner_failure(
         }
     ]
 
-    handoff = SimpleNamespace(
-        ingestion=
-            SimpleNamespace(),
 
-        dataset_records=
-            source_dataset_records,
+    handoff = (
+        SimpleNamespace(
+            ingestion=
+                SimpleNamespace(),
+
+            dataset_records=
+                source_dataset_records,
+        )
     )
+
 
     analysis_datasets = [
         {
             "dataset_id":
-                "derived:test:customer",
+                "derived:test:entity",
         }
     ]
+
 
     catalog = (
         SimpleNamespace()
     )
 
-    finding_payload = {
-        "status":
-            "ready",
-
-        "kind":
-            "customer_entity_outlier_detection",
-
-        "dataset_id":
-            "derived:test:customer",
-
-        "profiles":
-            [],
-    }
-
-    finding = SimpleNamespace(
-        status=
-            "ready",
-
-        kind=
-            "customer_entity_outlier_detection",
-
-        dataset_id=
-            "derived:test:customer",
-
-        model_dump=lambda **kwargs:
-            dict(
-                finding_payload
-            ),
-    )
-
-    expected_pipeline_report = (
-        SimpleNamespace(
-            notes=
-                [],
-
-            entity_outlier_finding=
-                finding_payload,
-        )
-    )
-
 
     def fake_load_validated_analysis_input_for_http(
         *,
-        workflow_id,
+        workflow_id: str,
     ):
-        assert (
-            workflow_id
-            ==
-            WORKFLOW_ID
+        return (
+            handoff
         )
-
-        return handoff
 
 
     def fake_prepare_ai_planner_dataset_universe(
@@ -104,37 +72,13 @@ def test_entity_outlier_survives_general_planner_failure(
         source_dataset_records,
         objective,
     ):
-        assert (
-            objective
-            ==
-            OBJECTIVE
-        )
-
         return (
             analysis_datasets,
             catalog,
         )
 
 
-    def fake_build_entity_outlier_finding_if_requested(
-        *,
-        objective,
-        source_dataset_records,
-    ):
-        events.append(
-            "entity_outlier"
-        )
-
-        assert (
-            objective
-            ==
-            OBJECTIVE
-        )
-
-        return finding
-
-
-    def fake_plan_analyses_with_intent_routing(
+    def failing_ai_planner(
         *,
         objective,
         catalog,
@@ -145,41 +89,33 @@ def test_entity_outlier_survives_general_planner_failure(
         )
 
         raise RuntimeError(
-            "synthetic planner failure"
+            "synthetic AI planner failure"
         )
 
 
-    def fake_execute_native_ai_pipeline(
-        *,
-        planner_report,
-        datasets,
-        tool_model,
-        trace_id,
-        entity_outlier_finding,
+    def forbidden_compatibility_finding(
+        **kwargs,
+    ):
+        events.append(
+            "entity_outlier"
+        )
+
+        raise AssertionError(
+            "Legacy entity-outlier compatibility finding "
+            "must not run after an AI planner failure."
+        )
+
+
+    def forbidden_native_pipeline(
+        **kwargs,
     ):
         events.append(
             "pipeline"
         )
 
-        assert (
-            planner_report
-            is not None
-        )
-
-        assert (
-            datasets
-            ==
-            analysis_datasets
-        )
-
-        assert (
-            entity_outlier_finding
-            ==
-            finding_payload
-        )
-
-        return (
-            expected_pipeline_report
+        raise AssertionError(
+            "Native pipeline must not execute after "
+            "an AI planner failure."
         )
 
 
@@ -189,36 +125,34 @@ def test_entity_outlier_survives_general_planner_failure(
         fake_load_validated_analysis_input_for_http,
     )
 
+
     monkeypatch.setattr(
         analysis_run,
         "prepare_ai_planner_dataset_universe",
         fake_prepare_ai_planner_dataset_universe,
     )
 
+
+    monkeypatch.setattr(
+        analysis_run,
+        "plan_analyses_with_ai",
+        failing_ai_planner,
+    )
+
+
     monkeypatch.setattr(
         analysis_run,
         "build_entity_outlier_finding_if_requested",
-        fake_build_entity_outlier_finding_if_requested,
+        forbidden_compatibility_finding,
     )
 
-    monkeypatch.setattr(
-        analysis_run,
-        "plan_analyses_with_intent_routing",
-        fake_plan_analyses_with_intent_routing,
-    )
-
-    monkeypatch.setattr(
-        analysis_run,
-        "require_objective_coverage",
-        lambda **kwargs:
-            None,
-    )
 
     monkeypatch.setattr(
         analysis_run,
         "execute_native_ai_pipeline",
-        fake_execute_native_ai_pipeline,
+        forbidden_native_pipeline,
     )
+
 
     monkeypatch.setattr(
         analysis_run,
@@ -226,6 +160,7 @@ def test_entity_outlier_survives_general_planner_failure(
         lambda **kwargs:
             SimpleNamespace(),
     )
+
 
     monkeypatch.setattr(
         analysis_run,
@@ -238,18 +173,19 @@ def test_entity_outlier_survives_general_planner_failure(
     )
 
 
-    result = (
-        analysis_run
-        .run_ai_native_pipeline(
+    with pytest.raises(
+        HTTPException
+    ) as captured:
+        analysis_run.run_ai_native_pipeline(
             request=None,
 
             dataset_files=None,
 
             workflow_id=
-                WORKFLOW_ID,
+                workflow_id,
 
             objective=
-                OBJECTIVE,
+                objective,
 
             planner_model=
                 "qwen3.5:4b",
@@ -263,430 +199,65 @@ def test_entity_outlier_survives_general_planner_failure(
 
             approved_semantic_choices_json=None,
         )
-    )
 
 
     assert (
-        result
-        is
-        expected_pipeline_report
+        captured.value.status_code
+        ==
+        503
     )
+
 
     assert (
         events
         ==
         [
-            "entity_outlier",
             "planner",
-            "pipeline",
         ]
     )
 
 
-    assert (
-        result.entity_outlier_finding
-        ==
-        finding_payload
-    )
-
-
-
-def test_entity_outlier_does_not_hide_mixed_request_planner_failure(
+def test_entity_outlier_does_not_bypass_ai_planner_failure(
     monkeypatch,
 ):
-    import pytest
+    run_ai_first_planner_failure_case(
+        monkeypatch,
 
-    from fastapi import (
-        HTTPException,
+        workflow_id=
+            "prep:test-ai-first-entity-outlier",
+
+        objective=
+            "quels sont les clients atypiques ?",
     )
 
 
-    workflow_id = (
-        "prep:test-entity-outlier-mixed-request"
-    )
-
-    objective = (
-        "quels sont les clients atypiques "
-        "et quel est le chiffre d'affaires ?"
-    )
-
-
-    handoff = SimpleNamespace(
-        ingestion=
-            SimpleNamespace(),
-
-        dataset_records=[
-            {
-                "dataset_id":
-                    "dataset:test",
-            }
-        ],
-    )
-
-
-    finding = SimpleNamespace(
-        status=
-            "ready",
-
-        kind=
-            "customer_entity_outlier_detection",
-
-        dataset_id=
-            "derived:test:customer",
-
-        model_dump=lambda **kwargs:
-            {
-                "status":
-                    "ready",
-
-                "kind":
-                    "customer_entity_outlier_detection",
-
-                "dataset_id":
-                    "derived:test:customer",
-            },
-    )
-
-
-    monkeypatch.setattr(
-        analysis_run,
-        "load_validated_analysis_input_for_http",
-        lambda **kwargs:
-            handoff,
-    )
-
-
-    monkeypatch.setattr(
-        analysis_run,
-        "prepare_ai_planner_dataset_universe",
-        lambda **kwargs:
-            (
-                [
-                    {
-                        "dataset_id":
-                            "derived:test:customer",
-                    }
-                ],
-                SimpleNamespace(),
-            ),
-    )
-
-
-    monkeypatch.setattr(
-        analysis_run,
-        "build_entity_outlier_finding_if_requested",
-        lambda **kwargs:
-            finding,
-    )
-
-
-    # Simulate one additional explicit analytical requirement.
-    # This makes the specialized-only fallback unsafe.
-    monkeypatch.setattr(
-        analysis_run,
-        "extract_objective_requirements",
-        lambda **kwargs:
-            [
-                SimpleNamespace(
-                    concept=
-                        "revenue_total"
-                )
-            ],
-    )
-
-
-    monkeypatch.setattr(
-        analysis_run,
-        "plan_analyses_with_intent_routing",
-        lambda **kwargs:
-            (
-                (_ for _ in ())
-                .throw(
-                    RuntimeError(
-                        "synthetic planner failure"
-                    )
-                )
-            ),
-    )
-
-
-    pipeline_called = {
-        "value":
-            False,
-    }
-
-
-    def fail_if_pipeline_runs(
-        **kwargs,
-    ):
-        pipeline_called[
-            "value"
-        ] = True
-
-        raise AssertionError(
-            "Native pipeline must not execute "
-            "after a mixed-request planner failure."
-        )
-
-
-    monkeypatch.setattr(
-        analysis_run,
-        "execute_native_ai_pipeline",
-        fail_if_pipeline_runs,
-    )
-
-
-    monkeypatch.setattr(
-        analysis_run,
-        "build_ai_trace",
-        lambda **kwargs:
-            SimpleNamespace(),
-    )
-
-
-    monkeypatch.setattr(
-        analysis_run,
-        "write_ai_trace",
-        lambda trace:
-            SimpleNamespace(
-                enabled=False,
-                written=False,
-            ),
-    )
-
-
-    with pytest.raises(
-        HTTPException
-    ) as captured:
-        analysis_run.run_ai_native_pipeline(
-            request=None,
-
-            dataset_files=None,
-
-            workflow_id=
-                workflow_id,
-
-            objective=
-                objective,
-
-            planner_model=
-                "qwen3.5:4b",
-
-            tool_model=
-                "qwen2.5:1.5b-instruct",
-
-            approved_action_ids_json=None,
-
-            semantic_decisions_json=None,
-
-            approved_semantic_choices_json=None,
-        )
-
-
-    assert (
-        captured.value.status_code
-        ==
-        503
-    )
-
-
-    assert (
-        pipeline_called[
-            "value"
-        ]
-        is False
-    )
-
-
-
-def test_entity_outlier_does_not_hide_mixed_ranking_planner_failure(
+def test_mixed_request_does_not_bypass_ai_planner_failure(
     monkeypatch,
 ):
-    import pytest
+    run_ai_first_planner_failure_case(
+        monkeypatch,
 
-    from fastapi import (
-        HTTPException,
+        workflow_id=
+            "prep:test-ai-first-mixed-request",
+
+        objective=(
+            "quels sont les clients atypiques "
+            "et quel est le chiffre d'affaires ?"
+        ),
     )
 
 
-    workflow_id = (
-        "prep:test-entity-outlier-mixed-ranking"
-    )
+def test_mixed_ranking_does_not_bypass_ai_planner_failure(
+    monkeypatch,
+):
+    run_ai_first_planner_failure_case(
+        monkeypatch,
 
-    objective = (
-        "Identifie les 10 meilleurs clients et "
-        "signale les ?ventuels clients atypiques."
-    )
+        workflow_id=
+            "prep:test-ai-first-mixed-ranking",
 
-
-    handoff = SimpleNamespace(
-        ingestion=
-            SimpleNamespace(),
-
-        dataset_records=[
-            {
-                "dataset_id":
-                    "dataset:test",
-            }
-        ],
-    )
-
-
-    finding = SimpleNamespace(
-        status=
-            "ready",
-
-        kind=
-            "customer_entity_outlier_detection",
-
-        dataset_id=
-            "derived:test:customer",
-
-        model_dump=lambda **kwargs:
-            {
-                "status":
-                    "ready",
-
-                "kind":
-                    "customer_entity_outlier_detection",
-
-                "dataset_id":
-                    "derived:test:customer",
-            },
-    )
-
-
-    monkeypatch.setattr(
-        analysis_run,
-        "load_validated_analysis_input_for_http",
-        lambda **kwargs:
-            handoff,
-    )
-
-
-    monkeypatch.setattr(
-        analysis_run,
-        "prepare_ai_planner_dataset_universe",
-        lambda **kwargs:
-            (
-                [
-                    {
-                        "dataset_id":
-                            "derived:test:customer",
-                    }
-                ],
-                SimpleNamespace(),
-            ),
-    )
-
-
-    monkeypatch.setattr(
-        analysis_run,
-        "build_entity_outlier_finding_if_requested",
-        lambda **kwargs:
-            finding,
-    )
-
-
-    monkeypatch.setattr(
-        analysis_run,
-        "plan_analyses_with_intent_routing",
-        lambda **kwargs:
-            (
-                (_ for _ in ())
-                .throw(
-                    RuntimeError(
-                        "synthetic planner failure"
-                    )
-                )
-            ),
-    )
-
-
-    pipeline_called = {
-        "value":
-            False,
-    }
-
-
-    def fail_if_pipeline_runs(
-        **kwargs,
-    ):
-        pipeline_called[
-            "value"
-        ] = True
-
-        raise AssertionError(
-            "Native pipeline must not execute "
-            "after a mixed ranking + entity-outlier "
-            "planner failure."
-        )
-
-
-    monkeypatch.setattr(
-        analysis_run,
-        "execute_native_ai_pipeline",
-        fail_if_pipeline_runs,
-    )
-
-
-    monkeypatch.setattr(
-        analysis_run,
-        "build_ai_trace",
-        lambda **kwargs:
-            SimpleNamespace(),
-    )
-
-
-    monkeypatch.setattr(
-        analysis_run,
-        "write_ai_trace",
-        lambda trace:
-            SimpleNamespace(
-                enabled=False,
-                written=False,
-            ),
-    )
-
-
-    with pytest.raises(
-        HTTPException
-    ) as captured:
-        analysis_run.run_ai_native_pipeline(
-            request=None,
-
-            dataset_files=None,
-
-            workflow_id=
-                workflow_id,
-
-            objective=
-                objective,
-
-            planner_model=
-                "qwen3.5:4b",
-
-            tool_model=
-                "qwen2.5:1.5b-instruct",
-
-            approved_action_ids_json=None,
-
-            semantic_decisions_json=None,
-
-            approved_semantic_choices_json=None,
-        )
-
-
-    assert (
-        captured.value.status_code
-        ==
-        503
-    )
-
-
-    assert (
-        pipeline_called[
-            "value"
-        ]
-        is False
+        objective=(
+            "Identifie les 10 meilleurs clients et "
+            "signale les éventuels clients atypiques."
+        ),
     )
